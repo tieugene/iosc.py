@@ -69,7 +69,7 @@ class MainWindow(QtWidgets.QMainWindow):
         fn = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Open data",
-            "~",
+            "",
             "Comtrade Files (*.cfg *.cff)"
         )
         if fn[0]:
