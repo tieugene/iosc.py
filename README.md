@@ -1,2 +1,4 @@
 # iosc.py
-View/analyze comtrade osciдlograms
+
+View/analyze comtrade oscillograms
+
