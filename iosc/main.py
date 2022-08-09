@@ -6,10 +6,12 @@ from PySide2.QtWidgets import QApplication
 from PySide2.QtCore import Qt, QCoreApplication
 # 3. local
 from view import MainWindow
+from iosc_rc import qInitResources
 
 
 def main():
     QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
+    qInitResources()
     app = QApplication()
     mw = MainWindow()
     mw.show()

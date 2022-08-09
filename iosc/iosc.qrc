@@ -1,0 +1,16 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>icons/cloud-download.svg</file>
+    <file>icons/code.svg</file>
+    <file>icons/cog.svg</file>
+    <file>icons/eye.svg</file>
+    <file>icons/info.svg</file>
+    <file>icons/pencil.svg</file>
+    <file>icons/plus.svg</file>
+    <file>icons/power-standby.svg</file>
+    <file>icons/question-mark.svg</file>
+    <file>icons/transfer.svg</file>
+    <file>icons/trash.svg</file>
+</qresource>
+</RCC>
+<!-- pyside2-rcc -o pym_gui_rc.py pym_gui.qrc -->
