@@ -1,6 +1,9 @@
 """Main GUI"""
 # 2. 3rd
+import sys
+
 from PySide2 import QtWidgets, QtGui
+import chardet
 # 3. local
 from comtrade import Comtrade
 
@@ -73,9 +76,14 @@ class MainWindow(QtWidgets.QMainWindow):
             "Comtrade Files (*.cfg *.cff)"
         )
         if fn[0]:
+            encoding = None
+            with open(fn[0], 'rb') as infile:
+                encoding = chardet.detect(infile.read())['encoding']
+            if encoding is None:
+                sys.exit("Unknown encoding")
             rec = Comtrade()
-            rec.load(fn[0])
-            print("Trigger time = {}s".format(rec.trigger_time))
+            rec.load(fn[0], encoding=encoding)
+            # print("Trigger time = {}s".format(rec.trigger_time))
             import matplotlib.pyplot as plt
             plt.figure()
             plt.plot(rec.time, rec.analog[0])

@@ -5,8 +5,13 @@ View/analyze comtrade oscillograms
 ## Requirements
 - PySide2
 - numpy
+- chardet
 - python3-matplotlib-qt5
 
-## Powered by
+## Includes
 - [python-comtrade](https://github.com/dparrini/python-comtrade)
-- icons
+- [open-iconic](https://github.com/iconic/open-iconic) icons
+
+## ToDo
+- [x] Encoding detection (chardet)
+- [ ] Plot via QtChart
