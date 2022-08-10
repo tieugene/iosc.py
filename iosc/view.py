@@ -7,7 +7,7 @@ from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog
 import chardet
 # 3. local
 from comtrade import Comtrade
-from chart import MainWidget
+from chart import ChartsWidget
 
 
 def comtrade_info(rec: Comtrade):
@@ -20,7 +20,7 @@ def comtrade_info(rec: Comtrade):
 
 class MainWindow(QMainWindow):
     # misc
-    central_widget: MainWidget
+    central_widget: ChartsWidget
     # actions
     actOpen: QAction
     actExit: QAction
@@ -38,7 +38,7 @@ class MainWindow(QMainWindow):
 
     def create_widgets(self):
         # order
-        self.central_widget = MainWidget()
+        self.central_widget = ChartsWidget()
         # that's all
         self.setCentralWidget(self.central_widget)
         # attributes
