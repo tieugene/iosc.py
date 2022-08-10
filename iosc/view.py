@@ -1,23 +1,42 @@
 """Main GUI"""
-# 2. 3rd
+# 1. std
 import sys
-
-from PySide2 import QtWidgets, QtGui
+# 2. 3rd
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QIcon
+from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QWidget, QVBoxLayout, QSizePolicy, \
+    QSplitter
 import chardet
 # 3. local
 from comtrade import Comtrade
 
 
-class MainWindow(QtWidgets.QMainWindow):
+class MainWidget(QWidget):
+    def __init__(self):
+        QWidget.__init__(self)
+        splitter = QSplitter(self)
+        self.panel_top = QWidget(splitter)
+        self.panel_bottom = QWidget(splitter)
+        splitter.addWidget(self.panel_top)
+        splitter.addWidget(self.panel_bottom)
+        splitter.setOrientation(Qt.Horizontal)
+        # splitter.setStretchFactor(0, 0)
+        # splitter.setStretchFactor(1, 0)
+        layout = QVBoxLayout(self)
+        layout.addWidget(splitter)
+        self.setLayout(layout)
+
+
+class MainWindow(QMainWindow):
     # misc
-    tabs: QtWidgets.QTabWidget
+    central_wodget: MainWidget
     # actions
-    actOpen: QtWidgets.QAction
-    actExit: QtWidgets.QAction
-    actAbout: QtWidgets.QAction
+    actOpen: QAction
+    actExit: QAction
+    actAbout: QAction
 
     def __init__(self):
-        super().__init__()
+        QMainWindow.__init__(self)
         self.create_widgets()
         self.create_actions()
         self.create_menus()
@@ -28,28 +47,28 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def create_widgets(self):
         # order
-        self.tabs = QtWidgets.QTabWidget()
+        self.central_wodget = MainWidget()
         # that's all
-        self.setCentralWidget(self.tabs)
+        self.setCentralWidget(self.central_wodget)
         # attributes
 
     def create_actions(self):
         # noinspection PyArgumentList
-        self.actExit = QtWidgets.QAction(QtGui.QIcon(':/icons/power-standby.svg'),
-                                         "E&xit", self,
-                                         shortcut="Ctrl+Q",
-                                         statusTip="Exit the application",
-                                         triggered=self.close)
-        self.actOpen = QtWidgets.QAction(QtGui.QIcon(':/icons/cloud-download.svg'),
-                                         "&Open", self,
-                                         shortcut="Ctrl+O",
-                                         statusTip="Load comtrade file",
-                                         triggered=self.file_open)
+        self.actExit = QAction(QIcon(':/icons/power-standby.svg'),
+                               "E&xit", self,
+                               shortcut="Ctrl+Q",
+                               statusTip="Exit the application",
+                               triggered=self.close)
+        self.actOpen = QAction(QIcon(':/icons/cloud-download.svg'),
+                               "&Open", self,
+                               shortcut="Ctrl+O",
+                               statusTip="Load comtrade file",
+                               triggered=self.file_open)
         # noinspection PyArgumentList
-        self.actAbout = QtWidgets.QAction(QtGui.QIcon(':/icons/question-mark.svg'),
-                                          "&About", self,
-                                          statusTip="Show the application's About box",
-                                          triggered=self.about)
+        self.actAbout = QAction(QIcon(':/icons/question-mark.svg'),
+                                "&About", self,
+                                statusTip="Show the application's About box",
+                                triggered=self.about)
 
     def create_menus(self):
         menu_file = self.menuBar().addMenu("&File")
@@ -66,17 +85,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
     # actions
     def about(self):
-        QtWidgets.QMessageBox.about(self, "About iOsc.py", "PySide2 powered comtrade viewer/analyzer.")
+        QMessageBox.about(self, "About iOsc.py", "PySide2 powered comtrade viewer/analyzer.")
 
     def file_open(self):
-        fn = QtWidgets.QFileDialog.getOpenFileName(
+        fn = QFileDialog.getOpenFileName(
             self,
             "Open data",
             "",
             "Comtrade Files (*.cfg *.cff)"
         )
         if fn[0]:
-            encoding = None
             with open(fn[0], 'rb') as infile:
                 encoding = chardet.detect(infile.read())['encoding']
             if encoding is None:
