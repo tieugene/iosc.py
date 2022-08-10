@@ -9,7 +9,7 @@ class OneChart(QtCharts.QChart):
     def __init__(self, v_name: str, t_list, v_list):
         QtCharts.QChart.__init__(self)
         series = QtCharts.QLineSeries()
-        # series.setName(rec.analog_channel_ids[0])
+        # series.setName(v_name)  # TODO: hide title
         # Filling QLineSeries
         for i, t in enumerate(t_list):
             series.append(t, v_list[i])
@@ -18,7 +18,7 @@ class OneChart(QtCharts.QChart):
         axis_x = QtCharts.QValueAxis()
         axis_x.setTickCount(10)
         axis_x.setLabelFormat("%.2f")
-        axis_x.setTitleText("Time")
+        # axis_x.setTitleText("Time")  # hide h-legend
         self.addAxis(axis_x, Qt.AlignBottom)
         series.attachAxis(axis_x)
         # Setting Y-axis
@@ -39,8 +39,9 @@ class ChartsWidget(QWidget):
         splitter = QSplitter(self)
         self.panel_analog = QWidget(splitter)
         self.panel_analog.setLayout(QVBoxLayout())
-        self.panel_status = QWidget(splitter)
         splitter.addWidget(self.panel_analog)
+        self.panel_status = QWidget(splitter)
+        self.panel_status.setLayout(QVBoxLayout())
         splitter.addWidget(self.panel_status)
         splitter.setOrientation(Qt.Vertical)
         layout = QVBoxLayout()
@@ -52,8 +53,13 @@ class ChartsWidget(QWidget):
         :param rec: Data
         :return:
         """
-        chart = OneChart(rec.analog_channel_ids[0], rec.time, rec.analog[0])
-        chart_view = QtCharts.QChartView(chart)
-        chart_view.setRenderHint(QPainter.Antialiasing)
-        self.panel_analog.layout().addWidget(chart_view)
-
+        for i in range(2):
+            chart = OneChart(rec.analog_channel_ids[i], rec.time, rec.analog[i])
+            chart_view = QtCharts.QChartView(chart)
+            chart_view.setRenderHint(QPainter.Antialiasing)
+            self.panel_analog.layout().addWidget(chart_view)
+        for i in (6, 16):
+            chart = OneChart(rec.status_channel_ids[i], rec.time, rec.status[i])
+            chart_view = QtCharts.QChartView(chart)
+            chart_view.setRenderHint(QPainter.Antialiasing)
+            self.panel_status.layout().addWidget(chart_view)
