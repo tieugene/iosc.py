@@ -2,34 +2,17 @@
 # 1. std
 import sys
 # 2. 3rd
-from PySide2.QtCore import Qt
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QWidget, QVBoxLayout, QSizePolicy, \
-    QSplitter
+from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog
 import chardet
 # 3. local
 from comtrade import Comtrade
-
-
-class MainWidget(QWidget):
-    def __init__(self):
-        QWidget.__init__(self)
-        splitter = QSplitter(self)
-        self.panel_top = QWidget(splitter)
-        self.panel_bottom = QWidget(splitter)
-        splitter.addWidget(self.panel_top)
-        splitter.addWidget(self.panel_bottom)
-        splitter.setOrientation(Qt.Horizontal)
-        # splitter.setStretchFactor(0, 0)
-        # splitter.setStretchFactor(1, 0)
-        layout = QVBoxLayout(self)
-        layout.addWidget(splitter)
-        self.setLayout(layout)
+from chart import MainWidget
 
 
 class MainWindow(QMainWindow):
     # misc
-    central_wodget: MainWidget
+    central_widget: MainWidget
     # actions
     actOpen: QAction
     actExit: QAction
@@ -47,9 +30,9 @@ class MainWindow(QMainWindow):
 
     def create_widgets(self):
         # order
-        self.central_wodget = MainWidget()
+        self.central_widget = MainWidget()
         # that's all
-        self.setCentralWidget(self.central_wodget)
+        self.setCentralWidget(self.central_widget)
         # attributes
 
     def create_actions(self):
@@ -102,12 +85,17 @@ class MainWindow(QMainWindow):
             rec = Comtrade()
             rec.load(fn[0], encoding=encoding)
             # print("Trigger time = {}s".format(rec.trigger_time))
-            import matplotlib.pyplot as plt
-            plt.figure()
-            plt.plot(rec.time, rec.analog[0])
-            plt.plot(rec.time, rec.analog[1])
-            plt.legend([rec.analog_channel_ids[0], rec.analog_channel_ids[1]])
-            plt.show()
+            # self.plot_by_matplot(rec)
+            self.central_widget.plot_chart(rec)
+
+    @staticmethod
+    def plot_by_matplot(rec: Comtrade):
+        import matplotlib.pyplot as plt
+        plt.figure()
+        plt.plot(rec.time, rec.analog[0])
+        plt.plot(rec.time, rec.analog[1])
+        plt.legend([rec.analog_channel_ids[0], rec.analog_channel_ids[1]])
+        plt.show()
 
     def update_statusbar(self, s: str):
         self.statusBar().showMessage(s)

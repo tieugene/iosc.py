@@ -14,4 +14,4 @@ View/analyze comtrade oscillograms
 
 ## ToDo
 - [x] Encoding detection (chardet)
-- [ ] Plot via QtChart
+- [x] Plot via QtChart (1)
