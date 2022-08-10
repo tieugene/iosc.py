@@ -10,6 +10,14 @@ from comtrade import Comtrade
 from chart import MainWidget
 
 
+def comtrade_info(rec: Comtrade):
+    # print("Trigger time = {}s".format(rec.trigger_time))
+    print("Analog chs:", rec.analog_channel_ids)
+    print("Status chs:", rec.status_channel_ids)
+    # print("Digital chs:", rec.digital_channel_ids)  # depricated
+    # print(rec.status[6])
+
+
 class MainWindow(QMainWindow):
     # misc
     central_widget: MainWidget
@@ -84,7 +92,7 @@ class MainWindow(QMainWindow):
                 sys.exit("Unknown encoding")
             rec = Comtrade()
             rec.load(fn[0], encoding=encoding)
-            # print("Trigger time = {}s".format(rec.trigger_time))
+            # comtrade_info(rec)
             # self.plot_by_matplot(rec)
             self.central_widget.plot_chart(rec)
 

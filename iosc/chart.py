@@ -6,21 +6,23 @@ from comtrade import Comtrade
 
 
 class MainWidget(QWidget):
+    panel_analog: QWidget
+    panel_status: QWidget
     chart: QtCharts.QChart
     chart_view: QtCharts.QChartView
 
     def __init__(self):
         QWidget.__init__(self)
         splitter = QSplitter(self)
-        # self.panel_top = QWidget(splitter)
-        # splitter.addWidget(self.panel_top)
+        # self.panel_analog = QWidget(splitter)
+        # splitter.addWidget(self.panel_analog)
         self.chart = QtCharts.QChart()
         # self.chart.setAnimationOptions(QtCharts.QChart.AllAnimations)
         self.chart_view = QtCharts.QChartView(self.chart)
         self.chart_view.setRenderHint(QPainter.Antialiasing)
         splitter.addWidget(self.chart_view)
-        self.panel_bottom = QWidget(splitter)
-        splitter.addWidget(self.panel_bottom)
+        self.panel_status = QWidget(splitter)
+        splitter.addWidget(self.panel_status)
         splitter.setOrientation(Qt.Vertical)
         # splitter.setStretchFactor(0, 0)
         # splitter.setStretchFactor(1, 0)
