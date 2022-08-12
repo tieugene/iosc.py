@@ -4,7 +4,7 @@ import sys
 import pathlib
 # 2. 3rd
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget, QTabBar
+from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget, QTabBar, QWidget, QHBoxLayout
 import chardet
 # 3. local
 from comtrade import Comtrade
@@ -40,8 +40,8 @@ class ChartsTabWidget(QTabWidget):
         else:
             rec.load(str(path))
         # comtrade_info(rec)
-        item = ChartsWidget()
         index = self.count()
+        item = ChartsWidget()
         self._chartviews.append(item)
         self.addTab(item, path.name)
         item.plot_chart(rec)

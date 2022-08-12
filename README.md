@@ -24,7 +24,7 @@ Note: Pareto
 - [x] File => Close
 - [ ] Scroll ChartWidget
 #### etc:
-- [x] Comtrade.load(..., encoding)  non-ascii/utf-8
+- [x] Comtrade.load(...[, encoding])
 - [ ] Chart: rm:
   - Title
   - H-legend
