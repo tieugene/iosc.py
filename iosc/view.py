@@ -50,10 +50,14 @@ class ChartsTabWidget(QTabWidget):
             self._chartviews.remove(chartview)
             self.removeTab(index)
 
+    def close_current_tab(self):
+        self.handle_tab_close_request(self.currentIndex())
+
 
 class MainWindow(QMainWindow):
     tabs: ChartsTabWidget
     actOpen: QAction
+    actClose: QAction
     actExit: QAction
     actAbout: QAction
 
@@ -84,6 +88,11 @@ class MainWindow(QMainWindow):
                                shortcut="Ctrl+O",
                                statusTip="Load comtrade file",
                                triggered=self.file_open)
+        self.actClose = QAction(QIcon.fromTheme("window-close"),
+                                "&Close",
+                                self,
+                                shortcut="Ctrl+W",
+                                triggered=self.file_close)
         self.actAbout = QAction(QIcon.fromTheme("help-about"),
                                 "&About",
                                 self,
@@ -93,6 +102,7 @@ class MainWindow(QMainWindow):
     def create_menus(self):
         menu_file = self.menuBar().addMenu("&File")
         menu_file.addAction(self.actOpen)
+        menu_file.addAction(self.actClose)
         menu_file.addAction(self.actExit)
         menu_help = self.menuBar().addMenu("&Help")
         menu_help.addAction(self.actAbout)
@@ -116,6 +126,12 @@ class MainWindow(QMainWindow):
         )
         if fn[0]:
             self.tabs.add_chart_tab(pathlib.Path(fn[0]))
+
+    def file_close(self):
+        if self.tabs.count() > 0:
+            self.tabs.close_current_tab()
+        # else:
+        #    self.close()  # TODO: disable ^W
 
     def update_statusbar(self, s: str):
         self.statusBar().showMessage(s)

@@ -6,7 +6,6 @@ View/analyze comtrade oscillograms
 - PySide2
 - numpy
 - chardet
-- python3-matplotlib-qt5
 
 ## Includes
 - [python-comtrade](https://github.com/dparrini/python-comtrade)
@@ -15,6 +14,13 @@ View/analyze comtrade oscillograms
 ## ToDo
 ### Features
 ### Bugs
-- [ ] Comtrade.load(..., encoding)  non-ascii/utf-8
-- [ ] Scroll ChartWidget
+#### Tabs:
 - [x] Close last tab
+- [x] File => Close
+- [ ] Scroll ChartWidget
+#### etc:
+- [ ] Comtrade.load(..., encoding)  non-ascii/utf-8
+- [ ] Chart: rm:
+  - Title
+  - H-legend
+  - V-Legend
