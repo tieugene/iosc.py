@@ -13,5 +13,8 @@ View/analyze comtrade oscillograms
 - [open-iconic](https://github.com/iconic/open-iconic) icons
 
 ## ToDo
-- [x] Encoding detection (chardet)
-- [x] Plot via QtChart (1)
+### Features
+### Bugs
+- [ ] Comtrade.load(..., encoding)  non-ascii/utf-8
+- [ ] Scroll ChartWidget
+- [x] Close last tab
