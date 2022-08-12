@@ -12,14 +12,19 @@ View/analyze comtrade oscillograms
 - [open-iconic](https://github.com/iconic/open-iconic) icons
 
 ## ToDo
-### Features
-### Bugs
+### План-график работ
+Note: Pareto
+
+### Features:
+- &hellip;
+
+### Bugs:
 #### Tabs:
 - [x] Close last tab
 - [x] File => Close
 - [ ] Scroll ChartWidget
 #### etc:
-- [ ] Comtrade.load(..., encoding)  non-ascii/utf-8
+- [x] Comtrade.load(..., encoding)  non-ascii/utf-8
 - [ ] Chart: rm:
   - Title
   - H-legend

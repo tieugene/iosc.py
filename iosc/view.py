@@ -29,13 +29,16 @@ class ChartsTabWidget(QTabWidget):
         # tab_bar.setSelectionBehaviorOnRemove(QTabBar.SelectPreviousTab)
 
     def add_chart_tab(self, path: pathlib.Path):
-        with open(path, 'rb') as infile:
-            encoding = chardet.detect(infile.read())['encoding']
-            print(f"Encoding: {encoding}")
-        if encoding is None:
-            sys.exit("Unknown encoding")
+        encoding = None
+        if path.suffix.lower() == '.cfg':
+            with open(path, 'rb') as infile:
+                if (enc := chardet.detect(infile.read())['encoding']) not in {'ascii', 'utf-8'}:
+                    encoding = enc
         rec = Comtrade()
-        rec.load(str(path))  # encoding=encoding
+        if encoding:
+            rec.load(str(path), encoding=encoding)
+        else:
+            rec.load(str(path))
         # comtrade_info(rec)
         item = ChartsWidget()
         index = self.count()
