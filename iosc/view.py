@@ -1,9 +1,10 @@
 """Main GUI"""
 # 1. std
 import sys
+import pathlib
 # 2. 3rd
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog
+from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget
 import chardet
 # 3. local
 from comtrade import Comtrade
@@ -20,6 +21,7 @@ def comtrade_info(rec: Comtrade):
 
 class MainWindow(QMainWindow):
     # misc
+    tabs: QTabWidget
     central_widget: ChartsWidget
     # actions
     actOpen: QAction
@@ -37,11 +39,8 @@ class MainWindow(QMainWindow):
         # actions handling
 
     def create_widgets(self):
-        # order
-        self.central_widget = ChartsWidget()
-        # that's all
-        self.setCentralWidget(self.central_widget)
-        # attributes
+        self.tabs = QTabWidget()
+        self.setCentralWidget(self.tabs)
 
     def create_actions(self):
         # noinspection PyArgumentList
@@ -93,17 +92,9 @@ class MainWindow(QMainWindow):
             rec = Comtrade()
             rec.load(fn[0], encoding=encoding)
             # comtrade_info(rec)
-            # self.plot_by_matplot(rec)
-            self.central_widget.plot_chart(rec)
-
-    @staticmethod
-    def plot_by_matplot(rec: Comtrade):
-        import matplotlib.pyplot as plt
-        plt.figure()
-        plt.plot(rec.time, rec.analog[0])
-        plt.plot(rec.time, rec.analog[1])
-        plt.legend([rec.analog_channel_ids[0], rec.analog_channel_ids[1]])
-        plt.show()
+            item = ChartsWidget()
+            self.tabs.addTab(item, pathlib.Path(fn[0]).name)
+            item.plot_chart(rec)
 
     def update_statusbar(self, s: str):
         self.statusBar().showMessage(s)
