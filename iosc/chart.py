@@ -45,12 +45,12 @@ class OneChart(QtCharts.QChart):
         self.legend().setAlignment(Qt.AlignLeft)
 
 
-class ChartsWidget(QWidget):
+class ComtradeWidget(QWidget):
     panel_analog: QWidget
     panel_status: QWidget
 
     def __init__(self, parent=None):
-        super(ChartsWidget, self).__init__(parent)
+        super(ComtradeWidget, self).__init__(parent)
         splitter = QSplitter(self)
         # 1. analog part
         self.panel_analog = QWidget(splitter)

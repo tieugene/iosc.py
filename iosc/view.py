@@ -11,12 +11,12 @@ from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QT
 import chardet
 # 3. local
 from comtrade import Comtrade
-from chart import ChartsWidget
+from chart import ComtradeWidget
 
 
-class ChartsTabWidget(QTabWidget):
+class ComtradeTabWidget(QTabWidget):
     def __init__(self, parent=None):
-        super(ChartsTabWidget, self).__init__(parent)
+        super(ComtradeTabWidget, self).__init__(parent)
         self.setTabsClosable(True)
         self._chartviews = []
         self._chartdata = []
@@ -38,7 +38,7 @@ class ChartsTabWidget(QTabWidget):
             rec.load(str(path))
         self._chartdata.append(rec)
         # TODO: store file path
-        item = ChartsWidget()
+        item = ComtradeWidget()
         self._chartviews.append(item)
         self.addTab(item, path.name)
         item.plot_chart(rec)
@@ -88,7 +88,7 @@ class ChartsTabWidget(QTabWidget):
 
 
 class MainWindow(QMainWindow):
-    tabs: ChartsTabWidget
+    tabs: ComtradeTabWidget
     actOpen: QAction
     actClose: QAction
     actInfo: QAction
@@ -106,7 +106,7 @@ class MainWindow(QMainWindow):
         # actions handling
 
     def create_widgets(self):
-        self.tabs = ChartsTabWidget(self)
+        self.tabs = ComtradeTabWidget(self)
         self.setCentralWidget(self.tabs)
 
     def create_actions(self):
