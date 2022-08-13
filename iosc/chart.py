@@ -23,7 +23,7 @@ class OneChart(QtCharts.QChart):
         def __decorate_y(s):
             # Setting Y-axis
             axis: QtCharts.QValueAxis = QtCharts.QValueAxis()
-            axis.setTickAnchor(0)
+            axis.setTickAnchor(0)  # TODO: brush=...
             axis.setTickCount(5)
             # axis.setLabelFormat("%.1f")  # default
             axis.setLabelsVisible(False)
@@ -31,7 +31,7 @@ class OneChart(QtCharts.QChart):
             self.addAxis(axis, Qt.AlignLeft)
             s.attachAxis(axis)
 
-        QtCharts.QChart.__init__(self)
+        super(OneChart, self).__init__()
         series = QtCharts.QLineSeries()
         # Filling QLineSeries
         for i, t in enumerate(t_list):
@@ -49,8 +49,8 @@ class ChartsWidget(QWidget):
     panel_analog: QWidget
     panel_status: QWidget
 
-    def __init__(self):
-        QWidget.__init__(self)
+    def __init__(self, parent=None):
+        super(ChartsWidget, self).__init__(parent)
         splitter = QSplitter(self)
         # 1. analog part
         self.panel_analog = QWidget(splitter)

@@ -15,7 +15,7 @@ from chart import ChartsWidget
 
 
 class ChartsTabWidget(QTabWidget):
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super(ChartsTabWidget, self).__init__(parent)
         self.setTabsClosable(True)
         self._chartviews = []
@@ -96,7 +96,7 @@ class MainWindow(QMainWindow):
     actAbout: QAction
 
     def __init__(self):
-        QMainWindow.__init__(self)
+        super(MainWindow, self).__init__()
         self.create_widgets()
         self.create_actions()
         self.create_menus()
