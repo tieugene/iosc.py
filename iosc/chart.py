@@ -58,7 +58,7 @@ class AnalogSignalListView(QWidget):
         self.setLayout(QVBoxLayout())
 
     def fill_list(self, rec: Comtrade):
-        for i in range(min(rec.analog_count, 2)):
+        for i in range(min(rec.analog_count, 3)):
             self.layout().addWidget(AnalogSignalChartView(rec, i))
 
 
