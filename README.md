@@ -12,16 +12,9 @@ View/analyze comtrade oscillograms
 - [open-iconic](https://github.com/iconic/open-iconic) icons
 
 ## ToDo
-### План-график работ
-Note: Pareto
-
 ### Features:
 - &hellip;
 
 ### Bugs:
 #### etc:
 - [ ] Scroll ChartWidget
-- [ ] Chart: rm:
-  - Title
-  - H-legend
-  - V-Legend
