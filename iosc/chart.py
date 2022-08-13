@@ -6,14 +6,16 @@ from comtrade import Comtrade
 
 
 class OneChart(QtCharts.QChart):
-    def __init__(self, v_name: str, t_list: list, v_list: list):
+    def __init__(self, v_name: str, t_list: list, v_list: list, time0: float):
         def __decorate_x(s):
             # Setting X-axis
             axis: QtCharts.QValueAxis = QtCharts.QValueAxis()
             axis.setTickType(QtCharts.QValueAxis.TicksDynamic)
             axis.setTickInterval(100)
-            # axis.setLabelFormat("%d")
-            axis.setLabelsVisible(False)
+            axis.setTickAnchor(1000 * time0)  # TODO: brush=black
+            # print("Anchor:", 1000 * time0)
+            axis.setLabelFormat("%d")
+            # axis.setLabelsVisible(False)
             # axis_x.setTitleText("Time")  # axis label
             self.addAxis(axis, Qt.AlignBottom)
             s.attachAxis(axis)
@@ -70,12 +72,12 @@ class ChartsWidget(QWidget):
         :return:
         """
 
-        def __plot(dst_panel: QWidget, src_id: list, src_data: list, src_time: list, num: int):
+        def __plot(dst_panel: QWidget, src_id: list, src_data: list, src_time: list, num: int, trigger_time: float):
             for i in range(num):
-                chart = OneChart(src_id[i], src_time, src_data[i])
+                chart = OneChart(src_id[i], src_time, src_data[i], trigger_time)
                 chart_view: QtCharts.QChartView = QtCharts.QChartView(chart)
                 chart_view.setRenderHint(QPainter.Antialiasing)
                 self.panel_analog.layout().addWidget(chart_view)
 
-        __plot(self.panel_analog, rec.analog_channel_ids, rec.analog, rec.time, min(rec.analog_count, 2))
+        __plot(self.panel_analog, rec.analog_channel_ids, rec.analog, rec.time, min(rec.analog_count, 2), rec.trigger_time)
         # __plot(self.panel_status, rec.status_channel_ids, rec.status, rec.time, min(rec.status_count, 3))

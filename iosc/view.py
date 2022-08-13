@@ -14,14 +14,6 @@ from comtrade import Comtrade
 from chart import ChartsWidget
 
 
-def comtrade_info(rec: Comtrade):
-    # print("Trigger time = {}s".format(rec.trigger_time))
-    print("Analog chs:", rec.analog_channel_ids)
-    print("Status chs:", rec.status_channel_ids)
-    # print("Digital chs:", rec.digital_channel_ids)  # depricated
-    # print(rec.status[6])
-
-
 class ChartsTabWidget(QTabWidget):
     def __init__(self, parent):
         super(ChartsTabWidget, self).__init__(parent)
@@ -46,7 +38,6 @@ class ChartsTabWidget(QTabWidget):
             rec.load(str(path))
         self._chartdata.append(rec)
         # TODO: store file path
-        # comtrade_info(rec)
         item = ChartsWidget()
         self._chartviews.append(item)
         self.addTab(item, path.name)
