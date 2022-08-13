@@ -53,12 +53,12 @@ class ChartsWidget(QWidget):
         :param rec: Data
         :return:
         """
-        for i in range(2):
+        for i in range(min(rec.analog_count, 3)):  # range(2)
             chart = OneChart(rec.analog_channel_ids[i], rec.time, rec.analog[i])
             chart_view = QtCharts.QChartView(chart)
             chart_view.setRenderHint(QPainter.Antialiasing)
             self.panel_analog.layout().addWidget(chart_view)
-        for i in (6, 16):
+        for i in range(min(rec.status_count, 3)):  # (6, 16)
             chart = OneChart(rec.status_channel_ids[i], rec.time, rec.status[i])
             chart_view = QtCharts.QChartView(chart)
             chart_view.setRenderHint(QPainter.Antialiasing)
