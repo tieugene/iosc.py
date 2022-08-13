@@ -19,11 +19,7 @@ Note: Pareto
 - &hellip;
 
 ### Bugs:
-#### Tabs:
-- [x] Close last tab
-- [x] File => Close
 #### etc:
-- [x] Comtrade.load(...[, encoding])
 - [ ] Scroll ChartWidget
 - [ ] Chart: rm:
   - Title
