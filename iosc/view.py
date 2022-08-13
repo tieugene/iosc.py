@@ -27,7 +27,7 @@ class ChartsTabWidget(QTabWidget):
         super(ChartsTabWidget, self).__init__(parent)
         self.setTabsClosable(True)
         self._chartviews = []
-        self._chardata = []
+        self._chartdata = []
         self.tabCloseRequested.connect(self.handle_tab_close_request)
         # tab_bar = self.tabBar()
         # tab_bar.setSelectionBehaviorOnRemove(QTabBar.SelectPreviousTab)
@@ -44,7 +44,7 @@ class ChartsTabWidget(QTabWidget):
             rec.load(str(path), encoding=encoding)
         else:
             rec.load(str(path))
-        self._chardata.append(rec)
+        self._chartdata.append(rec)
         # TODO: store file path
         # comtrade_info(rec)
         item = ChartsWidget()
@@ -57,7 +57,7 @@ class ChartsTabWidget(QTabWidget):
         if index >= 0 and self.count() >= 1:
             chartview = self._chartviews[index]
             self._chartviews.remove(chartview)
-            chartdata = self._chardata[index]
+            chartdata = self._chartdata[index]
             self._chartdata.remove(chartdata)
             self.removeTab(index)
 
@@ -68,7 +68,7 @@ class ChartsTabWidget(QTabWidget):
         def tr(name: str, value: Any):
             return f"<tr><th>{name}:</th><td>{value}</td></tr>"
         index = self.currentIndex()
-        rec: Comtrade = self._chardata[index]
+        rec: Comtrade = self._chartdata[index]
         msg = QMessageBox(QMessageBox.Icon.Information, "Comtrade file info", "Summary")
         # plan A:
         # msg.setDetailedText(rec.cfg_summary())
