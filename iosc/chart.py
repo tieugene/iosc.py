@@ -1,6 +1,6 @@
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QAbstractListModel, QModelIndex
 from PySide2.QtGui import QPainter
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QListWidget, QListWidgetItem, QListView
 from PySide2.QtCharts import QtCharts
 from comtrade import Comtrade
 
@@ -86,3 +86,59 @@ class ComtradeWidget(QWidget):
         :return:
         """
         self.analog_panel.fill_list(rec)
+# ----
+
+
+class SignalListModel(QAbstractListModel):
+
+    def __init__(self, parent=None):
+        super(SignalListModel, self).__init__(parent)
+        self.itemList = []
+
+    def rowCount(self, parent=QModelIndex()):
+        return len(self.itemList)
+
+    def data(self, index, role=Qt.DisplayRole):
+        if not index.isValid():
+            return None
+        if index.row() >= len(self.itemList) or index.row() < 0:
+            return None
+        if role == Qt.DisplayRole:
+            return self.itemList[index.row()]
+        return None
+
+    def canFetchMore(self, index):
+        return self.fileCount < len(self.fileList)
+
+    def fetchMore(self, index):
+        remainder = len(self.fileList) - self.fileCount
+        itemsToFetch = min(100, remainder)
+
+        self.beginInsertRows(QModelIndex(), self.fileCount,
+                self.fileCount + itemsToFetch)
+
+        self.fileCount += itemsToFetch
+
+        self.endInsertRows()
+
+        self.numberPopulated.emit(itemsToFetch)
+
+    def setDirPath(self, path):
+        dir = QDir(path)
+
+        self.beginResetModel()
+        self.fileList = list(dir.entryList())
+        self.fileCount = 0
+        self.endResetModel()
+
+
+class AnalogSignalListView2(QListWidget):
+    def __init__(self, parent=None):
+        super(AnalogSignalListView2, self).__init__(parent)
+        self.setViewMode(QListView.IconMode)
+
+    def fill_list(self, rec: Comtrade):
+        for i in range(min(rec.analog_count, 3)):
+            item = QListWidgetItem(self)
+            item.setData(Qt.DisplayRole, AnalogSignalChartView(rec, i))
+            item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)

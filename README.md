@@ -17,4 +17,7 @@ View/analyze comtrade oscillograms
 
 ### Bugs:
 #### etc:
-- [ ] Scroll ChartWidget
+- [ ] Scroll ChartWidget:
+  - QListView/QListWidget (decorated?) - no errors, no images
+  - TableView/QTableWidget
+  - Scrollable widget + grid layout
