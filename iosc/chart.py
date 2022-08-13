@@ -9,23 +9,25 @@ class OneChart(QtCharts.QChart):
     def __init__(self, v_name: str, t_list: list, v_list: list):
         def __decorate_x(s):
             # Setting X-axis
-            axis_x: QtCharts.QValueAxis = QtCharts.QValueAxis()
-            axis_x.setTickType(QtCharts.QValueAxis.TicksDynamic)
-            axis_x.setTickInterval(100)
-            axis_x.setLabelFormat("%d")
+            axis: QtCharts.QValueAxis = QtCharts.QValueAxis()
+            axis.setTickType(QtCharts.QValueAxis.TicksDynamic)
+            axis.setTickInterval(100)
+            # axis.setLabelFormat("%d")
+            axis.setLabelsVisible(False)
             # axis_x.setTitleText("Time")  # axis label
-            self.addAxis(axis_x, Qt.AlignBottom)
-            s.attachAxis(axis_x)
+            self.addAxis(axis, Qt.AlignBottom)
+            s.attachAxis(axis)
 
         def __decorate_y(s):
             # Setting Y-axis
-            axis_y: QtCharts.QValueAxis = QtCharts.QValueAxis()
-            axis_y.setTickCount(5)
-            axis_y.setTickAnchor(0)
-            axis_y.setLabelFormat("%.1f")
-            # axis_y.setTitleText(v_name)  # axis label
-            self.addAxis(axis_y, Qt.AlignLeft)
-            s.attachAxis(axis_y)
+            axis: QtCharts.QValueAxis = QtCharts.QValueAxis()
+            axis.setTickAnchor(0)
+            axis.setTickCount(5)
+            # axis.setLabelFormat("%.1f")  # default
+            axis.setLabelsVisible(False)
+            # axis.setTitleText(v_name)  # axis label
+            self.addAxis(axis, Qt.AlignLeft)
+            s.attachAxis(axis)
 
         QtCharts.QChart.__init__(self)
         series = QtCharts.QLineSeries()
