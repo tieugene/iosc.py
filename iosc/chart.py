@@ -5,7 +5,7 @@ from PySide2.QtCharts import QtCharts
 from comtrade import Comtrade
 
 
-class OneChart(QtCharts.QChart):
+class SignalChart(QtCharts.QChart):
     def __init__(self, v_name: str, t_list: list, v_list: list, time0: float):
         def __decorate_x(s):
             # Setting X-axis
@@ -31,7 +31,7 @@ class OneChart(QtCharts.QChart):
             self.addAxis(axis, Qt.AlignLeft)
             s.attachAxis(axis)
 
-        super(OneChart, self).__init__()
+        super(SignalChart, self).__init__()
         series = QtCharts.QLineSeries()
         # Filling QLineSeries
         for i, t in enumerate(t_list):
@@ -45,39 +45,44 @@ class OneChart(QtCharts.QChart):
         self.legend().setAlignment(Qt.AlignLeft)
 
 
+class AnalogSignalChartView(QtCharts.QChartView):
+    def __init__(self, rec: Comtrade, i: int, parent=None):
+        super(AnalogSignalChartView, self).__init__(parent)
+        self.setRenderHint(QPainter.Antialiasing)
+        self.setChart(SignalChart(rec.analog_channel_ids[i], rec.time, rec.analog[i], rec.trigger_time))
+
+
+class AnalogSignalListView(QWidget):
+    def __init__(self, parent=None):
+        super(AnalogSignalListView, self).__init__(parent)
+        self.setLayout(QVBoxLayout())
+
+    def fill_list(self, rec: Comtrade):
+        for i in range(min(rec.analog_count, 2)):
+            self.layout().addWidget(AnalogSignalChartView(rec, i))
+
+
 class ComtradeWidget(QWidget):
-    panel_analog: QWidget
-    panel_status: QWidget
+    analog_panel: AnalogSignalListView
+    # digital_panel: QWidget
 
     def __init__(self, parent=None):
         super(ComtradeWidget, self).__init__(parent)
+        self.setLayout(QVBoxLayout())
         splitter = QSplitter(self)
-        # 1. analog part
-        self.panel_analog = QWidget(splitter)
-        self.panel_analog.setLayout(QVBoxLayout())
-        splitter.addWidget(self.panel_analog)
-        # 2. digital part
-        # self.panel_status = QWidget(splitter)
-        # self.panel_status.setLayout(QVBoxLayout())
-        # splitter.addWidget(self.panel_status)
-        # 3. lets go
         splitter.setOrientation(Qt.Vertical)
-        layout = QVBoxLayout()
-        layout.addWidget(splitter)
-        self.setLayout(layout)
+        # 1. analog part
+        self.analog_panel = AnalogSignalListView(splitter)
+        splitter.addWidget(self.analog_panel)
+        # 2. digital part
+        # self.digital_panel = QWidget(splitter)
+        # splitter.addWidget(self.digital_panel)
+        # 3. lets go
+        self.layout().addWidget(splitter)
 
-    def plot_chart(self, rec: Comtrade):
+    def plot_charts(self, rec: Comtrade):
         """
         :param rec: Data
         :return:
         """
-
-        def __plot(dst_panel: QWidget, src_id: list, src_data: list, src_time: list, num: int, trigger_time: float):
-            for i in range(num):
-                chart = OneChart(src_id[i], src_time, src_data[i], trigger_time)
-                chart_view: QtCharts.QChartView = QtCharts.QChartView(chart)
-                chart_view.setRenderHint(QPainter.Antialiasing)
-                self.panel_analog.layout().addWidget(chart_view)
-
-        __plot(self.panel_analog, rec.analog_channel_ids, rec.analog, rec.time, min(rec.analog_count, 2), rec.trigger_time)
-        # __plot(self.panel_status, rec.status_channel_ids, rec.status, rec.time, min(rec.status_count, 3))
+        self.analog_panel.fill_list(rec)

@@ -1,6 +1,5 @@
 """Main GUI"""
 # 1. std
-import sys
 import pathlib
 # 2. 3rd
 from typing import Any
@@ -41,7 +40,7 @@ class ComtradeTabWidget(QTabWidget):
         item = ComtradeWidget()
         self._chartviews.append(item)
         self.addTab(item, path.name)
-        item.plot_chart(rec)
+        item.plot_charts(rec)
         self.setCurrentIndex(index)
 
     def handle_tab_close_request(self, index):
@@ -58,6 +57,7 @@ class ComtradeTabWidget(QTabWidget):
     def info_current_tab(self):
         def tr(name: str, value: Any):
             return f"<tr><th>{name}:</th><td>{value}</td></tr>"
+
         index = self.currentIndex()
         rec: Comtrade = self._chartdata[index]
         msg = QMessageBox(QMessageBox.Icon.Information, "Comtrade file info", "Summary")
@@ -79,7 +79,7 @@ class ComtradeTabWidget(QTabWidget):
         txt += tr("Samples", rec.total_samples)
         for i in range(rec.cfg.nrates):
             rate, points = rec.cfg.sample_rates[i]
-            txt += tr(f"Sample #{i+1}", f"{points} points at {rate} Hz")
+            txt += tr(f"Sample #{i + 1}", f"{points} points at {rate} Hz")
         txt += "<tbody></table></body><html>"
         msg.setText(txt)
         msg.setTextFormat(Qt.RichText)
@@ -128,10 +128,10 @@ class MainWindow(QMainWindow):
                                 shortcut="Ctrl+W",
                                 triggered=self.file_close)
         self.actInfo = QAction(QIcon.fromTheme("dialog-information"),
-                                "&Info",
-                                self,
-                                shortcut="Ctrl+I",
-                                triggered=self.file_info)
+                               "&Info",
+                               self,
+                               shortcut="Ctrl+I",
+                               triggered=self.file_info)
         self.actAbout = QAction(QIcon.fromTheme("help-about"),
                                 "&About",
                                 self,
