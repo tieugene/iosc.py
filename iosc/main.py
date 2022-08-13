@@ -14,6 +14,8 @@ def main():
     qInitResources()
     app = QApplication()
     mw = MainWindow()
+    available_geometry = app.desktop().availableGeometry(mw)
+    mw.resize(available_geometry.width() * 3 / 4, available_geometry.height() * 3/ 4)
     mw.show()
     sys.exit(app.exec_())
 

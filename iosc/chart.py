@@ -53,13 +53,14 @@ class ChartsWidget(QWidget):
         :param rec: Data
         :return:
         """
-        for i in range(min(rec.analog_count, 3)):  # range(2)
-            chart = OneChart(rec.analog_channel_ids[i], rec.time, rec.analog[i])
-            chart_view = QtCharts.QChartView(chart)
-            chart_view.setRenderHint(QPainter.Antialiasing)
-            self.panel_analog.layout().addWidget(chart_view)
-        for i in range(min(rec.status_count, 3)):  # (6, 16)
-            chart = OneChart(rec.status_channel_ids[i], rec.time, rec.status[i])
-            chart_view = QtCharts.QChartView(chart)
-            chart_view.setRenderHint(QPainter.Antialiasing)
-            self.panel_status.layout().addWidget(chart_view)
+
+        def __plot(dst_panel: QWidget, src_id: list, src_data: list, src_time: list, num: int):
+            for i in range(num):
+                chart = OneChart(src_id[i], src_time, src_data[i])
+                chart_view: QtCharts.QChartView = QtCharts.QChartView(chart)
+                chart_view.setRenderHint(QPainter.Antialiasing)
+                chart_view.resize(500, 200)
+                self.panel_analog.layout().addWidget(chart_view)
+
+        __plot(self.panel_analog, rec.analog_channel_ids, rec.analog, rec.time, min(rec.analog_count, 2))
+        # __plot(self.panel_status, rec.status_channel_ids, rec.status, rec.time, min(rec.status_count, 3))
