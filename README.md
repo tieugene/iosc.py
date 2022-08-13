@@ -22,9 +22,9 @@ Note: Pareto
 #### Tabs:
 - [x] Close last tab
 - [x] File => Close
-- [ ] Scroll ChartWidget
 #### etc:
 - [x] Comtrade.load(...[, encoding])
+- [ ] Scroll ChartWidget
 - [ ] Chart: rm:
   - Title
   - H-legend

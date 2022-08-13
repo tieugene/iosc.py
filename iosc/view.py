@@ -4,7 +4,7 @@ import sys
 import pathlib
 # 2. 3rd
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget, QTabBar, QWidget, QHBoxLayout
+from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget
 import chardet
 # 3. local
 from comtrade import Comtrade
