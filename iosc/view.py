@@ -1,15 +1,13 @@
 """Main GUI"""
 # 1. std
+from typing import Any
 import pathlib
 # 2. 3rd
-from typing import Any
-
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget
-import chardet
 # 3. local
-from comtrade import Comtrade
+from mycomtrade import MyComtrade
 from chart import ComtradeWidget
 
 
@@ -24,19 +22,10 @@ class ComtradeTabWidget(QTabWidget):
         # tab_bar.setSelectionBehaviorOnRemove(QTabBar.SelectPreviousTab)
 
     def add_chart_tab(self, path: pathlib.Path):
-        encoding = None
-        if path.suffix.lower() == '.cfg':
-            with open(path, 'rb') as infile:
-                if (enc := chardet.detect(infile.read())['encoding']) not in {'ascii', 'utf-8'}:
-                    encoding = enc
+        rec = MyComtrade()
+        rec.load(path)
         index = self.count()
-        rec = Comtrade()
-        if encoding:
-            rec.load(str(path), encoding=encoding)
-        else:
-            rec.load(str(path))
         self._chartdata.append(rec)
-        # TODO: store file path
         item = ComtradeWidget()
         self._chartviews.append(item)
         self.addTab(item, path.name)
@@ -59,26 +48,26 @@ class ComtradeTabWidget(QTabWidget):
             return f"<tr><th>{name}:</th><td>{value}</td></tr>"
 
         index = self.currentIndex()
-        rec: Comtrade = self._chartdata[index]
+        rec: MyComtrade = self._chartdata[index]
         msg = QMessageBox(QMessageBox.Icon.Information, "Comtrade file info", "Summary")
         # plan A:
         # msg.setDetailedText(rec.cfg_summary())
         # plan B
         txt = "<html><body><table><tbody>"
-        txt += tr("File", rec.cfg.filepath)
-        txt += tr("Station name", rec.station_name)
-        txt += tr("Station id", rec.rec_dev_id)
-        txt += tr("Comtrade ver.", rec.rev_year)
-        txt += tr("File format", rec.ft)
-        txt += tr("Analog chs.", rec.analog_count)
-        txt += tr("Digital chs.", rec.status_count)
-        txt += tr("Line freq, Hz", rec.frequency)
-        txt += tr("Time", f"{rec.start_timestamp}&hellip;{rec.trigger_timestamp} ({rec.trigger_time}')"
-                          f" with mult. {rec.cfg.timemult}")
-        txt += tr("Time base", rec.time_base)
-        txt += tr("Samples", rec.total_samples)
-        for i in range(rec.cfg.nrates):
-            rate, points = rec.cfg.sample_rates[i]
+        txt += tr("File", rec.meta.filepath)
+        txt += tr("Station name", rec.meta.station_name)
+        txt += tr("Station id", rec.meta.rec_dev_id)
+        txt += tr("Comtrade ver.", rec.meta.rev_year)
+        txt += tr("File format", rec.meta.ft)
+        txt += tr("AnalogSignal chs.", rec.analog.count)
+        txt += tr("Digital chs.", rec.discret.count)
+        txt += tr("Line freq, Hz", rec.meta.frequency)
+        txt += tr("Time", f"{rec.meta.start_timestamp}&hellip;{rec.meta.trigger_timestamp}"
+                          f" with &times; {rec.meta.timemult}")
+        txt += tr("Time base", rec.meta.time_base)
+        txt += tr("Samples", rec.meta.total_samples)
+        for i in range(rec.rate.count):
+            rate, points = rec.rate[i]
             txt += tr(f"Sample #{i + 1}", f"{points} points at {rate} Hz")
         txt += "<tbody></table></body><html>"
         msg.setText(txt)
