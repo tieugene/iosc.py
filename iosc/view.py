@@ -66,9 +66,9 @@ class ComtradeTabWidget(QTabWidget):
                           f" with &times; {rec.meta.timemult}")
         txt += tr("Time base", rec.meta.time_base)
         txt += tr("Samples", rec.meta.total_samples)
-        # for i in range(rec.cfg.nrates):
-        #    rate, points = rec.cfg.sample_rates[i]
-        #    txt += tr(f"Sample #{i + 1}", f"{points} points at {rate} Hz")
+        for i in range(rec.rate.count):
+            rate, points = rec.rate[i]
+            txt += tr(f"Sample #{i + 1}", f"{points} points at {rate} Hz")
         txt += "<tbody></table></body><html>"
         msg.setText(txt)
         msg.setTextFormat(Qt.RichText)

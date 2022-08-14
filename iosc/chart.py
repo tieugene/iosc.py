@@ -45,38 +45,39 @@ class SignalChart(QtCharts.QChart):
         self.legend().setAlignment(Qt.AlignLeft)
 
 
-class AnalogSignalChartView(QtCharts.QChartView):
-    def __init__(self, asignal: mycomtrade.Signal, parent=None):
-        super(AnalogSignalChartView, self).__init__(parent)
+class SignalChartView(QtCharts.QChartView):
+    def __init__(self, signal: mycomtrade.Signal, parent=None):
+        super(SignalChartView, self).__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
-        self.setChart(SignalChart(asignal))
+        self.setChart(SignalChart(signal))
 
 
-class AnalogSignalListView(QWidget):
+class SignalListView(QWidget):
     def __init__(self, parent=None):
-        super(AnalogSignalListView, self).__init__(parent)
+        super(SignalListView, self).__init__(parent)
         self.setLayout(QVBoxLayout())
 
-    def fill_list(self, alist: mycomtrade.AnalogSignalList):
-        for i in range(min(alist.count, 3)):
-            self.layout().addWidget(AnalogSignalChartView(alist[i]))
+    def fill_list(self, slist: mycomtrade.SignalList, nmax: int):
+        for i in range(min(slist.count, nmax)):
+            self.layout().addWidget(SignalChartView(slist[i]))
 
 
 class ComtradeWidget(QWidget):
-    analog_panel: AnalogSignalListView
-    # digital_panel: QWidget
+    analog_panel: SignalListView
+    discret_panel: SignalListView
 
     def __init__(self, parent=None):
         super(ComtradeWidget, self).__init__(parent)
         self.setLayout(QVBoxLayout())
         splitter = QSplitter(self)
         splitter.setOrientation(Qt.Vertical)
+        splitter.setStyleSheet("QSplitter::handle{background: grey;}")
         # 1. analog part
-        self.analog_panel = AnalogSignalListView(splitter)
+        self.analog_panel = SignalListView(splitter)
         splitter.addWidget(self.analog_panel)
         # 2. digital part
-        # self.digital_panel = QWidget(splitter)
-        # splitter.addWidget(self.digital_panel)
+        self.discret_panel = SignalListView(splitter)
+        splitter.addWidget(self.discret_panel)
         # 3. lets go
         self.layout().addWidget(splitter)
 
@@ -85,4 +86,5 @@ class ComtradeWidget(QWidget):
         :param rec: Data
         :return:
         """
-        self.analog_panel.fill_list(rec.analog)
+        self.analog_panel.fill_list(rec.analog, 2)
+        self.discret_panel.fill_list(rec.discret, 1)

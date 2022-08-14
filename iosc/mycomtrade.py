@@ -153,10 +153,26 @@ class AnalogSignalList(SignalList):
             self._list.append(AnalogSignal(self._raw, i))
 
 
+class RateList(Wrapper):
+    def __init__(self, raw: Comtrade):
+        super(RateList, self).__init__(raw)
+
+    def __len__(self) -> int:
+        return self._raw.cfg.nrates
+
+    @property
+    def count(self) -> int:
+        return self._raw.cfg.nrates
+
+    def __getitem__(self, i: int) -> list:
+        return self._raw.cfg.sample_rates[i]
+
+
 class MyComtrade(Wrapper):
     __meta: Meta
     __analog: AnalogSignalList
     __discret: DiscretSignalList
+    __rate: RateList
 
     # TODO: __rate: SampleRateList
 
@@ -165,6 +181,7 @@ class MyComtrade(Wrapper):
         self.__meta = Meta(self._raw)
         self.__analog = AnalogSignalList(self._raw)
         self.__discret = DiscretSignalList(self._raw)
+        self.__rate = RateList(self._raw)
 
     @property
     def meta(self) -> Meta:
@@ -177,6 +194,10 @@ class MyComtrade(Wrapper):
     @property
     def discret(self) -> DiscretSignalList:
         return self.__discret
+
+    @property
+    def rate(self) -> RateList:
+        return self.__rate
 
     def load(self, path: pathlib.Path):
         encoding = None
