@@ -35,7 +35,7 @@ class SignalChart(QtCharts.QChart):
         series = QtCharts.QLineSeries()
         # Filling QLineSeries
         for i, t in enumerate(signal.time):
-            series.append(1000*t, signal.value[i])
+            series.append(1000 * t, signal.value[i])
         self.addSeries(series)
         # decoration
         __decorate_x(series)
@@ -88,6 +88,8 @@ class ComtradeWidget(QWidget):
         """
         self.analog_panel.fill_list(rec.analog, 2)
         self.discret_panel.fill_list(rec.discret, 1)
+
+
 # ----
 
 
@@ -115,32 +117,26 @@ class SignalListModel(QAbstractListModel):
     def fetchMore(self, index):
         remainder = len(self.fileList) - self.fileCount
         itemsToFetch = min(100, remainder)
-
-        self.beginInsertRows(QModelIndex(), self.fileCount,
-                self.fileCount + itemsToFetch)
-
+        self.beginInsertRows(QModelIndex(), self.fileCount, self.fileCount + itemsToFetch)
         self.fileCount += itemsToFetch
-
         self.endInsertRows()
-
         self.numberPopulated.emit(itemsToFetch)
 
     def setDirPath(self, path):
         dir = QDir(path)
-
         self.beginResetModel()
         self.fileList = list(dir.entryList())
         self.fileCount = 0
         self.endResetModel()
 
 
-class AnalogSignalListView2(QListWidget):
+class SignalListView2(QListWidget):
     def __init__(self, parent=None):
-        super(AnalogSignalListView2, self).__init__(parent)
+        super(SignalListView2, self).__init__(parent)
         self.setViewMode(QListView.IconMode)
 
-    def fill_list(self, rec: Comtrade):
-        for i in range(min(rec.analog_count, 3)):
+    def fill_list(self, slist: mycomtrade.SignalList):
+        for i in range(min(slist.count, 3)):
             item = QListWidgetItem(self)
-            item.setData(Qt.DisplayRole, AnalogSignalChartView(rec, i))
+            item.setData(Qt.DisplayRole, SignalChartView(slist[i]))
             item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
