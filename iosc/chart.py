@@ -2,17 +2,17 @@ from PySide2.QtCore import Qt
 from PySide2.QtGui import QPainter
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter
 from PySide2.QtCharts import QtCharts
-from comtrade import Comtrade
+import mycomtrade
 
 
 class SignalChart(QtCharts.QChart):
-    def __init__(self, v_name: str, t_list: list, v_list: list, time0: float):
+    def __init__(self, signal: mycomtrade.Signal):
         def __decorate_x(s):
             # Setting X-axis
             axis: QtCharts.QValueAxis = QtCharts.QValueAxis()
             axis.setTickType(QtCharts.QValueAxis.TicksDynamic)
             axis.setTickInterval(100)
-            axis.setTickAnchor(1000 * time0)  # TODO: brush=black
+            axis.setTickAnchor(1000 * signal.meta.trigger_time)  # TODO: brush=black
             # print("Anchor:", 1000 * time0)
             axis.setLabelFormat("%d")
             # axis.setLabelsVisible(False)
@@ -34,22 +34,22 @@ class SignalChart(QtCharts.QChart):
         super(SignalChart, self).__init__()
         series = QtCharts.QLineSeries()
         # Filling QLineSeries
-        for i, t in enumerate(t_list):
-            series.append(1000*t, v_list[i])
+        for i, t in enumerate(signal.time):
+            series.append(1000*t, signal.value[i])
         self.addSeries(series)
         # decoration
         __decorate_x(series)
         __decorate_y(series)
         # self.legend().setVisible(False)
-        series.setName(v_name)
+        series.setName(signal.sid)
         self.legend().setAlignment(Qt.AlignLeft)
 
 
 class AnalogSignalChartView(QtCharts.QChartView):
-    def __init__(self, rec: Comtrade, i: int, parent=None):
+    def __init__(self, asignal: mycomtrade.Signal, parent=None):
         super(AnalogSignalChartView, self).__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
-        self.setChart(SignalChart(rec.analog_channel_ids[i], rec.time, rec.analog[i], rec.trigger_time))
+        self.setChart(SignalChart(asignal))
 
 
 class AnalogSignalListView(QWidget):
@@ -57,9 +57,9 @@ class AnalogSignalListView(QWidget):
         super(AnalogSignalListView, self).__init__(parent)
         self.setLayout(QVBoxLayout())
 
-    def fill_list(self, rec: Comtrade):
-        for i in range(min(rec.analog_count, 3)):
-            self.layout().addWidget(AnalogSignalChartView(rec, i))
+    def fill_list(self, alist: mycomtrade.AnalogSignalList):
+        for i in range(min(alist.count, 3)):
+            self.layout().addWidget(AnalogSignalChartView(alist[i]))
 
 
 class ComtradeWidget(QWidget):
@@ -80,9 +80,9 @@ class ComtradeWidget(QWidget):
         # 3. lets go
         self.layout().addWidget(splitter)
 
-    def plot_charts(self, rec: Comtrade):
+    def plot_charts(self, rec: mycomtrade.MyComtrade):
         """
         :param rec: Data
         :return:
         """
-        self.analog_panel.fill_list(rec)
+        self.analog_panel.fill_list(rec.analog)
