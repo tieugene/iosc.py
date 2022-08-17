@@ -2,16 +2,15 @@
 # 1. std
 import sys
 # 2. 3rd
-from PySide2.QtWidgets import QApplication
-from PySide2.QtCore import Qt, QCoreApplication
+from PySide2.QtWidgets import QApplication, QMainWindow
 # 3. local
 from view import MainWindow
 
 
 def main():
-    QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
+    # QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app = QApplication()
-    mw = MainWindow()
+    mw: QMainWindow = MainWindow()
     available_geometry = app.desktop().availableGeometry(mw)  # 0, 0, 1280, 768 (display height - taskbar)
     mw.resize(available_geometry.width() * 3 / 4, available_geometry.height() * 3 / 4)
     mw.show()

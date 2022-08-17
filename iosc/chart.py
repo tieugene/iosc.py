@@ -1,6 +1,6 @@
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QPainter
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QScrollArea
 from PySide2.QtCharts import QtCharts
 import mycomtrade
 
@@ -35,7 +35,7 @@ class SignalChart(QtCharts.QChart):
         series = QtCharts.QLineSeries()
         # Filling QLineSeries
         for i, t in enumerate(signal.time):
-            series.append(1000*t, signal.value[i])
+            series.append(1000 * t, signal.value[i])
         self.addSeries(series)
         # decoration
         __decorate_x(series)
@@ -57,9 +57,18 @@ class SignalListView(QWidget):
         super(SignalListView, self).__init__(parent)
         self.setLayout(QVBoxLayout())
 
-    def fill_list(self, slist: mycomtrade.SignalList, nmax: int):
-        for i in range(min(slist.count, nmax)):
+    def fill_list(self, slist: mycomtrade.SignalList, nmax: int = 0):
+        for i in range(min(slist.count, nmax) if nmax else slist.count):
             self.layout().addWidget(SignalChartView(slist[i]))
+
+
+class SignalScrollArea(QScrollArea):
+    def __init__(self, panel: QWidget, parent=None):
+        super(SignalScrollArea, self).__init__(parent)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setWidgetResizable(True)
+        self.setWidget(panel)
 
 
 class ComtradeWidget(QWidget):
@@ -69,15 +78,16 @@ class ComtradeWidget(QWidget):
     def __init__(self, parent=None):
         super(ComtradeWidget, self).__init__(parent)
         self.setLayout(QVBoxLayout())
-        splitter = QSplitter(self)
-        splitter.setOrientation(Qt.Vertical)
+        splitter = QSplitter(Qt.Vertical, self)
         splitter.setStyleSheet("QSplitter::handle{background: grey;}")
         # 1. analog part
-        self.analog_panel = SignalListView(splitter)
-        splitter.addWidget(self.analog_panel)
+        self.analog_panel = SignalListView()
+        self.analog_scroll = SignalScrollArea(self.analog_panel)
+        splitter.addWidget(self.analog_scroll)
         # 2. digital part
         self.discret_panel = SignalListView(splitter)
-        splitter.addWidget(self.discret_panel)
+        self.discret_scroll = SignalScrollArea(self.discret_panel)
+        splitter.addWidget(self.discret_scroll)
         # 3. lets go
         self.layout().addWidget(splitter)
 
@@ -86,5 +96,5 @@ class ComtradeWidget(QWidget):
         :param rec: Data
         :return:
         """
-        self.analog_panel.fill_list(rec.analog, 2)
-        self.discret_panel.fill_list(rec.discret, 1)
+        self.analog_panel.fill_list(rec.analog)
+        self.discret_panel.fill_list(rec.discret)
