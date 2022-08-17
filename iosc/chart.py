@@ -1,10 +1,12 @@
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QPointF
 from PySide2.QtGui import QPainter, QPen
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QScrollArea
 from PySide2.QtCharts import QtCharts
 import mycomtrade
 # x. consts
 DEFAULT_SIG_COLOR = {'a': 'orange', 'b': 'green', 'c': 'red'}
+UNKNOWN_SIG_COLOR = 'black'
+Z0_COLOR = 'black'
 
 
 class SignalChart(QtCharts.QChart):
@@ -13,44 +15,34 @@ class SignalChart(QtCharts.QChart):
             # Setting X-axis
             axis: QtCharts.QValueAxis = QtCharts.QValueAxis()
             axis.setTickType(QtCharts.QValueAxis.TicksDynamic)
-            axis.setTickInterval(100)
-            axis.setTickAnchor(1000 * signal.meta.trigger_time)  # TODO: brush=black
-            # print("Anchor:", 1000 * time0)
+            axis.setTickAnchor(0)  # dyn
+            axis.setTickInterval(100)  # dyn
+            # axis.setTickCount(3)  # fixed ticks; >= 2
             axis.setLabelFormat("%d")
             # axis.setLabelsVisible(False)
-            # axis_x.setTitleText("Time")  # axis label
+            # axis.setGridLineVisible(False)  # hide grid
+            # axis.setMinorGridLineVisible(False)
+            # axis.setLineVisible(False)    # hide axis line and ticks
             self.addAxis(axis, Qt.AlignBottom)
-            s.attachAxis(axis)
-
-        def __decorate_y(s):
-            # Setting Y-axis
-            axis: QtCharts.QValueAxis = QtCharts.QValueAxis()
-            axis.setTickAnchor(0)  # TODO: brush=...
-            axis.setTickCount(5)
-            # axis.setLabelFormat("%.1f")  # default
-            axis.setLabelsVisible(False)
-            # axis.setTitleText(v_name)  # axis label
-            self.addAxis(axis, Qt.AlignLeft)
             s.attachAxis(axis)
 
         super(SignalChart, self).__init__()
         series = QtCharts.QLineSeries()
         # Filling QLineSeries
         for i, t in enumerate(signal.time):
-            series.append(1000 * t, signal.value[i])
+            series.append(1000 * (t - signal.meta.trigger_time), signal.value[i])
         self.addSeries(series)
         # decoration
         __decorate_x(series)
-        __decorate_y(series)
         # self.legend().setVisible(False)
         # legend on:
         series.setName(signal.sid)
         self.legend().setAlignment(Qt.AlignLeft)
         # color up
         if signal.sid and len(signal.sid) >= 2 and signal.sid[0].lower() in {'i', 'u'}:
-            color = DEFAULT_SIG_COLOR.get(signal.sid[1].lower(), 'black')
+            color = DEFAULT_SIG_COLOR.get(signal.sid[1].lower(), UNKNOWN_SIG_COLOR)
         else:
-            color = 'black'
+            color = UNKNOWN_SIG_COLOR
         pen: QPen = series.pen()
         pen.setWidth(1)
         pen.setColor(color)
@@ -62,6 +54,18 @@ class SignalChartView(QtCharts.QChartView):
         super(SignalChartView, self).__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
         self.setChart(SignalChart(signal))
+
+    def drawForeground(self, painter, rect):
+        painter.save()
+        pen = QPen()
+        pen.setColor(Z0_COLOR)
+        pen.setWidth(1)
+        painter.setPen(pen)
+        z = self.chart().mapToPosition(QPointF(0, 0))  # point zero
+        r = self.chart().plotArea()
+        painter.drawLine(QPointF(z.x(), r.top()), QPointF(z.x(), r.bottom()))
+        painter.drawLine(QPointF(r.left(), z.y()), QPointF(r.right(), z.y()))
+        painter.restore()
 
 
 class SignalListView(QWidget):
