@@ -1,6 +1,6 @@
-from PySide2.QtCore import Qt, QAbstractListModel, QModelIndex
+from PySide2.QtCore import Qt
 from PySide2.QtGui import QPainter
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QListWidget, QListWidgetItem, QListView
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QScrollArea
 from PySide2.QtCharts import QtCharts
 import mycomtrade
 
@@ -57,9 +57,18 @@ class SignalListView(QWidget):
         super(SignalListView, self).__init__(parent)
         self.setLayout(QVBoxLayout())
 
-    def fill_list(self, slist: mycomtrade.SignalList, nmax: int):
-        for i in range(min(slist.count, nmax)):
+    def fill_list(self, slist: mycomtrade.SignalList, nmax: int = 0):
+        for i in range(min(slist.count, nmax) if nmax else slist.count):
             self.layout().addWidget(SignalChartView(slist[i]))
+
+
+class SignalScrollArea(QScrollArea):
+    def __init__(self, panel: QWidget, parent=None):
+        super(SignalScrollArea, self).__init__(parent)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setWidgetResizable(True)
+        self.setWidget(panel)
 
 
 class ComtradeWidget(QWidget):
@@ -69,15 +78,16 @@ class ComtradeWidget(QWidget):
     def __init__(self, parent=None):
         super(ComtradeWidget, self).__init__(parent)
         self.setLayout(QVBoxLayout())
-        splitter = QSplitter(self)
-        splitter.setOrientation(Qt.Vertical)
+        splitter = QSplitter(Qt.Vertical, self)
         splitter.setStyleSheet("QSplitter::handle{background: grey;}")
         # 1. analog part
-        self.analog_panel = SignalListView(splitter)
-        splitter.addWidget(self.analog_panel)
+        self.analog_panel = SignalListView()
+        self.analog_scroll = SignalScrollArea(self.analog_panel)
+        splitter.addWidget(self.analog_scroll)
         # 2. digital part
         self.discret_panel = SignalListView(splitter)
-        splitter.addWidget(self.discret_panel)
+        self.discret_scroll = SignalScrollArea(self.discret_panel)
+        splitter.addWidget(self.discret_scroll)
         # 3. lets go
         self.layout().addWidget(splitter)
 
@@ -86,57 +96,5 @@ class ComtradeWidget(QWidget):
         :param rec: Data
         :return:
         """
-        self.analog_panel.fill_list(rec.analog, 2)
-        self.discret_panel.fill_list(rec.discret, 1)
-
-
-# ----
-
-
-class SignalListModel(QAbstractListModel):
-
-    def __init__(self, parent=None):
-        super(SignalListModel, self).__init__(parent)
-        self.itemList = []
-
-    def rowCount(self, parent=QModelIndex()):
-        return len(self.itemList)
-
-    def data(self, index, role=Qt.DisplayRole):
-        if not index.isValid():
-            return None
-        if index.row() >= len(self.itemList) or index.row() < 0:
-            return None
-        if role == Qt.DisplayRole:
-            return self.itemList[index.row()]
-        return None
-
-    def canFetchMore(self, index):
-        return self.fileCount < len(self.fileList)
-
-    def fetchMore(self, index):
-        remainder = len(self.fileList) - self.fileCount
-        itemsToFetch = min(100, remainder)
-        self.beginInsertRows(QModelIndex(), self.fileCount, self.fileCount + itemsToFetch)
-        self.fileCount += itemsToFetch
-        self.endInsertRows()
-        self.numberPopulated.emit(itemsToFetch)
-
-    def setDirPath(self, path):
-        dir = QDir(path)
-        self.beginResetModel()
-        self.fileList = list(dir.entryList())
-        self.fileCount = 0
-        self.endResetModel()
-
-
-class SignalListView2(QListWidget):
-    def __init__(self, parent=None):
-        super(SignalListView2, self).__init__(parent)
-        self.setViewMode(QListView.IconMode)
-
-    def fill_list(self, slist: mycomtrade.SignalList):
-        for i in range(min(slist.count, 3)):
-            item = QListWidgetItem(self)
-            item.setData(Qt.DisplayRole, SignalChartView(slist[i]))
-            item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+        self.analog_panel.fill_list(rec.analog)
+        self.discret_panel.fill_list(rec.discret)
