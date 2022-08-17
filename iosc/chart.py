@@ -1,8 +1,10 @@
 from PySide2.QtCore import Qt
-from PySide2.QtGui import QPainter
+from PySide2.QtGui import QPainter, QPen
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QScrollArea
 from PySide2.QtCharts import QtCharts
 import mycomtrade
+# x. consts
+DEFAULT_SIG_COLOR = {'a': 'orange', 'b': 'green', 'c': 'red'}
 
 
 class SignalChart(QtCharts.QChart):
@@ -41,8 +43,18 @@ class SignalChart(QtCharts.QChart):
         __decorate_x(series)
         __decorate_y(series)
         # self.legend().setVisible(False)
+        # legend on:
         series.setName(signal.sid)
         self.legend().setAlignment(Qt.AlignLeft)
+        # color up
+        if signal.sid and len(signal.sid) >= 2 and signal.sid[0].lower() in {'i', 'u'}:
+            color = DEFAULT_SIG_COLOR.get(signal.sid[1].lower(), 'black')
+        else:
+            color = 'black'
+        pen: QPen = series.pen()
+        pen.setWidth(1)
+        pen.setColor(color)
+        series.setPen(pen)
 
 
 class SignalChartView(QtCharts.QChartView):
