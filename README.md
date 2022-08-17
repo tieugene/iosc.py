@@ -19,18 +19,25 @@ View/analyze comtrade oscillograms
 3. Run main script: `iosc/main.py`
 
 ### OS specific
-- Windows:
+#### Windows:
 
-*It's long way to Tipperary  
-(python, qt, pyside, pip modules)*
+1. Install Python3 from Microsoft &trade; Store or [original](https://www.python.org/downloads/windows/) installer
+2. Add required python packages (CLI):
+   ```shell
+   pip install pyside2 numpy chardet
+   ```
 
-- Linux:
+#### Linux:
 ```bash
-# RH-based; replace 'dnf' with 'apt' for Debian-based
+# RH-based:
 dnf install python3-pyside2 python3-numpy python3-chardet
+# Debian-based:
+apt install python3-numpy python3-chardet python3-pyside2.qtcharts
 ```
-- macOS (with [homebrew](https://brew.sh/)):
+
+#### macOS
+(with [homebrew](https://brew.sh/)):
 ```bash
-brew install python3 PySide2
-pip3 install numpy chardet
+brew install python3
+pip3 install PySide2 numpy chardet
 ```
