@@ -21,10 +21,10 @@ View/analyze comtrade oscillograms
 ### OS specific
 #### Windows:
 
-1. Install Python3 from Microsoft &trade; Store or [original](https://www.python.org/downloads/windows/) installer
-2. Add required python packages (CLI):
+1. Download and install [Python3](https://www.python.org/downloads/windows/)
+2. Add required python packages (cmd.exe as admin):
    ```shell
-   pip install pyside2 numpy chardet
+   pip install PySide2 numpy chardet
    ```
 
 #### Linux:
