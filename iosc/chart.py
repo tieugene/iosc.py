@@ -50,6 +50,7 @@ class SignalChart(QtCharts.QChart):
         pen.setWidth(1)
         pen.setColor(signal_color(signal))
         series.setPen(pen)
+        self.setMinimumHeight(100)  # FIXME: dirty hack
 
 
 class SignalChartView(QtCharts.QChartView):
@@ -57,8 +58,15 @@ class SignalChartView(QtCharts.QChartView):
         super(SignalChartView, self).__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
         self.setChart(SignalChart(signal))
+        # self.setFixedHeight(100)
 
     def drawForeground(self, painter, rect):
+        """
+        :param painter:
+        :param rect:
+        :return:
+        :todo: not plots for discrete const Y=1
+        """
         painter.save()
         pen = QPen()
         pen.setColor(Z0_COLOR)
