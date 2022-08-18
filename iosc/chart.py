@@ -1,12 +1,19 @@
 from PySide2.QtCore import Qt, QPointF
 from PySide2.QtGui import QPainter, QPen
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QScrollArea
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QScrollArea, QHBoxLayout, QLabel
 from PySide2.QtCharts import QtCharts
 import mycomtrade
 # x. consts
 DEFAULT_SIG_COLOR = {'a': 'orange', 'b': 'green', 'c': 'red'}
 UNKNOWN_SIG_COLOR = 'black'
 Z0_COLOR = 'black'
+
+
+def signal_color(signal: mycomtrade.Signal):
+    if signal.sid and len(signal.sid) >= 2 and signal.sid[0].lower() in {'i', 'u'}:
+        return DEFAULT_SIG_COLOR.get(signal.sid[1].lower(), UNKNOWN_SIG_COLOR)
+    else:
+        return UNKNOWN_SIG_COLOR
 
 
 class SignalChart(QtCharts.QChart):
@@ -18,11 +25,11 @@ class SignalChart(QtCharts.QChart):
             axis.setTickAnchor(0)  # dyn
             axis.setTickInterval(100)  # dyn
             # axis.setTickCount(3)  # fixed ticks; >= 2
-            axis.setLabelFormat("%d")
-            # axis.setLabelsVisible(False)
+            # axis.setLabelFormat("%d")
+            axis.setLabelsVisible(False)
             # axis.setGridLineVisible(False)  # hide grid
             # axis.setMinorGridLineVisible(False)
-            # axis.setLineVisible(False)    # hide axis line and ticks
+            axis.setLineVisible(False)    # hide axis line and ticks
             self.addAxis(axis, Qt.AlignBottom)
             s.attachAxis(axis)
 
@@ -34,18 +41,14 @@ class SignalChart(QtCharts.QChart):
         self.addSeries(series)
         # decoration
         __decorate_x(series)
-        # self.legend().setVisible(False)
+        self.legend().setVisible(False)
         # legend on:
-        series.setName(signal.sid)
-        self.legend().setAlignment(Qt.AlignLeft)
+        # series.setName(signal.sid)
+        # self.legend().setAlignment(Qt.AlignLeft)
         # color up
-        if signal.sid and len(signal.sid) >= 2 and signal.sid[0].lower() in {'i', 'u'}:
-            color = DEFAULT_SIG_COLOR.get(signal.sid[1].lower(), UNKNOWN_SIG_COLOR)
-        else:
-            color = UNKNOWN_SIG_COLOR
         pen: QPen = series.pen()
         pen.setWidth(1)
-        pen.setColor(color)
+        pen.setColor(signal_color(signal))
         series.setPen(pen)
 
 
@@ -68,6 +71,20 @@ class SignalChartView(QtCharts.QChartView):
         painter.restore()
 
 
+class SignalWidget(QWidget):
+    label: QLabel
+    chartview: SignalChartView
+
+    def __init__(self, signal: mycomtrade.Signal, parent=None):
+        super(SignalWidget, self).__init__(parent)
+        self.label = QLabel(signal.sid, self)
+        self.label.setStyleSheet("QLabel { color : %s; }" % signal_color(signal))
+        self.chartview = SignalChartView(signal, self)
+        self.setLayout(QHBoxLayout())
+        self.layout().addWidget(self.label)
+        self.layout().addWidget(self.chartview)
+
+
 class SignalListView(QWidget):
     def __init__(self, parent=None):
         super(SignalListView, self).__init__(parent)
@@ -75,7 +92,7 @@ class SignalListView(QWidget):
 
     def fill_list(self, slist: mycomtrade.SignalList, nmax: int = 0):
         for i in range(min(slist.count, nmax) if nmax else slist.count):
-            self.layout().addWidget(SignalChartView(slist[i]))
+            self.layout().addWidget(SignalWidget(slist[i]))
 
 
 class SignalScrollArea(QScrollArea):
