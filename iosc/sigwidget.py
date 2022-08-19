@@ -19,48 +19,44 @@ def signal_color(signal: mycomtrade.Signal):
 
 
 class SignalChart(QtCharts.QChart):
-    def __init__(self, signal: mycomtrade.Signal):
-        def __decorate_x(s):
-            # Setting X-axis
-            axis: QtCharts.QValueAxis = QtCharts.QValueAxis()
-            axis.setTickType(QtCharts.QValueAxis.TicksDynamic)
-            axis.setTickAnchor(0)  # dyn
-            axis.setTickInterval(100)  # dyn
-            # axis.setTickCount(3)  # fixed ticks; >= 2
-            # axis.setLabelFormat("%d")
-            axis.setLabelsVisible(False)
-            # axis.setGridLineVisible(False)  # hide grid
-            # axis.setMinorGridLineVisible(False)
-            axis.setLineVisible(False)    # hide axis line and ticks
-            self.addAxis(axis, Qt.AlignBottom)
-            s.attachAxis(axis)
+    series: QtCharts.QLineSeries
 
-        super(SignalChart, self).__init__()
-        series = QtCharts.QLineSeries()
+    def __init__(self, parent=None):
+        super(SignalChart, self).__init__(parent)
+        self.legend().setVisible(False)
+        self.setMinimumHeight(100)  # FIXME: dirty hack
+        self.series = QtCharts.QLineSeries()
+        # decoration
+        axis: QtCharts.QValueAxis = QtCharts.QValueAxis()
+        axis.setTickType(QtCharts.QValueAxis.TicksDynamic)
+        axis.setTickAnchor(0)  # dyn
+        axis.setTickInterval(100)  # dyn
+        # axis.setTickCount(3)  # fixed ticks; >= 2
+        # axis.setLabelFormat("%d")
+        axis.setLabelsVisible(False)
+        # axis.setGridLineVisible(False)  # hide grid
+        # axis.setMinorGridLineVisible(False)
+        axis.setLineVisible(False)  # hide axis line and ticks
+        self.addAxis(axis, Qt.AlignBottom)
+        self.series.attachAxis(axis)
+
+    def set_data(self, signal: mycomtrade.Signal):
         # Filling QLineSeries
         for i, t in enumerate(signal.time):
-            series.append(1000 * (t - signal.meta.trigger_time), signal.value[i])
-        self.addSeries(series)
-        # decoration
-        __decorate_x(series)
-        self.legend().setVisible(False)
-        # legend on:
-        # series.setName(signal.sid)
-        # self.legend().setAlignment(Qt.AlignLeft)
+            self.series.append(1000 * (t - signal.meta.trigger_time), signal.value[i])
+        self.addSeries(self.series)  # Note: attach after filling up, not before
         # color up
-        pen: QPen = series.pen()
+        pen: QPen = self.series.pen()
         pen.setWidth(1)
         pen.setColor(signal_color(signal))
-        series.setPen(pen)
-        self.setMinimumHeight(100)  # FIXME: dirty hack
+        self.series.setPen(pen)
 
 
 class SignalChartView(QtCharts.QChartView):
-    def __init__(self, signal: mycomtrade.Signal, parent=None):
+    def __init__(self, parent=None):
         super(SignalChartView, self).__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
-        self.setChart(SignalChart(signal))
-        # self.setFixedHeight(100)
+        self.setChart(SignalChart())
 
     def drawForeground(self, painter, _):
         """
@@ -79,9 +75,14 @@ class SignalChartView(QtCharts.QChartView):
         painter.drawLine(QPointF(r.left(), z.y()), QPointF(r.right(), z.y()))
         painter.restore()
 
+    def set_data(self, signal: mycomtrade.Signal):
+        self.chart().set_data(signal)
+
 
 class SignalCtrlView(QLabel):
-    def __init__(self, signal: mycomtrade.Signal, parent=None):
+    def __init__(self, parent=None):
         super(SignalCtrlView, self).__init__(parent)
-        self.setText(signal.sid)
+
+    def set_data(self, signal: mycomtrade.Signal):
         self.setStyleSheet("QLabel { color : %s; }" % signal_color(signal))
+        self.setText(signal.sid)

@@ -12,11 +12,14 @@ class SignalWidget(QWidget):
 
     def __init__(self, signal: mycomtrade.Signal, parent=None):
         super(SignalWidget, self).__init__(parent)
-        self.label = SignalCtrlView(signal, self)
-        self.chartview = SignalChartView(signal, self)
+        self.label = SignalCtrlView(self)
+        self.chartview = SignalChartView(self)
         self.setLayout(QHBoxLayout())
         self.layout().addWidget(self.label)
         self.layout().addWidget(self.chartview)
+        # ---
+        self.label.set_data(signal)
+        self.chartview.set_data(signal)
 
 
 class SignalListView(QWidget):
