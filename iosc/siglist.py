@@ -21,10 +21,8 @@ class SignalWidget(QWidget):
 
 class SignalListView(QWidget):
     """Analog/Discrete signals list panel"""
-    def __init__(self, parent=None):
+    def __init__(self, slist: mycomtrade.SignalList, parent=None):
         super(SignalListView, self).__init__(parent)
         self.setLayout(QVBoxLayout())
-
-    def fill_list(self, slist: mycomtrade.SignalList, nmax: int = 0):
-        for i in range(min(slist.count, nmax) if nmax else slist.count):
+        for i in range(slist.count):
             self.layout().addWidget(SignalWidget(slist[i]))

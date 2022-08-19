@@ -28,14 +28,12 @@ class ComtradeWidget(QWidget):
         splitter = QSplitter(Qt.Vertical, self)
         splitter.setStyleSheet("QSplitter::handle{background: grey;}")
         # 1. analog part
-        self.analog_panel = SignalListView()
+        self.analog_panel = SignalListView(rec.analog)
         self.analog_scroll = SignalScrollArea(self.analog_panel)
         splitter.addWidget(self.analog_scroll)
         # 2. digital part
-        self.discret_panel = SignalListView(splitter)
+        self.discret_panel = SignalListView(rec.discret)
         self.discret_scroll = SignalScrollArea(self.discret_panel)
         splitter.addWidget(self.discret_scroll)
         # 3. lets go
         self.layout().addWidget(splitter)
-        self.analog_panel.fill_list(rec.analog)
-        self.discret_panel.fill_list(rec.discret)
