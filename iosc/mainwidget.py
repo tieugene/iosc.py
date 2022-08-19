@@ -22,7 +22,7 @@ class ComtradeWidget(QWidget):
     analog_panel: SignalListView
     discret_panel: SignalListView
 
-    def __init__(self, parent=None):
+    def __init__(self, rec: mycomtrade.MyComtrade, parent=None):
         super(ComtradeWidget, self).__init__(parent)
         self.setLayout(QVBoxLayout())
         splitter = QSplitter(Qt.Vertical, self)
@@ -37,11 +37,5 @@ class ComtradeWidget(QWidget):
         splitter.addWidget(self.discret_scroll)
         # 3. lets go
         self.layout().addWidget(splitter)
-
-    def plot_charts(self, rec: mycomtrade.MyComtrade):
-        """
-        :param rec: Data
-        :return:
-        """
         self.analog_panel.fill_list(rec.analog)
         self.discret_panel.fill_list(rec.discret)

@@ -26,10 +26,9 @@ class ComtradeTabWidget(QTabWidget):
         rec.load(path)
         index = self.count()
         self._chartdata.append(rec)
-        item = ComtradeWidget()
+        item = ComtradeWidget(rec)
         self._chartviews.append(item)
         self.addTab(item, path.name)
-        item.plot_charts(rec)
         self.setCurrentIndex(index)
 
     def handle_tab_close_request(self, index):

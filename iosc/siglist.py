@@ -1,3 +1,4 @@
+"""Simplest version of signal list"""
 # 2. 3rd
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 # 3. local
@@ -19,6 +20,7 @@ class SignalWidget(QWidget):
 
 
 class SignalListView(QWidget):
+    """Analog/Discrete signals list panel"""
     def __init__(self, parent=None):
         super(SignalListView, self).__init__(parent)
         self.setLayout(QVBoxLayout())
