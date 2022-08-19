@@ -4,7 +4,7 @@ import sys
 # 2. 3rd
 from PySide2.QtWidgets import QApplication, QMainWindow
 # 3. local
-from view import MainWindow
+from mainwindow import MainWindow
 
 
 def main():

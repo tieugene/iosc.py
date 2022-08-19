@@ -1,9 +1,11 @@
+# 2. 3rd
 from PySide2.QtCore import Qt, QPointF
 from PySide2.QtGui import QPainter, QPen
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QScrollArea, QHBoxLayout, QLabel
 from PySide2.QtCharts import QtCharts
+from PySide2.QtWidgets import QLabel
+# 3. local
 import mycomtrade
-# x. consts
+# x. const
 DEFAULT_SIG_COLOR = {'a': 'orange', 'b': 'green', 'c': 'red'}
 UNKNOWN_SIG_COLOR = 'black'
 Z0_COLOR = 'black'
@@ -60,11 +62,10 @@ class SignalChartView(QtCharts.QChartView):
         self.setChart(SignalChart(signal))
         # self.setFixedHeight(100)
 
-    def drawForeground(self, painter, rect):
+    def drawForeground(self, painter, _):
         """
         :param painter:
-        :param rect:
-        :return:
+        :param _: == rect
         :todo: not plots for discrete const Y=1
         """
         painter.save()
@@ -79,63 +80,8 @@ class SignalChartView(QtCharts.QChartView):
         painter.restore()
 
 
-class SignalWidget(QWidget):
-    label: QLabel
-    chartview: SignalChartView
-
+class SignalCtrlView(QLabel):
     def __init__(self, signal: mycomtrade.Signal, parent=None):
-        super(SignalWidget, self).__init__(parent)
-        self.label = QLabel(signal.sid, self)
-        self.label.setStyleSheet("QLabel { color : %s; }" % signal_color(signal))
-        self.chartview = SignalChartView(signal, self)
-        self.setLayout(QHBoxLayout())
-        self.layout().addWidget(self.label)
-        self.layout().addWidget(self.chartview)
-
-
-class SignalListView(QWidget):
-    def __init__(self, parent=None):
-        super(SignalListView, self).__init__(parent)
-        self.setLayout(QVBoxLayout())
-
-    def fill_list(self, slist: mycomtrade.SignalList, nmax: int = 0):
-        for i in range(min(slist.count, nmax) if nmax else slist.count):
-            self.layout().addWidget(SignalWidget(slist[i]))
-
-
-class SignalScrollArea(QScrollArea):
-    def __init__(self, panel: QWidget, parent=None):
-        super(SignalScrollArea, self).__init__(parent)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.setWidgetResizable(True)
-        self.setWidget(panel)
-
-
-class ComtradeWidget(QWidget):
-    analog_panel: SignalListView
-    discret_panel: SignalListView
-
-    def __init__(self, parent=None):
-        super(ComtradeWidget, self).__init__(parent)
-        self.setLayout(QVBoxLayout())
-        splitter = QSplitter(Qt.Vertical, self)
-        splitter.setStyleSheet("QSplitter::handle{background: grey;}")
-        # 1. analog part
-        self.analog_panel = SignalListView()
-        self.analog_scroll = SignalScrollArea(self.analog_panel)
-        splitter.addWidget(self.analog_scroll)
-        # 2. digital part
-        self.discret_panel = SignalListView(splitter)
-        self.discret_scroll = SignalScrollArea(self.discret_panel)
-        splitter.addWidget(self.discret_scroll)
-        # 3. lets go
-        self.layout().addWidget(splitter)
-
-    def plot_charts(self, rec: mycomtrade.MyComtrade):
-        """
-        :param rec: Data
-        :return:
-        """
-        self.analog_panel.fill_list(rec.analog)
-        self.discret_panel.fill_list(rec.discret)
+        super(SignalCtrlView, self).__init__(parent)
+        self.setText(signal.sid)
+        self.setStyleSheet("QLabel { color : %s; }" % signal_color(signal))

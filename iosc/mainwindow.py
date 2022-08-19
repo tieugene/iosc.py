@@ -8,7 +8,7 @@ from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget
 # 3. local
 from mycomtrade import MyComtrade
-from chart import ComtradeWidget
+from mainwidget import ComtradeWidget
 
 
 class ComtradeTabWidget(QTabWidget):
