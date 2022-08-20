@@ -3,7 +3,7 @@ from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QScrollArea
 # 3. local
 import mycomtrade
-from siglist import SignalListView
+from iosc.draft.siglist_mvc import SignalListView
 
 
 class SignalScrollArea(QScrollArea):
