@@ -1,10 +1,10 @@
-"""MVC version of signal list
+"""Signal list view.
+MVC version
 :todo: try QAbstractTableModelItem
 :todo: try wrap QVariant/QObject/QSomething(signal)
 """
 # 2. 3rd
 from PySide2.QtCore import Qt, QModelIndex, QAbstractTableModel
-from PySide2.QtGui import QStandardItemModel
 from PySide2.QtWidgets import QStyledItemDelegate, QTableView
 # 3. local
 import mycomtrade

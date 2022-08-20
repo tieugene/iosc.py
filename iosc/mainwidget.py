@@ -1,18 +1,9 @@
 # 2. 3rd
 from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QScrollArea
+from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter
 # 3. local
 import mycomtrade
-from iosc.draft.siglist_mvc import SignalListView
-
-
-class SignalScrollArea(QScrollArea):
-    def __init__(self, panel: QWidget, parent=None):
-        super(SignalScrollArea, self).__init__(parent)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.setWidgetResizable(True)
-        self.setWidget(panel)
+from draft.siglist_vbl import SignalListView
 
 
 class ComtradeWidget(QWidget):
@@ -29,11 +20,9 @@ class ComtradeWidget(QWidget):
         splitter.setStyleSheet("QSplitter::handle{background: grey;}")
         # 1. analog part
         self.analog_panel = SignalListView(rec.analog)
-        self.analog_scroll = SignalScrollArea(self.analog_panel)
-        splitter.addWidget(self.analog_scroll)
+        splitter.addWidget(self.analog_panel)
         # 2. digital part
         self.discret_panel = SignalListView(rec.discret)
-        self.discret_scroll = SignalScrollArea(self.discret_panel)
-        splitter.addWidget(self.discret_scroll)
+        splitter.addWidget(self.discret_panel)
         # 3. lets go
         self.layout().addWidget(splitter)
