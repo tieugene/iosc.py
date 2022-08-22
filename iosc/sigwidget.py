@@ -24,8 +24,8 @@ class SignalChart(QtCharts.QChart):
 
     def __init__(self, parent=None):
         super(SignalChart, self).__init__(parent)
-        # self.legend().hide()
-        self.legend().setVisible(False)
+        self.legend().hide()
+        # self.legend().setVisible(False)
         # self.setMinimumHeight(CHART_MIN_HEIGHT)  # FIXME: dirty hack
         self.series = QtCharts.QLineSeries()
         # decorate X-axis
@@ -34,16 +34,17 @@ class SignalChart(QtCharts.QChart):
         axis.setTickAnchor(0)  # dyn
         axis.setTickInterval(100)  # dyn
         # axis.setTickCount(3)  # fixed ticks; >= 2
-        axis.setLabelFormat("%d")
-        axis.setLabelsVisible(True)
+        # axis.setLabelFormat("%d")
+        axis.setLabelsVisible(False)
         axis.setGridLineVisible(True)  # hide grid
         # axis.setMinorGridLineVisible(False)
-        axis.setLineVisible(True)  # hide axis line and ticks
+        axis.setLineVisible(False)  # hide axis line and ticks
         self.addAxis(axis, Qt.AlignBottom)
         self.series.attachAxis(axis)
         # expand
-        # self.setContentsMargins(0, 0, 0, 0)
-        # self.layout().setContentsMargins(0, 0, 0, 0)
+        self.setContentsMargins(0, 0, 0, 0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        # self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored, QSizePolicy.DefaultType)  # no effect
 
     def set_data(self, signal: mycomtrade.Signal):
         # Filling QLineSeries

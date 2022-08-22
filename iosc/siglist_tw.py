@@ -3,10 +3,12 @@ QTableWidget version
 :todo: try QTableWidgetItem
 """
 # 2. 3rd
-from PySide2.QtWidgets import QTableWidget, QLabel, QAbstractItemView, QHeaderView, QFrame
+from PySide2.QtWidgets import QTableWidget, QAbstractItemView
 # 3. local
 import mycomtrade
 from sigwidget import SignalCtrlView, SignalChartView
+# x. const
+ANALOG_ROW_HEIGHT = 64
 
 
 class SignalListView(QTableWidget):
@@ -23,7 +25,7 @@ class SignalListView(QTableWidget):
         # self.horizontalHeader().setVisible(False)
         # self.setSelectionBehavior(QAbstractItemView.NoSelection)
         self.setSelectionMode(QAbstractItemView.NoSelection)
-        # self.setStyleSheet("QTableWidget::item { padding: 0px }")  # not works
+        # self.setStyleSheet("QTableWidget::item { padding: 0; margin: 0; }")  # not works
         for row in range(slist.count):
             ctrl = SignalCtrlView()
             ctrl.set_data(slist[row])
@@ -31,6 +33,8 @@ class SignalListView(QTableWidget):
             chart = SignalChartView()
             chart.set_data(slist[row])
             self.setCellWidget(row, 1, chart)
-            # self.setRowHeight(row, 50)
+            self.setRowHeight(row, ANALOG_ROW_HEIGHT)
             # self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)  # too high
         # self.resizeRowsToContents()
+        self.resizeColumnToContents(0)
+        self.horizontalHeader().setStretchLastSection(True)  # FIXME: calc
