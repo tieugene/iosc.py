@@ -3,7 +3,7 @@
 from typing import Any
 import pathlib
 # 2. 3rd
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QCoreApplication
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget
 # 3. local
@@ -91,7 +91,16 @@ class MainWindow(QMainWindow):
         self.create_toolbars()
         self.create_statusbar()
         self.setWindowTitle("iOsc.py")
-        # actions handling
+        # CLI
+        argv = QCoreApplication.arguments()
+        if len(argv) > 2:
+            QMessageBox.warning(self, "CLI error", "One file only")
+        elif len(argv) == 2:
+            file = pathlib.Path(argv[1])
+            if not file.is_file():
+                QMessageBox.warning(self, "CLI error", f"'{file}' not exists or is not file")
+            else:
+                self.tabs.add_chart_tab(file)
 
     def create_widgets(self):
         self.tabs = ComtradeTabWidget(self)
