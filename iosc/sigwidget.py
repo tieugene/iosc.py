@@ -9,6 +9,7 @@ import mycomtrade
 DEFAULT_SIG_COLOR = {'a': 'orange', 'b': 'green', 'c': 'red'}
 UNKNOWN_SIG_COLOR = 'black'
 Z0_COLOR = 'black'
+CHART_MIN_HEIGHT = 50
 
 
 def signal_color(signal: mycomtrade.Signal):
@@ -23,22 +24,26 @@ class SignalChart(QtCharts.QChart):
 
     def __init__(self, parent=None):
         super(SignalChart, self).__init__(parent)
+        # self.legend().hide()
         self.legend().setVisible(False)
-        self.setMinimumHeight(100)  # FIXME: dirty hack
+        # self.setMinimumHeight(CHART_MIN_HEIGHT)  # FIXME: dirty hack
         self.series = QtCharts.QLineSeries()
-        # decoration
+        # decorate X-axis
         axis: QtCharts.QValueAxis = QtCharts.QValueAxis()
         axis.setTickType(QtCharts.QValueAxis.TicksDynamic)
         axis.setTickAnchor(0)  # dyn
         axis.setTickInterval(100)  # dyn
         # axis.setTickCount(3)  # fixed ticks; >= 2
-        # axis.setLabelFormat("%d")
-        axis.setLabelsVisible(False)
-        # axis.setGridLineVisible(False)  # hide grid
+        axis.setLabelFormat("%d")
+        axis.setLabelsVisible(True)
+        axis.setGridLineVisible(True)  # hide grid
         # axis.setMinorGridLineVisible(False)
-        axis.setLineVisible(False)  # hide axis line and ticks
+        axis.setLineVisible(True)  # hide axis line and ticks
         self.addAxis(axis, Qt.AlignBottom)
         self.series.attachAxis(axis)
+        # expand
+        # self.setContentsMargins(0, 0, 0, 0)
+        # self.layout().setContentsMargins(0, 0, 0, 0)
 
     def set_data(self, signal: mycomtrade.Signal):
         # Filling QLineSeries

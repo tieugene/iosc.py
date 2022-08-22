@@ -3,7 +3,8 @@ from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter
 # 3. local
 import mycomtrade
-from draft.siglist_vbl import SignalListView
+from siglist_tw import SignalListView
+# from draft.siglist_vbl import SignalListView
 
 
 class ComtradeWidget(QWidget):
