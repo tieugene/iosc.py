@@ -5,7 +5,7 @@ import pathlib
 # 2. 3rd
 from PySide2.QtCore import Qt, QCoreApplication
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget
+from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget, QApplication
 # 3. local
 from mycomtrade import MyComtrade
 from mainwidget import ComtradeWidget
@@ -22,14 +22,16 @@ class ComtradeTabWidget(QTabWidget):
         # tab_bar.setSelectionBehaviorOnRemove(QTabBar.SelectPreviousTab)
 
     def add_chart_tab(self, path: pathlib.Path):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         rec = MyComtrade()
-        rec.load(path)
+        rec.load(path)  # FIXME: handle loading errors
         index = self.count()
         self._chartdata.append(rec)
         item = ComtradeWidget(rec)
         self._chartviews.append(item)
         self.addTab(item, path.name)
         self.setCurrentIndex(index)
+        QApplication.restoreOverrideCursor()
 
     def handle_tab_close_request(self, index):
         if index >= 0 and self.count() >= 1:
