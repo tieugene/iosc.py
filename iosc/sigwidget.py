@@ -21,6 +21,7 @@ def signal_color(signal: mycomtrade.Signal):
 
 class SignalChart(QtCharts.QChart):
     series: QtCharts.QLineSeries
+    xaxis: QtCharts.QValueAxis
 
     def __init__(self, parent=None):
         super(SignalChart, self).__init__(parent)
@@ -29,18 +30,17 @@ class SignalChart(QtCharts.QChart):
         # self.setMinimumHeight(CHART_MIN_HEIGHT)  # FIXME: dirty hack
         self.series = QtCharts.QLineSeries()
         # decorate X-axis
-        axis: QtCharts.QValueAxis = QtCharts.QValueAxis()
-        axis.setTickType(QtCharts.QValueAxis.TicksDynamic)
-        axis.setTickAnchor(0)  # dyn
-        axis.setTickInterval(100)  # dyn
+        self.xaxis = QtCharts.QValueAxis()
+        self.xaxis.setTickType(QtCharts.QValueAxis.TicksDynamic)
+        self.xaxis.setTickAnchor(0)  # dyn
+        self.xaxis.setTickInterval(100)  # dyn
         # axis.setTickCount(3)  # fixed ticks; >= 2
         # axis.setLabelFormat("%d")
-        axis.setLabelsVisible(False)
-        axis.setGridLineVisible(True)  # hide grid
+        self.xaxis.setLabelsVisible(False)
+        self.xaxis.setGridLineVisible(True)
         # axis.setMinorGridLineVisible(False)
-        axis.setLineVisible(False)  # hide axis line and ticks
-        self.addAxis(axis, Qt.AlignBottom)
-        self.series.attachAxis(axis)
+        self.xaxis.setLineVisible(False)  # hide axis line and ticks
+        self.addAxis(self.xaxis, Qt.AlignBottom)
         # expand
         self.setContentsMargins(0, 0, 0, 0)
         self.layout().setContentsMargins(0, 0, 0, 0)
@@ -50,7 +50,8 @@ class SignalChart(QtCharts.QChart):
         # Filling QLineSeries
         for i, t in enumerate(signal.time):
             self.series.append(1000 * (t - signal.meta.trigger_time), signal.value[i])
-        self.addSeries(self.series)  # Note: attach after filling up, not before
+        self.addSeries(self.series)  # Note: attach after filling up, not B4
+        self.series.attachAxis(self.xaxis)  # Note: attach after adding series to self, not B4
         # color up
         pen: QPen = self.series.pen()
         pen.setWidth(1)
