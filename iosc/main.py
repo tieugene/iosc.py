@@ -14,6 +14,7 @@ def main():
     available_geometry = app.desktop().availableGeometry(mw)  # 0, 0, 1280, 768 (display height - taskbar)
     mw.resize(available_geometry.width() * 3 / 4, available_geometry.height() * 3 / 4)
     mw.show()
+    mw.handle_cli()
     sys.exit(app.exec_())
 
 

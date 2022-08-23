@@ -27,14 +27,28 @@ class SignalListView(QTableWidget):
         self.setSelectionMode(QAbstractItemView.NoSelection)
         # self.setStyleSheet("QTableWidget::item { padding: 0; margin: 0; }")  # not works
         for row in range(slist.count):
-            ctrl = SignalCtrlView()
+            ctrl = SignalCtrlView(self)
             ctrl.set_data(slist[row])
             self.setCellWidget(row, 0, ctrl)  # or .setItem(row, col, QTableWidgetItem())
-            chart = SignalChartView()
+            chart = SignalChartView(self)
             chart.set_data(slist[row])
             self.setCellWidget(row, 1, chart)
             self.setRowHeight(row, ANALOG_ROW_HEIGHT)
             # self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)  # too high
         # self.resizeRowsToContents()
+        # <dbg>
+        # print("Table:", self.width())  # 100 always
+        # print("Col0 #0", self.columnWidth(0))  # 100 always
         self.resizeColumnToContents(0)
-        self.horizontalHeader().setStretchLastSection(True)  # FIXME: calc
+        # print("Col0 #1", self.columnWidth(0))  # right
+        # </dbf>
+        # self.horizontalHeader().setStretchLastSection(True)  # FIXME: calc; default = 100
+
+    def line_up(self, dwidth: int, w0: int):
+        """Resize columns according to requirements.
+        :param dwidth: Main window widths subtraction (available - actual)
+        :param w0: Width of 0th column
+        :fixme: subtract something (vheader width?)
+        """
+        self.setColumnWidth(0, w0)
+        self.setColumnWidth(1, self.width() + dwidth - w0)
