@@ -23,7 +23,7 @@ class SignalChart(QtCharts.QChart):
     series: QtCharts.QLineSeries
     xaxis: QtCharts.QValueAxis
 
-    def __init__(self, parent=None):
+    def __init__(self, ti: int, parent=None):
         super(SignalChart, self).__init__(parent)
         self.legend().hide()
         # self.legend().setVisible(False)
@@ -33,7 +33,7 @@ class SignalChart(QtCharts.QChart):
         self.xaxis = QtCharts.QValueAxis()
         self.xaxis.setTickType(QtCharts.QValueAxis.TicksDynamic)
         self.xaxis.setTickAnchor(0)  # dyn
-        self.xaxis.setTickInterval(100)  # dyn
+        self.xaxis.setTickInterval(ti)  # dyn
         # axis.setTickCount(3)  # fixed ticks; >= 2
         # axis.setLabelFormat("%d")
         self.xaxis.setLabelsVisible(False)
@@ -60,10 +60,10 @@ class SignalChart(QtCharts.QChart):
 
 
 class SignalChartView(QtCharts.QChartView):
-    def __init__(self, parent=None):
+    def __init__(self, ti: int, parent=None):
         super(SignalChartView, self).__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
-        self.setChart(SignalChart())
+        self.setChart(SignalChart(ti))
 
     def drawForeground(self, painter, _):
         """

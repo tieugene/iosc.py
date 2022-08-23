@@ -13,7 +13,7 @@ ANALOG_ROW_HEIGHT = 64
 
 class SignalListView(QTableWidget):
 
-    def __init__(self, slist: mycomtrade.SignalList, parent=None):
+    def __init__(self, slist: mycomtrade.SignalList, ti: int, parent=None):
         super(SignalListView, self).__init__(parent)
         self.setColumnCount(2)
         self.setRowCount(slist.count)
@@ -30,7 +30,7 @@ class SignalListView(QTableWidget):
             ctrl = SignalCtrlView(self)
             ctrl.set_data(slist[row])
             self.setCellWidget(row, 0, ctrl)  # or .setItem(row, col, QTableWidgetItem())
-            chart = SignalChartView(self)
+            chart = SignalChartView(ti, self)
             chart.set_data(slist[row])
             self.setCellWidget(row, 1, chart)
             self.setRowHeight(row, ANALOG_ROW_HEIGHT)
@@ -51,4 +51,4 @@ class SignalListView(QTableWidget):
         :fixme: subtract something (vheader width?)
         """
         self.setColumnWidth(0, w0)
-        self.setColumnWidth(1, self.width() + dwidth - w0)
+        self.setColumnWidth(1, self.width() + dwidth - w0 - 48)  # FIXME: magic number
