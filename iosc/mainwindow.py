@@ -4,15 +4,15 @@ from typing import Any
 import pathlib
 # 2. 3rd
 from PySide2.QtCore import Qt, QCoreApplication
-from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget, QApplication
+from PySide2.QtGui import QIcon, QGuiApplication
+from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget
 # 3. local
 from mycomtrade import MyComtrade
 from mainwidget import ComtradeWidget
 
 
 class ComtradeTabWidget(QTabWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent: QMainWindow = None):
         super(ComtradeTabWidget, self).__init__(parent)
         self.setTabsClosable(True)
         self._chartviews = []
@@ -21,17 +21,32 @@ class ComtradeTabWidget(QTabWidget):
         # tab_bar = self.tabBar()
         # tab_bar.setSelectionBehaviorOnRemove(QTabBar.SelectPreviousTab)
 
+    def __misc(self):
+        scr0 = QGuiApplication.screens()[0]
+        # print("Screen:", QApplication.desktop().screenGeometry())  # depricated
+        print("Screen:", scr0.geometry())  # 1280x800
+        # print("Avail:", QApplication.desktop().availableGeometry())  # depricated
+        print("Avail:", scr0.availableGeometry())  # 1280x768
+        print("MainWin:", self.parent().width())  # 960 (== avail-320
+
     def add_chart_tab(self, path: pathlib.Path):
-        QApplication.setOverrideCursor(Qt.WaitCursor)
+        """
+        :note: If addTab() after show(), set .updatesEnabled = False B4 changes and = True after changes (to prevent flicker)
+        """
+        QGuiApplication.setOverrideCursor(Qt.WaitCursor)
+        self.setUpdatesEnabled(False)
         rec = MyComtrade()
         rec.load(path)  # FIXME: handle loading errors
         index = self.count()
         self._chartdata.append(rec)
-        item = ComtradeWidget(rec)
+        item = ComtradeWidget(rec, self)  # table width == 100
         self._chartviews.append(item)
-        self.addTab(item, path.name)
+        self.addTab(item, path.name)  # table width == 940 (CLI) | 100 (Open)
         self.setCurrentIndex(index)
-        QApplication.restoreOverrideCursor()
+        self.setUpdatesEnabled(True)  # table width == right
+        # self.__misc()
+        item.line_up(QGuiApplication.screens()[0].availableGeometry().width() - self.parent().width())
+        QGuiApplication.restoreOverrideCursor()
 
     def handle_tab_close_request(self, index):
         if index >= 0 and self.count() >= 1:
@@ -93,16 +108,7 @@ class MainWindow(QMainWindow):
         self.create_toolbars()
         self.create_statusbar()
         self.setWindowTitle("iOsc.py")
-        # CLI
-        argv = QCoreApplication.arguments()
-        if len(argv) > 2:
-            QMessageBox.warning(self, "CLI error", "One file only")
-        elif len(argv) == 2:
-            file = pathlib.Path(argv[1])
-            if not file.is_file():
-                QMessageBox.warning(self, "CLI error", f"'{file}' not exists or is not file")
-            else:
-                self.tabs.add_chart_tab(file)
+        # self.handle_cli()
 
     def create_widgets(self):
         self.tabs = ComtradeTabWidget(self)
@@ -178,3 +184,17 @@ class MainWindow(QMainWindow):
 
     def update_statusbar(self, s: str):
         self.statusBar().showMessage(s)
+
+    def handle_cli(self):
+        """Process CLI arg.
+        :this can be slot
+        """
+        argv = QCoreApplication.arguments()
+        if len(argv) > 2:
+            QMessageBox.warning(self, "CLI error", "One file only")
+        elif len(argv) == 2:
+            file = pathlib.Path(argv[1])
+            if not file.is_file():
+                QMessageBox.warning(self, "CLI error", f"'{file}' not exists or is not file")
+            else:
+                self.tabs.add_chart_tab(file)
