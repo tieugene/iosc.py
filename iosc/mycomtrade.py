@@ -134,6 +134,10 @@ class Signal(Wrapper):
 
     @property
     def color(self) -> int:
+        """
+        :fixme: replace with comtrade.AnalogChannel.ph (phase)
+        :return:
+        """
         if self._color is None:  # set default color on demand
             if self.sid and len(self.sid) >= 2 and self.sid[0].lower() in {'i', 'u'}:
                 self._color = DEFAULT_SIG_COLOR.get(self.sid[1].lower(), UNKNOWN_SIG_COLOR)
