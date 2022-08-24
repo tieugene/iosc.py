@@ -2,10 +2,22 @@
 # 1. std
 import datetime
 import pathlib
+from enum import IntEnum
+from typing import Optional
 # 2. 3rd
 import chardet
 # 3. local
 from comtrade import Comtrade
+# x. const
+# orange (255, 127, 39), green (0, 128, 0), red (198, 0, 0)
+DEFAULT_SIG_COLOR = {'a': 16744231, 'b': 32768, 'c': 12976128}
+UNKNOWN_SIG_COLOR = 0  # 'black'
+
+
+class ELineType(IntEnum):
+    Solid = 0
+    Dot = 1
+    DashDot = 2
 
 
 class Wrapper:
@@ -70,15 +82,23 @@ class Meta(Wrapper):
 
 
 class Signal(Wrapper):
+    """Signal base.
+    :todo: add chart specific fields: color, line type
+    """
     _meta: Meta
-    _i: int
-    _value: list[list[float]]
-    _id_ptr: list[str]
+    _i: int  # signal order no in signal list
+    _value: list[list[float]]  # list of values list
+    _id_ptr: list[str]  # signal name list
+    _is_bool: bool
+    _line_type: ELineType
+    _color: Optional[int]
 
     def __init__(self, raw: Comtrade, i: int):
         super(Signal, self).__init__(raw)
         self._meta = Meta(self._raw)
         self._i = i
+        self._line_type = ELineType.Solid
+        self._color = None
 
     @property
     def meta(self) -> Meta:
@@ -96,8 +116,43 @@ class Signal(Wrapper):
     def value(self) -> list[float]:
         return self._value[self._i]
 
+    @property
+    def is_bool(self) -> bool:
+        return self._is_bool
+
+    @property
+    def line_type(self) -> ELineType:
+        return self._line_type
+
+    @line_type.setter
+    def line_type(self, v: ELineType):
+        self._line_type = v
+
+    @property
+    def color(self) -> int:
+        if self._color is None:  # set default color on demand
+            if self.sid and len(self.sid) >= 2 and self.sid[0].lower() in {'i', 'u'}:
+                self._color = DEFAULT_SIG_COLOR.get(self.sid[1].lower(), UNKNOWN_SIG_COLOR)
+            else:
+                self._color = UNKNOWN_SIG_COLOR
+        return self._color
+
+    @color.setter
+    def color(self, v: int):
+        self._color = v
+
+    @property
+    def rgb(self) -> tuple[int, int, int]:
+        return (self.color >> 16) & 255, (self.color >> 8) & 255, self.color & 255
+
+    @rgb.setter
+    def rgb(self, v: tuple[int, int, int]):
+        self._color = v[0] << 16 | v[1] << 8 | v[2]
+
 
 class AnalogSignal(Signal):
+    _is_bool = False
+
     def __init__(self, raw: Comtrade, i: int):
         super(AnalogSignal, self).__init__(raw, i)
         self._value = self._raw.analog
@@ -105,6 +160,7 @@ class AnalogSignal(Signal):
 
 
 class DiscretSignal(Signal):
+    _is_bool = True
 
     def __init__(self, raw: Comtrade, i: int):
         super(DiscretSignal, self).__init__(raw, i)

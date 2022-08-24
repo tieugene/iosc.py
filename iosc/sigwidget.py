@@ -1,22 +1,13 @@
 # 2. 3rd
 from PySide2.QtCore import Qt, QPointF
-from PySide2.QtGui import QPainter, QPen
+from PySide2.QtGui import QPainter, QPen, QColor
 from PySide2.QtCharts import QtCharts
 from PySide2.QtWidgets import QLabel
 # 3. local
 import mycomtrade
 # x. const
-DEFAULT_SIG_COLOR = {'a': 'orange', 'b': 'green', 'c': 'red'}
-UNKNOWN_SIG_COLOR = 'black'
 Z0_COLOR = 'black'
 CHART_MIN_HEIGHT = 50
-
-
-def signal_color(signal: mycomtrade.Signal):
-    if signal.sid and len(signal.sid) >= 2 and signal.sid[0].lower() in {'i', 'u'}:
-        return DEFAULT_SIG_COLOR.get(signal.sid[1].lower(), UNKNOWN_SIG_COLOR)
-    else:
-        return UNKNOWN_SIG_COLOR
 
 
 class SignalChart(QtCharts.QChart):
@@ -55,7 +46,7 @@ class SignalChart(QtCharts.QChart):
         # color up
         pen: QPen = self.series.pen()
         pen.setWidth(1)
-        pen.setColor(signal_color(signal))
+        pen.setColor(QColor.fromRgb(*signal.rgb))
         self.series.setPen(pen)
 
 
@@ -91,5 +82,5 @@ class SignalCtrlView(QLabel):
         super(SignalCtrlView, self).__init__(parent)
 
     def set_data(self, signal: mycomtrade.Signal):
-        self.setStyleSheet("QLabel { color : %s; }" % signal_color(signal))
+        self.setStyleSheet("QLabel { color : rgb(%d,%d,%d); }" % signal.rgb)
         self.setText(signal.sid)
