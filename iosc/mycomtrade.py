@@ -121,6 +121,10 @@ class Signal(Wrapper):
         return self._is_bool
 
     @property
+    def i(self) -> int:
+        return self._i
+
+    @property
     def line_type(self) -> ELineType:
         return self._line_type
 
