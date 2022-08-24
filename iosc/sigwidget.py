@@ -13,6 +13,7 @@ CHART_MIN_HEIGHT = 50
 class SignalChart(QtCharts.QChart):
     series: QtCharts.QLineSeries
     xaxis: QtCharts.QValueAxis
+    __signal: mycomtrade.Signal
 
     def __init__(self, ti: int, parent=None):
         super(SignalChart, self).__init__(parent)
@@ -38,15 +39,20 @@ class SignalChart(QtCharts.QChart):
         # self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored, QSizePolicy.DefaultType)  # no effect
 
     def set_data(self, signal: mycomtrade.Signal):
+        self.__signal = signal
         # Filling QLineSeries
         for i, t in enumerate(signal.time):
             self.series.append(1000 * (t - signal.meta.trigger_time), signal.value[i])
         self.addSeries(self.series)  # Note: attach after filling up, not B4
         self.series.attachAxis(self.xaxis)  # Note: attach after adding series to self, not B4
         # color up
+        self.set_style()
+
+    def set_style(self):
         pen: QPen = self.series.pen()
         pen.setWidth(1)
-        pen.setColor(QColor.fromRgb(*signal.rgb))
+        pen.setStyle((Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)[self.__signal.line_type.value])
+        pen.setColor(QColor.fromRgb(*self.__signal.rgb))
         self.series.setPen(pen)
 
 
@@ -78,9 +84,14 @@ class SignalChartView(QtCharts.QChartView):
 
 
 class SignalCtrlView(QLabel):
+    __signal: mycomtrade.Signal
+
     def __init__(self, parent=None):
         super(SignalCtrlView, self).__init__(parent)
 
     def set_data(self, signal: mycomtrade.Signal):
-        self.setStyleSheet("QLabel { color : rgb(%d,%d,%d); }" % signal.rgb)
+        self.__signal = signal
         self.setText(signal.sid)
+
+    def set_style(self):
+        self.setStyleSheet("QLabel { color : rgb(%d,%d,%d); }" % self.__signal.rgb)

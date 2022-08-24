@@ -133,14 +133,8 @@ class SignalListView(QTableWidget):
             self.__set_sig_property(index)
 
     def __set_sig_property(self, index: int):
-        """Show/set signal properties:
-        - Name:str (r/o)
-        - Type:enum[analog/discrete] (r/o)
-        - Color:color (r/w)
-        - Linetype:enum[solid/dot/dashdot
-        """
+        """Show/set signal properties"""
         signal = self.slist[index]
         if SigPropertiesDialog(signal).execute():
-            # repaint 2xWidgets
-            print("Color: ", signal.rgb)
-            print("Line: ", signal.line_type.value)
+            self.cellWidget(index, 0).set_style()
+            self.cellWidget(index, 1).chart().set_style()
