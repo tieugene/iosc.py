@@ -12,9 +12,11 @@ ANALOG_ROW_HEIGHT = 64
 
 
 class SignalListView(QTableWidget):
+    slist: mycomtrade.SignalList
 
     def __init__(self, slist: mycomtrade.SignalList, ti: int, parent=None):
         super(SignalListView, self).__init__(parent)
+        self.slist = slist
         self.setColumnCount(2)
         self.setRowCount(slist.count)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)

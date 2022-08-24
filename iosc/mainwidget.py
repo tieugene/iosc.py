@@ -1,3 +1,6 @@
+"""Signal tab widget
+RTFM context menu: examples/webenginewidgets/tabbedbrowser
+"""
 # 2. 3rd
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget

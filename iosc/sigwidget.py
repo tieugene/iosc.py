@@ -1,27 +1,20 @@
 # 2. 3rd
-from PySide2.QtCore import Qt, QPointF
-from PySide2.QtGui import QPainter, QPen
+from PySide2.QtCore import Qt, QPointF, QPoint
+from PySide2.QtGui import QPainter, QPen, QColor
 from PySide2.QtCharts import QtCharts
-from PySide2.QtWidgets import QLabel
+from PySide2.QtWidgets import QLabel, QMenu, QTableWidget
 # 3. local
 import mycomtrade
+from sigprop import SigPropertiesDialog
 # x. const
-DEFAULT_SIG_COLOR = {'a': 'orange', 'b': 'green', 'c': 'red'}
-UNKNOWN_SIG_COLOR = 'black'
 Z0_COLOR = 'black'
 CHART_MIN_HEIGHT = 50
-
-
-def signal_color(signal: mycomtrade.Signal):
-    if signal.sid and len(signal.sid) >= 2 and signal.sid[0].lower() in {'i', 'u'}:
-        return DEFAULT_SIG_COLOR.get(signal.sid[1].lower(), UNKNOWN_SIG_COLOR)
-    else:
-        return UNKNOWN_SIG_COLOR
 
 
 class SignalChart(QtCharts.QChart):
     series: QtCharts.QLineSeries
     xaxis: QtCharts.QValueAxis
+    __signal: mycomtrade.Signal
 
     def __init__(self, ti: int, parent=None):
         super(SignalChart, self).__init__(parent)
@@ -47,15 +40,20 @@ class SignalChart(QtCharts.QChart):
         # self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored, QSizePolicy.DefaultType)  # no effect
 
     def set_data(self, signal: mycomtrade.Signal):
+        self.__signal = signal
         # Filling QLineSeries
         for i, t in enumerate(signal.time):
             self.series.append(1000 * (t - signal.meta.trigger_time), signal.value[i])
         self.addSeries(self.series)  # Note: attach after filling up, not B4
         self.series.attachAxis(self.xaxis)  # Note: attach after adding series to self, not B4
         # color up
+        self.set_style()
+
+    def set_style(self):
         pen: QPen = self.series.pen()
         pen.setWidth(1)
-        pen.setColor(signal_color(signal))
+        pen.setStyle((Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)[self.__signal.line_type.value])
+        pen.setColor(QColor.fromRgb(*self.__signal.rgb))
         self.series.setPen(pen)
 
 
@@ -87,9 +85,29 @@ class SignalChartView(QtCharts.QChartView):
 
 
 class SignalCtrlView(QLabel):
-    def __init__(self, parent=None):
+    __signal: mycomtrade.Signal
+
+    def __init__(self, parent: QTableWidget = None):
         super(SignalCtrlView, self).__init__(parent)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._handle_context_menu)
 
     def set_data(self, signal: mycomtrade.Signal):
-        self.setStyleSheet("QLabel { color : %s; }" % signal_color(signal))
+        self.__signal = signal
         self.setText(signal.sid)
+
+    def set_style(self):
+        self.setStyleSheet("QLabel { color : rgb(%d,%d,%d); }" % self.__signal.rgb)
+
+    def _handle_context_menu(self, point: QPoint):
+        context_menu = QMenu()
+        sig_property = context_menu.addAction("Signal property")
+        chosen_action = context_menu.exec_(self.mapToGlobal(point))
+        if chosen_action == sig_property:
+            self.__set_sig_property()
+
+    def __set_sig_property(self):
+        """Show/set signal properties"""
+        if SigPropertiesDialog(self.__signal).execute():
+            self.set_style()
+            self.parent().parent().cellWidget(self.__signal.i, 1).chart().set_style()  # Warning: 2 x parent
