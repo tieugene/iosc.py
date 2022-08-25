@@ -1,4 +1,7 @@
-"""Comtrade wrapper"""
+"""Comtrade wrapper
+:todo: exception
+:todo: use Ccomtrade.cfg.analog_signal[]
+"""
 # 1. std
 import datetime
 import pathlib

@@ -3,19 +3,20 @@ QTableWidget version
 :todo: try QTableWidgetItem
 """
 # 2. 3rd
-from PySide2.QtWidgets import QTableWidget, QAbstractItemView
+from PySide2.QtWidgets import QTableWidget, QAbstractItemView, QLabel
 # 3. local
 import mycomtrade
 from sigwidget import SignalCtrlView, SignalChartView
+from wtable import WHTableWidget
 # x. const
 ANALOG_ROW_HEIGHT = 64
 
 
-class SignalListView(QTableWidget):
+class SignalListView(WHTableWidget):
     slist: mycomtrade.SignalList
 
     def __init__(self, slist: mycomtrade.SignalList, ti: int, parent=None):
-        super(SignalListView, self).__init__(parent)
+        super().__init__(parent)
         self.slist = slist
         self.setColumnCount(2)
         self.setRowCount(slist.count)
@@ -28,6 +29,9 @@ class SignalListView(QTableWidget):
         # self.setSelectionBehavior(QAbstractItemView.NoSelection)
         self.setSelectionMode(QAbstractItemView.NoSelection)
         # self.setStyleSheet("QTableWidget::item { padding: 0; margin: 0; }")  # not works
+        # specials (all columns must be set)
+        self.horizontalHeader().set_widget(0, QLabel("One"))  # FIXME: sample
+        self.horizontalHeader().set_widget(1, QLabel("Two"))  # FIXME: sample
         for row in range(slist.count):
             ctrl = SignalCtrlView(self)
             ctrl.set_data(slist[row])
