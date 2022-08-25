@@ -3,17 +3,19 @@ QTableWidget version
 :todo: try QTableWidgetItem
 """
 # 2. 3rd
-from PySide2.QtWidgets import QTableWidget, QAbstractItemView, QLabel
+from PySide2.QtWidgets import QTableWidget, QAbstractItemView, QLabel, QHeaderView
 # 3. local
 import mycomtrade
-from sigwidget import SignalCtrlView, SignalChartView
+from sigwidget import SignalCtrlView, SignalChartView, TimeAxisView
 from wtable import WHTableWidget
 # x. const
 ANALOG_ROW_HEIGHT = 64
+TIMELINE_HEIGHT = 100
 
 
 class SignalListView(WHTableWidget):
     slist: mycomtrade.SignalList
+    time_axis: TimeAxisView
 
     def __init__(self, slist: mycomtrade.SignalList, ti: int, parent=None):
         super().__init__(parent)
@@ -31,7 +33,10 @@ class SignalListView(WHTableWidget):
         # self.setStyleSheet("QTableWidget::item { padding: 0; margin: 0; }")  # not works
         # specials (all columns must be set)
         self.horizontalHeader().set_widget(0, QLabel("One"))  # FIXME: sample
-        self.horizontalHeader().set_widget(1, QLabel("Two"))  # FIXME: sample
+        self.time_axis = TimeAxisView(slist.time[0], slist.trigger_time, slist.time[-1], ti)
+        self.horizontalHeader().set_widget(1, self.time_axis)
+        self.horizontalHeader().setFixedHeight(TIMELINE_HEIGHT)  # FIXME: dirty hack
+        # self.horizontalHeader().set_widget(1, QLabel("One"))
         for row in range(slist.count):
             ctrl = SignalCtrlView(self)
             ctrl.set_data(slist[row])
@@ -43,11 +48,9 @@ class SignalListView(WHTableWidget):
             # self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)  # too high
         # self.resizeRowsToContents()
         # <dbg>
-        # print("Table:", self.width())  # 100 always
-        # print("Col0 #0", self.columnWidth(0))  # 100 always
+        # self.setCellWidget(0, 1, self.time_axis)
+        # </dbg>
         self.resizeColumnToContents(0)
-        # print("Col0 #1", self.columnWidth(0))  # right
-        # </dbf>
         # self.horizontalHeader().setStretchLastSection(True)  # FIXME: calc; default = 100
 
     def line_up(self, dwidth: int, w0: int):

@@ -83,6 +83,10 @@ class Meta(Wrapper):
     def total_samples(self) -> int:
         return self._raw.total_samples
 
+    @property
+    def time(self) -> list:
+        return self._raw.time
+
 
 class Signal(Wrapper):
     """Signal base.
@@ -179,12 +183,12 @@ class DiscretSignal(Signal):
         self._id_ptr = self._raw.status_channel_ids
 
 
-class SignalList(Wrapper):
+class SignalList(Meta):
     _count: int
     _list: list[Signal]
 
     def __init__(self, raw: Comtrade):
-        super(SignalList, self).__init__(raw)
+        super().__init__(raw)
         self._count = 0
         self._list = []
 
