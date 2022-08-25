@@ -28,7 +28,7 @@ class ComtradeWidget(QWidget):
     discret_panel: SignalListView
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget = None):
-        super(ComtradeWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setLayout(QVBoxLayout())
         splitter = QSplitter(Qt.Vertical, self)
         splitter.setStyleSheet("QSplitter::handle{background: grey;}")

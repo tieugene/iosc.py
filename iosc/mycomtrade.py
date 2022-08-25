@@ -34,7 +34,7 @@ class Wrapper:
 class Meta(Wrapper):
 
     def __init__(self, raw: Comtrade):
-        super(Meta, self).__init__(raw)
+        super().__init__(raw)
 
     @property
     def filepath(self) -> str:
@@ -102,7 +102,7 @@ class Signal(Wrapper):
     _color: Optional[int]
 
     def __init__(self, raw: Comtrade, i: int):
-        super(Signal, self).__init__(raw)
+        super().__init__(raw)
         self._meta = Meta(self._raw)
         self._i = i
         self._line_type = ELineType.Solid
@@ -170,7 +170,7 @@ class AnalogSignal(Signal):
     _is_bool = False
 
     def __init__(self, raw: Comtrade, i: int):
-        super(AnalogSignal, self).__init__(raw, i)
+        super().__init__(raw, i)
         self._value = self._raw.analog
         self._id_ptr = self._raw.analog_channel_ids
 
@@ -179,7 +179,7 @@ class DiscretSignal(Signal):
     _is_bool = True
 
     def __init__(self, raw: Comtrade, i: int):
-        super(DiscretSignal, self).__init__(raw, i)
+        super().__init__(raw, i)
         self._value = self._raw.status
         self._id_ptr = self._raw.status_channel_ids
 
@@ -213,7 +213,7 @@ class DiscretSignalList(SignalList):
     _is_bool = True
 
     def __init__(self, raw: Comtrade):
-        super(DiscretSignalList, self).__init__(raw)
+        super().__init__(raw)
 
     def reload(self):
         self._count = self._raw.status_count
@@ -226,7 +226,7 @@ class AnalogSignalList(SignalList):
     _is_bool = False
 
     def __init__(self, raw: Comtrade):
-        super(AnalogSignalList, self).__init__(raw)
+        super().__init__(raw)
 
     def reload(self):
         self._count = self._raw.analog_count
@@ -237,7 +237,7 @@ class AnalogSignalList(SignalList):
 
 class RateList(Wrapper):
     def __init__(self, raw: Comtrade):
-        super(RateList, self).__init__(raw)
+        super().__init__(raw)
 
     def __len__(self) -> int:
         return self._raw.cfg.nrates
@@ -259,7 +259,7 @@ class MyComtrade(Wrapper):
     # TODO: __rate: SampleRateList
 
     def __init__(self):
-        super(MyComtrade, self).__init__(Comtrade())
+        super().__init__(Comtrade())
         self.__meta = Meta(self._raw)
         self.__analog = AnalogSignalList(self._raw)
         self.__discret = DiscretSignalList(self._raw)

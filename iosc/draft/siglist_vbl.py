@@ -13,7 +13,7 @@ class SignalWidget(QWidget):
     chartview: SignalChartView
 
     def __init__(self, signal: mycomtrade.Signal, parent=None):
-        super(SignalWidget, self).__init__(parent)
+        super().__init__(parent)
         self.label = SignalCtrlView(self)
         self.chartview = SignalChartView(self)
         self.setLayout(QHBoxLayout())
@@ -28,7 +28,7 @@ class SignalListWidget(QWidget):
     """Analog/Discrete signals list panel"""
 
     def __init__(self, slist: mycomtrade.SignalList, parent=None):
-        super(SignalListWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setLayout(QVBoxLayout())
         for i in range(slist.count):
             self.layout().addWidget(SignalWidget(slist[i]))
@@ -36,7 +36,7 @@ class SignalListWidget(QWidget):
 
 class SignalListView(QScrollArea):
     def __init__(self, slist: mycomtrade.SignalList, parent=None):
-        super(SignalListView, self).__init__(parent)
+        super().__init__(parent)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setWidgetResizable(True)

@@ -17,7 +17,7 @@ class SigPropertiesDialog(QDialog):
     __signal: mycomtrade.Signal
 
     def __init__(self, signal: mycomtrade.Signal, parent=None):
-        super(SigPropertiesDialog, self).__init__(parent)
+        super().__init__(parent)
         # 1. store args
         self.__signal = signal
         self.__color = QColor.fromRgb(*signal.rgb)

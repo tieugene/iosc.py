@@ -15,7 +15,7 @@ class SignalListModel(QAbstractTableModel):  # FIXME: QAbstractTableModel (examp
     slist: mycomtrade.SignalList
 
     def __init__(self, slist: mycomtrade.SignalList, parent=None):
-        super(SignalListModel, self).__init__(parent)
+        super().__init__(parent)
         self.slist = slist
 
     def rowCount(self, index=QModelIndex()) -> int:
@@ -47,7 +47,7 @@ class SignalListModel(QAbstractTableModel):  # FIXME: QAbstractTableModel (examp
 
 class SignalDelegate(QStyledItemDelegate):  # FIXME: class
     def __init__(self, parent=None):
-        super(SignalDelegate, self).__init__(parent)
+        super().__init__(parent)
 
     def setEditorData(self, editor: SignalCtrlView, index: QModelIndex):
         value = index.model().data(index, Qt.DisplayRole)
@@ -59,7 +59,7 @@ class SignalDelegate(QStyledItemDelegate):  # FIXME: class
 
 class SignalCtrlDelegate(SignalDelegate):
     def __init__(self, parent=None):
-        super(SignalCtrlDelegate, self).__init__(parent)
+        super().__init__(parent)
 
     def createEditor(self, parent, option, index):
         return SignalCtrlView(parent)
@@ -67,7 +67,7 @@ class SignalCtrlDelegate(SignalDelegate):
 
 class SignalChartDelegate(SignalDelegate):
     def __init__(self, parent=None):
-        super(SignalChartDelegate, self).__init__(parent)
+        super().__init__(parent)
 
     def createEditor(self, parent, option, index):
         return SignalChartView(parent)
@@ -77,7 +77,7 @@ class SignalListView(QTableView):
     model: SignalListModel
 
     def __init__(self, slist: mycomtrade.SignalList, parent=None):
-        super(SignalListView, self).__init__(parent)
+        super().__init__(parent)
         self.model = SignalListModel(slist)
         self.setModel(self.model)
         self.setItemDelegateForColumn(0, SignalCtrlDelegate(self))

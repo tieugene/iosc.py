@@ -13,7 +13,7 @@ from mainwidget import ComtradeWidget
 
 class ComtradeTabWidget(QTabWidget):
     def __init__(self, parent: QMainWindow = None):
-        super(ComtradeTabWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setTabsClosable(True)
         self._chartviews = []
         self._chartdata = []
@@ -101,7 +101,7 @@ class MainWindow(QMainWindow):
     actAbout: QAction
 
     def __init__(self):
-        super(MainWindow, self).__init__()
+        super().__init__()
         self.create_widgets()
         self.create_actions()
         self.create_menus()

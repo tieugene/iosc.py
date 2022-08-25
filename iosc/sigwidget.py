@@ -125,7 +125,7 @@ class SignalCtrlView(QLabel):
     __signal: mycomtrade.Signal
 
     def __init__(self, parent: QTableWidget = None):
-        super(SignalCtrlView, self).__init__(parent)
+        super().__init__(parent)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._handle_context_menu)
 
