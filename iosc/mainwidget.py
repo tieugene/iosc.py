@@ -47,10 +47,16 @@ class ComtradeWidget(QWidget):
         # sync
         self.analog_panel.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
         self.discret_panel.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
+        self.analog_panel.horizontalHeader().sectionResized.connect(self.__sync_hresize)
+        self.discret_panel.horizontalHeader().sectionResized.connect(self.__sync_hresize)
 
     def __sync_hscrolls(self, index):
         self.analog_panel.horizontalScrollBar().setValue(index)
         self.discret_panel.horizontalScrollBar().setValue(index)
+
+    def __sync_hresize(self, l_index: int, old_size: int, new_size: int):
+        self.analog_panel.horizontalHeader().resizeSection(l_index, new_size)
+        self.discret_panel.horizontalHeader().resizeSection(l_index, new_size)
 
     def line_up(self, dwidth: int):
         """
