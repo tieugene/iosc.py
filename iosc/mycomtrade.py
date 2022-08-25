@@ -11,6 +11,7 @@ from typing import Optional
 import chardet
 # 3. local
 from comtrade import Comtrade
+
 # x. const
 # orange (255, 127, 39), green (0, 128, 0), red (198, 0, 0)
 DEFAULT_SIG_COLOR = {'a': 16744231, 'b': 32768, 'c': 12976128}
@@ -186,6 +187,7 @@ class DiscretSignal(Signal):
 class SignalList(Meta):
     _count: int
     _list: list[Signal]
+    _is_bool: bool
 
     def __init__(self, raw: Comtrade):
         super().__init__(raw)
@@ -202,8 +204,13 @@ class SignalList(Meta):
     def __getitem__(self, i: int) -> Signal:
         return self._list[i]
 
+    @property
+    def is_bool(self) -> bool:
+        return self._is_bool
+
 
 class DiscretSignalList(SignalList):
+    _is_bool = True
 
     def __init__(self, raw: Comtrade):
         super(DiscretSignalList, self).__init__(raw)
@@ -216,6 +223,7 @@ class DiscretSignalList(SignalList):
 
 
 class AnalogSignalList(SignalList):
+    _is_bool = False
 
     def __init__(self, raw: Comtrade):
         super(AnalogSignalList, self).__init__(raw)
