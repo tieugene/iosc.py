@@ -44,6 +44,13 @@ class ComtradeWidget(QWidget):
         splitter.addWidget(self.discret_panel)
         # 3. lets go
         self.layout().addWidget(splitter)
+        # sync
+        self.analog_panel.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
+        self.discret_panel.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
+
+    def __sync_hscrolls(self, index):
+        self.analog_panel.horizontalScrollBar().setValue(index)
+        self.discret_panel.horizontalScrollBar().setValue(index)
 
     def line_up(self, dwidth: int):
         """
