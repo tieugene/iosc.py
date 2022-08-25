@@ -3,7 +3,7 @@ QTableWidget version
 :todo: try QTableWidgetItem
 """
 # 2. 3rd
-from PySide2.QtWidgets import QTableWidget, QAbstractItemView, QLabel, QHeaderView
+from PySide2.QtWidgets import QTableWidget, QAbstractItemView, QLabel, QHeaderView, QGraphicsOpacityEffect
 # 3. local
 import mycomtrade
 from sigwidget import SignalCtrlView, SignalChartView, TimeAxisView
@@ -32,7 +32,8 @@ class SignalListView(WHTableWidget):
         self.setSelectionMode(QAbstractItemView.NoSelection)
         # self.setStyleSheet("QTableWidget::item { padding: 0; margin: 0; }")  # not works
         # specials (all columns must be set)
-        self.horizontalHeader().set_widget(0, QLabel("One"))  # FIXME: sample
+        self.setHorizontalHeaderLabels((None, None))  # clean defaults
+        self.horizontalHeader().set_widget(0, QLabel("ms"))
         self.time_axis = TimeAxisView(slist.time[0], slist.trigger_time, slist.time[-1], ti)
         self.horizontalHeader().set_widget(1, self.time_axis)
         self.horizontalHeader().setFixedHeight(TIMELINE_HEIGHT)  # FIXME: dirty hack
