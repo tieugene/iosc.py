@@ -3,19 +3,22 @@ QTableWidget version
 :todo: try QTableWidgetItem
 """
 # 2. 3rd
-from PySide2.QtWidgets import QTableWidget, QAbstractItemView
+from PySide2.QtWidgets import QTableWidget, QAbstractItemView, QLabel, QHeaderView, QGraphicsOpacityEffect, QWidget
 # 3. local
 import mycomtrade
-from sigwidget import SignalCtrlView, SignalChartView
+from sigwidget import SignalCtrlView, SignalChartView, TimeAxisView
+from wtable import WHTableWidget
 # x. const
 ANALOG_ROW_HEIGHT = 64
+TIMELINE_HEIGHT = 100
 
 
-class SignalListView(QTableWidget):
+class SignalListView(WHTableWidget):
     slist: mycomtrade.SignalList
+    time_axis: TimeAxisView
 
     def __init__(self, slist: mycomtrade.SignalList, ti: int, parent=None):
-        super(SignalListView, self).__init__(parent)
+        super().__init__(parent)
         self.slist = slist
         self.setColumnCount(2)
         self.setRowCount(slist.count)
@@ -28,6 +31,18 @@ class SignalListView(QTableWidget):
         # self.setSelectionBehavior(QAbstractItemView.NoSelection)
         self.setSelectionMode(QAbstractItemView.NoSelection)
         # self.setStyleSheet("QTableWidget::item { padding: 0; margin: 0; }")  # not works
+        # specials (all columns must be set
+        if slist.is_bool:    # FIXME: crutches
+            self.setHorizontalHeaderLabels((None, None))
+            self.horizontalHeader().set_widget(0, QWidget(self))
+            self.horizontalHeader().set_widget(1, QWidget(self))
+            self.horizontalHeader().hide()
+        else:
+            self.setHorizontalHeaderLabels((None, None))  # clean defaults
+            self.horizontalHeader().set_widget(0, QLabel("ms"))
+            self.time_axis = TimeAxisView(slist.time[0], slist.trigger_time, slist.time[-1], ti)
+            self.horizontalHeader().set_widget(1, self.time_axis)
+            self.horizontalHeader().setFixedHeight(TIMELINE_HEIGHT)  # FIXME: dirty hack
         for row in range(slist.count):
             ctrl = SignalCtrlView(self)
             ctrl.set_data(slist[row])
@@ -39,11 +54,8 @@ class SignalListView(QTableWidget):
             # self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)  # too high
         # self.resizeRowsToContents()
         # <dbg>
-        # print("Table:", self.width())  # 100 always
-        # print("Col0 #0", self.columnWidth(0))  # 100 always
+        # </dbg>
         self.resizeColumnToContents(0)
-        # print("Col0 #1", self.columnWidth(0))  # right
-        # </dbf>
         # self.horizontalHeader().setStretchLastSection(True)  # FIXME: calc; default = 100
 
     def line_up(self, dwidth: int, w0: int):

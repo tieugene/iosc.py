@@ -11,13 +11,47 @@ Z0_COLOR = 'black'
 CHART_MIN_HEIGHT = 50
 
 
+class TimeAxisView(QtCharts.QChartView):
+    xaxis: QtCharts.QValueAxis
+
+    def __init__(self, tmin: float, t0: float, tmax, ti: int, parent=None):
+        super().__init__(parent)
+        self.setRenderHint(QPainter.Antialiasing)
+        self.setContentsMargins(0, 0, 0, 0)
+
+        series = QtCharts.QLineSeries()
+        series.append((tmin - t0) * 1000, 0)
+        series.append((tmax - t0) * 1000, 0)
+
+        chart = QtCharts.QChart()
+        chart.legend().hide()
+        chart.setContentsMargins(0, 0, 0, 0)
+        chart.layout().setContentsMargins(0, 0, 0, 0)
+        chart.addSeries(series)
+
+        self.xaxis = QtCharts.QValueAxis()
+        self.xaxis.setTickType(QtCharts.QValueAxis.TicksDynamic)
+        self.xaxis.setTickAnchor(0)  # dyn
+        self.xaxis.setTickInterval(ti)  # dyn
+        self.xaxis.setLabelFormat("%d")
+        # xaxis.setLabelsVisible(True)
+        self.xaxis.setGridLineVisible(False)
+
+        chart.setAxisX(self.xaxis, series)
+
+        self.setChart(chart)
+
+
 class SignalChart(QtCharts.QChart):
     series: QtCharts.QLineSeries
     xaxis: QtCharts.QValueAxis
     __signal: mycomtrade.Signal
 
     def __init__(self, ti: int, parent=None):
-        super(SignalChart, self).__init__(parent)
+        """
+        :param ti: Ticks interval, ms
+        """
+        super().__init__(parent)
         self.legend().hide()
         # self.legend().setVisible(False)
         # self.setMinimumHeight(CHART_MIN_HEIGHT)  # FIXME: dirty hack
@@ -33,7 +67,6 @@ class SignalChart(QtCharts.QChart):
         self.xaxis.setGridLineVisible(True)
         # axis.setMinorGridLineVisible(False)
         self.xaxis.setLineVisible(False)  # hide axis line and ticks
-        self.addAxis(self.xaxis, Qt.AlignBottom)
         # expand
         self.setContentsMargins(0, 0, 0, 0)
         self.layout().setContentsMargins(0, 0, 0, 0)
@@ -45,7 +78,8 @@ class SignalChart(QtCharts.QChart):
         for i, t in enumerate(signal.time):
             self.series.append(1000 * (t - signal.meta.trigger_time), signal.value[i])
         self.addSeries(self.series)  # Note: attach after filling up, not B4
-        self.series.attachAxis(self.xaxis)  # Note: attach after adding series to self, not B4
+        # self.series.attachAxis(self.xaxis)  # Note: attach after adding series to self, not B4
+        self.setAxisX(self.xaxis, self.series)
         # color up
         self.set_style()
 
@@ -59,7 +93,10 @@ class SignalChart(QtCharts.QChart):
 
 class SignalChartView(QtCharts.QChartView):
     def __init__(self, ti: int, parent=None):
-        super(SignalChartView, self).__init__(parent)
+        """
+        :param ti: Ticks interval, ms
+        """
+        super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
         self.setChart(SignalChart(ti))
 

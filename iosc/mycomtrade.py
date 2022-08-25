@@ -1,4 +1,7 @@
-"""Comtrade wrapper"""
+"""Comtrade wrapper
+:todo: exception
+:todo: use Ccomtrade.cfg.analog_signal[]
+"""
 # 1. std
 import datetime
 import pathlib
@@ -8,6 +11,7 @@ from typing import Optional
 import chardet
 # 3. local
 from comtrade import Comtrade
+
 # x. const
 # orange (255, 127, 39), green (0, 128, 0), red (198, 0, 0)
 DEFAULT_SIG_COLOR = {'a': 16744231, 'b': 32768, 'c': 12976128}
@@ -79,6 +83,10 @@ class Meta(Wrapper):
     @property
     def total_samples(self) -> int:
         return self._raw.total_samples
+
+    @property
+    def time(self) -> list:
+        return self._raw.time
 
 
 class Signal(Wrapper):
@@ -176,12 +184,13 @@ class DiscretSignal(Signal):
         self._id_ptr = self._raw.status_channel_ids
 
 
-class SignalList(Wrapper):
+class SignalList(Meta):
     _count: int
     _list: list[Signal]
+    _is_bool: bool
 
     def __init__(self, raw: Comtrade):
-        super(SignalList, self).__init__(raw)
+        super().__init__(raw)
         self._count = 0
         self._list = []
 
@@ -195,8 +204,13 @@ class SignalList(Wrapper):
     def __getitem__(self, i: int) -> Signal:
         return self._list[i]
 
+    @property
+    def is_bool(self) -> bool:
+        return self._is_bool
+
 
 class DiscretSignalList(SignalList):
+    _is_bool = True
 
     def __init__(self, raw: Comtrade):
         super(DiscretSignalList, self).__init__(raw)
@@ -209,6 +223,7 @@ class DiscretSignalList(SignalList):
 
 
 class AnalogSignalList(SignalList):
+    _is_bool = False
 
     def __init__(self, raw: Comtrade):
         super(AnalogSignalList, self).__init__(raw)
