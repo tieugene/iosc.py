@@ -7,7 +7,8 @@ from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QTableWidget, QAbstractItemView, QLabel
 # 3. local
 import mycomtrade
-from sigwidget import SignalCtrlView, SignalChartView, TimeAxisView, TIMELINE_HEIGHT
+from sigwidget import TIMELINE_HEIGHT, TimeAxisView, \
+    AnalogSignalCtrlView, AnalogSignalChartView, StatusSignalCtrlView, StatusSignalChartView
 from wtable import WHeaderView
 # x. const
 ANALOG_ROW_HEIGHT = 64
@@ -47,10 +48,10 @@ class AnalogSignalListView(SignalListView):
         self.horizontalHeader().set_widget(1, self.time_axis)
         self.horizontalHeader().setFixedHeight(TIMELINE_HEIGHT)  # FIXME: dirty hack
         for row in range(slist.count):
-            ctrl = SignalCtrlView(self)
+            ctrl = AnalogSignalCtrlView(self)
             ctrl.set_data(slist[row])
             self.setCellWidget(row, 0, ctrl)  # or .setItem(row, col, QTableWidgetItem())
-            chart = SignalChartView(ti, self)
+            chart = AnalogSignalChartView(ti, self)
             chart.set_data(slist[row])
             self.setCellWidget(row, 1, chart)
             self.setRowHeight(row, ANALOG_ROW_HEIGHT)
@@ -70,10 +71,10 @@ class StatusSignalListView(SignalListView):
         self.horizontalHeader().hide()
         # self.horizontalHeader().setVisible(False)
         for row in range(slist.count):
-            ctrl = SignalCtrlView(self)
+            ctrl = StatusSignalCtrlView(self)
             ctrl.set_data(slist[row])
             self.setCellWidget(row, 0, ctrl)
-            chart = SignalChartView(ti, self)
+            chart = StatusSignalChartView(ti, self)
             chart.set_data(slist[row])
             self.setCellWidget(row, 1, chart)
         self.resizeRowsToContents()

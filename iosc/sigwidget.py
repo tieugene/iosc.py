@@ -6,6 +6,7 @@ from PySide2.QtWidgets import QLabel, QMenu, QTableWidget
 # 3. local
 import mycomtrade
 from sigprop import SigPropertiesDialog
+
 # x. const
 Z0_COLOR = 'black'
 CHART_MIN_HEIGHT = 50
@@ -106,7 +107,6 @@ class SignalChartView(QtCharts.QChartView):
         """
         super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
-        self.setChart(SignalChart(ti))
 
     def drawForeground(self, painter, _):
         """
@@ -156,3 +156,35 @@ class SignalCtrlView(QLabel):
         if SigPropertiesDialog(self.__signal).execute():
             self.set_style()
             self.parent().parent().cellWidget(self.__signal.i, 1).chart().set_style()  # Warning: 2 x parent
+
+
+class AnalogSignalChart(SignalChart):
+    def __init__(self, ti: int, parent: QTableWidget = None):
+        super().__init__(ti, parent)
+
+
+class AnalogSignalChartView(SignalChartView):
+    def __init__(self, ti: int, parent: QTableWidget = None):
+        super().__init__(ti, parent)
+        self.setChart(AnalogSignalChart(ti))
+
+
+class AnalogSignalCtrlView(SignalCtrlView):
+    def __init__(self, parent: QTableWidget = None):
+        super().__init__(parent)
+
+
+class StatusSignalChart(SignalChart):
+    def __init__(self, ti: int, parent: QTableWidget = None):
+        super().__init__(ti, parent)
+
+
+class StatusSignalChartView(SignalChartView):
+    def __init__(self, ti: int, parent: QTableWidget = None):
+        super().__init__(ti, parent)
+        self.setChart(StatusSignalChart(ti))
+
+
+class StatusSignalCtrlView(SignalCtrlView):
+    def __init__(self, parent: QTableWidget = None):
+        super().__init__(parent)
