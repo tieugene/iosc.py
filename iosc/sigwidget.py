@@ -1,5 +1,5 @@
 # 2. 3rd
-from PySide2.QtCore import Qt, QPointF, QPoint
+from PySide2.QtCore import Qt, QPointF, QPoint, QMargins
 from PySide2.QtGui import QPainter, QPen, QColor, QBrush
 from PySide2.QtCharts import QtCharts
 from PySide2.QtWidgets import QLabel, QMenu, QTableWidget
@@ -14,7 +14,7 @@ MARGINS_ZERO = (0, 0, 0, 0)
 # normal
 MARGINS_AXIS = MARGINS_ZERO
 MARGINS_CHART = MARGINS_ZERO
-TIMELINE_HEIGHT = 100
+TIMELINE_HEIGHT = 60
 # abnormal
 # MARGINS_AXIS = (-30, -50, -35, -10)
 # MARGINS_CHART = (-35, -15, -35, -40)  # fill all: (-40, -20, -40, -45)
@@ -36,6 +36,7 @@ class TimeAxisView(QtCharts.QChartView):
         chart.legend().hide()
         chart.layout().setContentsMargins(*MARGINS_ZERO)
         chart.setContentsMargins(*MARGINS_AXIS)
+        chart.setMargins(QMargins())
         chart.addSeries(series)
 
         self.xaxis = QtCharts.QValueAxis()
@@ -79,6 +80,7 @@ class SignalChart(QtCharts.QChart):
         # expand
         self.layout().setContentsMargins(*MARGINS_ZERO)
         self.setContentsMargins(*MARGINS_CHART)
+        self.setMargins(QMargins())
         # self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored, QSizePolicy.DefaultType)  # no effect
 
 
