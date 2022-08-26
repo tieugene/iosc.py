@@ -6,7 +6,7 @@ from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget
 # 3. local
 import mycomtrade
-from siglist_tw import SignalListView
+from siglist_tw import AnalogSignalListView, StatusSignalListView
 # from draft.siglist_vbl import SignalListView
 # x. const
 TICK_RANGE = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000)
@@ -24,8 +24,8 @@ class ComtradeWidget(QWidget):
     """
     Main osc window. Includes analog and status panels
     """
-    analog_table: SignalListView
-    status_table: SignalListView
+    analog_table: AnalogSignalListView
+    status_table: StatusSignalListView
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget = None):
         super().__init__(parent)
@@ -37,10 +37,10 @@ class ComtradeWidget(QWidget):
         ti = find_std_ti(ti_wanted)
         # print(f"{ti_wanted} => {ti}")
         # 1. analog part
-        self.analog_table = SignalListView(rec.analog, ti, self)
+        self.analog_table = AnalogSignalListView(rec.analog, ti, self)
         splitter.addWidget(self.analog_table)
         # 2. status part
-        self.status_table = SignalListView(rec.status, ti, self)
+        self.status_table = StatusSignalListView(rec.status, ti, self)
         splitter.addWidget(self.status_table)
         # 3. lets go
         self.layout().addWidget(splitter)
@@ -63,11 +63,6 @@ class ComtradeWidget(QWidget):
         Line up table colums (and rows further) according to requirements and actual geometry.
         :param dwidth: Main window widths subtraction (available - actual)
         """
-        # print("Dwidth: ", dwidth)  # 320, ok
-        # print("T Table: ", self.analog_table.width())  # 940 == mw-20
-        # print("T Col_0:", self.analog_table.columnWidth(0))
-        # print("D Table: ", self.status_table.width())
-        # print("D Col_0:", self.status_table.columnWidth(0))
         w0 = max(self.analog_table.columnWidth(0), self.status_table.columnWidth(0))
         self.analog_table.line_up(dwidth, w0)
         self.status_table.line_up(dwidth, w0)
