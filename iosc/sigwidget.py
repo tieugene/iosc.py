@@ -9,6 +9,15 @@ from sigprop import SigPropertiesDialog
 # x. const
 Z0_COLOR = 'black'
 CHART_MIN_HEIGHT = 50
+MARGINS_ZERO = (0, 0, 0, 0)
+# normal
+MARGINS_AXIS = MARGINS_ZERO
+MARGINS_CHART = MARGINS_ZERO
+TIMELINE_HEIGHT = 100
+# abnormal
+# MARGINS_AXIS = (-30, -50, -35, -10)
+# MARGINS_CHART = (-35, -15, -35, -40)  # fill all: (-40, -20, -40, -45)
+# TIMELINE_HEIGHT = 40
 
 
 class TimeAxisView(QtCharts.QChartView):
@@ -17,7 +26,6 @@ class TimeAxisView(QtCharts.QChartView):
     def __init__(self, tmin: float, t0: float, tmax, ti: int, parent=None):
         super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
-        self.setContentsMargins(0, 0, 0, 0)
 
         series = QtCharts.QLineSeries()
         series.append((tmin - t0) * 1000, 0)
@@ -25,8 +33,8 @@ class TimeAxisView(QtCharts.QChartView):
 
         chart = QtCharts.QChart()
         chart.legend().hide()
-        chart.setContentsMargins(0, 0, 0, 0)
-        chart.layout().setContentsMargins(0, 0, 0, 0)
+        chart.layout().setContentsMargins(*MARGINS_ZERO)
+        chart.setContentsMargins(*MARGINS_AXIS)
         chart.addSeries(series)
 
         self.xaxis = QtCharts.QValueAxis()
@@ -68,8 +76,8 @@ class SignalChart(QtCharts.QChart):
         # axis.setMinorGridLineVisible(False)
         self.xaxis.setLineVisible(False)  # hide axis line and ticks
         # expand
-        self.setContentsMargins(0, 0, 0, 0)
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.layout().setContentsMargins(*MARGINS_ZERO)
+        self.setContentsMargins(*MARGINS_CHART)
         # self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored, QSizePolicy.DefaultType)  # no effect
 
     def set_data(self, signal: mycomtrade.Signal):

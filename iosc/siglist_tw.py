@@ -6,11 +6,10 @@ QTableWidget version
 from PySide2.QtWidgets import QTableWidget, QAbstractItemView, QLabel, QHeaderView, QGraphicsOpacityEffect, QWidget
 # 3. local
 import mycomtrade
-from sigwidget import SignalCtrlView, SignalChartView, TimeAxisView
+from sigwidget import SignalCtrlView, SignalChartView, TimeAxisView, TIMELINE_HEIGHT
 from wtable import WHTableWidget
 # x. const
 ANALOG_ROW_HEIGHT = 64
-TIMELINE_HEIGHT = 100
 
 
 class SignalListView(WHTableWidget):
