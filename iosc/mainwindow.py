@@ -76,7 +76,7 @@ class ComtradeTabWidget(QTabWidget):
         txt += tr("Comtrade ver.", rec.meta.rev_year)
         txt += tr("File format", rec.meta.ft)
         txt += tr("AnalogSignal chs.", rec.analog.count)
-        txt += tr("Digital chs.", rec.discret.count)
+        txt += tr("Digital chs.", rec.status.count)
         txt += tr("Line freq, Hz", rec.meta.frequency)
         txt += tr("Time", f"{rec.meta.start_timestamp}&hellip;{rec.meta.trigger_timestamp}"
                           f" with &times; {rec.meta.timemult}")

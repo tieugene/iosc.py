@@ -24,7 +24,7 @@ class SigPropertiesDialog(QDialog):
         # 2. set widgets
         self.f_name = QLineEdit(signal.sid, self)
         self.f_name.setReadOnly(True)
-        self.f_type = QLineEdit(("Analog", "Discrete")[int(signal.is_bool)], self)
+        self.f_type = QLineEdit(("Analog", "Status")[int(signal.is_bool)], self)
         self.f_type.setReadOnly(True)
         self.f_color = QPushButton(self)
         self.__set_color_button()
