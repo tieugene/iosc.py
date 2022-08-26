@@ -1,6 +1,6 @@
 # 2. 3rd
 from PySide2.QtCore import Qt, QPointF, QPoint
-from PySide2.QtGui import QPainter, QPen, QColor
+from PySide2.QtGui import QPainter, QPen, QColor, QBrush
 from PySide2.QtCharts import QtCharts
 from PySide2.QtWidgets import QLabel, QMenu, QTableWidget
 # 3. local
@@ -45,6 +45,7 @@ class TimeAxisView(QtCharts.QChartView):
         self.xaxis.setLabelFormat("%d")
         # xaxis.setLabelsVisible(True)
         self.xaxis.setGridLineVisible(False)
+        # self.xaxis.setLineVisible(False)  # no tics (defaut)
 
         chart.setAxisX(self.xaxis, series)
 
@@ -54,7 +55,7 @@ class TimeAxisView(QtCharts.QChartView):
 class SignalChart(QtCharts.QChart):
     series: QtCharts.QLineSeries
     xaxis: QtCharts.QValueAxis
-    __signal: mycomtrade.Signal
+    _signal: mycomtrade.Signal
 
     def __init__(self, ti: int, parent=None):
         """
@@ -64,7 +65,6 @@ class SignalChart(QtCharts.QChart):
         self.legend().hide()
         # self.legend().setVisible(False)
         # self.setMinimumHeight(CHART_MIN_HEIGHT)  # FIXME: dirty hack
-        self.series = QtCharts.QLineSeries()
         # decorate X-axis
         self.xaxis = QtCharts.QValueAxis()
         self.xaxis.setTickType(QtCharts.QValueAxis.TicksDynamic)
@@ -80,24 +80,6 @@ class SignalChart(QtCharts.QChart):
         self.layout().setContentsMargins(*MARGINS_ZERO)
         self.setContentsMargins(*MARGINS_CHART)
         # self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored, QSizePolicy.DefaultType)  # no effect
-
-    def set_data(self, signal: mycomtrade.Signal):
-        self.__signal = signal
-        # Filling QLineSeries
-        for i, t in enumerate(signal.time):
-            self.series.append(1000 * (t - signal.meta.trigger_time), signal.value[i])
-        self.addSeries(self.series)  # Note: attach after filling up, not B4
-        # self.series.attachAxis(self.xaxis)  # Note: attach after adding series to self, not B4
-        self.setAxisX(self.xaxis, self.series)
-        # color up
-        self.set_style()
-
-    def set_style(self):
-        pen: QPen = self.series.pen()
-        pen.setWidth(1)
-        pen.setStyle((Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)[self.__signal.line_type.value])
-        pen.setColor(QColor.fromRgb(*self.__signal.rgb))
-        self.series.setPen(pen)
 
 
 class SignalChartView(QtCharts.QChartView):
@@ -162,6 +144,21 @@ class AnalogSignalChart(SignalChart):
     def __init__(self, ti: int, parent: QTableWidget = None):
         super().__init__(ti, parent)
 
+    def set_data(self, signal: mycomtrade.AnalogSignalList):
+        self._signal = signal
+        self.series = QtCharts.QLineSeries()
+        for i, t in enumerate(signal.time):
+            self.series.append(1000 * (t - signal.meta.trigger_time), signal.value[i])
+        self.addSeries(self.series)  # Note: attach after filling up, not B4
+        # self.series.attachAxis(self.xaxis)  # Note: attach after adding series to self, not B4
+        self.setAxisX(self.xaxis, self.series)
+        # color up
+        pen: QPen = self.series.pen()
+        pen.setWidth(1)
+        pen.setStyle((Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)[self._signal.line_type.value])
+        pen.setColor(QColor.fromRgb(*self._signal.rgb))
+        self.series.setPen(pen)
+
 
 class AnalogSignalChartView(SignalChartView):
     def __init__(self, ti: int, parent: QTableWidget = None):
@@ -177,6 +174,21 @@ class AnalogSignalCtrlView(SignalCtrlView):
 class StatusSignalChart(SignalChart):
     def __init__(self, ti: int, parent: QTableWidget = None):
         super().__init__(ti, parent)
+
+    def set_data(self, signal: mycomtrade.StatusSignalList):
+        """QAreaSeries: sigterm"""
+        self._signal = signal
+        # Filling QLineSeries
+        real_series = QtCharts.QLineSeries(self)
+        zero_series = QtCharts.QLineSeries(self)
+        for i, t in enumerate(signal.time):  # TODO: optimize (skip dups)
+            real_series.append(1000 * (t - signal.meta.trigger_time), signal.value[i])
+            zero_series.append(1000 * (t - signal.meta.trigger_time), 0)
+        self.series = QtCharts.QAreaSeries(real_series, zero_series)
+        self.addSeries(self.series)  # Note: attach after filling up, not B4
+        self.setAxisX(self.xaxis, self.series)
+        # color up
+        self.series.setBrush(QBrush(Qt.Dense4Pattern))
 
 
 class StatusSignalChartView(SignalChartView):

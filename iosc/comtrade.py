@@ -411,7 +411,7 @@ class Cfg:
         self._status_channels = [None]*self._status_count
         line_count = line_count + 1
 
-        # AnalogSignal channel description lines
+        # Analog channel description lines
         for ichn in range(self._analog_count):
             line = cfg.readline()
             packed = _read_sep_values(line, 13, '0')
@@ -1192,7 +1192,7 @@ class BinaryDatReader(DatReader):
             return self.STRUCT_FORMAT.format(acount=analog_channels, 
                 dcount=dcount)
         elif int(analog_channels) > 0:
-            # AnalogSignal channels only.
+            # Analog channels only.
             return self.STRUCT_FORMAT_ANALOG_ONLY.format(acount=analog_channels)
         else:
             # Status channels only.
