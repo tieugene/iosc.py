@@ -9,6 +9,7 @@ from sigprop import SigPropertiesDialog
 
 # x. const
 Z0_COLOR = 'black'
+PLOTAREA_COLOR = (240, 240, 240)
 CHART_MIN_HEIGHT = 50
 MARGINS_ZERO = (0, 0, 0, 0)
 # normal
@@ -82,6 +83,9 @@ class SignalChart(QtCharts.QChart):
         self.setContentsMargins(*MARGINS_CHART)
         self.setMargins(QMargins())
         # self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored, QSizePolicy.DefaultType)  # no effect
+        # hichlight plot area
+        self.setPlotAreaBackgroundVisible(True)
+        self.setPlotAreaBackgroundBrush(QBrush(QColor.fromRgb(*PLOTAREA_COLOR)))
 
 
 class SignalChartView(QtCharts.QChartView):
