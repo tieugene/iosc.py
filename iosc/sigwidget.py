@@ -1,6 +1,6 @@
 # 2. 3rd
-from PySide2.QtCore import Qt, QPointF, QPoint
-from PySide2.QtGui import QPainter, QPen, QColor, QBrush
+from PySide2.QtCore import Qt, QPointF, QPoint, QMargins
+from PySide2.QtGui import QPainter, QPen, QColor, QBrush, QFont
 from PySide2.QtCharts import QtCharts
 from PySide2.QtWidgets import QLabel, QMenu, QTableWidget
 # 3. local
@@ -9,12 +9,14 @@ from sigprop import SigPropertiesDialog
 
 # x. const
 Z0_COLOR = 'black'
+PLOTAREA_COLOR = (240, 240, 240)
 CHART_MIN_HEIGHT = 50
 MARGINS_ZERO = (0, 0, 0, 0)
+NOFONT = QFont('', 1)
 # normal
 MARGINS_AXIS = MARGINS_ZERO
 MARGINS_CHART = MARGINS_ZERO
-TIMELINE_HEIGHT = 100
+TIMELINE_HEIGHT = 50
 # abnormal
 # MARGINS_AXIS = (-30, -50, -35, -10)
 # MARGINS_CHART = (-35, -15, -35, -40)  # fill all: (-40, -20, -40, -45)
@@ -36,16 +38,19 @@ class TimeAxisView(QtCharts.QChartView):
         chart.legend().hide()
         chart.layout().setContentsMargins(*MARGINS_ZERO)
         chart.setContentsMargins(*MARGINS_AXIS)
+        chart.setMargins(QMargins())
         chart.addSeries(series)
 
         self.xaxis = QtCharts.QValueAxis()
         self.xaxis.setTickType(QtCharts.QValueAxis.TicksDynamic)
         self.xaxis.setTickAnchor(0)  # dyn
         self.xaxis.setTickInterval(ti)  # dyn
+        self.xaxis.setLabelsFont(QFont('mono', 8))
         self.xaxis.setLabelFormat("%d")
-        # xaxis.setLabelsVisible(True)
         self.xaxis.setGridLineVisible(False)
         # self.xaxis.setLineVisible(False)  # no tics (defaut)
+        self.xaxis.setTitleFont(NOFONT)
+        self.xaxis.setTitleVisible(False)
 
         chart.setAxisX(self.xaxis, series)
 
@@ -70,16 +75,20 @@ class SignalChart(QtCharts.QChart):
         self.xaxis.setTickType(QtCharts.QValueAxis.TicksDynamic)
         self.xaxis.setTickAnchor(0)  # dyn
         self.xaxis.setTickInterval(ti)  # dyn
-        # axis.setTickCount(3)  # fixed ticks; >= 2
-        # axis.setLabelFormat("%d")
-        self.xaxis.setLabelsVisible(False)
         self.xaxis.setGridLineVisible(True)
-        # axis.setMinorGridLineVisible(False)
+        self.xaxis.setLabelsFont(NOFONT)
+        self.xaxis.setLabelsVisible(False)
         self.xaxis.setLineVisible(False)  # hide axis line and ticks
+        self.xaxis.setTitleFont(NOFONT)
+        self.xaxis.setTitleVisible(False)
         # expand
         self.layout().setContentsMargins(*MARGINS_ZERO)
         self.setContentsMargins(*MARGINS_CHART)
+        self.setMargins(QMargins())
         # self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored, QSizePolicy.DefaultType)  # no effect
+        # hichlight plot area
+        self.setPlotAreaBackgroundVisible(True)
+        self.setPlotAreaBackgroundBrush(QBrush(QColor.fromRgb(*PLOTAREA_COLOR)))
 
 
 class SignalChartView(QtCharts.QChartView):
@@ -94,7 +103,7 @@ class SignalChartView(QtCharts.QChartView):
         """
         :param painter:
         :param _: == rect
-        :todo: not plots for status const Y=1
+        :fixme: not plots for status const Y=1
         """
         painter.save()
         pen = QPen()
@@ -144,7 +153,7 @@ class AnalogSignalChart(SignalChart):
     def __init__(self, ti: int, parent: QTableWidget = None):
         super().__init__(ti, parent)
 
-    def set_data(self, signal: mycomtrade.AnalogSignalList):
+    def set_data(self, signal: mycomtrade.AnalogSignal):
         self._signal = signal
         self.series = QtCharts.QLineSeries()
         for i, t in enumerate(signal.time):
@@ -175,7 +184,7 @@ class StatusSignalChart(SignalChart):
     def __init__(self, ti: int, parent: QTableWidget = None):
         super().__init__(ti, parent)
 
-    def set_data(self, signal: mycomtrade.StatusSignalList):
+    def set_data(self, signal: mycomtrade.StatusSignal):
         """QAreaSeries: sigterm"""
         self._signal = signal
         # Filling QLineSeries
