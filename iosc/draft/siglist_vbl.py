@@ -25,7 +25,7 @@ class SignalWidget(QWidget):
 
 
 class SignalListWidget(QWidget):
-    """Analog/Discrete signals list panel"""
+    """Analog/Status signals list panel"""
 
     def __init__(self, slist: mycomtrade.SignalList, parent=None):
         super().__init__(parent)

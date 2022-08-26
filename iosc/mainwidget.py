@@ -22,10 +22,10 @@ def find_std_ti(ti: int):
 
 class ComtradeWidget(QWidget):
     """
-    Main osc window. Includes analog and discrete panels
+    Main osc window. Includes analog and status panels
     """
-    analog_panel: SignalListView
-    discret_panel: SignalListView
+    analog_table: SignalListView
+    status_table: SignalListView
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget = None):
         super().__init__(parent)
@@ -37,26 +37,26 @@ class ComtradeWidget(QWidget):
         ti = find_std_ti(ti_wanted)
         # print(f"{ti_wanted} => {ti}")
         # 1. analog part
-        self.analog_panel = SignalListView(rec.analog, ti, self)
-        splitter.addWidget(self.analog_panel)
-        # 2. digital part
-        self.discret_panel = SignalListView(rec.discret, ti, self)
-        splitter.addWidget(self.discret_panel)
+        self.analog_table = SignalListView(rec.analog, ti, self)
+        splitter.addWidget(self.analog_table)
+        # 2. status part
+        self.status_table = SignalListView(rec.status, ti, self)
+        splitter.addWidget(self.status_table)
         # 3. lets go
         self.layout().addWidget(splitter)
         # sync
-        self.analog_panel.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
-        self.discret_panel.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
-        self.analog_panel.horizontalHeader().sectionResized.connect(self.__sync_hresize)
-        self.discret_panel.horizontalHeader().sectionResized.connect(self.__sync_hresize)
+        self.analog_table.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
+        self.status_table.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
+        self.analog_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
+        self.status_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
 
     def __sync_hscrolls(self, index):
-        self.analog_panel.horizontalScrollBar().setValue(index)
-        self.discret_panel.horizontalScrollBar().setValue(index)
+        self.analog_table.horizontalScrollBar().setValue(index)
+        self.status_table.horizontalScrollBar().setValue(index)
 
     def __sync_hresize(self, l_index: int, old_size: int, new_size: int):
-        self.analog_panel.horizontalHeader().resizeSection(l_index, new_size)
-        self.discret_panel.horizontalHeader().resizeSection(l_index, new_size)
+        self.analog_table.horizontalHeader().resizeSection(l_index, new_size)
+        self.status_table.horizontalHeader().resizeSection(l_index, new_size)
 
     def line_up(self, dwidth: int):
         """
@@ -64,10 +64,10 @@ class ComtradeWidget(QWidget):
         :param dwidth: Main window widths subtraction (available - actual)
         """
         # print("Dwidth: ", dwidth)  # 320, ok
-        # print("T Table: ", self.analog_panel.width())  # 940 == mw-20
-        # print("T Col_0:", self.analog_panel.columnWidth(0))
-        # print("D Table: ", self.discret_panel.width())
-        # print("D Col_0:", self.discret_panel.columnWidth(0))
-        w0 = max(self.analog_panel.columnWidth(0), self.discret_panel.columnWidth(0))
-        self.analog_panel.line_up(dwidth, w0)
-        self.discret_panel.line_up(dwidth, w0)
+        # print("T Table: ", self.analog_table.width())  # 940 == mw-20
+        # print("T Col_0:", self.analog_table.columnWidth(0))
+        # print("D Table: ", self.status_table.width())
+        # print("D Col_0:", self.status_table.columnWidth(0))
+        w0 = max(self.analog_table.columnWidth(0), self.status_table.columnWidth(0))
+        self.analog_table.line_up(dwidth, w0)
+        self.status_table.line_up(dwidth, w0)

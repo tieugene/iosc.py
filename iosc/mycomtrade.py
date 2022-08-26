@@ -166,6 +166,15 @@ class Signal(Wrapper):
         self._color = v[0] << 16 | v[1] << 8 | v[2]
 
 
+class StatusSignal(Signal):
+    _is_bool = True
+
+    def __init__(self, raw: Comtrade, i: int):
+        super().__init__(raw, i)
+        self._value = self._raw.status
+        self._id_ptr = self._raw.status_channel_ids
+
+
 class AnalogSignal(Signal):
     _is_bool = False
 
@@ -173,15 +182,6 @@ class AnalogSignal(Signal):
         super().__init__(raw, i)
         self._value = self._raw.analog
         self._id_ptr = self._raw.analog_channel_ids
-
-
-class DiscretSignal(Signal):
-    _is_bool = True
-
-    def __init__(self, raw: Comtrade, i: int):
-        super().__init__(raw, i)
-        self._value = self._raw.status
-        self._id_ptr = self._raw.status_channel_ids
 
 
 class SignalList(Meta):
@@ -209,7 +209,7 @@ class SignalList(Meta):
         return self._is_bool
 
 
-class DiscretSignalList(SignalList):
+class StatusSignalList(SignalList):
     _is_bool = True
 
     def __init__(self, raw: Comtrade):
@@ -219,7 +219,7 @@ class DiscretSignalList(SignalList):
         self._count = self._raw.status_count
         self._list.clear()
         for i in range(self._count):
-            self._list.append(DiscretSignal(self._raw, i))
+            self._list.append(StatusSignal(self._raw, i))
 
 
 class AnalogSignalList(SignalList):
@@ -253,7 +253,7 @@ class RateList(Wrapper):
 class MyComtrade(Wrapper):
     __meta: Meta
     __analog: AnalogSignalList
-    __discret: DiscretSignalList
+    __status: StatusSignalList
     __rate: RateList
 
     # TODO: __rate: SampleRateList
@@ -262,7 +262,7 @@ class MyComtrade(Wrapper):
         super().__init__(Comtrade())
         self.__meta = Meta(self._raw)
         self.__analog = AnalogSignalList(self._raw)
-        self.__discret = DiscretSignalList(self._raw)
+        self.__status = StatusSignalList(self._raw)
         self.__rate = RateList(self._raw)
 
     @property
@@ -274,8 +274,8 @@ class MyComtrade(Wrapper):
         return self.__analog
 
     @property
-    def discret(self) -> DiscretSignalList:
-        return self.__discret
+    def status(self) -> StatusSignalList:
+        return self.__status
 
     @property
     def rate(self) -> RateList:
@@ -292,4 +292,4 @@ class MyComtrade(Wrapper):
         else:
             self._raw.load(str(path))
         self.__analog.reload()
-        self.__discret.reload()
+        self.__status.reload()

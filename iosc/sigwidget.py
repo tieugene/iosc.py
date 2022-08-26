@@ -112,7 +112,7 @@ class SignalChartView(QtCharts.QChartView):
         """
         :param painter:
         :param _: == rect
-        :todo: not plots for discrete const Y=1
+        :todo: not plots for status const Y=1
         """
         painter.save()
         pen = QPen()
