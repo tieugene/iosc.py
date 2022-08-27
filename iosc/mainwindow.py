@@ -9,6 +9,7 @@ from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QT
 # 3. local
 from mycomtrade import MyComtrade
 from mainwidget import ComtradeWidget
+from convert import convert
 
 
 class ComtradeTabWidget(QTabWidget):
@@ -96,10 +97,10 @@ class ComtradeTabWidget(QTabWidget):
 
     def current_tab_convert(self):
         index = self.currentIndex()
-        data = self._chartdata[index]
-        print("You win!!")
-        # Save as dialog
-        # call converter
+        rec = self._chartdata[index]
+        fn = QFileDialog.getSaveFileName(self, "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[rec.meta.ft])
+        if fn[0]:
+            convert(pathlib.Path(rec.meta.filepath), pathlib.Path(fn[0]))
 
     def current_tab_unhide_all(self):
         index = self.currentIndex()
