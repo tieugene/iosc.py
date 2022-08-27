@@ -59,10 +59,10 @@ class ComtradeTabWidget(QTabWidget):
             self._chartdata.remove(chartdata)
             self.removeTab(index)
 
-    def close_current_tab(self):
+    def current_tab_close(self):
         self.handle_tab_close_request(self.currentIndex())
 
-    def info_current_tab(self):
+    def current_tab_info(self):
         def tr(name: str, value: Any):
             return f"<tr><th>{name}:</th><td>{value}</td></tr>"
 
@@ -94,19 +94,20 @@ class ComtradeTabWidget(QTabWidget):
         # # /plan
         msg.exec_()
 
-    def unhide_current_tab(self):
+    def current_tab_unhide_all(self):
         index = self.currentIndex()
         self._chartviews[index].sig_unhide()
 
 
 class MainWindow(QMainWindow):
     tabs: ComtradeTabWidget
-    actOpen: QAction
-    actClose: QAction
-    actInfo: QAction
+    actFileOpen: QAction
+    actFileClose: QAction
+    actFileInfo: QAction
+    actFileConvert: QAction
     actExit: QAction
     actAbout: QAction
-    actSigShowHidden: QAction
+    actSigUnhideAll: QAction
 
     def __init__(self):
         super().__init__()
@@ -129,41 +130,41 @@ class MainWindow(QMainWindow):
                                shortcut="Ctrl+Q",
                                statusTip="Exit the application",
                                triggered=self.close)
-        self.actOpen = QAction(QIcon.fromTheme("document-open"),
-                               "&Open",
-                               self,
-                               shortcut="Ctrl+O",
-                               statusTip="Load comtrade file",
-                               triggered=self.file_open)
-        self.actClose = QAction(QIcon.fromTheme("window-close"),  # TODO: disable if nobodu
-                                "&Close",
-                                self,
-                                shortcut="Ctrl+W",
-                                triggered=self.file_close)
-        self.actInfo = QAction(QIcon.fromTheme("dialog-information"),
-                               "&Info",
-                               self,
-                               shortcut="Ctrl+I",
-                               triggered=self.file_info)
-        self.actAbout = QAction(QIcon.fromTheme("help-about"),
+        self.actAbout = QAction(QIcon.fromTheme("help-do_about"),
                                 "&About",
                                 self,
                                 statusTip="Show the application's About box",
-                                triggered=self.about)
-        self.actSigShowHidden = QAction(QIcon.fromTheme("edit-undo"),
-                                        "&Unhide all",
-                                        self,
-                                        statusTip="Show hidden channels",
-                                        triggered=self.sig_show_hidden)
+                                triggered=self.do_about)
+        self.actFileOpen = QAction(QIcon.fromTheme("document-open"),
+                                   "&Open",
+                                   self,
+                                   shortcut="Ctrl+O",
+                                   statusTip="Load comtrade file",
+                                   triggered=self.do_file_open)
+        self.actFileClose = QAction(QIcon.fromTheme("window-close"),  # TODO: disable if nobodu
+                                    "&Close",
+                                    self,
+                                    shortcut="Ctrl+W",
+                                    triggered=self.do_file_close)
+        self.actFileInfo = QAction(QIcon.fromTheme("dialog-information"),
+                                   "&Info",
+                                   self,
+                                   shortcut="Ctrl+I",
+                                   triggered=self.do_file_info)
+        self.actSigUnhideAll = QAction(QIcon.fromTheme("edit-undo"),
+                                       "&Unhide all",
+                                       self,
+                                       statusTip="Show hidden channels",
+                                       triggered=self.do_sig_unhide_all)
 
     def create_menus(self):
         menu_file = self.menuBar().addMenu("&File")
-        menu_file.addAction(self.actOpen)
-        menu_file.addAction(self.actClose)
-        menu_file.addAction(self.actInfo)
+        menu_file.addAction(self.actFileOpen)
+        menu_file.addAction(self.actFileClose)
+        menu_file.addAction(self.actFileInfo)
         menu_file.addAction(self.actExit)
         menu_channel = self.menuBar().addMenu("&Channel")
-        menu_channel.addAction(self.actSigShowHidden)
+        menu_channel.addAction(self.actSigUnhideAll)
         menu_help = self.menuBar().addMenu("&Help")
         menu_help.addAction(self.actAbout)
 
@@ -172,30 +173,6 @@ class MainWindow(QMainWindow):
 
     def create_statusbar(self):
         self.statusBar().showMessage("Ready")
-
-    # actions
-    def about(self):
-        QMessageBox.about(self, "About iOsc.py", "PySide2 powered comtrade viewer/analyzer.")
-
-    def file_open(self):
-        fn = QFileDialog.getOpenFileName(
-            self,
-            "Open data",
-            "",
-            "Comtrade Files (*.cfg *.cff)"
-        )
-        if fn[0]:
-            self.tabs.add_chart_tab(pathlib.Path(fn[0]))
-
-    def file_close(self):
-        if self.tabs.count() > 0:
-            self.tabs.close_current_tab()
-        # else:
-        #    self.close()  # TODO: disable ^W
-
-    def file_info(self):
-        if self.tabs.count() > 0:
-            self.tabs.info_current_tab()
 
     def update_statusbar(self, s: str):
         self.statusBar().showMessage(s)
@@ -214,6 +191,30 @@ class MainWindow(QMainWindow):
             else:
                 self.tabs.add_chart_tab(file)
 
-    def sig_show_hidden(self):
+    # actions
+    def do_about(self):
+        QMessageBox.about(self, "About iOsc.py", "PySide2 powered comtrade viewer/analyzer.")
+
+    def do_file_open(self):
+        fn = QFileDialog.getOpenFileName(
+            self,
+            "Open data",
+            "",
+            "Comtrade Files (*.cfg *.cff)"
+        )
+        if fn[0]:
+            self.tabs.add_chart_tab(pathlib.Path(fn[0]))
+
+    def do_file_close(self):
         if self.tabs.count() > 0:
-            self.tabs.unhide_current_tab()
+            self.tabs.current_tab_close()
+        # else:
+        #    self.close()  # TODO: disable ^W
+
+    def do_file_info(self):
+        if self.tabs.count() > 0:
+            self.tabs.current_tab_info()
+
+    def do_sig_unhide_all(self):
+        if self.tabs.count() > 0:
+            self.tabs.current_tab_unhide_all()
