@@ -99,6 +99,7 @@ class MainWindow(QMainWindow):
     actInfo: QAction
     actExit: QAction
     actAbout: QAction
+    actSigShowHidden: QAction
 
     def __init__(self):
         super().__init__()
@@ -142,6 +143,11 @@ class MainWindow(QMainWindow):
                                 self,
                                 statusTip="Show the application's About box",
                                 triggered=self.about)
+        self.actSigShowHidden = QAction(QIcon.fromTheme("edit-undo"),
+                                        "&Unhide",
+                                        self,
+                                        statusTip="Show hidden channels",
+                                        triggered=self.sig_show_hidden)
 
     def create_menus(self):
         menu_file = self.menuBar().addMenu("&File")
@@ -149,6 +155,8 @@ class MainWindow(QMainWindow):
         menu_file.addAction(self.actClose)
         menu_file.addAction(self.actInfo)
         menu_file.addAction(self.actExit)
+        menu_channel = self.menuBar().addMenu("&Channel")
+        menu_channel.addAction(self.actSigShowHidden)
         menu_help = self.menuBar().addMenu("&Help")
         menu_help.addAction(self.actAbout)
 
@@ -198,3 +206,6 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(self, "CLI error", f"'{file}' not exists or is not file")
             else:
                 self.tabs.add_chart_tab(file)
+
+    def sig_show_hidden(self):
+        ...
