@@ -100,6 +100,7 @@ class ComtradeTabWidget(QTabWidget):
         rec = self._chartdata[index]
         fn = QFileDialog.getSaveFileName(self, "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[rec.meta.ft])
         if fn[0]:
+            # FIXME: check the same
             convert(pathlib.Path(rec.meta.filepath), pathlib.Path(fn[0]))
 
     def current_tab_unhide_all(self):
@@ -160,9 +161,10 @@ class MainWindow(QMainWindow):
                                    shortcut="Ctrl+I",
                                    triggered=self.do_file_info)
         self.actFileConvert = QAction(QIcon.fromTheme("document-save-as"),
-                                   "&Convert to...",
-                                   self,
-                                   triggered=self.do_file_convert)
+                                      "&Save as...",
+                                      self,
+                                      shortcut="Ctrl-S",
+                                      triggered=self.do_file_convert)
         self.actSigUnhideAll = QAction(QIcon.fromTheme("edit-undo"),
                                        "&Unhide all",
                                        self,
