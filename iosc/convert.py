@@ -40,9 +40,9 @@ def __ascii2bin(sfile: pathlib.Path, dfile: pathlib.Path, ch_num: tuple[int, ...
             # 3. digital (as uint16[]) FIXME:
             if ch_num[2]:
                 words = math.ceil(ch_num[2] / 16)  # 16-bit words
-                # join back, pad right, reverse, to int, write as bytes
+                # join back | reverse | pad left side | int | bytes
                 outfile.write(
-                    int(''.join(data[ch_num[1] + 2:]).rjust(words * 16, '0')[::-1], 2).to_bytes(words * 2, 'little'))
+                    int(''.join(data[ch_num[1] + 2:])[::-1].rjust(words * 16, '0'), 2).to_bytes(words * 2, 'little'))
 
 
 def __bin2ascii(sfile: pathlib.Path, dfile: pathlib.Path, ch_num: tuple[int, ...]):

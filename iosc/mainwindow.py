@@ -163,7 +163,7 @@ class MainWindow(QMainWindow):
         self.actFileConvert = QAction(QIcon.fromTheme("document-save-as"),
                                       "&Save as...",
                                       self,
-                                      shortcut="Ctrl-S",
+                                      shortcut="Ctrl+S",
                                       triggered=self.do_file_convert)
         self.actSigUnhideAll = QAction(QIcon.fromTheme("edit-undo"),
                                        "&Unhide all",
