@@ -137,8 +137,8 @@ class SignalCtrlView(QLabel):
 
     def _handle_context_menu(self, point: QPoint):
         context_menu = QMenu()
-        action_sig_property = context_menu.addAction("Signal property")
-        action_sig_hide = context_menu.addAction("Hide signal")
+        action_sig_property = context_menu.addAction("Channel property")
+        action_sig_hide = context_menu.addAction("Hide channel")
         chosen_action = context_menu.exec_(self.mapToGlobal(point))
         if chosen_action == action_sig_property:
             self.__do_sig_property()
@@ -153,7 +153,7 @@ class SignalCtrlView(QLabel):
 
     def __do_sig_hide(self):
         """Hide signal in table"""
-        ...
+        self.parent().parent().hideRow(self.__signal.i)
 
 
 class AnalogSignalChart(SignalChart):
