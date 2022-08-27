@@ -35,6 +35,10 @@ class SignalListView(QTableWidget):
         self.setColumnWidth(0, w0)
         self.setColumnWidth(1, self.width() + dwidth - w0 - 48)  # FIXME: magic number
 
+    def sig_unhide(self):
+        for row in range(self.rowCount()):
+            self.showRow(row)
+
 
 class AnalogSignalListView(SignalListView):
     time_axis: TimeAxisView

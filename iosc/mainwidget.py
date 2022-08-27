@@ -66,3 +66,8 @@ class ComtradeWidget(QWidget):
         w0 = max(self.analog_table.columnWidth(0), self.status_table.columnWidth(0))
         self.analog_table.line_up(dwidth, w0)
         self.status_table.line_up(dwidth, w0)
+
+    def sig_unhide(self):
+        """Unhide hidden channels"""
+        self.analog_table.sig_unhide()
+        self.status_table.sig_unhide()
