@@ -94,6 +94,13 @@ class ComtradeTabWidget(QTabWidget):
         # # /plan
         msg.exec_()
 
+    def current_tab_convert(self):
+        index = self.currentIndex()
+        data = self._chartdata[index]
+        print("You win!!")
+        # Save as dialog
+        # call converter
+
     def current_tab_unhide_all(self):
         index = self.currentIndex()
         self._chartviews[index].sig_unhide()
@@ -151,6 +158,10 @@ class MainWindow(QMainWindow):
                                    self,
                                    shortcut="Ctrl+I",
                                    triggered=self.do_file_info)
+        self.actFileConvert = QAction(QIcon.fromTheme("document-save-as"),
+                                   "&Convert to...",
+                                   self,
+                                   triggered=self.do_file_convert)
         self.actSigUnhideAll = QAction(QIcon.fromTheme("edit-undo"),
                                        "&Unhide all",
                                        self,
@@ -162,6 +173,7 @@ class MainWindow(QMainWindow):
         menu_file.addAction(self.actFileOpen)
         menu_file.addAction(self.actFileClose)
         menu_file.addAction(self.actFileInfo)
+        menu_file.addAction(self.actFileConvert)
         menu_file.addAction(self.actExit)
         menu_channel = self.menuBar().addMenu("&Channel")
         menu_channel.addAction(self.actSigUnhideAll)
@@ -214,6 +226,10 @@ class MainWindow(QMainWindow):
     def do_file_info(self):
         if self.tabs.count() > 0:
             self.tabs.current_tab_info()
+
+    def do_file_convert(self):
+        if self.tabs.count() > 0:
+            self.tabs.current_tab_convert()
 
     def do_sig_unhide_all(self):
         if self.tabs.count() > 0:
