@@ -12,6 +12,9 @@ from mainwidget import ComtradeWidget
 
 
 class ComtradeTabWidget(QTabWidget):
+    _chartview: list[ComtradeWidget]
+    _chartdata: list[MyComtrade]
+
     def __init__(self, parent: QMainWindow = None):
         super().__init__(parent)
         self.setTabsClosable(True)
@@ -91,6 +94,10 @@ class ComtradeTabWidget(QTabWidget):
         # # /plan
         msg.exec_()
 
+    def unhide_current_tab(self):
+        index = self.currentIndex()
+        self._chartviews[index].sig_unhide()
+
 
 class MainWindow(QMainWindow):
     tabs: ComtradeTabWidget
@@ -144,7 +151,7 @@ class MainWindow(QMainWindow):
                                 statusTip="Show the application's About box",
                                 triggered=self.about)
         self.actSigShowHidden = QAction(QIcon.fromTheme("edit-undo"),
-                                        "&Unhide",
+                                        "&Unhide all",
                                         self,
                                         statusTip="Show hidden channels",
                                         triggered=self.sig_show_hidden)
@@ -208,4 +215,5 @@ class MainWindow(QMainWindow):
                 self.tabs.add_chart_tab(file)
 
     def sig_show_hidden(self):
-        ...
+        if self.tabs.count() > 0:
+            self.tabs.unhide_current_tab()
