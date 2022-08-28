@@ -832,6 +832,8 @@ class Comtrade:
         self._cfg_extract_phases(self._cfg)
 
         dat = self._get_dat_reader()
+        if 'encoding' in kwargs:
+            del kwargs['encoding']
         dat.load(dat_filepath, self._cfg, **kwargs)
 
         # copy dat object information
