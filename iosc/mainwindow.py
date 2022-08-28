@@ -1,4 +1,5 @@
 """Main GUI"""
+import struct
 # 1. std
 from typing import Any
 import pathlib
@@ -9,6 +10,7 @@ from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QT
 # 3. local
 from mycomtrade import MyComtrade
 from mainwidget import ComtradeWidget
+from convtrade import convert, ConvertError
 
 
 class ComtradeTabWidget(QTabWidget):
@@ -39,17 +41,22 @@ class ComtradeTabWidget(QTabWidget):
         QGuiApplication.setOverrideCursor(Qt.WaitCursor)
         self.setUpdatesEnabled(False)
         rec = MyComtrade()
-        rec.load(path)  # FIXME: handle loading errors
-        index = self.count()
-        self._chartdata.append(rec)
-        item = ComtradeWidget(rec, self)  # table width == 100
-        self._chartviews.append(item)
-        self.addTab(item, path.name)  # table width == 940 (CLI) | 100 (Open)
-        self.setCurrentIndex(index)
-        self.setUpdatesEnabled(True)  # table width == right
-        # self.__misc()
-        item.line_up(QGuiApplication.screens()[0].availableGeometry().width() - self.parent().width())
-        QGuiApplication.restoreOverrideCursor()
+        try:
+            rec.load(path)  # FIXME: handle loading errors
+        except struct.error as e:
+            QMessageBox.critical(self, "Loading error", str(e))
+        else:
+            index = self.count()
+            self._chartdata.append(rec)
+            item = ComtradeWidget(rec, self)  # table width == 100
+            self._chartviews.append(item)
+            self.addTab(item, path.name)  # table width == 940 (CLI) | 100 (Open)
+            self.setCurrentIndex(index)
+            self.setUpdatesEnabled(True)  # table width == right
+            # self.__misc()
+            item.line_up(QGuiApplication.screens()[0].availableGeometry().width() - self.parent().width())
+        finally:
+            QGuiApplication.restoreOverrideCursor()
 
     def handle_tab_close_request(self, index):
         if index >= 0 and self.count() >= 1:
@@ -93,6 +100,16 @@ class ComtradeTabWidget(QTabWidget):
         msg.setTextFormat(Qt.RichText)
         # # /plan
         msg.exec_()
+
+    def current_tab_convert(self):
+        index = self.currentIndex()
+        rec = self._chartdata[index]
+        fn = QFileDialog.getSaveFileName(self, "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[rec.meta.ft])
+        if fn[0]:
+            try:
+                convert(pathlib.Path(rec.meta.filepath), pathlib.Path(fn[0]))
+            except ConvertError as e:
+                QMessageBox.critical(self, "Converting error", str(e))
 
     def current_tab_unhide_all(self):
         index = self.currentIndex()
@@ -151,6 +168,11 @@ class MainWindow(QMainWindow):
                                    self,
                                    shortcut="Ctrl+I",
                                    triggered=self.do_file_info)
+        self.actFileConvert = QAction(QIcon.fromTheme("document-save-as"),
+                                      "&Save as...",
+                                      self,
+                                      shortcut="Ctrl+S",
+                                      triggered=self.do_file_convert)
         self.actSigUnhideAll = QAction(QIcon.fromTheme("edit-undo"),
                                        "&Unhide all",
                                        self,
@@ -162,6 +184,7 @@ class MainWindow(QMainWindow):
         menu_file.addAction(self.actFileOpen)
         menu_file.addAction(self.actFileClose)
         menu_file.addAction(self.actFileInfo)
+        menu_file.addAction(self.actFileConvert)
         menu_file.addAction(self.actExit)
         menu_channel = self.menuBar().addMenu("&Channel")
         menu_channel.addAction(self.actSigUnhideAll)
@@ -214,6 +237,10 @@ class MainWindow(QMainWindow):
     def do_file_info(self):
         if self.tabs.count() > 0:
             self.tabs.current_tab_info()
+
+    def do_file_convert(self):
+        if self.tabs.count() > 0:
+            self.tabs.current_tab_convert()
 
     def do_sig_unhide_all(self):
         if self.tabs.count() > 0:
