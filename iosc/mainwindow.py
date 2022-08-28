@@ -9,7 +9,7 @@ from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QT
 # 3. local
 from mycomtrade import MyComtrade
 from mainwidget import ComtradeWidget
-from convert import convert
+from convtrade import convert
 
 
 class ComtradeTabWidget(QTabWidget):
@@ -100,7 +100,6 @@ class ComtradeTabWidget(QTabWidget):
         rec = self._chartdata[index]
         fn = QFileDialog.getSaveFileName(self, "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[rec.meta.ft])
         if fn[0]:
-            # FIXME: check the same
             convert(pathlib.Path(rec.meta.filepath), pathlib.Path(fn[0]))
 
     def current_tab_unhide_all(self):

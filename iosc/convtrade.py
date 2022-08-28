@@ -2,6 +2,7 @@
 :todo: exceptions
 """
 import math
+import sys
 # 1. std
 from typing import Optional
 import pathlib
@@ -35,7 +36,7 @@ def __ascii2bin(sfile: pathlib.Path, dfile: pathlib.Path, ch_num: tuple[int, ...
             outfile.write(int(data[1]).to_bytes(4, 'little'))
             # 2. analog (as int16[]):
             if ch_num[1]:
-                for a in data[2:2 + (ch_num[1])]:
+                for a in data[2:2 + (ch_num[1])]:  # TODO: replace with map or [a:b:c]
                     outfile.write(int(a).to_bytes(2, 'little', signed=True))
             # 3. digital (as uint16[]) FIXME:
             if ch_num[2]:
@@ -46,13 +47,23 @@ def __ascii2bin(sfile: pathlib.Path, dfile: pathlib.Path, ch_num: tuple[int, ...
 
 
 def __bin2ascii(sfile: pathlib.Path, dfile: pathlib.Path, ch_num: tuple[int, ...]):
-    print("BIN => ASCII")
-    # to the end:
-    # get #
-    # get timestamp
-    # get As
-    # unpack Ds
-    # print all
+    chunk_size = 8 + ch_num[1] * 2 + math.ceil(ch_num[2] / 16) * 2
+    sfsize = sfile.stat().st_size
+    if sfsize % chunk_size:
+        raise ConvertError(f"File size {sfsize} not devide by {chunk_size}")
+    with open(sfile, 'rb') as infile, open(dfile, 'wt') as outfile:
+        while True:
+            line = infile.read(chunk_size)
+            if not line:  # eof
+                break
+            out_list = [str(int.from_bytes(line[0:4], 'little')), str(int.from_bytes(line[4:8], 'little'))]
+            for a in range(ch_num[1]):
+                out_list.append(str(int.from_bytes(line[8 + a * 2:8 + a * 2 + 2], 'little', signed=True)))
+            # select | int | bitstring | cut | pad left | list
+            # IndexError: string index out of range
+            out_list.extend(
+                list(bin(int.from_bytes(line[8 + ch_num[1] * 2:], 'little'))[2:][-ch_num[2]:].rjust(ch_num[2], '0')))
+            print(','.join(out_list), file=outfile, end="\r\n")
 
 
 def convert(sfname: pathlib.Path, dfname: pathlib.Path):
@@ -62,7 +73,11 @@ def convert(sfname: pathlib.Path, dfname: pathlib.Path):
     :param dfname: Dest file path
     :note: cfg only
     """
-    # print("Let's go!", sfname, '=>', dfname)
+    # 0. checks
+    if not sfname.is_file():
+        raise ConvertError(f"Src '{sfname}' not exists")
+    if sfname.with_suffix('') == dfname.with_suffix(''):
+        raise ConvertError(f"Same src and dst")
     # 1. detect encoding
     enc: Optional[str] = None
     with open(sfname, 'rb') as infile:
@@ -82,7 +97,7 @@ def convert(sfname: pathlib.Path, dfname: pathlib.Path):
                 to_bin = (line.strip() == 'ASCII')
                 line = {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[line]
             # TODO: write to outfile
-            print(line, file=outfile)
+            print(line, file=outfile, end="\r\n")
     if ch_num is None:
         raise ConvertError("Channel numbers not recognized")
     if to_bin is None:
@@ -93,3 +108,18 @@ def convert(sfname: pathlib.Path, dfname: pathlib.Path):
         __ascii2bin(sfname.with_suffix('.dat'), dfname.with_suffix('.dat'), ch_num)
     else:
         __bin2ascii(sfname.with_suffix('.dat'), dfname.with_suffix('.dat'), ch_num)
+
+
+def main():
+    if len(sys.argv) != 3:
+        print(f"Usage: {sys.argv[0]} <in_cfg_file> <out_file_or_dir")
+        sys.exit()
+    sf = pathlib.Path(sys.argv[1])
+    df = pathlib.Path(sys.argv[2])
+    if df.is_dir():
+        df = df.joinpath(sf.name)
+    convert(sf, df)
+
+
+if __name__ == '__main__':
+    main()
