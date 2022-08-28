@@ -7,9 +7,10 @@ import sys
 from typing import Optional
 import pathlib
 import re
-
 # 2. 3rd
 import chardet
+# x. const
+CH_NUM_RE = r'^\s*(\d{1,7}),\s*(\d{1,6})A,\s*(\d{1,6})D$'
 
 
 class ConvertError(RuntimeError):
@@ -24,11 +25,29 @@ class ConvertError(RuntimeError):
         return f"Convert error: {self.msg}"
 
 
+def __cfg_xfer(sfname: pathlib.Path, dfname: pathlib.Path, enc: str) -> (Optional[tuple[int, ...]], Optional[bool]):
+    ch_num: Optional[tuple[int, ...]] = None
+    to_bin: Optional[bool] = None
+    with open(sfname, 'rt', encoding=enc) as infile, open(dfname.with_suffix('.cfg'), 'wt', encoding=enc) as outfile:
+        for i, line in enumerate(infile):
+            line = line.strip()
+            if i == 1:
+                raw = re.findall(CH_NUM_RE, line)
+                if not raw:
+                    raise ConvertError("2nd line not found")
+                ch_num = tuple(map(int, raw[0]))
+            elif line in {'ASCII', 'BINARY'}:  # TODO: re
+                to_bin = (line.strip() == 'ASCII')
+                line = {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[line]
+            print(line, file=outfile, end="\r\n")
+    return ch_num, to_bin
+
+
 def __ascii2bin(sfile: pathlib.Path, dfile: pathlib.Path, ch_num: tuple[int, ...]):
     # print("ASCII => BIN")
     with open(sfile, 'rt') as infile, open(dfile, 'wb') as outfile:
         for i, line in enumerate(infile):
-            data = line.strip().split(',')
+            data = [s.strip() for s in line.split(',')]
             if len(data) != (ch_num[0] + 2):
                 raise ConvertError(f"Too few/many channels in row #{i + 1}")
             # 1. no, timestamp as (uint32)
@@ -36,8 +55,11 @@ def __ascii2bin(sfile: pathlib.Path, dfile: pathlib.Path, ch_num: tuple[int, ...
             outfile.write(int(data[1]).to_bytes(4, 'little'))
             # 2. analog (as int16[]):
             if ch_num[1]:
-                for a in data[2:2 + (ch_num[1])]:  # TODO: replace with map or [a:b:c]
-                    outfile.write(int(a).to_bytes(2, 'little', signed=True))
+                for j, a in enumerate(data[2:2 + (ch_num[1])]):  # TODO: replace with map or [a:b:c]
+                    try:
+                        outfile.write(int(a).to_bytes(2, 'little', signed=True))
+                    except OverflowError as e:
+                        raise ConvertError(f"Line #{i}, int#{j}: {str(e)}")
             # 3. digital (as uint16[]) FIXME:
             if ch_num[2]:
                 words = math.ceil(ch_num[2] / 16)  # 16-bit words
@@ -50,7 +72,7 @@ def __bin2ascii(sfile: pathlib.Path, dfile: pathlib.Path, ch_num: tuple[int, ...
     chunk_size = 8 + ch_num[1] * 2 + math.ceil(ch_num[2] / 16) * 2
     sfsize = sfile.stat().st_size
     if sfsize % chunk_size:
-        raise ConvertError(f"File size {sfsize} not devide by {chunk_size}")
+        raise ConvertError(f"File size {sfsize} is not multiple of {chunk_size}")
     with open(sfile, 'rb') as infile, open(dfile, 'wt') as outfile:
         while True:
             line = infile.read(chunk_size)
@@ -83,25 +105,13 @@ def convert(sfname: pathlib.Path, dfname: pathlib.Path):
     with open(sfname, 'rb') as infile:
         enc = chardet.detect(infile.read())['encoding']
     # 2. transfere *.cfg + get channel number and src file type
-    ch_num: Optional[tuple[int, ...]] = None
-    to_bin: Optional[bool] = None
-    with open(sfname, 'rt', encoding=enc) as infile, open(dfname.with_suffix('.cfg'), 'wt', encoding=enc) as outfile:
-        for i, line in enumerate(infile):
-            line = line.strip()
-            if i == 1:
-                raw = re.findall(r'^(\d{1,7}),(\d{1,6})A,(\d{1,6})D$', line)
-                if not raw:
-                    raise ConvertError("2nd line not found")
-                ch_num = tuple(map(int, raw[0]))
-            elif line in {'ASCII', 'BINARY'}:  # TODO: re
-                to_bin = (line.strip() == 'ASCII')
-                line = {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[line]
-            # TODO: write to outfile
-            print(line, file=outfile, end="\r\n")
-    if ch_num is None:
-        raise ConvertError("Channel numbers not recognized")
+    ch_num, to_bin = __cfg_xfer(sfname, dfname, enc)
     if to_bin is None:
         raise ConvertError("It is not ASCII nor BINARY")
+    if ch_num is None:
+        raise ConvertError("Channel numbers not recognized")
+    if ch_num[0] != (ch_num[1] + ch_num[2]):
+        raise ConvertError(f"Impossible channels num: {ch_num[0]} = {ch_num[1]}A + {ch_num[2]}D")
     # 3. transfere *.dat
     # print("Summary:", ch_num, to_bin)
     if to_bin:
@@ -118,7 +128,10 @@ def main():
     df = pathlib.Path(sys.argv[2])
     if df.is_dir():
         df = df.joinpath(sf.name)
-    convert(sf, df)
+    try:
+        convert(sf, df)
+    except ConvertError as e:
+        sys.exit(str(e))
 
 
 if __name__ == '__main__':
