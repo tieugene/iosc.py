@@ -131,6 +131,7 @@ class SignalCtrlView(QLabel):
     def set_data(self, signal: mycomtrade.Signal):
         self.__signal = signal
         self.setText(signal.sid)
+        self.set_style()
 
     def set_style(self):
         self.setStyleSheet("QLabel { color : rgb(%d,%d,%d); }" % self.__signal.rgb)
@@ -168,7 +169,9 @@ class AnalogSignalChart(SignalChart):
         self.addSeries(self.series)  # Note: attach after filling up, not B4
         # self.series.attachAxis(self.xaxis)  # Note: attach after adding series to self, not B4
         self.setAxisX(self.xaxis, self.series)
-        # color up
+        self.set_style()
+
+    def set_style(self):
         pen: QPen = self.series.pen()
         pen.setWidth(1)
         pen.setStyle((Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)[self._signal.line_type.value])
