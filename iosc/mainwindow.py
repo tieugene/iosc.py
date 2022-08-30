@@ -1,12 +1,12 @@
 """Main GUI"""
-import struct
 # 1. std
+import struct
 from typing import Any
 import pathlib
 # 2. 3rd
-from PySide2.QtCore import Qt, QCoreApplication
-from PySide2.QtGui import QIcon, QGuiApplication
-from PySide2.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget
+from PyQt5.QtCore import Qt, QCoreApplication
+from PyQt5.QtGui import QIcon, QGuiApplication
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget
 # 3. local
 from mycomtrade import MyComtrade
 from mainwidget import ComtradeWidget
@@ -36,7 +36,8 @@ class ComtradeTabWidget(QTabWidget):
 
     def add_chart_tab(self, path: pathlib.Path):
         """
-        :note: If addTab() after show(), set .updatesEnabled = False B4 changes and = True after changes (to prevent flicker)
+        :note: If addTab() after show(), set .updatesEnabled = False B4 changes and = True after changes
+         (to prevent flicker)
         """
         QGuiApplication.setOverrideCursor(Qt.WaitCursor)
         self.setUpdatesEnabled(False)
@@ -126,8 +127,8 @@ class MainWindow(QMainWindow):
     actAbout: QAction
     actSigUnhideAll: QAction
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, _: list, parent=None):
+        super().__init__(parent)
         self.create_widgets()
         self.create_actions()
         self.create_menus()
@@ -216,7 +217,7 @@ class MainWindow(QMainWindow):
 
     # actions
     def do_about(self):
-        QMessageBox.about(self, "About iOsc.py", "PySide2 powered comtrade viewer/analyzer.")
+        QMessageBox.about(self, "About iOsc.py", "Qt powered comtrade viewer/analyzer.")
 
     def do_file_open(self):
         fn = QFileDialog.getOpenFileName(

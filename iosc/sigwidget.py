@@ -1,8 +1,8 @@
 # 2. 3rd
-from PySide2.QtCore import Qt, QPointF, QPoint, QMargins
-from PySide2.QtGui import QPainter, QPen, QColor, QBrush, QFont
-from PySide2.QtCharts import QtCharts
-from PySide2.QtWidgets import QLabel, QMenu, QTableWidget
+from PyQt5.QtCore import Qt, QPointF, QPoint, QMargins
+from PyQt5.QtGui import QPainter, QPen, QColor, QBrush, QFont
+from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget
+from PyQt5 import QtChart
 # 3. local
 import mycomtrade
 from sigprop import SigPropertiesDialog
@@ -23,26 +23,26 @@ TIMELINE_HEIGHT = 50
 # TIMELINE_HEIGHT = 40
 
 
-class TimeAxisView(QtCharts.QChartView):
-    xaxis: QtCharts.QValueAxis
+class TimeAxisView(QtChart.QChartView):
+    xaxis: QtChart.QValueAxis
 
     def __init__(self, tmin: float, t0: float, tmax, ti: int, parent=None):
         super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
 
-        series = QtCharts.QLineSeries()
+        series = QtChart.QLineSeries()
         series.append((tmin - t0) * 1000, 0)
         series.append((tmax - t0) * 1000, 0)
 
-        chart = QtCharts.QChart()
+        chart = QtChart.QChart()
         chart.legend().hide()
         chart.layout().setContentsMargins(*MARGINS_ZERO)
         chart.setContentsMargins(*MARGINS_AXIS)
         chart.setMargins(QMargins())
         chart.addSeries(series)
 
-        self.xaxis = QtCharts.QValueAxis()
-        self.xaxis.setTickType(QtCharts.QValueAxis.TicksDynamic)
+        self.xaxis = QtChart.QValueAxis()
+        self.xaxis.setTickType(QtChart.QValueAxis.TicksDynamic)
         self.xaxis.setTickAnchor(0)  # dyn
         self.xaxis.setTickInterval(ti)  # dyn
         self.xaxis.setLabelsFont(QFont('mono', 8))
@@ -57,9 +57,9 @@ class TimeAxisView(QtCharts.QChartView):
         self.setChart(chart)
 
 
-class SignalChart(QtCharts.QChart):
-    series: QtCharts.QLineSeries
-    xaxis: QtCharts.QValueAxis
+class SignalChart(QtChart.QChart):
+    series: QtChart.QLineSeries
+    xaxis: QtChart.QValueAxis
     _signal: mycomtrade.Signal
 
     def __init__(self, ti: int, parent=None):
@@ -71,8 +71,8 @@ class SignalChart(QtCharts.QChart):
         # self.legend().setVisible(False)
         # self.setMinimumHeight(CHART_MIN_HEIGHT)  # FIXME: dirty hack
         # decorate X-axis
-        self.xaxis = QtCharts.QValueAxis()
-        self.xaxis.setTickType(QtCharts.QValueAxis.TicksDynamic)
+        self.xaxis = QtChart.QValueAxis()
+        self.xaxis.setTickType(QtChart.QValueAxis.TicksDynamic)
         self.xaxis.setTickAnchor(0)  # dyn
         self.xaxis.setTickInterval(ti)  # dyn
         self.xaxis.setGridLineVisible(True)
@@ -91,7 +91,7 @@ class SignalChart(QtCharts.QChart):
         self.setPlotAreaBackgroundBrush(QBrush(QColor.fromRgb(*PLOTAREA_COLOR)))
 
 
-class SignalChartView(QtCharts.QChartView):
+class SignalChartView(QtChart.QChartView):
     def __init__(self, ti: int, parent=None):
         """
         :param ti: Ticks interval, ms
@@ -99,7 +99,7 @@ class SignalChartView(QtCharts.QChartView):
         super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
 
-    def drawForeground(self, painter, _):
+    def _drawForeground(self, painter, _):
         """
         :param painter:
         :param _: == rect
@@ -163,7 +163,7 @@ class AnalogSignalChart(SignalChart):
 
     def set_data(self, signal: mycomtrade.AnalogSignal):
         self._signal = signal
-        self.series = QtCharts.QLineSeries()
+        self.series = QtChart.QLineSeries()
         for i, t in enumerate(signal.time):
             self.series.append(1000 * (t - signal.meta.trigger_time), signal.value[i])
         self.addSeries(self.series)  # Note: attach after filling up, not B4
@@ -198,12 +198,12 @@ class StatusSignalChart(SignalChart):
         """QAreaSeries: sigterm"""
         self._signal = signal
         # Filling QLineSeries
-        real_series = QtCharts.QLineSeries(self)
-        zero_series = QtCharts.QLineSeries(self)
+        real_series = QtChart.QLineSeries(self)
+        zero_series = QtChart.QLineSeries(self)
         for i, t in enumerate(signal.time):  # TODO: optimize (skip dups)
             real_series.append(1000 * (t - signal.meta.trigger_time), signal.value[i])
             zero_series.append(1000 * (t - signal.meta.trigger_time), 0)
-        self.series = QtCharts.QAreaSeries(real_series, zero_series)
+        self.series = QtChart.QAreaSeries(real_series, zero_series)
         self.addSeries(self.series)  # Note: attach after filling up, not B4
         self.setAxisX(self.xaxis, self.series)
         # color up

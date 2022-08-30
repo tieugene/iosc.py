@@ -3,10 +3,10 @@
 View/analyze comtrade oscillograms
 
 ## Requirements
-- Python 3.9+ with
-  - PySide2
-  - numpy
-  - chardet
+- [Python3](https://www.python.org/) with
+  - [numpy](https://numpy.org/)
+  - [chardet](https://github.com/chardet/chardet)
+  - [PyQt5](https://www.riverbankcomputing.com/software/pyqt/) with [PyQtChart](https://www.riverbankcomputing.com/software/pyqtchart/)
 
 ## Includes
 - [python-comtrade](https://github.com/dparrini/python-comtrade)
@@ -24,20 +24,20 @@ View/analyze comtrade oscillograms
 1. Download and install [Python3](https://www.python.org/downloads/windows/)
 2. Add required python packages (cmd.exe as admin):
    ```shell
-   pip install PySide2 numpy chardet
+   pip install numpy chardet PyQtChart
    ```
 
 #### Linux:
 ```bash
 # RH-based:
-dnf install python3-pyside2 python3-numpy python3-chardet
+dnf install python3-numpy python3-chardet python3-pyqtchart
 # Debian-based:
-apt install python3-numpy python3-chardet python3-pyside2.qtcharts
+apt install python3-numpy python3-chardet ?python3-pyqt5.qtcharts?
 ```
 
 #### macOS
 (with [homebrew](https://brew.sh/)):
 ```bash
 brew install python3
-pip3 install PySide2 numpy chardet
+pip3 install numpy chardet PyQtChart
 ```

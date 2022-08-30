@@ -2,9 +2,9 @@
 QTableWidget version
 :todo: try QTableWidgetItem
 """
-from PySide2.QtCore import Qt
 # 2. 3rd
-from PySide2.QtWidgets import QTableWidget, QAbstractItemView, QLabel
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QTableWidget, QAbstractItemView, QLabel
 # 3. local
 import mycomtrade
 from sigwidget import TIMELINE_HEIGHT, TimeAxisView, \
@@ -46,7 +46,7 @@ class AnalogSignalListView(SignalListView):
     def __init__(self, slist: mycomtrade.AnalogSignalList, ti: int, parent=None):
         super().__init__(slist, ti, parent)
         self.setHorizontalHeader(WHeaderView(Qt.Orientation.Horizontal, self))
-        self.setHorizontalHeaderLabels((None, None))  # clean defaults
+        self.setHorizontalHeaderLabels(('', ''))  # clean defaults
         self.horizontalHeader().set_widget(0, QLabel("ms"))
         self.time_axis = TimeAxisView(slist.time[0], slist.trigger_time, slist.time[-1], ti)
         self.horizontalHeader().set_widget(1, self.time_axis)

@@ -2,9 +2,9 @@
 Powered by [internets](https://stackoverflow.com/questions/11596267/qtablewidget-personal-widget-as-header)
 and [Qt blog](https://www.qt.io/blog/2012/09/28/qt-support-weekly-27-widgets-on-a-header)
 """
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QShowEvent
-from PySide2.QtWidgets import QHeaderView, QTableWidget, QWidget
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QShowEvent
+from PyQt5.QtWidgets import QHeaderView, QTableWidget, QWidget
 
 
 class WHeaderView(QHeaderView):
