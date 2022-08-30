@@ -10,7 +10,7 @@ import re
 # 2. 3rd
 import chardet
 # x. const
-DAT_RE = r'[^A-Za-z0-9-,]+'
+NO_PRN_RE = r'[\x00-\x20]+'  # or r'[^\x21-\x7F]+'
 CH_NUM_RE = r'^\s*(\d{1,7}),\s*(\d{1,6})A,\s*(\d{1,6})D$'
 
 
@@ -45,13 +45,12 @@ def __cfg_xfer(sfname: pathlib.Path, dfname: pathlib.Path, enc: str) -> (Optiona
 
 
 def __ascii2bin(sfile: pathlib.Path, dfile: pathlib.Path, ch_num: tuple[int, ...]):
-    # print("ASCII => BIN")
-    with open(sfile, 'rt') as infile, open(dfile, 'wb') as outfile:
+    with open(sfile, 'rt', encoding='ascii') as infile, open(dfile, 'wb') as outfile:
         for i, line in enumerate(infile):
-            line = re.sub(DAT_RE, '', line)
+            line = re.sub(NO_PRN_RE, '', line)
             if not line:
                 continue  # skip empty/garbage
-            data = [s.strip() for s in line.split(',')]
+            data = [s for s in line.split(',')]
             if len(data) != (ch_num[0] + 2):
                 raise ConvertError(f"Too few/many channels in row #{i + 1}: {len(data)}")
             # 1. no, timestamp as (uint32)
