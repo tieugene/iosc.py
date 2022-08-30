@@ -6,8 +6,9 @@ from PyQt5 import QtChart
 # 3. 4rd
 from QCustomPlot2 import QCustomPlot, QCPAxisRect, QCPAxis
 # 4. local
-import mycomtrade
+import mycomtrade, const
 from sigprop import SigPropertiesDialog
+
 # x. const
 Z0_COLOR = 'black'
 PLOTAREA_COLOR = (240, 240, 240)
@@ -27,8 +28,8 @@ class TimeAxisView(QCustomPlot):
         super().__init__(parent)
         self.xAxis.setRange((tmin - t0) * 1000, (tmax - t0) * 1000)
         self.xAxis.ticker().setTickCount(10)  # QCPAxisTicker
-        self.xAxis.setTickLabelFont(QFont('mono', 8))
-        # TODO: setTickInterval(ti)  # dyn
+        self.xAxis.setTickLabelFont(QFont(*const.XSCALE_FONT))
+        # TODO: setTickInterval(ti)
         # TODO: setLabelFormat("%d")
         self.__squeeze()
 
@@ -43,6 +44,53 @@ class TimeAxisView(QCustomPlot):
         self.xAxis.setTickLabelSide(QCPAxis.lsInside)
         self.xAxis.grid().setVisible(False)
         self.xAxis.setPadding(0)
+
+
+class SignalCtrlView(QLabel):
+    __signal: mycomtrade.Signal
+
+    def __init__(self, parent: QTableWidget = None):
+        super().__init__(parent)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._handle_context_menu)
+
+    def set_data(self, signal: mycomtrade.Signal):
+        self.__signal = signal
+        self.setText(signal.sid)
+        self.set_style()
+
+    def set_style(self):
+        self.setStyleSheet("QLabel { color : rgb(%d,%d,%d); }" % self.__signal.rgb)
+
+    def _handle_context_menu(self, point: QPoint):
+        context_menu = QMenu()
+        action_sig_property = context_menu.addAction("Channel property")
+        action_sig_hide = context_menu.addAction("Hide channel")
+        chosen_action = context_menu.exec_(self.mapToGlobal(point))
+        if chosen_action == action_sig_property:
+            self.__do_sig_property()
+        elif chosen_action == action_sig_hide:
+            self.__do_sig_hide()
+
+    def __do_sig_property(self):
+        """Show/set signal properties"""
+        if SigPropertiesDialog(self.__signal).execute():
+            self.set_style()
+            self.parent().parent().cellWidget(self.__signal.i, 1).chart().set_style()  # Warning: 2 x parent
+
+    def __do_sig_hide(self):
+        """Hide signal in table"""
+        self.parent().parent().hideRow(self.__signal.i)
+
+
+class AnalogSignalCtrlView(SignalCtrlView):
+    def __init__(self, parent: QTableWidget = None):
+        super().__init__(parent)
+
+
+class StatusSignalCtrlView(SignalCtrlView):
+    def __init__(self, parent: QTableWidget = None):
+        super().__init__(parent)
 
 
 class SignalChart(QtChart.QChart):
@@ -108,43 +156,6 @@ class SignalChartView(QtChart.QChartView):
         self.chart().set_data(signal)
 
 
-class SignalCtrlView(QLabel):
-    __signal: mycomtrade.Signal
-
-    def __init__(self, parent: QTableWidget = None):
-        super().__init__(parent)
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self._handle_context_menu)
-
-    def set_data(self, signal: mycomtrade.Signal):
-        self.__signal = signal
-        self.setText(signal.sid)
-        self.set_style()
-
-    def set_style(self):
-        self.setStyleSheet("QLabel { color : rgb(%d,%d,%d); }" % self.__signal.rgb)
-
-    def _handle_context_menu(self, point: QPoint):
-        context_menu = QMenu()
-        action_sig_property = context_menu.addAction("Channel property")
-        action_sig_hide = context_menu.addAction("Hide channel")
-        chosen_action = context_menu.exec_(self.mapToGlobal(point))
-        if chosen_action == action_sig_property:
-            self.__do_sig_property()
-        elif chosen_action == action_sig_hide:
-            self.__do_sig_hide()
-
-    def __do_sig_property(self):
-        """Show/set signal properties"""
-        if SigPropertiesDialog(self.__signal).execute():
-            self.set_style()
-            self.parent().parent().cellWidget(self.__signal.i, 1).chart().set_style()  # Warning: 2 x parent
-
-    def __do_sig_hide(self):
-        """Hide signal in table"""
-        self.parent().parent().hideRow(self.__signal.i)
-
-
 class AnalogSignalChart(SignalChart):
     def __init__(self, ti: int, parent: QTableWidget = None):
         super().__init__(ti, parent)
@@ -173,11 +184,6 @@ class AnalogSignalChartView(SignalChartView):
         self.setChart(AnalogSignalChart(ti))
 
 
-class AnalogSignalCtrlView(SignalCtrlView):
-    def __init__(self, parent: QTableWidget = None):
-        super().__init__(parent)
-
-
 class StatusSignalChart(SignalChart):
     def __init__(self, ti: int, parent: QTableWidget = None):
         super().__init__(ti, parent)
@@ -202,8 +208,3 @@ class StatusSignalChartView(SignalChartView):
     def __init__(self, ti: int, parent: QTableWidget = None):
         super().__init__(ti, parent)
         self.setChart(StatusSignalChart(ti))
-
-
-class StatusSignalCtrlView(SignalCtrlView):
-    def __init__(self, parent: QTableWidget = None):
-        super().__init__(parent)

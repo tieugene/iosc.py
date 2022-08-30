@@ -1,1 +1,2 @@
 COL0_WIDTH = 155  # 180-25
+XSCALE_FONT = ('mono', 8)
