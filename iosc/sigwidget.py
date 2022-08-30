@@ -8,6 +8,7 @@ from QCustomPlot2 import QCustomPlot, QCPAxis
 import const
 import mycomtrade
 from sigprop import SigPropertiesDialog
+# x. const
 
 
 class TimeAxisView(QCustomPlot):
@@ -64,7 +65,7 @@ class SignalCtrlView(QLabel):
         """Show/set signal properties"""
         if SigPropertiesDialog(self.__signal).execute():
             self.set_style()
-            self.parent().parent().cellWidget(self.__signal.i, 1).chart().set_style()  # Warning: 2 x parent
+            self.parent().parent().cellWidget(self.__signal.i, 1).upd_style()  # note: 2 x parent
 
     def __do_sig_hide(self):
         """Hide signal in table"""
@@ -102,27 +103,34 @@ class SignalChartView(QCustomPlot):
         self.xAxis.setTicks(False)
         self.xAxis.setPadding(0)
 
+    def _set_style(self):
+        pen = self.graph().pen()  # QPen
+        # pen.setWidth(1)
+        pen.setStyle((Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)[self._signal.line_type.value])  # FIXME: rm .value
+        pen.setColor(QColor.fromRgb(*self._signal.rgb))
+        self.graph().setPen(pen)
 
-class AnalogSignalChartView(SignalChartView):
-    def __init__(self, ti: int, parent: QTableWidget = None):
-        super().__init__(ti, parent)
-
-    def set_data(self, signal: mycomtrade.StatusSignal):
+    def _set_data(self, signal: mycomtrade.StatusSignal):
         self._signal = signal
         self.graph().setData([1000 * (t - signal.meta.trigger_time) for t in signal.time], signal.value)
         self.xAxis.setRange(
             1000 * (signal.time[0] - signal.meta.trigger_time),
             1000 * (signal.time[-1] - signal.meta.trigger_time)
         )
-        self.yAxis.setRange(min(signal.value), max(signal.value))
-        self.set_style()
+        self._set_style()
 
-    def set_style(self):
-        pen = self.graph().pen()  # QPen
-        pen.setWidth(1)
-        pen.setStyle((Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)[self._signal.line_type.value])
-        pen.setColor(QColor.fromRgb(*self._signal.rgb))
-        self.graph().setPen(pen)
+    def upd_style(self):
+        self._set_style()
+        self.replot()
+
+
+class AnalogSignalChartView(SignalChartView):
+    def __init__(self, ti: int, parent: QTableWidget = None):
+        super().__init__(ti, parent)
+
+    def set_data(self, signal: mycomtrade.StatusSignal):
+        super()._set_data(signal)
+        self.yAxis.setRange(min(signal.value), max(signal.value))
 
 
 class StatusSignalChartView(SignalChartView):
@@ -132,13 +140,5 @@ class StatusSignalChartView(SignalChartView):
         self.graph().setBrush(QBrush(Qt.Dense4Pattern))
 
     def set_data(self, signal: mycomtrade.StatusSignal):
-        self._signal = signal
-        self.graph().setData([1000 * (t - signal.meta.trigger_time) for t in signal.time], signal.value)
-        self.xAxis.setRange(
-            1000 * (signal.time[0] - signal.meta.trigger_time),
-            1000 * (signal.time[-1] - signal.meta.trigger_time)
-        )
-        self.yAxis.setRange(0, 1)
-
-    def set_style(self):
-        ...
+        super()._set_data(signal)
+        self.yAxis.setRange(0, 1.6)
