@@ -8,15 +8,6 @@ from QCustomPlot2 import QCustomPlot, QCPAxis
 import const
 import mycomtrade
 from sigprop import SigPropertiesDialog
-# x. const
-Z0_COLOR = 'black'
-PLOTAREA_COLOR = (240, 240, 240)
-CHART_MIN_HEIGHT = 50
-MARGINS_ZERO = (0, 0, 0, 0)
-NOFONT = QFont('', 1)
-# normal
-MARGINS_AXIS = MARGINS_ZERO
-MARGINS_CHART = MARGINS_ZERO
 
 
 class TimeAxisView(QCustomPlot):
@@ -119,7 +110,10 @@ class AnalogSignalChartView(SignalChartView):
     def set_data(self, signal: mycomtrade.StatusSignal):
         self._signal = signal
         self.graph().setData([1000 * (t - signal.meta.trigger_time) for t in signal.time], signal.value)
-        self.xAxis.setRange(1000 * (signal.time[0] - signal.meta.trigger_time), 1000 * (signal.time[-1] - signal.meta.trigger_time))
+        self.xAxis.setRange(
+            1000 * (signal.time[0] - signal.meta.trigger_time),
+            1000 * (signal.time[-1] - signal.meta.trigger_time)
+        )
         self.yAxis.setRange(min(signal.value), max(signal.value))
         self.set_style()
 
@@ -140,7 +134,10 @@ class StatusSignalChartView(SignalChartView):
     def set_data(self, signal: mycomtrade.StatusSignal):
         self._signal = signal
         self.graph().setData([1000 * (t - signal.meta.trigger_time) for t in signal.time], signal.value)
-        self.xAxis.setRange(1000 * (signal.time[0] - signal.meta.trigger_time), 1000 * (signal.time[-1] - signal.meta.trigger_time))
+        self.xAxis.setRange(
+            1000 * (signal.time[0] - signal.meta.trigger_time),
+            1000 * (signal.time[-1] - signal.meta.trigger_time)
+        )
         self.yAxis.setRange(0, 1)
 
     def set_style(self):
