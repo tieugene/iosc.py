@@ -3,10 +3,11 @@ from PyQt5.QtCore import Qt, QPointF, QPoint, QMargins
 from PyQt5.QtGui import QPainter, QPen, QColor, QBrush, QFont
 from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget
 from PyQt5 import QtChart
-# 3. local
+# 3. 4rd
+from QCustomPlot2 import QCustomPlot, QCPAxisRect, QCPAxis
+# 4. local
 import mycomtrade
 from sigprop import SigPropertiesDialog
-
 # x. const
 Z0_COLOR = 'black'
 PLOTAREA_COLOR = (240, 240, 240)
@@ -16,45 +17,32 @@ NOFONT = QFont('', 1)
 # normal
 MARGINS_AXIS = MARGINS_ZERO
 MARGINS_CHART = MARGINS_ZERO
-TIMELINE_HEIGHT = 50
-# abnormal
-# MARGINS_AXIS = (-30, -50, -35, -10)
-# MARGINS_CHART = (-35, -15, -35, -40)  # fill all: (-40, -20, -40, -45)
-# TIMELINE_HEIGHT = 40
+TIMELINE_HEIGHT = 25
 
 
-class TimeAxisView(QtChart.QChartView):
+class TimeAxisView(QCustomPlot):
     xaxis: QtChart.QValueAxis
 
     def __init__(self, tmin: float, t0: float, tmax, ti: int, parent=None):
         super().__init__(parent)
-        self.setRenderHint(QPainter.Antialiasing)
+        self.xAxis.setRange((tmin - t0) * 1000, (tmax - t0) * 1000)
+        self.xAxis.ticker().setTickCount(10)  # QCPAxisTicker
+        self.xAxis.setTickLabelFont(QFont('mono', 8))
+        # TODO: setTickInterval(ti)  # dyn
+        # TODO: setLabelFormat("%d")
+        self.__squeeze()
 
-        series = QtChart.QLineSeries()
-        series.append((tmin - t0) * 1000, 0)
-        series.append((tmax - t0) * 1000, 0)
-
-        chart = QtChart.QChart()
-        chart.legend().hide()
-        chart.layout().setContentsMargins(*MARGINS_ZERO)
-        chart.setContentsMargins(*MARGINS_AXIS)
-        chart.setMargins(QMargins())
-        chart.addSeries(series)
-
-        self.xaxis = QtChart.QValueAxis()
-        self.xaxis.setTickType(QtChart.QValueAxis.TicksDynamic)
-        self.xaxis.setTickAnchor(0)  # dyn
-        self.xaxis.setTickInterval(ti)  # dyn
-        self.xaxis.setLabelsFont(QFont('mono', 8))
-        self.xaxis.setLabelFormat("%d")
-        self.xaxis.setGridLineVisible(False)
-        # self.xaxis.setLineVisible(False)  # no tics (defaut)
-        self.xaxis.setTitleFont(NOFONT)
-        self.xaxis.setTitleVisible(False)
-
-        chart.setAxisX(self.xaxis, series)
-
-        self.setChart(chart)
+    def __squeeze(self):
+        ar = self.axisRect(0)
+        ar.setMinimumMargins(QMargins())  # the best
+        ar.removeAxis(self.yAxis)
+        ar.removeAxis(self.yAxis2)
+        ar.removeAxis(self.xAxis2)
+        # -xaxis.setTickLabels(False)
+        # -xaxis.setTicks(False)
+        self.xAxis.setTickLabelSide(QCPAxis.lsInside)
+        self.xAxis.grid().setVisible(False)
+        self.xAxis.setPadding(0)
 
 
 class SignalChart(QtChart.QChart):
