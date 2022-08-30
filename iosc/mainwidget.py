@@ -2,8 +2,8 @@
 RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
 # 2. 3rd
-from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget
 # 3. local
 import mycomtrade
 from siglist_tw import AnalogSignalListView, StatusSignalListView
@@ -54,7 +54,13 @@ class ComtradeWidget(QWidget):
         self.analog_table.horizontalScrollBar().setValue(index)
         self.status_table.horizontalScrollBar().setValue(index)
 
-    def __sync_hresize(self, l_index: int, old_size: int, new_size: int):
+    def __sync_hresize(self, l_index: int, _: int, new_size: int):
+        """
+        :param l_index: Column index
+        :param _: Old size
+        :param new_size: New size
+        :return:
+        """
         self.analog_table.horizontalHeader().resizeSection(l_index, new_size)
         self.status_table.horizontalHeader().resizeSection(l_index, new_size)
 

@@ -105,7 +105,7 @@ def convert(sfname: pathlib.Path, dfname: pathlib.Path):
     if sfname.with_suffix('') == dfname.with_suffix(''):
         raise ConvertError(f"Same src and dst")
     # 1. detect encoding
-    enc: Optional[str] = None
+    # enc: Optional[str] = None
     with open(sfname, 'rb') as infile:
         enc = chardet.detect(infile.read())['encoding']
     # 2. transfere *.cfg + get channel number and src file type
