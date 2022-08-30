@@ -6,7 +6,8 @@ View/analyze comtrade oscillograms
 - [Python3](https://www.python.org/) with
   - [numpy](https://numpy.org/)
   - [chardet](https://github.com/chardet/chardet)
-  - [PyQt5](https://www.riverbankcomputing.com/software/pyqt/) with [PyQtChart](https://www.riverbankcomputing.com/software/pyqtchart/)
+  - [PyQt5](https://www.riverbankcomputing.com/software/pyqt/)
+  - [QCustomPlot2-PyQt5](https://pypi.org/project/QCustomPlot2/)
 
 ## Includes
 - [python-comtrade](https://github.com/dparrini/python-comtrade)
@@ -24,20 +25,20 @@ View/analyze comtrade oscillograms
 1. Download and install [Python3](https://www.python.org/downloads/windows/)
 2. Add required python packages (cmd.exe as admin):
    ```shell
-   pip install numpy chardet PyQtChart
+   pip install numpy chardet QCustomPlot2
    ```
 
 #### Linux:
 ```bash
 # RH-based:
-dnf install python3-numpy python3-chardet python3-pyqtchart
+dnf install python3-numpy python3-chardet python3-qcustomplot2
 # Debian-based:
-apt install python3-numpy python3-chardet ?python3-pyqt5.qtcharts?
+apt install python3-numpy python3-chardet ?python3-pyqt5.qcustomplot?
 ```
 
 #### macOS
 (with [homebrew](https://brew.sh/)):
 ```bash
 brew install python3
-pip3 install numpy chardet PyQtChart
+pip3 install numpy chardet QCustomPlot2
 ```
