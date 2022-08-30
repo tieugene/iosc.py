@@ -99,7 +99,7 @@ class SignalChartView(QtChart.QChartView):
         super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
 
-    def drawForeground(self, painter, _):
+    def _drawForeground(self, painter, _):
         """
         :param painter:
         :param _: == rect
