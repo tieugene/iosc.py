@@ -6,12 +6,10 @@ QTableWidget version
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableWidget, QAbstractItemView, QLabel
 # 3. local
+import const
 import mycomtrade
-from sigwidget import TIMELINE_HEIGHT, TimeAxisView, \
-    AnalogSignalCtrlView, AnalogSignalChartView, StatusSignalCtrlView, StatusSignalChartView
+from sigwidget import TimeAxisView, AnalogSignalCtrlView, AnalogSignalChartView, StatusSignalCtrlView, StatusSignalChartView
 from wtable import WHeaderView
-# x. const
-ANALOG_ROW_HEIGHT = 64
 
 
 class SignalListView(QTableWidget):
@@ -50,7 +48,7 @@ class AnalogSignalListView(SignalListView):
         self.horizontalHeader().set_widget(0, QLabel("ms"))
         self.time_axis = TimeAxisView(slist.time[0], slist.trigger_time, slist.time[-1], ti)
         self.horizontalHeader().set_widget(1, self.time_axis)
-        self.horizontalHeader().setFixedHeight(TIMELINE_HEIGHT)  # FIXME: dirty hack
+        self.horizontalHeader().setFixedHeight(const.XSCALE_HEIGHT)  # FIXME: dirty hack
         for row in range(slist.count):
             ctrl = AnalogSignalCtrlView(self)
             ctrl.set_data(slist[row])
@@ -58,7 +56,7 @@ class AnalogSignalListView(SignalListView):
             chart = AnalogSignalChartView(ti, self)
             chart.set_data(slist[row])
             self.setCellWidget(row, 1, chart)
-            self.setRowHeight(row, ANALOG_ROW_HEIGHT)
+            self.setRowHeight(row, const.SIG_A_HEIGHT)
             # self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)  # too high
         # self.resizeRowsToContents()
         self.resizeColumnToContents(0)
@@ -81,5 +79,6 @@ class StatusSignalListView(SignalListView):
             chart = StatusSignalChartView(ti, self)
             chart.set_data(slist[row])
             self.setCellWidget(row, 1, chart)
-        self.resizeRowsToContents()
+            self.setRowHeight(row, const.SIG_D_HEIGHT)
+        # self.resizeRowsToContents()
         self.resizeColumnToContents(0)
