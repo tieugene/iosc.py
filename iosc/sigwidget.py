@@ -1,14 +1,13 @@
 # 2. 3rd
-from PyQt5.QtCore import Qt, QPointF, QPoint, QMargins
-from PyQt5.QtGui import QPainter, QPen, QColor, QBrush, QFont
+from PyQt5.QtCore import Qt, QPoint, QMargins
+from PyQt5.QtGui import QColor, QBrush, QFont
 from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget
-from PyQt5 import QtChart
 # 3. 4rd
-from QCustomPlot2 import QCustomPlot, QCPAxisRect, QCPAxis
+from QCustomPlot2 import QCustomPlot, QCPAxis
 # 4. local
-import mycomtrade, const
+import const
+import mycomtrade
 from sigprop import SigPropertiesDialog
-
 # x. const
 Z0_COLOR = 'black'
 PLOTAREA_COLOR = (240, 240, 240)
@@ -21,8 +20,6 @@ MARGINS_CHART = MARGINS_ZERO
 
 
 class TimeAxisView(QCustomPlot):
-    xaxis: QtChart.QValueAxis
-
     def __init__(self, tmin: float, t0: float, tmax, ti: int, parent=None):
         super().__init__(parent)
         self.xAxis.setRange((tmin - t0) * 1000, (tmax - t0) * 1000)
@@ -93,81 +90,9 @@ class StatusSignalCtrlView(SignalCtrlView):
         super().__init__(parent)
 
 
-class SignalChart(QtChart.QChart):
-    series: QtChart.QLineSeries
-    xaxis: QtChart.QValueAxis
+class SignalChartView(QCustomPlot):
     _signal: mycomtrade.Signal
 
-    def __init__(self, ti: int, parent=None):
-        """
-        :param ti: Ticks interval, ms
-        """
-        super().__init__(parent)
-        self.legend().hide()
-        # self.legend().setVisible(False)
-        # self.setMinimumHeight(CHART_MIN_HEIGHT)  # FIXME: dirty hack
-        # decorate X-axis
-        self.xaxis = QtChart.QValueAxis()
-        self.xaxis.setTickType(QtChart.QValueAxis.TicksDynamic)
-        self.xaxis.setTickAnchor(0)  # dyn
-        self.xaxis.setTickInterval(ti)  # dyn
-        self.xaxis.setGridLineVisible(True)
-        self.xaxis.setLabelsFont(NOFONT)
-        self.xaxis.setLabelsVisible(False)
-        self.xaxis.setLineVisible(False)  # hide axis line and ticks
-        self.xaxis.setTitleFont(NOFONT)
-        self.xaxis.setTitleVisible(False)
-        # expand
-        self.layout().setContentsMargins(*MARGINS_ZERO)
-        self.setContentsMargins(*MARGINS_CHART)
-        self.setMargins(QMargins())
-        # self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored, QSizePolicy.DefaultType)  # no effect
-        # hichlight plot area
-        self.setPlotAreaBackgroundVisible(True)
-        self.setPlotAreaBackgroundBrush(QBrush(QColor.fromRgb(*PLOTAREA_COLOR)))
-
-
-class SignalChartView(QtChart.QChartView):
-    def __init__(self, ti: int, parent=None):
-        """
-        :param ti: Ticks interval, ms
-        """
-        super().__init__(parent)
-        self.setRenderHint(QPainter.Antialiasing)
-
-    def set_data(self, signal: mycomtrade.Signal):
-        self.chart().set_data(signal)
-
-
-class AnalogSignalChart(SignalChart):
-    def __init__(self, ti: int, parent: QTableWidget = None):
-        super().__init__(ti, parent)
-
-    def set_data(self, signal: mycomtrade.AnalogSignal):
-        self._signal = signal
-        self.series = QtChart.QLineSeries()
-        for i, t in enumerate(signal.time):
-            self.series.append(1000 * (t - signal.meta.trigger_time), signal.value[i])
-        self.addSeries(self.series)  # Note: attach after filling up, not B4
-        # self.series.attachAxis(self.xaxis)  # Note: attach after adding series to self, not B4
-        self.setAxisX(self.xaxis, self.series)
-        self.set_style()
-
-    def set_style(self):
-        pen: QPen = self.series.pen()
-        pen.setWidth(1)
-        pen.setStyle((Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)[self._signal.line_type.value])
-        pen.setColor(QColor.fromRgb(*self._signal.rgb))
-        self.series.setPen(pen)
-
-
-class AnalogSignalChartView(SignalChartView):
-    def __init__(self, ti: int, parent: QTableWidget = None):
-        super().__init__(ti, parent)
-        self.setChart(AnalogSignalChart(ti))
-
-
-class StatusSignalChartView(QCustomPlot):
     def __init__(self, ti: int, parent: QTableWidget = None):
         super().__init__(parent)
         self.addGraph()  # QCPGraph
@@ -175,8 +100,6 @@ class StatusSignalChartView(QCustomPlot):
         self.__squeeze()
         # xaxis.ticker().setTickCount(len(self.time))  # QCPAxisTicker
         self.xAxis.ticker().setTickCount(20)  # QCPAxisTicker; FIXME: 200ms default
-        # decorate
-        self.graph().setBrush(QBrush(Qt.Dense4Pattern))
 
     def __squeeze(self):
         ar = self.axisRect(0)  # QCPAxisRect
@@ -188,7 +111,37 @@ class StatusSignalChartView(QCustomPlot):
         self.xAxis.setTicks(False)
         self.xAxis.setPadding(0)
 
+
+class AnalogSignalChartView(SignalChartView):
+    def __init__(self, ti: int, parent: QTableWidget = None):
+        super().__init__(ti, parent)
+
     def set_data(self, signal: mycomtrade.StatusSignal):
         self._signal = signal
         self.graph().setData([1000 * (t - signal.meta.trigger_time) for t in signal.time], signal.value)
         self.xAxis.setRange(1000 * (signal.time[0] - signal.meta.trigger_time), 1000 * (signal.time[-1] - signal.meta.trigger_time))
+        self.yAxis.setRange(min(signal.value), max(signal.value))
+        self.set_style()
+
+    def set_style(self):
+        pen = self.graph().pen()  # QPen
+        pen.setWidth(1)
+        pen.setStyle((Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)[self._signal.line_type.value])
+        pen.setColor(QColor.fromRgb(*self._signal.rgb))
+        self.graph().setPen(pen)
+
+
+class StatusSignalChartView(SignalChartView):
+    def __init__(self, ti: int, parent: QTableWidget = None):
+        super().__init__(ti, parent)
+        # decorate
+        self.graph().setBrush(QBrush(Qt.Dense4Pattern))
+
+    def set_data(self, signal: mycomtrade.StatusSignal):
+        self._signal = signal
+        self.graph().setData([1000 * (t - signal.meta.trigger_time) for t in signal.time], signal.value)
+        self.xAxis.setRange(1000 * (signal.time[0] - signal.meta.trigger_time), 1000 * (signal.time[-1] - signal.meta.trigger_time))
+        self.yAxis.setRange(0, 1)
+
+    def set_style(self):
+        ...
