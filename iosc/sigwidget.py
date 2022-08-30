@@ -1,6 +1,6 @@
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins
-from PyQt5.QtGui import QColor, QBrush, QFont
+from PyQt5.QtGui import QColor, QBrush, QFont, QPen
 from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget
 # 3. 4rd
 from QCustomPlot2 import QCustomPlot, QCPAxis
@@ -9,6 +9,16 @@ import const
 import mycomtrade
 from sigprop import SigPropertiesDialog
 # x. const
+X_FONT = QFont(*const.XSCALE_FONT)
+D_BRUSH = QBrush(Qt.Dense4Pattern)
+ZERO_PEN = QPen(QColor('black'))
+NO_PEN = QPen(QColor(255, 255, 255, 0))
+TICK_COUNT = 20
+PEN_STYLE = {
+    mycomtrade.ELineType.Solid: Qt.SolidLine,
+    mycomtrade.ELineType.Dot: Qt.DotLine,
+    mycomtrade.ELineType.DashDot: Qt.DashDotDotLine
+}
 
 
 class TimeAxisView(QCustomPlot):
@@ -19,8 +29,8 @@ class TimeAxisView(QCustomPlot):
         # TODO: setLabelFormat("%d")
         self.__squeeze()
         # decorate
-        self.xAxis.ticker().setTickCount(10)  # QCPAxisTicker
-        self.xAxis.setTickLabelFont(QFont(*const.XSCALE_FONT))
+        self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME:
+        self.xAxis.setTickLabelFont(X_FONT)
 
     def __squeeze(self):
         ar = self.axisRect(0)
@@ -90,23 +100,35 @@ class SignalChartView(QCustomPlot):
         self.addGraph()  # QCPGraph
         # self.yAxis.setRange(0, 1)  # not helps
         self.__squeeze()
+        self.__decorate()
         # xaxis.ticker().setTickCount(len(self.time))  # QCPAxisTicker
-        self.xAxis.ticker().setTickCount(20)  # QCPAxisTicker; FIXME: 200ms default
+        self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
 
     def __squeeze(self):
         ar = self.axisRect(0)  # QCPAxisRect
+        ar.setMinimumMargins(QMargins())  # the best
         ar.removeAxis(self.xAxis2)
         ar.removeAxis(self.yAxis2)
-        ar.setMinimumMargins(QMargins())  # the best
-        self.yAxis.setVisible(False)  # or cp.graph().valueAxis()
+        #self.yAxis.setVisible(False)  # or cp.graph().valueAxis()
+        self.yAxis.setTickLabels(False)
+        self.yAxis.setTicks(False)
+        self.yAxis.setPadding(0)
+        self.yAxis.ticker().setTickCount(1)  # the only z-line
         self.xAxis.setTickLabels(False)
         self.xAxis.setTicks(False)
         self.xAxis.setPadding(0)
 
+    def __decorate(self):
+        # self.yAxis.grid().setPen(QPen(QColor(255, 255, 255, 0)))
+        self.yAxis.setBasePen(NO_PEN)  # hack
+        self.yAxis.grid().setZeroLinePen(ZERO_PEN)
+        self.xAxis.grid().setZeroLinePen(ZERO_PEN)
+
+
     def _set_style(self):
         pen = self.graph().pen()  # QPen
         # pen.setWidth(1)
-        pen.setStyle((Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)[self._signal.line_type.value])  # FIXME: rm .value
+        pen.setStyle(PEN_STYLE[self._signal.line_type])
         pen.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setPen(pen)
 
@@ -137,8 +159,8 @@ class StatusSignalChartView(SignalChartView):
     def __init__(self, ti: int, parent: QTableWidget = None):
         super().__init__(ti, parent)
         # decorate
-        self.graph().setBrush(QBrush(Qt.Dense4Pattern))
+        self.graph().setBrush(D_BRUSH)
 
     def set_data(self, signal: mycomtrade.StatusSignal):
         super()._set_data(signal)
-        self.yAxis.setRange(0, 1.6)
+        self.yAxis.setRange(0, 1.6)  # note: from -0.1 if Y0 wanted
