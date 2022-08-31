@@ -23,6 +23,7 @@ class SignalListView(QTableWidget):
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # self.setSelectionBehavior(QAbstractItemView.NoSelection)
         self.setSelectionMode(QAbstractItemView.NoSelection)
+        self.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
 
     def line_up(self, dwidth: int, w0: int):
         """Resize columns according to requirements.
