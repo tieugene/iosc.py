@@ -26,14 +26,13 @@ class SignalListView(QTableWidget):
         self.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
 
-    def line_up(self, dwidth: int, w0: int):
+    def line_up(self, dwidth: int):
         """Resize columns according to requirements.
         :param dwidth: Main window widths subtraction (available - actual)
-        :param w0: Width of 0th column
         :fixme: subtract something (vheader width?)
         """
-        self.setColumnWidth(0, w0)
-        self.setColumnWidth(1, self.width() + dwidth - w0 - 48)  # FIXME: magic number
+        self.setColumnWidth(0, const.COL0_WIDTH)
+        self.setColumnWidth(1, self.width() + dwidth - const.COL0_WIDTH - 48)  # FIXME: magic number
 
     def sig_unhide(self):
         for row in range(self.rowCount()):

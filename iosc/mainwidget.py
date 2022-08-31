@@ -69,9 +69,8 @@ class ComtradeWidget(QWidget):
         Line up table colums (and rows further) according to requirements and actual geometry.
         :param dwidth: Main window widths subtraction (available - actual)
         """
-        w0 = max(self.analog_table.columnWidth(0), self.status_table.columnWidth(0))
-        self.analog_table.line_up(dwidth, w0)
-        self.status_table.line_up(dwidth, w0)
+        self.analog_table.line_up(dwidth)
+        self.status_table.line_up(dwidth)
 
     def sig_unhide(self):
         """Unhide hidden channels"""
