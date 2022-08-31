@@ -188,7 +188,6 @@ class AnalogSignal(Signal):
 class SignalList(Meta):
     _count: int
     _list: list[Signal]
-    _is_bool: bool
 
     def __init__(self, raw: Comtrade):
         super().__init__(raw)
@@ -201,14 +200,8 @@ class SignalList(Meta):
     def __getitem__(self, i: int) -> Signal:
         return self._list[i]
 
-    @property
-    def is_bool(self) -> bool:
-        return self._is_bool
-
 
 class StatusSignalList(SignalList):
-    _is_bool = True
-
     def __init__(self, raw: Comtrade):
         super().__init__(raw)
         self._count = self._raw.status_count
@@ -217,8 +210,6 @@ class StatusSignalList(SignalList):
 
 
 class AnalogSignalList(SignalList):
-    _is_bool = False
-
     def __init__(self, raw: Comtrade):
         super().__init__(raw)
         self._count = self._raw.analog_count
