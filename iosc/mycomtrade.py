@@ -30,6 +30,10 @@ class Wrapper:
     def __init__(self, raw: Comtrade):
         self._raw = raw
 
+    @property
+    def raw(self) -> Comtrade:
+        return self._raw
+
 
 class Meta(Wrapper):
 
@@ -185,7 +189,7 @@ class AnalogSignal(Signal):
         self._id_ptr = self._raw.analog_channel_ids
 
 
-class SignalList(Meta):
+class SignalList(Wrapper):
     _count: int
     _list: list[Signal]
 
@@ -224,18 +228,17 @@ class RateList(Wrapper):
     def __len__(self) -> int:
         return self._raw.cfg.nrates
 
-    def __getitem__(self, i: int) -> list:
+    def __getitem__(self, i: int) -> tuple[float, int]:  # hz, points
         return self._raw.cfg.sample_rates[i]
 
 
-class MyComtrade:
-    __raw: Comtrade
+class MyComtrade(Wrapper):
     __analog: AnalogSignalList
     __status: StatusSignalList
     __rate: RateList  # TODO: __rate: SampleRateList
 
     def __init__(self, path: pathlib.Path):
-        self.__raw = Comtrade()
+        super().__init__(Comtrade())
         # loading
         encoding = None
         if path.suffix.lower() == '.cfg':
@@ -243,16 +246,12 @@ class MyComtrade:
                 if (enc := chardet.detect(infile.read())['encoding']) not in {'ascii', 'utf-8'}:
                     encoding = enc
         if encoding:
-            self.__raw.load(str(path), encoding=encoding)
+            self._raw.load(str(path), encoding=encoding)
         else:
-            self.__raw.load(str(path))
-        self.__analog = AnalogSignalList(self.__raw)
-        self.__status = StatusSignalList(self.__raw)
-        self.__rate = RateList(self.__raw)
-
-    @property
-    def raw(self) -> Comtrade:
-        return self.__raw
+            self._raw.load(str(path))
+        self.__analog = AnalogSignalList(self._raw)
+        self.__status = StatusSignalList(self._raw)
+        self.__rate = RateList(self._raw)
 
     @property
     def analog(self) -> AnalogSignalList:

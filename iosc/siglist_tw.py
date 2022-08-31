@@ -47,7 +47,7 @@ class AnalogSignalListView(SignalListView):
         self.setHorizontalHeader(WHeaderView(Qt.Orientation.Horizontal, self))
         self.setHorizontalHeaderLabels(('', ''))  # clean defaults
         self.horizontalHeader().set_widget(0, QLabel("ms"))
-        self.time_axis = TimeAxisView(slist.time[0], slist.trigger_time, slist.time[-1], ti)
+        self.time_axis = TimeAxisView(slist.raw.time[0], slist.raw.trigger_time, slist.raw.time[-1], ti)
         self.horizontalHeader().set_widget(1, self.time_axis)
         self.horizontalHeader().setFixedHeight(const.XSCALE_HEIGHT)  # FIXME: dirty hack
         for row in range(len(slist)):
