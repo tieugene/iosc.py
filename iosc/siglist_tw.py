@@ -4,7 +4,7 @@ QTableWidget version
 """
 # 2. 3rd
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QTableWidget, QAbstractItemView, QLabel
+from PyQt5.QtWidgets import QTableWidget, QLabel
 # 3. local
 import const
 import mycomtrade
@@ -20,11 +20,11 @@ class SignalListView(QTableWidget):
         self.slist = slist
         self.setColumnCount(2)
         self.setRowCount(len(slist))
-        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        # self.setSelectionBehavior(QAbstractItemView.NoSelection)
-        self.setSelectionMode(QAbstractItemView.NoSelection)
-        self.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
-        self.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.setEditTriggers(self.NoEditTriggers)
+        # self.setSelectionBehavior(self.NoSelection)
+        self.setSelectionMode(self.NoSelection)
+        self.setVerticalScrollMode(self.ScrollPerPixel)
+        self.setHorizontalScrollMode(self.ScrollPerPixel)
 
     def line_up(self, dwidth: int):
         """Resize columns according to requirements.
