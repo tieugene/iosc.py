@@ -3,14 +3,13 @@
 :todo: use Ccomtrade.cfg.analog_signal[]
 """
 # 1. std
-import datetime
 import pathlib
 from enum import IntEnum
 from typing import Optional
 # 2. 3rd
 import chardet
 # 3. local
-from comtrade import Comtrade, Channel, AnalogChannel, StatusChannel
+from comtrade import Comtrade, Channel
 # x. const
 # orange (255, 127, 39), green (0, 128, 0), red (198, 0, 0)
 DEFAULT_SIG_COLOR = {'a': 16744231, 'b': 32768, 'c': 12976128}
@@ -37,23 +36,19 @@ class Wrapper:
 class Signal(Wrapper):
     """Signal base."""
     _raw2: Channel
-    _i: int  # signal order no in signal list
-    _value: list[list[float]]  # list of values list
-    # _id_ptr: list[str]  # signal name list
+    _value: list[float]  # list of values
     _is_bool: bool
     _line_type: ELineType
     _color: Optional[int]
 
-    def __init__(self, raw: Comtrade, raw2: Channel, i: int):
+    def __init__(self, raw: Comtrade, raw2: Channel):
         super().__init__(raw)
         self._raw2 = raw2
-        self._i = i
         self._line_type = ELineType.Solid
         self._color = None
 
     @property
     def sid(self) -> str:
-        # return self._id_ptr[self._i]
         return self._raw2.name
 
     @property
@@ -62,7 +57,7 @@ class Signal(Wrapper):
 
     @property
     def value(self) -> list[float]:
-        return self._value[self._i]
+        return self._value
 
     @property
     def is_bool(self) -> bool:
@@ -83,16 +78,8 @@ class Signal(Wrapper):
 
     @property
     def color(self) -> int:
-        """
-        :fixme: replace with comtrade.AnalogChannel.ph (phase)
-        :return:
-        """
         if self._color is None:  # set default color on demand
-            ch_list = self._raw.cfg.status_channels if self.is_bool else self._raw.cfg.analog_channels  # FIXME: dirty
-            if ph := ch_list[self._i].ph:
-                self._color = DEFAULT_SIG_COLOR.get(ph.lower(), UNKNOWN_SIG_COLOR)
-            else:
-                self._color = UNKNOWN_SIG_COLOR
+            return DEFAULT_SIG_COLOR.get(self._raw2.ph.lower(), UNKNOWN_SIG_COLOR)
         return self._color
 
     @color.setter
@@ -112,18 +99,16 @@ class StatusSignal(Signal):
     _is_bool = True
 
     def __init__(self, raw: Comtrade, i: int):
-        super().__init__(raw, raw.cfg.status_channels[i], i)
-        self._value = self._raw.status
-        self._id_ptr = self._raw.status_channel_ids
+        super().__init__(raw, raw.cfg.status_channels[i])
+        self._value = self._raw.status[i]
 
 
 class AnalogSignal(Signal):
     _is_bool = False
 
     def __init__(self, raw: Comtrade, i: int):
-        super().__init__(raw, raw.cfg.analog_channels[i], i)
-        self._value = self._raw.analog
-        self._id_ptr = self._raw.analog_channel_ids
+        super().__init__(raw, raw.cfg.analog_channels[i])
+        self._value = self._raw.analog[i]
 
 
 class SignalList(Wrapper):
