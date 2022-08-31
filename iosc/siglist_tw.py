@@ -1,4 +1,4 @@
-"""Signal list view
+"""Signal list view.
 QTableWidget version
 :todo: try QTableWidgetItem
 """
@@ -8,7 +8,9 @@ from PyQt5.QtWidgets import QTableWidget, QLabel
 # 3. local
 import const
 import mycomtrade
-from sigwidget import TimeAxisView, AnalogSignalCtrlView, AnalogSignalChartView, StatusSignalCtrlView, StatusSignalChartView
+from sigwidget import TimeAxisView, \
+    AnalogSignalCtrlView, AnalogSignalChartView, \
+    StatusSignalCtrlView, StatusSignalChartView
 from wtable import WHeaderView
 
 
@@ -25,6 +27,16 @@ class SignalListView(QTableWidget):
         self.setSelectionMode(self.NoSelection)
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setHorizontalScrollMode(self.ScrollPerPixel)
+        for row in range(len(slist)):
+            signal = slist[row]
+            if signal.is_bool:
+                self.setCellWidget(row, 0, StatusSignalCtrlView(signal, self))
+                self.setCellWidget(row, 1, StatusSignalChartView(signal, ti, self))
+                self.setRowHeight(row, const.SIG_D_HEIGHT)
+            else:
+                self.setCellWidget(row, 0, AnalogSignalCtrlView(signal, self))
+                self.setCellWidget(row, 1, AnalogSignalChartView(signal, ti, self))
+                self.setRowHeight(row, const.SIG_A_HEIGHT)
 
     def line_up(self, dwidth: int):
         """Resize columns according to requirements.
@@ -49,13 +61,7 @@ class AnalogSignalListView(SignalListView):
         self.horizontalHeader().set_widget(0, QLabel("ms"))
         self.time_axis = TimeAxisView(slist.raw.time[0], slist.raw.trigger_time, slist.raw.time[-1], ti)
         self.horizontalHeader().set_widget(1, self.time_axis)
-        self.horizontalHeader().setFixedHeight(const.XSCALE_HEIGHT)  # FIXME: dirty hack
-        for row in range(len(slist)):
-            self.setCellWidget(row, 0, AnalogSignalCtrlView(slist[row], self))
-            self.setCellWidget(row, 1, AnalogSignalChartView(slist[row], ti, self))
-            self.setRowHeight(row, const.SIG_A_HEIGHT)
-            # self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)  # too high
-        # self.resizeColumnToContents(0)
+        self.horizontalHeader().setFixedHeight(const.XSCALE_HEIGHT)
 
     def scrollContentsBy(self, dx: int, dy: int):
         super().scrollContentsBy(dx, dy)
@@ -67,9 +73,3 @@ class StatusSignalListView(SignalListView):
     def __init__(self, slist: mycomtrade.StatusSignalList, ti: int, parent=None):
         super().__init__(slist, ti, parent)
         self.horizontalHeader().hide()
-        # self.horizontalHeader().setVisible(False)
-        for row in range(len(slist)):
-            self.setCellWidget(row, 0, StatusSignalCtrlView(slist[row], self))
-            self.setCellWidget(row, 1, StatusSignalChartView(slist[row], ti, self))
-            self.setRowHeight(row, const.SIG_D_HEIGHT)
-        # self.resizeColumnToContents(0)
