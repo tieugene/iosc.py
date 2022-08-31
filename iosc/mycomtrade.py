@@ -10,8 +10,7 @@ from typing import Optional
 # 2. 3rd
 import chardet
 # 3. local
-from comtrade import Comtrade
-
+from comtrade import Comtrade, Channel, AnalogChannel, StatusChannel
 # x. const
 # orange (255, 127, 39), green (0, 128, 0), red (198, 0, 0)
 DEFAULT_SIG_COLOR = {'a': 16744231, 'b': 32768, 'c': 12976128}
@@ -36,25 +35,26 @@ class Wrapper:
 
 
 class Signal(Wrapper):
-    """Signal base.
-    :todo: add chart specific fields: color, line type
-    """
+    """Signal base."""
+    _raw2: Channel
     _i: int  # signal order no in signal list
     _value: list[list[float]]  # list of values list
-    _id_ptr: list[str]  # signal name list
+    # _id_ptr: list[str]  # signal name list
     _is_bool: bool
     _line_type: ELineType
     _color: Optional[int]
 
-    def __init__(self, raw: Comtrade, i: int):
+    def __init__(self, raw: Comtrade, raw2: Channel, i: int):
         super().__init__(raw)
+        self._raw2 = raw2
         self._i = i
         self._line_type = ELineType.Solid
         self._color = None
 
     @property
     def sid(self) -> str:
-        return self._id_ptr[self._i]
+        # return self._id_ptr[self._i]
+        return self._raw2.name
 
     @property
     def time(self) -> list[float]:
@@ -70,7 +70,8 @@ class Signal(Wrapper):
 
     @property
     def i(self) -> int:
-        return self._i
+        """Channel no in list, 0-based"""
+        return self._raw2.n - 1
 
     @property
     def line_type(self) -> ELineType:
@@ -111,7 +112,7 @@ class StatusSignal(Signal):
     _is_bool = True
 
     def __init__(self, raw: Comtrade, i: int):
-        super().__init__(raw, i)
+        super().__init__(raw, raw.cfg.status_channels[i], i)
         self._value = self._raw.status
         self._id_ptr = self._raw.status_channel_ids
 
@@ -120,7 +121,7 @@ class AnalogSignal(Signal):
     _is_bool = False
 
     def __init__(self, raw: Comtrade, i: int):
-        super().__init__(raw, i)
+        super().__init__(raw, raw.cfg.analog_channels[i], i)
         self._value = self._raw.analog
         self._id_ptr = self._raw.analog_channel_ids
 
