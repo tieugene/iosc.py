@@ -134,10 +134,11 @@ class SignalChartView(QCustomPlot):
 
     def _set_data(self, signal: mycomtrade.StatusSignal):
         self._signal = signal
-        self.graph().setData([1000 * (t - signal.meta.trigger_time) for t in signal.time], signal.value)
+        z_time = signal.raw.trigger_time
+        self.graph().setData([1000 * (t - z_time) for t in signal.time], signal.value)
         self.xAxis.setRange(
-            1000 * (signal.time[0] - signal.meta.trigger_time),
-            1000 * (signal.time[-1] - signal.meta.trigger_time)
+            1000 * (signal.time[0] - z_time),
+            1000 * (signal.time[-1] - z_time)
         )
         self._set_style()
 

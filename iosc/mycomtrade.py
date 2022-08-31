@@ -35,69 +35,10 @@ class Wrapper:
         return self._raw
 
 
-class Meta(Wrapper):
-
-    def __init__(self, raw: Comtrade):
-        super().__init__(raw)
-
-    @property
-    def filepath(self) -> str:
-        return self._raw.cfg.filepath
-
-    @property
-    def station_name(self):
-        return self._raw.station_name
-
-    @property
-    def rec_dev_id(self) -> str:
-        return self._raw.rec_dev_id
-
-    @property
-    def rev_year(self) -> int:
-        return self._raw.rev_year
-
-    @property
-    def ft(self) -> str:
-        return self._raw.ft
-
-    @property
-    def frequency(self) -> float:
-        return self._raw.frequency
-
-    @property
-    def start_timestamp(self) -> datetime.datetime:
-        return self._raw.start_timestamp
-
-    @property
-    def trigger_timestamp(self) -> datetime.datetime:
-        return self._raw.trigger_timestamp
-
-    @property
-    def trigger_time(self) -> float:
-        return self._raw.trigger_time
-
-    @property
-    def timemult(self) -> float:
-        return self._raw.cfg.timemult
-
-    @property
-    def time_base(self) -> float:
-        return self._raw.time_base
-
-    @property
-    def total_samples(self) -> int:
-        return self._raw.total_samples
-
-    @property
-    def time(self) -> list:
-        return self._raw.time
-
-
 class Signal(Wrapper):
     """Signal base.
     :todo: add chart specific fields: color, line type
     """
-    _meta: Meta
     _i: int  # signal order no in signal list
     _value: list[list[float]]  # list of values list
     _id_ptr: list[str]  # signal name list
@@ -107,21 +48,16 @@ class Signal(Wrapper):
 
     def __init__(self, raw: Comtrade, i: int):
         super().__init__(raw)
-        self._meta = Meta(self._raw)
         self._i = i
         self._line_type = ELineType.Solid
         self._color = None
-
-    @property
-    def meta(self) -> Meta:
-        return self._meta
 
     @property
     def sid(self) -> str:
         return self._id_ptr[self._i]
 
     @property
-    def time(self) -> list:
+    def time(self) -> list[float]:
         return self._raw.time
 
     @property
