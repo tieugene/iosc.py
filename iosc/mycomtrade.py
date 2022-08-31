@@ -147,8 +147,9 @@ class Signal(Wrapper):
         :return:
         """
         if self._color is None:  # set default color on demand
-            if self.sid and len(self.sid) >= 2 and self.sid[0].lower() in {'i', 'u'}:
-                self._color = DEFAULT_SIG_COLOR.get(self.sid[1].lower(), UNKNOWN_SIG_COLOR)
+            ch_list = self._raw.cfg.status_channels if self.is_bool else self._raw.cfg.analog_channels  # FIXME: dirty
+            if ph := ch_list[self._i].ph:
+                self._color = DEFAULT_SIG_COLOR.get(ph.lower(), UNKNOWN_SIG_COLOR)
             else:
                 self._color = UNKNOWN_SIG_COLOR
         return self._color
@@ -187,7 +188,6 @@ class AnalogSignal(Signal):
 class SignalList(Meta):
     _count: int
     _list: list[Signal]
-    _is_bool: bool
 
     def __init__(self, raw: Comtrade):
         super().__init__(raw)
@@ -197,40 +197,22 @@ class SignalList(Meta):
     def __len__(self) -> int:
         return self._count
 
-    @property
-    def count(self) -> int:
-        return self._count
-
     def __getitem__(self, i: int) -> Signal:
         return self._list[i]
 
-    @property
-    def is_bool(self) -> bool:
-        return self._is_bool
-
 
 class StatusSignalList(SignalList):
-    _is_bool = True
-
     def __init__(self, raw: Comtrade):
         super().__init__(raw)
-
-    def reload(self):
         self._count = self._raw.status_count
-        self._list.clear()
         for i in range(self._count):
             self._list.append(StatusSignal(self._raw, i))
 
 
 class AnalogSignalList(SignalList):
-    _is_bool = False
-
     def __init__(self, raw: Comtrade):
         super().__init__(raw)
-
-    def reload(self):
         self._count = self._raw.analog_count
-        self._list.clear()
         for i in range(self._count):
             self._list.append(AnalogSignal(self._raw, i))
 
@@ -242,10 +224,6 @@ class RateList(Wrapper):
     def __len__(self) -> int:
         return self._raw.cfg.nrates
 
-    @property
-    def count(self) -> int:
-        return self._raw.cfg.nrates
-
     def __getitem__(self, i: int) -> list:
         return self._raw.cfg.sample_rates[i]
 
@@ -254,13 +232,21 @@ class MyComtrade(Wrapper):
     __meta: Meta
     __analog: AnalogSignalList
     __status: StatusSignalList
-    __rate: RateList
+    __rate: RateList  # TODO: __rate: SampleRateList
 
-    # TODO: __rate: SampleRateList
-
-    def __init__(self):
+    def __init__(self, path: pathlib.Path):
         super().__init__(Comtrade())
         self.__meta = Meta(self._raw)
+        # loading
+        encoding = None
+        if path.suffix.lower() == '.cfg':
+            with open(path, 'rb') as infile:
+                if (enc := chardet.detect(infile.read())['encoding']) not in {'ascii', 'utf-8'}:
+                    encoding = enc
+        if encoding:
+            self._raw.load(str(path), encoding=encoding)
+        else:
+            self._raw.load(str(path))
         self.__analog = AnalogSignalList(self._raw)
         self.__status = StatusSignalList(self._raw)
         self.__rate = RateList(self._raw)
@@ -280,16 +266,3 @@ class MyComtrade(Wrapper):
     @property
     def rate(self) -> RateList:
         return self.__rate
-
-    def load(self, path: pathlib.Path):
-        encoding = None
-        if path.suffix.lower() == '.cfg':
-            with open(path, 'rb') as infile:
-                if (enc := chardet.detect(infile.read())['encoding']) not in {'ascii', 'utf-8'}:
-                    encoding = enc
-        if encoding:
-            self._raw.load(str(path), encoding=encoding)
-        else:
-            self._raw.load(str(path))
-        self.__analog.reload()
-        self.__status.reload()

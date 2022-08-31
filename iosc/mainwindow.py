@@ -41,9 +41,8 @@ class ComtradeTabWidget(QTabWidget):
         """
         QGuiApplication.setOverrideCursor(Qt.WaitCursor)
         self.setUpdatesEnabled(False)
-        rec = MyComtrade()
         try:
-            rec.load(path)  # FIXME: handle loading errors
+            rec = MyComtrade(path)
         except struct.error as e:
             QMessageBox.critical(self, "Loading error", str(e))
         else:
@@ -86,14 +85,14 @@ class ComtradeTabWidget(QTabWidget):
         txt += tr("Station id", rec.meta.rec_dev_id)
         txt += tr("Comtrade ver.", rec.meta.rev_year)
         txt += tr("File format", rec.meta.ft)
-        txt += tr("AnalogSignal chs.", rec.analog.count)
-        txt += tr("Digital chs.", rec.status.count)
+        txt += tr("Analog chs.", len(rec.analog))
+        txt += tr("Status chs.", len(rec.status))
         txt += tr("Line freq, Hz", rec.meta.frequency)
         txt += tr("Time", f"{rec.meta.start_timestamp}&hellip;{rec.meta.trigger_timestamp}"
                           f" with &times; {rec.meta.timemult}")
         txt += tr("Time base", rec.meta.time_base)
         txt += tr("Samples", rec.meta.total_samples)
-        for i in range(rec.rate.count):
+        for i in range(len(rec.rate)):
             rate, points = rec.rate[i]
             txt += tr(f"Sample #{i + 1}", f"{points} points at {rate} Hz")
         txt += "<tbody></table></body><html>"
