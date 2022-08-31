@@ -198,10 +198,6 @@ class SignalList(Meta):
     def __len__(self) -> int:
         return self._count
 
-    @property
-    def count(self) -> int:
-        return self._count
-
     def __getitem__(self, i: int) -> Signal:
         return self._list[i]
 
@@ -215,10 +211,7 @@ class StatusSignalList(SignalList):
 
     def __init__(self, raw: Comtrade):
         super().__init__(raw)
-
-    def reload(self):
         self._count = self._raw.status_count
-        self._list.clear()
         for i in range(self._count):
             self._list.append(StatusSignal(self._raw, i))
 
@@ -228,10 +221,7 @@ class AnalogSignalList(SignalList):
 
     def __init__(self, raw: Comtrade):
         super().__init__(raw)
-
-    def reload(self):
         self._count = self._raw.analog_count
-        self._list.clear()
         for i in range(self._count):
             self._list.append(AnalogSignal(self._raw, i))
 
@@ -241,10 +231,6 @@ class RateList(Wrapper):
         super().__init__(raw)
 
     def __len__(self) -> int:
-        return self._raw.cfg.nrates
-
-    @property
-    def count(self) -> int:
         return self._raw.cfg.nrates
 
     def __getitem__(self, i: int) -> list:
@@ -260,9 +246,6 @@ class MyComtrade(Wrapper):
     def __init__(self, path: pathlib.Path):
         super().__init__(Comtrade())
         self.__meta = Meta(self._raw)
-        self.__analog = AnalogSignalList(self._raw)
-        self.__status = StatusSignalList(self._raw)
-        self.__rate = RateList(self._raw)
         # loading
         encoding = None
         if path.suffix.lower() == '.cfg':
@@ -273,8 +256,9 @@ class MyComtrade(Wrapper):
             self._raw.load(str(path), encoding=encoding)
         else:
             self._raw.load(str(path))
-        self.__analog.reload()
-        self.__status.reload()
+        self.__analog = AnalogSignalList(self._raw)
+        self.__status = StatusSignalList(self._raw)
+        self.__rate = RateList(self._raw)
 
     @property
     def meta(self) -> Meta:

@@ -19,7 +19,7 @@ class SignalListView(QTableWidget):
         super().__init__(parent)
         self.slist = slist
         self.setColumnCount(2)
-        self.setRowCount(slist.count)
+        self.setRowCount(len(slist))
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # self.setSelectionBehavior(QAbstractItemView.NoSelection)
         self.setSelectionMode(QAbstractItemView.NoSelection)
@@ -49,7 +49,7 @@ class AnalogSignalListView(SignalListView):
         self.time_axis = TimeAxisView(slist.time[0], slist.trigger_time, slist.time[-1], ti)
         self.horizontalHeader().set_widget(1, self.time_axis)
         self.horizontalHeader().setFixedHeight(const.XSCALE_HEIGHT)  # FIXME: dirty hack
-        for row in range(slist.count):
+        for row in range(len(slist)):
             ctrl = AnalogSignalCtrlView(self)
             ctrl.set_data(slist[row])
             self.setCellWidget(row, 0, ctrl)  # or .setItem(row, col, QTableWidgetItem())
@@ -72,7 +72,7 @@ class StatusSignalListView(SignalListView):
         super().__init__(slist, ti, parent)
         self.horizontalHeader().hide()
         # self.horizontalHeader().setVisible(False)
-        for row in range(slist.count):
+        for row in range(len(slist)):
             ctrl = StatusSignalCtrlView(self)
             ctrl.set_data(slist[row])
             self.setCellWidget(row, 0, ctrl)
