@@ -147,8 +147,9 @@ class Signal(Wrapper):
         :return:
         """
         if self._color is None:  # set default color on demand
-            if self.sid and len(self.sid) >= 2 and self.sid[0].lower() in {'i', 'u'}:
-                self._color = DEFAULT_SIG_COLOR.get(self.sid[1].lower(), UNKNOWN_SIG_COLOR)
+            ch_list = self._raw.cfg.status_channels if self.is_bool else self._raw.cfg.analog_channels  # FIXME: dirty
+            if ph := ch_list[self._i].ph:
+                self._color = DEFAULT_SIG_COLOR.get(ph.lower(), UNKNOWN_SIG_COLOR)
             else:
                 self._color = UNKNOWN_SIG_COLOR
         return self._color
@@ -254,16 +255,26 @@ class MyComtrade(Wrapper):
     __meta: Meta
     __analog: AnalogSignalList
     __status: StatusSignalList
-    __rate: RateList
+    __rate: RateList  # TODO: __rate: SampleRateList
 
-    # TODO: __rate: SampleRateList
-
-    def __init__(self):
+    def __init__(self, path: pathlib.Path):
         super().__init__(Comtrade())
         self.__meta = Meta(self._raw)
         self.__analog = AnalogSignalList(self._raw)
         self.__status = StatusSignalList(self._raw)
         self.__rate = RateList(self._raw)
+        # loading
+        encoding = None
+        if path.suffix.lower() == '.cfg':
+            with open(path, 'rb') as infile:
+                if (enc := chardet.detect(infile.read())['encoding']) not in {'ascii', 'utf-8'}:
+                    encoding = enc
+        if encoding:
+            self._raw.load(str(path), encoding=encoding)
+        else:
+            self._raw.load(str(path))
+        self.__analog.reload()
+        self.__status.reload()
 
     @property
     def meta(self) -> Meta:
@@ -280,16 +291,3 @@ class MyComtrade(Wrapper):
     @property
     def rate(self) -> RateList:
         return self.__rate
-
-    def load(self, path: pathlib.Path):
-        encoding = None
-        if path.suffix.lower() == '.cfg':
-            with open(path, 'rb') as infile:
-                if (enc := chardet.detect(infile.read())['encoding']) not in {'ascii', 'utf-8'}:
-                    encoding = enc
-        if encoding:
-            self._raw.load(str(path), encoding=encoding)
-        else:
-            self._raw.load(str(path))
-        self.__analog.reload()
-        self.__status.reload()

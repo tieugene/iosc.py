@@ -41,9 +41,8 @@ class ComtradeTabWidget(QTabWidget):
         """
         QGuiApplication.setOverrideCursor(Qt.WaitCursor)
         self.setUpdatesEnabled(False)
-        rec = MyComtrade()
         try:
-            rec.load(path)  # FIXME: handle loading errors
+            rec = MyComtrade(path)
         except struct.error as e:
             QMessageBox.critical(self, "Loading error", str(e))
         else:
