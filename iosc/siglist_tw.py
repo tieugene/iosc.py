@@ -51,16 +51,11 @@ class AnalogSignalListView(SignalListView):
         self.horizontalHeader().set_widget(1, self.time_axis)
         self.horizontalHeader().setFixedHeight(const.XSCALE_HEIGHT)  # FIXME: dirty hack
         for row in range(len(slist)):
-            ctrl = AnalogSignalCtrlView(self)
-            ctrl.set_data(slist[row])
-            self.setCellWidget(row, 0, ctrl)  # or .setItem(row, col, QTableWidgetItem())
-            chart = AnalogSignalChartView(ti, self)
-            chart.set_data(slist[row])
-            self.setCellWidget(row, 1, chart)
+            self.setCellWidget(row, 0, AnalogSignalCtrlView(slist[row], self))
+            self.setCellWidget(row, 1, AnalogSignalChartView(slist[row], ti, self))
             self.setRowHeight(row, const.SIG_A_HEIGHT)
             # self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)  # too high
-        # self.resizeRowsToContents()
-        self.resizeColumnToContents(0)
+        # self.resizeColumnToContents(0)
 
     def scrollContentsBy(self, dx: int, dy: int):
         super().scrollContentsBy(dx, dy)
@@ -74,12 +69,7 @@ class StatusSignalListView(SignalListView):
         self.horizontalHeader().hide()
         # self.horizontalHeader().setVisible(False)
         for row in range(len(slist)):
-            ctrl = StatusSignalCtrlView(self)
-            ctrl.set_data(slist[row])
-            self.setCellWidget(row, 0, ctrl)
-            chart = StatusSignalChartView(ti, self)
-            chart.set_data(slist[row])
-            self.setCellWidget(row, 1, chart)
+            self.setCellWidget(row, 0, StatusSignalCtrlView(slist[row], self))
+            self.setCellWidget(row, 1, StatusSignalChartView(slist[row], ti, self))
             self.setRowHeight(row, const.SIG_D_HEIGHT)
-        # self.resizeRowsToContents()
-        self.resizeColumnToContents(0)
+        # self.resizeColumnToContents(0)

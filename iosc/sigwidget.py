@@ -48,13 +48,11 @@ class TimeAxisView(QCustomPlot):
 class SignalCtrlView(QLabel):
     __signal: mycomtrade.Signal
 
-    def __init__(self, parent: QTableWidget = None):
+    def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget = None):
         super().__init__(parent)
+        self.__signal = signal
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._handle_context_menu)
-
-    def set_data(self, signal: mycomtrade.Signal):
-        self.__signal = signal
         self.setText(signal.sid)
         self.set_style()
 
@@ -83,26 +81,29 @@ class SignalCtrlView(QLabel):
 
 
 class AnalogSignalCtrlView(SignalCtrlView):
-    def __init__(self, parent: QTableWidget = None):
-        super().__init__(parent)
+    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget = None):
+        super().__init__(signal, parent)
 
 
 class StatusSignalCtrlView(SignalCtrlView):
-    def __init__(self, parent: QTableWidget = None):
-        super().__init__(parent)
+    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget = None):
+        super().__init__(signal, parent)
 
 
 class SignalChartView(QCustomPlot):
     _signal: mycomtrade.Signal
 
-    def __init__(self, ti: int, parent: QTableWidget = None):
+    def __init__(self, signal: mycomtrade.Signal, ti: int, parent: QTableWidget = None):
         super().__init__(parent)
+        self._signal = signal
         self.addGraph()  # QCPGraph
         # self.yAxis.setRange(0, 1)  # not helps
         self.__squeeze()
         self.__decorate()
         # xaxis.ticker().setTickCount(len(self.time))  # QCPAxisTicker
         self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
+        self.__set_data()
+        self.__set_style()
 
     def __squeeze(self):
         ar = self.axisRect(0)  # QCPAxisRect
@@ -124,44 +125,34 @@ class SignalChartView(QCustomPlot):
         self.yAxis.grid().setZeroLinePen(ZERO_PEN)
         self.xAxis.grid().setZeroLinePen(ZERO_PEN)
 
+    def __set_data(self):
+        z_time = self._signal.raw.trigger_time
+        self.graph().setData([1000 * (t - z_time) for t in self._signal.time], self._signal.value)
+        self.xAxis.setRange(
+            1000 * (self._signal.time[0] - z_time),
+            1000 * (self._signal.time[-1] - z_time)
+        )
 
-    def _set_style(self):
+    def __set_style(self):
         pen = self.graph().pen()  # QPen
         # pen.setWidth(1)
         pen.setStyle(PEN_STYLE[self._signal.line_type])
         pen.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setPen(pen)
 
-    def _set_data(self, signal: mycomtrade.StatusSignal):
-        self._signal = signal
-        z_time = signal.raw.trigger_time
-        self.graph().setData([1000 * (t - z_time) for t in signal.time], signal.value)
-        self.xAxis.setRange(
-            1000 * (signal.time[0] - z_time),
-            1000 * (signal.time[-1] - z_time)
-        )
-        self._set_style()
-
     def upd_style(self):
-        self._set_style()
+        self.__set_style()
         self.replot()
 
 
 class AnalogSignalChartView(SignalChartView):
-    def __init__(self, ti: int, parent: QTableWidget = None):
-        super().__init__(ti, parent)
-
-    def set_data(self, signal: mycomtrade.StatusSignal):
-        super()._set_data(signal)
+    def __init__(self, signal: mycomtrade.AnalogSignal, ti: int, parent: QTableWidget = None):
+        super().__init__(signal, ti, parent)
         self.yAxis.setRange(min(signal.value), max(signal.value))
 
 
 class StatusSignalChartView(SignalChartView):
-    def __init__(self, ti: int, parent: QTableWidget = None):
-        super().__init__(ti, parent)
-        # decorate
-        self.graph().setBrush(D_BRUSH)
-
-    def set_data(self, signal: mycomtrade.StatusSignal):
-        super()._set_data(signal)
+    def __init__(self, signal: mycomtrade.StatusSignal, ti: int, parent: QTableWidget = None):
+        super().__init__(signal, ti, parent)
         self.yAxis.setRange(0, 1.6)  # note: from -0.1 if Y0 wanted
+        self.graph().setBrush(D_BRUSH)
