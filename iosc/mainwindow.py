@@ -80,18 +80,18 @@ class ComtradeTabWidget(QTabWidget):
         # msg.setDetailedText(rec.cfg_summary())
         # plan B
         txt = "<html><body><table><tbody>"
-        txt += tr("File", rec.meta.filepath)
-        txt += tr("Station name", rec.meta.station_name)
-        txt += tr("Station id", rec.meta.rec_dev_id)
-        txt += tr("Comtrade ver.", rec.meta.rev_year)
-        txt += tr("File format", rec.meta.ft)
+        txt += tr("File", rec.raw.cfg.filepath)
+        txt += tr("Station name", rec.raw.station_name)
+        txt += tr("Station id", rec.raw.rec_dev_id)
+        txt += tr("Comtrade ver.", rec.raw.rev_year)
+        txt += tr("File format", rec.raw.ft)
         txt += tr("Analog chs.", len(rec.analog))
         txt += tr("Status chs.", len(rec.status))
-        txt += tr("Line freq, Hz", rec.meta.frequency)
-        txt += tr("Time", f"{rec.meta.start_timestamp}&hellip;{rec.meta.trigger_timestamp}"
-                          f" with &times; {rec.meta.timemult}")
-        txt += tr("Time base", rec.meta.time_base)
-        txt += tr("Samples", rec.meta.total_samples)
+        txt += tr("Line freq, Hz", rec.raw.frequency)
+        txt += tr("Time", f"{rec.raw.start_timestamp}&hellip;{rec.raw.trigger_timestamp}"
+                          f" with &times; {rec.raw.cfg.timemult}")
+        txt += tr("Time base", rec.raw.time_base)
+        txt += tr("Samples", rec.raw.total_samples)
         for i in range(len(rec.rate)):
             rate, points = rec.rate[i]
             txt += tr(f"Sample #{i + 1}", f"{points} points at {rate} Hz")
@@ -104,10 +104,10 @@ class ComtradeTabWidget(QTabWidget):
     def current_tab_convert(self):
         index = self.currentIndex()
         rec = self._chartdata[index]
-        fn = QFileDialog.getSaveFileName(self, "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[rec.meta.ft])
+        fn = QFileDialog.getSaveFileName(self, "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[rec.raw.ft])
         if fn[0]:
             try:
-                convert(pathlib.Path(rec.meta.filepath), pathlib.Path(fn[0]))
+                convert(pathlib.Path(rec.raw.filepath), pathlib.Path(fn[0]))
             except ConvertError as e:
                 QMessageBox.critical(self, "Converting error", str(e))
 

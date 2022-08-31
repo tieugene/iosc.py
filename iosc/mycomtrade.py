@@ -3,15 +3,13 @@
 :todo: use Ccomtrade.cfg.analog_signal[]
 """
 # 1. std
-import datetime
 import pathlib
 from enum import IntEnum
 from typing import Optional
 # 2. 3rd
 import chardet
 # 3. local
-from comtrade import Comtrade
-
+from comtrade import Comtrade, Channel
 # x. const
 # orange (255, 127, 39), green (0, 128, 0), red (198, 0, 0)
 DEFAULT_SIG_COLOR = {'a': 16744231, 'b': 32768, 'c': 12976128}
@@ -30,99 +28,36 @@ class Wrapper:
     def __init__(self, raw: Comtrade):
         self._raw = raw
 
-
-class Meta(Wrapper):
-
-    def __init__(self, raw: Comtrade):
-        super().__init__(raw)
-
     @property
-    def filepath(self) -> str:
-        return self._raw.cfg.filepath
-
-    @property
-    def station_name(self):
-        return self._raw.station_name
-
-    @property
-    def rec_dev_id(self) -> str:
-        return self._raw.rec_dev_id
-
-    @property
-    def rev_year(self) -> int:
-        return self._raw.rev_year
-
-    @property
-    def ft(self) -> str:
-        return self._raw.ft
-
-    @property
-    def frequency(self) -> float:
-        return self._raw.frequency
-
-    @property
-    def start_timestamp(self) -> datetime.datetime:
-        return self._raw.start_timestamp
-
-    @property
-    def trigger_timestamp(self) -> datetime.datetime:
-        return self._raw.trigger_timestamp
-
-    @property
-    def trigger_time(self) -> float:
-        return self._raw.trigger_time
-
-    @property
-    def timemult(self) -> float:
-        return self._raw.cfg.timemult
-
-    @property
-    def time_base(self) -> float:
-        return self._raw.time_base
-
-    @property
-    def total_samples(self) -> int:
-        return self._raw.total_samples
-
-    @property
-    def time(self) -> list:
-        return self._raw.time
+    def raw(self) -> Comtrade:
+        return self._raw
 
 
 class Signal(Wrapper):
-    """Signal base.
-    :todo: add chart specific fields: color, line type
-    """
-    _meta: Meta
-    _i: int  # signal order no in signal list
-    _value: list[list[float]]  # list of values list
-    _id_ptr: list[str]  # signal name list
+    """Signal base."""
+    _raw2: Channel
+    _value: list[float]  # list of values
     _is_bool: bool
     _line_type: ELineType
     _color: Optional[int]
 
-    def __init__(self, raw: Comtrade, i: int):
+    def __init__(self, raw: Comtrade, raw2: Channel):
         super().__init__(raw)
-        self._meta = Meta(self._raw)
-        self._i = i
+        self._raw2 = raw2
         self._line_type = ELineType.Solid
         self._color = None
 
     @property
-    def meta(self) -> Meta:
-        return self._meta
-
-    @property
     def sid(self) -> str:
-        return self._id_ptr[self._i]
+        return self._raw2.name
 
     @property
-    def time(self) -> list:
+    def time(self) -> list[float]:
         return self._raw.time
 
     @property
     def value(self) -> list[float]:
-        return self._value[self._i]
+        return self._value
 
     @property
     def is_bool(self) -> bool:
@@ -130,7 +65,8 @@ class Signal(Wrapper):
 
     @property
     def i(self) -> int:
-        return self._i
+        """Channel no in list, 0-based"""
+        return self._raw2.n - 1
 
     @property
     def line_type(self) -> ELineType:
@@ -142,16 +78,8 @@ class Signal(Wrapper):
 
     @property
     def color(self) -> int:
-        """
-        :fixme: replace with comtrade.AnalogChannel.ph (phase)
-        :return:
-        """
         if self._color is None:  # set default color on demand
-            ch_list = self._raw.cfg.status_channels if self.is_bool else self._raw.cfg.analog_channels  # FIXME: dirty
-            if ph := ch_list[self._i].ph:
-                self._color = DEFAULT_SIG_COLOR.get(ph.lower(), UNKNOWN_SIG_COLOR)
-            else:
-                self._color = UNKNOWN_SIG_COLOR
+            return DEFAULT_SIG_COLOR.get(self._raw2.ph.lower(), UNKNOWN_SIG_COLOR)
         return self._color
 
     @color.setter
@@ -171,21 +99,19 @@ class StatusSignal(Signal):
     _is_bool = True
 
     def __init__(self, raw: Comtrade, i: int):
-        super().__init__(raw, i)
-        self._value = self._raw.status
-        self._id_ptr = self._raw.status_channel_ids
+        super().__init__(raw, raw.cfg.status_channels[i])
+        self._value = self._raw.status[i]
 
 
 class AnalogSignal(Signal):
     _is_bool = False
 
     def __init__(self, raw: Comtrade, i: int):
-        super().__init__(raw, i)
-        self._value = self._raw.analog
-        self._id_ptr = self._raw.analog_channel_ids
+        super().__init__(raw, raw.cfg.analog_channels[i])
+        self._value = self._raw.analog[i]
 
 
-class SignalList(Meta):
+class SignalList(Wrapper):
     _count: int
     _list: list[Signal]
 
@@ -224,19 +150,17 @@ class RateList(Wrapper):
     def __len__(self) -> int:
         return self._raw.cfg.nrates
 
-    def __getitem__(self, i: int) -> list:
+    def __getitem__(self, i: int) -> tuple[float, int]:  # hz, points
         return self._raw.cfg.sample_rates[i]
 
 
 class MyComtrade(Wrapper):
-    __meta: Meta
     __analog: AnalogSignalList
     __status: StatusSignalList
     __rate: RateList  # TODO: __rate: SampleRateList
 
     def __init__(self, path: pathlib.Path):
         super().__init__(Comtrade())
-        self.__meta = Meta(self._raw)
         # loading
         encoding = None
         if path.suffix.lower() == '.cfg':
@@ -250,10 +174,6 @@ class MyComtrade(Wrapper):
         self.__analog = AnalogSignalList(self._raw)
         self.__status = StatusSignalList(self._raw)
         self.__rate = RateList(self._raw)
-
-    @property
-    def meta(self) -> Meta:
-        return self.__meta
 
     @property
     def analog(self) -> AnalogSignalList:
