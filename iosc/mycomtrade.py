@@ -228,15 +228,14 @@ class RateList(Wrapper):
         return self._raw.cfg.sample_rates[i]
 
 
-class MyComtrade(Wrapper):
-    __meta: Meta
+class MyComtrade:
+    __raw: Comtrade
     __analog: AnalogSignalList
     __status: StatusSignalList
     __rate: RateList  # TODO: __rate: SampleRateList
 
     def __init__(self, path: pathlib.Path):
-        super().__init__(Comtrade())
-        self.__meta = Meta(self._raw)
+        self.__raw = Comtrade()
         # loading
         encoding = None
         if path.suffix.lower() == '.cfg':
@@ -244,16 +243,16 @@ class MyComtrade(Wrapper):
                 if (enc := chardet.detect(infile.read())['encoding']) not in {'ascii', 'utf-8'}:
                     encoding = enc
         if encoding:
-            self._raw.load(str(path), encoding=encoding)
+            self.__raw.load(str(path), encoding=encoding)
         else:
-            self._raw.load(str(path))
-        self.__analog = AnalogSignalList(self._raw)
-        self.__status = StatusSignalList(self._raw)
-        self.__rate = RateList(self._raw)
+            self.__raw.load(str(path))
+        self.__analog = AnalogSignalList(self.__raw)
+        self.__status = StatusSignalList(self.__raw)
+        self.__rate = RateList(self.__raw)
 
     @property
-    def meta(self) -> Meta:
-        return self.__meta
+    def raw(self) -> Comtrade:
+        return self.__raw
 
     @property
     def analog(self) -> AnalogSignalList:

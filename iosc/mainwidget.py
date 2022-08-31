@@ -33,7 +33,7 @@ class ComtradeWidget(QWidget):
         splitter = QSplitter(Qt.Vertical, self)
         splitter.setStyleSheet("QSplitter::handle{background: grey;}")
         # 0. calc tick interval
-        ti_wanted = int(rec.meta.total_samples * (1000/rec.rate[0][0]) / TICS_PER_CHART)  # ms
+        ti_wanted = int(rec.raw.total_samples * (1000 / rec.rate[0][0]) / TICS_PER_CHART)  # ms
         ti = find_std_ti(ti_wanted)
         # print(f"{ti_wanted} => {ti}")
         # 1. analog part
