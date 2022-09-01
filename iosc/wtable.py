@@ -9,19 +9,26 @@ from PyQt5.QtWidgets import QHeaderView, QTableWidget, QWidget
 
 class WHeaderView(QHeaderView):
     """Widgetable [table] QHeaderView
-    FIXME: hide background [default] numbers
     TODO: stretch widgets
     """
     __item: dict[int, QWidget]  # TODO: replace with list
 
-    def __init__(self, orientation: Qt.Orientation, parent: QTableWidget = None):
-        super().__init__(orientation, parent)
+    def __init__(self, parent: QTableWidget = None):
+        super().__init__(Qt.Orientation.Horizontal, parent)
         self.__item = dict()
-        self.sectionResized.connect(self.handle_section_resized)
-        self.sectionMoved.connect(self.handlde_section_moved)
+        self.sectionResized.connect(self.__slot_section_resized)
+        self.sectionMoved.connect(self.__slot_section_moved)
 
     def __update_item(self, i: int):
         self.__item[i].setGeometry(self.sectionViewportPosition(i), 0, self.sectionSize(i) - 5, self.height())
+
+    def __slot_section_resized(self, i: int):
+        for j in range(self.visualIndex(i), self.count()):
+            self.__update_item(self.logicalIndex(j))
+
+    def __slot_section_moved(self, _: int, old_vindex: int, new_vindex: int):
+        for i in range(min(old_vindex, new_vindex), self.count()):
+            self.__update_item(self.logicalIndex(i))
 
     def showEvent(self, e: QShowEvent):
         for i in range(self.count()):
@@ -32,14 +39,6 @@ class WHeaderView(QHeaderView):
             self.__update_item(i)
             self.__item[i].show()
         super().showEvent(e)
-
-    def handle_section_resized(self, i: int):
-        for j in range(self.visualIndex(i), self.count()):
-            self.__update_item(self.logicalIndex(j))
-
-    def handlde_section_moved(self, _: int, old_vindex: int, new_vindex: int):
-        for i in range(min(old_vindex, new_vindex), self.count()):
-            self.__update_item(self.logicalIndex(i))
 
     def set_widget(self, i: int, w: QWidget):
         w.setParent(self)

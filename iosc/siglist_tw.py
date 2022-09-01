@@ -56,7 +56,7 @@ class AnalogSignalListView(SignalListView):
 
     def __init__(self, slist: mycomtrade.AnalogSignalList, ti: int, parent=None):
         super().__init__(slist, ti, parent)
-        self.setHorizontalHeader(WHeaderView(Qt.Orientation.Horizontal, self))
+        self.setHorizontalHeader(WHeaderView(self))
         self.setHorizontalHeaderLabels(('', ''))  # clean defaults
         self.horizontalHeader().set_widget(0, QLabel("ms"))
         self.time_axis = TimeAxisView(slist.raw.time[0], slist.raw.trigger_time, slist.raw.time[-1], ti)
