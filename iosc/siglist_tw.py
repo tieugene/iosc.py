@@ -27,6 +27,7 @@ class SignalListView(QTableWidget):
         self.setSelectionMode(self.NoSelection)
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setHorizontalScrollMode(self.ScrollPerPixel)
+        self.setAutoScroll(False)
         for row in range(len(slist)):
             signal = slist[row]
             if signal.is_bool:
