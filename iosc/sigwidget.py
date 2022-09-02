@@ -1,6 +1,6 @@
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins
-from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent
+from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QCursor
 from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout
 # 3. 4rd
 from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect
@@ -17,6 +17,7 @@ MAIN_PTR_PEN = QPen(QBrush(QColor('orange')), 2)
 OLD_PTR_PEN = QPen(QBrush(Qt.green), 1, Qt.DotLine)
 PTR_RECT_HEIGHT = 20
 TICK_COUNT = 20
+Y_PAD = 0.1  # upper and lower Y-padding; 0.1 == 10%
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
     mycomtrade.ELineType.Dot: Qt.DotLine,
@@ -135,6 +136,7 @@ class MainPtr(QCPItemTracer):
         self.setGraph(cp.graph())
         self.setPen(MAIN_PTR_PEN)
         self.position.setAxes(cp.xAxis, None)
+        # cp.setCursor(QCursor(Qt.CrossCursor))
 
 
 class OldPtr(QCPItemStraightLine):
@@ -172,7 +174,7 @@ class MainPtrTip(QCPItemText):
 
     def move2x(self, x: float):
         self.setText("%.2f" % x)
-        self.position.setCoords(x, 0)
+        self.position.setCoords(x, 0)  # FIXME: left/right side
 
 
 class MainPtrRect(QCPItemRect):
@@ -212,16 +214,19 @@ class SignalChartView(QCustomPlot):
         self._main_ptr_rect = MainPtrRect(self)
         self.addGraph()
         self._main_ptr = MainPtr(self)  # after graph()
-        # self.yAxis.setRange(0, 1)  # not helps
         self.__set_data()
         self.__squeeze()
         self.__decorate()
         self.__set_style()
-        self.__switch_onway(False)
+        self.__switch_tips(False)
+        # ymin = min(self._signal.value)
+        # ymax = max(self._signal.value)
+        # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
+        # self.yAxis.setRange(ymin - ypad, ymax + ypad)  # #76, not helps
         self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
         self.mousePress.connect(self.__slot_mouse_press)
-        self.mouseRelease.connect(self.__slot_mouse_release)
         self.mouseMove.connect(self.__slot_mouse_move)
+        self.mouseRelease.connect(self.__slot_mouse_release)
         self._root.signal_main_ptr_moved_x.connect(self.__slot_main_ptr_moved_x)
 
     def __set_data(self):
@@ -259,28 +264,35 @@ class SignalChartView(QCustomPlot):
         pen.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setPen(pen)
 
-    def __handle_mouse(self, x_px: int):
+    def __handle_mouse(self, x_px: int, click: bool):
         """
         Handle mouse pressed[+moved]
         :param x_px: mouse x-position (px)
         :todo: chk pos changed (hint: save `pos` B4)
         """
         x_src = self.xAxis.pixelToCoord(x_px)  # real x-position realtive to graph z-point in graaph units
+        x_dst_0: float = self._main_ptr.position.key()  # dont save pos (== &)
         self._main_ptr.setGraphKey(x_src)
+        self._main_ptr.updatePosition()  # mandatory
         pos = self._main_ptr.position  # coerced x-postion
         x_dst = pos.key()
-        # refresh tips
-        self._main_ptr_tip.move2x(x_dst)
-        self._main_ptr_rect.set2x(self._old_ptr.x)
-        self._main_ptr_rect.stretc2x(x_dst)
-        # go
-        self.replot()
-        self._root.slot_main_ptr_moved_x(x_dst)
-        self._sibling.slot_update_value(pos.value())
+        if x_dst_0 != x_dst:  # check MPtr moved
+            if click:  # mouse pressed => set old ptr coords, rect start coord
+                self._old_ptr.move2x(x_dst)
+                self._main_ptr_rect.set2x(x_dst)
+                self._ptr_onway = True
+            else:  # mouse moved (when pressed)
+                if not self._old_ptr.visible():  # show tips on demand
+                    self.__switch_tips(True)
+                # refresh tips
+                self._main_ptr_tip.move2x(x_dst)
+                self._main_ptr_rect.stretc2x(x_dst)
+            self.replot()
+            self._root.slot_main_ptr_moved_x(x_dst)
+            self._sibling.slot_update_value(pos.value())
 
-    def __switch_onway(self, todo: bool):
+    def __switch_tips(self, todo: bool):
         # print(("Off", "On")[int(todo)])
-        self._ptr_onway = todo
         self._old_ptr.setVisible(todo)
         self._main_ptr_tip.setVisible(todo)
         self._main_ptr_rect.setVisible(todo)
@@ -289,20 +301,14 @@ class SignalChartView(QCustomPlot):
         """
         - check MPtr moved
         - move MPtr
-        - set old ptr coords
+        - set old ptr coords, rect start coord
         - call slots
         :param event:
         """
         if event.button() == Qt.LeftButton:
-            self.__switch_onway(True)
-            self._old_ptr.move2x(self._main_ptr.position.key())
-            self.__handle_mouse(event.x())
-
-    def __slot_mouse_release(self, event: QMouseEvent):
-        """Hide all, reset tmp vars"""
-        if event.button() == Qt.LeftButton:
-            self.__switch_onway(False)
-            self.replot()
+            # self.__switch_tips(True)
+            # self._old_ptr.move2x(self._main_ptr.position.key())
+            self.__handle_mouse(event.x(), True)
 
     def __slot_mouse_move(self, event: QMouseEvent):
         """
@@ -314,7 +320,14 @@ class SignalChartView(QCustomPlot):
         :param event:
         """
         if self._ptr_onway:  # or `event.buttons() & Qt.LeftButton`
-            self.__handle_mouse(event.x())
+            self.__handle_mouse(event.x(), False)
+
+    def __slot_mouse_release(self, event: QMouseEvent):
+        """Hide all, reset tmp vars"""
+        if event.button() == Qt.LeftButton:
+            self._ptr_onway = False
+            self.__switch_tips(False)
+            self.replot()
 
     def __slot_main_ptr_moved_x(self, x: float):
         if not self._ptr_onway:  # check is not myself
