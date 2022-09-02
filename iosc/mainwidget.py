@@ -85,8 +85,7 @@ class ComtradeWidget(QWidget):
         :type x: ~~QCPItemPosition~~ float
         Emit slot_main_ptr_move(pos) for:
         - TimeAxisView (x)
-        - ~~SignalCtrlView (y)~~
-        - SignalChartView (x)
+        - SignalChartView (x) [=> SignalCtrlView(y)]
         - statusbar (x)
         """
         # print("You win")

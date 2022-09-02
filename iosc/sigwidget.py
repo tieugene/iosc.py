@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt, QPoint, QMargins
 from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent
 from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout
 # 3. 4rd
-from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemPosition
+from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemPosition, QCPItemText
 # 4. local
 import const
 import mycomtrade
@@ -11,10 +11,10 @@ from sigprop import SigPropertiesDialog
 # x. const
 X_FONT = QFont(*const.XSCALE_FONT)
 D_BRUSH = QBrush(Qt.Dense4Pattern)
-ZERO_PEN = QPen(QColor('black'))
+ZERO_PEN = QPen(Qt.black)
 NO_PEN = QPen(QColor(255, 255, 255, 0))
 MAIN_PTR_PEN = QPen(QBrush(QColor('orange')), 2)
-OLD_PTR_PEN = QPen(QBrush(QColor('green')), 1, Qt.DotLine)
+OLD_PTR_PEN = QPen(QBrush(Qt.green), 1, Qt.DotLine)
 TICK_COUNT = 20
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
@@ -24,8 +24,13 @@ PEN_STYLE = {
 
 
 class TimeAxisView(QCustomPlot):
+    __root: QWidget
+    __main_ptr_label: QCPItemText
+
     def __init__(self, tmin: float, t0: float, tmax, ti: int, parent, root):
         super().__init__(parent)
+        self.__root = root
+        self.__main_ptr_label = QCPItemText(self)
         self.xAxis.setRange((tmin - t0) * 1000, (tmax - t0) * 1000)
         # TODO: setTickInterval(ti)
         # TODO: setLabelFormat("%d")
@@ -33,6 +38,14 @@ class TimeAxisView(QCustomPlot):
         # decorate
         self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME:
         self.xAxis.setTickLabelFont(X_FONT)
+        self.__main_ptr_label.setColor(Qt.white)  # text
+        self.__main_ptr_label.setBrush(QBrush(Qt.red))  # rect
+        self.__main_ptr_label.setTextAlignment(Qt.AlignCenter)
+        self.__main_ptr_label.setFont(QFont('mono', 8))
+        self.__main_ptr_label.setPadding(QMargins(2, 2, 2, 2))
+        self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop
+        # FIXME: before ticks
+        self.__root.signal_main_ptr_moved_x.connect(self.__slot_main_ptr_moved_x)
 
     def __squeeze(self):
         ar = self.axisRect(0)
@@ -45,6 +58,12 @@ class TimeAxisView(QCustomPlot):
         self.xAxis.setTickLabelSide(QCPAxis.lsInside)
         self.xAxis.grid().setVisible(False)
         self.xAxis.setPadding(0)
+
+    def __slot_main_ptr_moved_x(self, x: float):
+        """Repaint/move main ptr value label (%.2f)"""
+        self.__main_ptr_label.setText("%.2f" % x)
+        self.__main_ptr_label.position.setCoords(x, 0)
+        self.replot()
 
 
 class SignalCtrlView(QLabel):
