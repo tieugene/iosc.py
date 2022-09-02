@@ -1,5 +1,5 @@
 # 2. 3rd
-from PyQt5.QtCore import Qt, QPoint, QMargins
+from PyQt5.QtCore import Qt, QPoint, QMargins, pyqtSignal
 from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent
 from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout
 # 3. 4rd
@@ -73,6 +73,7 @@ class SignalCtrlView(QLabel):
     _signal: mycomtrade.Signal
     _f_name: QLabel
     _f_value: QLabel
+    signal_restyled = pyqtSignal()
 
     def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget, root: QWidget):
         super().__init__(parent)
@@ -120,7 +121,7 @@ class AnalogSignalCtrlView(SignalCtrlView):
         """Show/set signal properties"""
         if AnalogSignalPropertiesDialog(self._signal).execute():
             self._set_style()
-            self.parent().parent().cellWidget(self._signal.i, 1).slot_upd_style()  # note: 2 x parent
+            self.signal_restyled.emit()
 
     def slot_update_value(self, y: float):
         # TODO: u/m//k, dynamic unit
@@ -135,7 +136,7 @@ class StatusSignalCtrlView(SignalCtrlView):
         """Show/set signal properties"""
         if StatusSignalPropertiesDialog(self._signal).execute():
             self._set_style()
-            self.parent().parent().cellWidget(self._signal.i, 1).slot_upd_style()  # note: 2 x parent
+            self.signal_restyled.emit()
 
     def slot_update_value(self, y: float):
         self._f_value.setText("%d" % y)
@@ -239,6 +240,7 @@ class SignalChartView(QCustomPlot):
         self.mousePress.connect(self.__slot_mouse_press)
         self.mouseMove.connect(self.__slot_mouse_move)
         self.mouseRelease.connect(self.__slot_mouse_release)
+        self._sibling.signal_restyled.connect(self.__slot_signal_restyled)
         self._root.signal_main_ptr_moved_x.connect(self.__slot_main_ptr_moved_x)
 
     def __set_data(self):
@@ -344,7 +346,7 @@ class SignalChartView(QCustomPlot):
             self.replot()
             self._sibling.slot_update_value(self._main_ptr.position.value())
 
-    def slot_upd_style(self):
+    def __slot_signal_restyled(self):
         self._set_style()
         self.replot()
 
