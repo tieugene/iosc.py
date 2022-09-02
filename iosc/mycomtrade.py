@@ -38,7 +38,6 @@ class Signal(Wrapper):
     _raw2: Channel
     _value: list[float]  # list of values
     _is_bool: bool
-    _line_type: ELineType
     _color: Optional[int]
 
     def __init__(self, raw: Comtrade, raw2: Channel):
@@ -46,6 +45,10 @@ class Signal(Wrapper):
         self._raw2 = raw2
         self._line_type = ELineType.Solid
         self._color = None
+
+    @property
+    def raw2(self) -> str:
+        return self._raw2
 
     @property
     def sid(self) -> str:
@@ -67,14 +70,6 @@ class Signal(Wrapper):
     def i(self) -> int:
         """Channel no in list, 0-based"""
         return self._raw2.n - 1
-
-    @property
-    def line_type(self) -> ELineType:
-        return self._line_type
-
-    @line_type.setter
-    def line_type(self, v: ELineType):
-        self._line_type = v
 
     @property
     def color(self) -> int:
@@ -105,10 +100,19 @@ class StatusSignal(Signal):
 
 class AnalogSignal(Signal):
     _is_bool = False
+    _line_type: ELineType
 
     def __init__(self, raw: Comtrade, i: int):
         super().__init__(raw, raw.cfg.analog_channels[i])
         self._value = self._raw.analog[i]
+
+    @property
+    def line_type(self) -> ELineType:
+        return self._line_type
+
+    @line_type.setter
+    def line_type(self, v: ELineType):
+        self._line_type = v
 
 
 class SignalList(Wrapper):
