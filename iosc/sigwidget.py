@@ -137,6 +137,7 @@ class MainPtr(QCPItemTracer):
 
 
 class OldPtr(QCPItemStraightLine):
+    __x: float
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
         self.setPen(OLD_PTR_PEN)
@@ -147,8 +148,13 @@ class OldPtr(QCPItemStraightLine):
         :param x:
         :note: for  QCPItemLine: s/point1/start/, s/point2/end/
         """
+        self.__x = x
         self.point1.setCoords(x, 0)
         self.point2.setCoords(x, 1)
+
+    @property
+    def x(self):
+        return self.__x
 
 
 class SignalChartView(QCustomPlot):
@@ -215,11 +221,13 @@ class SignalChartView(QCustomPlot):
         # bk on orange in red rect, oblique
         self._main_ptr_tip.setColor(Qt.black)  # text
         self._main_ptr_tip.setPen(Qt.red)
-        self._main_ptr_tip.setBrush(QBrush(QColor('orange')))  # rect
+        self._main_ptr_tip.setBrush(QBrush(QColor(255, 170, 0)))  # rect
         self._main_ptr_tip.setTextAlignment(Qt.AlignCenter)
         self._main_ptr_tip.setFont(QFont('mono', 8))
         self._main_ptr_tip.setPadding(QMargins(2, 2, 2, 2))
         self._main_ptr_tip.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
+        self._main_ptr_rect.setPen(QColor(255, 170, 0, 128))
+        self._main_ptr_rect.setBrush(QColor(255, 170, 0, 128))
 
     def __set_style(self):
         pen = self.graph().pen()  # QPen
@@ -232,16 +240,18 @@ class SignalChartView(QCustomPlot):
         """
         Handle mouse pressed[+moved]
         :param x_px: mouse x-position (px)
-        :todo: chk pos changed
+        :todo: chk pos changed (hint: save `pos` B4)
         """
-        x_src = self.xAxis.pixelToCoord(x_px)  # real x-position realtive to graph z-point
+        x_src = self.xAxis.pixelToCoord(x_px)  # real x-position realtive to graph z-point in graaph units
         self._main_ptr.setGraphKey(x_src)
         pos = self._main_ptr.position  # coerced x-postion
         x_dst = pos.key()
-        self._old_ptr.move2x(x_src)
+        # self._old_ptr.move2x(x_src)  # like mouse tracer
         # refresh tips
         self._main_ptr_tip.setText("%.2f" % x_dst)
         self._main_ptr_tip.position.setCoords(x_dst, 0)
+        self._main_ptr_rect.topLeft.setCoords(self._old_ptr.x, 1)  # FIXME: x = old, y = recalc(10px)
+        self._main_ptr_rect.bottomRight.setCoords(x_dst, 0)
         # go
         self.replot()
         self._root.slot_main_ptr_moved_x(x_dst)
@@ -258,6 +268,7 @@ class SignalChartView(QCustomPlot):
         if event.button() == Qt.LeftButton:
             # TODO: move _old_ptr?
             self.__switch_onway(True)
+            self._old_ptr.move2x(self._main_ptr.position.key())
             self.__handle_mouse(event.x())
 
     def __slot_mouse_release(self, event: QMouseEvent):
@@ -274,7 +285,6 @@ class SignalChartView(QCustomPlot):
             self._main_ptr.setGraphKey(x)
             # self._main_ptr.updatePosition()  # not helps
             self.replot()
-            # self.sibling.main_ptr_moved_y(self.position.value())
             self._sibling.slot_update_value(self._main_ptr.position.value())
 
     def slot_upd_style(self):
