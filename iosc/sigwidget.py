@@ -15,6 +15,7 @@ ZERO_PEN = QPen(Qt.black)
 NO_PEN = QPen(QColor(255, 255, 255, 0))
 MAIN_PTR_PEN = QPen(QBrush(QColor('orange')), 2)
 OLD_PTR_PEN = QPen(QBrush(Qt.green), 1, Qt.DotLine)
+PTR_RECT_HEIGHT = 20
 TICK_COUNT = 20
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
@@ -138,6 +139,7 @@ class MainPtr(QCPItemTracer):
 
 class OldPtr(QCPItemStraightLine):
     __x: float
+
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
         self.setPen(OLD_PTR_PEN)
@@ -155,6 +157,9 @@ class OldPtr(QCPItemStraightLine):
     @property
     def x(self):
         return self.__x
+
+# TODO: tip
+# TODO: rect
 
 
 class SignalChartView(QCustomPlot):
@@ -246,11 +251,11 @@ class SignalChartView(QCustomPlot):
         self._main_ptr.setGraphKey(x_src)
         pos = self._main_ptr.position  # coerced x-postion
         x_dst = pos.key()
-        # self._old_ptr.move2x(x_src)  # like mouse tracer
         # refresh tips
         self._main_ptr_tip.setText("%.2f" % x_dst)
         self._main_ptr_tip.position.setCoords(x_dst, 0)
-        self._main_ptr_rect.topLeft.setCoords(self._old_ptr.x, 1)  # FIXME: x = old, y = recalc(10px)
+        rect_height = self.yAxis.pixelToCoord(0) - self.yAxis.pixelToCoord(PTR_RECT_HEIGHT)
+        self._main_ptr_rect.topLeft.setCoords(self._old_ptr.x, rect_height)
         self._main_ptr_rect.bottomRight.setCoords(x_dst, 0)
         # go
         self.replot()
@@ -265,18 +270,33 @@ class SignalChartView(QCustomPlot):
         self._main_ptr_rect.setVisible(todo)
 
     def __slot_mouse_press(self, event: QMouseEvent):
+        """
+        - check MPtr moved
+        - move MPtr
+        - set old ptr coords
+        - call slots
+        :param event:
+        """
         if event.button() == Qt.LeftButton:
-            # TODO: move _old_ptr?
             self.__switch_onway(True)
             self._old_ptr.move2x(self._main_ptr.position.key())
             self.__handle_mouse(event.x())
 
     def __slot_mouse_release(self, event: QMouseEvent):
+        """Hide all, reset tmp vars"""
         if event.button() == Qt.LeftButton:
             self.__switch_onway(False)
             self.replot()
 
     def __slot_mouse_move(self, event: QMouseEvent):
+        """
+        - check MPtr moved
+        - move MPtr
+        - show old_ptr, tip, rect (if required)
+        - refresh tip, rect
+        - call slots
+        :param event:
+        """
         if self._ptr_onway:  # or `event.buttons() & Qt.LeftButton`
             self.__handle_mouse(event.x())
 
