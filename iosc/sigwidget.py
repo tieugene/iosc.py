@@ -24,6 +24,7 @@ PEN_STYLE = {
     mycomtrade.ELineType.Dot: Qt.DotLine,
     mycomtrade.ELineType.DashDot: Qt.DashDotDotLine
 }
+PORS = True  # Secondary
 
 
 class TimeAxisView(QCustomPlot):
@@ -124,8 +125,18 @@ class AnalogSignalCtrlView(SignalCtrlView):
             self.signal_restyled.emit()
 
     def slot_update_value(self, y: float):
-        # TODO: u/m//k, dynamic unit
-        self._f_value.setText("%.3f" % y)
+        """
+        :param y: Value to show (orig * a + b)
+        """
+        real_y = y * self._signal.get_mult(PORS)
+        uu = self._signal.uu_orig
+        if abs(real_y) < 1:
+            real_y *= 1000
+            uu = 'm' + uu
+        elif abs(real_y) > 1000:
+            real_y /= 1000
+            uu = 'k' + uu
+        self._f_value.setText("%.3f %s" % (real_y, uu))
 
 
 class StatusSignalCtrlView(SignalCtrlView):

@@ -35,15 +35,14 @@ class Wrapper:
 
 class Signal(Wrapper):
     """Signal base."""
+    _is_bool: bool
     _raw2: Channel
     _value: list[float]  # list of values
-    _is_bool: bool
     _color: Optional[int]
 
     def __init__(self, raw: Comtrade, raw2: Channel):
         super().__init__(raw)
         self._raw2 = raw2
-        self._line_type = ELineType.Solid
         self._color = None
 
     @property
@@ -100,19 +99,51 @@ class StatusSignal(Signal):
 
 class AnalogSignal(Signal):
     _is_bool = False
-    _line_type: ELineType
+    __line_style: ELineType
+    __mult: tuple[float, float]
+    __uu_orig: str  # original uu (w/o m/k)
 
     def __init__(self, raw: Comtrade, i: int):
         super().__init__(raw, raw.cfg.analog_channels[i])
         self._value = self._raw.analog[i]
+        self.__line_style = ELineType.Solid
+        # pri/sec multipliers
+        if self._raw2.uu.startswith('m'):
+            uu = 0.001
+            self.__uu_orig = self._raw2.uu[1:]
+        elif self._raw2.uu.startswith('k'):
+            uu = 1000
+            self.__uu_orig = self._raw2.uu[1:]
+        else:
+            uu = 1
+            self.__uu_orig = self._raw2.uu
+        if self._raw2.pors.lower() == 'p':
+            pri = 1
+            sec = self._raw2.secondary / self._raw2.primary
+        else:
+            pri = self._raw2.primary / self._raw2.secondary
+            sec = 1
+        self.__mult = (pri * uu, sec * uu)
 
     @property
     def line_type(self) -> ELineType:
-        return self._line_type
+        return self.__line_style
 
     @line_type.setter
     def line_type(self, v: ELineType):
-        self._line_type = v
+        self.__line_style = v
+
+    def get_mult(self, ps: bool) -> float:
+        """
+        Get multiplier
+        :param ps:
+        :return: Multiplier
+        """
+        return self.__mult[int(ps)]
+
+    @property
+    def uu_orig(self):
+        return self.__uu_orig
 
 
 class SignalList(Wrapper):
