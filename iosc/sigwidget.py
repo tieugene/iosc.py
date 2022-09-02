@@ -1,9 +1,9 @@
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins
-from PyQt5.QtGui import QColor, QBrush, QFont, QPen
-from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget
+from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent
+from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout
 # 3. 4rd
-from QCustomPlot2 import QCustomPlot, QCPAxis
+from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
 import const
 import mycomtrade
@@ -11,9 +11,13 @@ from sigprop import SigPropertiesDialog
 # x. const
 X_FONT = QFont(*const.XSCALE_FONT)
 D_BRUSH = QBrush(Qt.Dense4Pattern)
-ZERO_PEN = QPen(QColor('black'))
+ZERO_PEN = QPen(Qt.black)
 NO_PEN = QPen(QColor(255, 255, 255, 0))
+MAIN_PTR_PEN = QPen(QBrush(QColor('orange')), 2)
+OLD_PTR_PEN = QPen(QBrush(Qt.green), 1, Qt.DotLine)
+PTR_RECT_HEIGHT = 20
 TICK_COUNT = 20
+Y_PAD = 0.1  # upper and lower Y-padding; 0.1 == 10%
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
     mycomtrade.ELineType.Dot: Qt.DotLine,
@@ -22,15 +26,18 @@ PEN_STYLE = {
 
 
 class TimeAxisView(QCustomPlot):
-    def __init__(self, tmin: float, t0: float, tmax, ti: int, parent=None):
+    __root: QWidget
+    __main_ptr_label: QCPItemText
+
+    def __init__(self, tmin: float, t0: float, tmax, ti: int, parent, root: QWidget):
         super().__init__(parent)
+        self.__root = root
+        self.__main_ptr_label = QCPItemText(self)
         self.xAxis.setRange((tmin - t0) * 1000, (tmax - t0) * 1000)
-        # TODO: setTickInterval(ti)
-        # TODO: setLabelFormat("%d")
+        self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: (ti)
         self.__squeeze()
-        # decorate
-        self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME:
-        self.xAxis.setTickLabelFont(X_FONT)
+        self.__set_style()
+        self.__root.signal_main_ptr_moved_x.connect(self.__slot_main_ptr_moved_x)  # FIXME: on top of ticks
 
     def __squeeze(self):
         ar = self.axisRect(0)
@@ -44,22 +51,48 @@ class TimeAxisView(QCustomPlot):
         self.xAxis.grid().setVisible(False)
         self.xAxis.setPadding(0)
 
+    def __set_style(self):
+        # TODO: setLabelFormat("%d")
+        self.xAxis.setTickLabelFont(X_FONT)
+        self.__main_ptr_label.setColor(Qt.white)  # text
+        self.__main_ptr_label.setBrush(QBrush(Qt.red))  # rect
+        self.__main_ptr_label.setTextAlignment(Qt.AlignCenter)
+        self.__main_ptr_label.setFont(QFont('mono', 8))
+        self.__main_ptr_label.setPadding(QMargins(2, 2, 2, 2))
+        self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
+
+    def __slot_main_ptr_moved_x(self, x: float):
+        """Repaint/move main ptr value label (%.2f)"""
+        self.__main_ptr_label.setText("%.2f" % x)
+        self.__main_ptr_label.position.setCoords(x, 0)
+        self.replot()
+
 
 class SignalCtrlView(QLabel):
     __signal: mycomtrade.Signal
+    _f_name: QLabel
+    _f_value: QLabel
 
-    def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget = None):
+    def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget, root: QWidget):
         super().__init__(parent)
         self.__signal = signal
+        self.__setup_ui()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self._handle_context_menu)
-        self.setText(signal.sid)
-        self.set_style()
+        self.customContextMenuRequested.connect(self.__slot_context_menu)
 
-    def set_style(self):
+    def __setup_ui(self):
+        self._f_value = QLabel(self)
+        self._f_name = QLabel(self)
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(self._f_name)
+        self.layout().addWidget(self._f_value)
+        self.__set_style()
+        self._f_name.setText(self.__signal.sid)
+
+    def __set_style(self):
         self.setStyleSheet("QLabel { color : rgb(%d,%d,%d); }" % self.__signal.rgb)
 
-    def _handle_context_menu(self, point: QPoint):
+    def __slot_context_menu(self, point: QPoint):
         context_menu = QMenu()
         action_sig_property = context_menu.addAction("Channel property")
         action_sig_hide = context_menu.addAction("Hide channel")
@@ -72,8 +105,8 @@ class SignalCtrlView(QLabel):
     def __do_sig_property(self):
         """Show/set signal properties"""
         if SigPropertiesDialog(self.__signal).execute():
-            self.set_style()
-            self.parent().parent().cellWidget(self.__signal.i, 1).upd_style()  # note: 2 x parent
+            self.__set_style()
+            self.parent().parent().cellWidget(self.__signal.i, 1).slot_upd_style()  # note: 2 x parent
 
     def __do_sig_hide(self):
         """Hide signal in table"""
@@ -81,36 +114,136 @@ class SignalCtrlView(QLabel):
 
 
 class AnalogSignalCtrlView(SignalCtrlView):
-    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget = None):
-        super().__init__(signal, parent)
+    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root: QWidget):
+        super().__init__(signal, parent, root)
+
+    def slot_update_value(self, y: float):
+        # TODO: u/m//k, dynamic unit
+        self._f_value.setText("%.3f" % y)
 
 
 class StatusSignalCtrlView(SignalCtrlView):
-    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget = None):
-        super().__init__(signal, parent)
+    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root):
+        super().__init__(signal, parent, root)
+
+    def slot_update_value(self, y: float):
+        self._f_value.setText("%d" % y)
+
+
+class MainPtr(QCPItemTracer):
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+        self.setGraph(cp.graph())
+        self.setPen(MAIN_PTR_PEN)
+        self.position.setAxes(cp.xAxis, None)
+        # cp.setCursor(QCursor(Qt.CrossCursor))
+
+
+class OldPtr(QCPItemStraightLine):
+    __x: float
+
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+        self.setPen(OLD_PTR_PEN)
+        self.setVisible(False)
+
+    def move2x(self, x: float):
+        """
+        :param x:
+        :note: for  QCPItemLine: s/point1/start/, s/point2/end/
+        """
+        self.__x = x
+        self.point1.setCoords(x, 0)
+        self.point2.setCoords(x, 1)
+
+    @property
+    def x(self):
+        return self.__x
+
+
+class MainPtrTip(QCPItemText):
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+        self.setColor(Qt.black)  # text
+        self.setPen(Qt.red)
+        self.setBrush(QBrush(QColor(255, 170, 0)))  # rect
+        self.setTextAlignment(Qt.AlignCenter)
+        self.setFont(QFont('mono', 8))
+        self.setPadding(QMargins(2, 2, 2, 2))
+
+    def move2x(self, x: float, x_old: float):
+        dx = x - x_old
+        self.setPositionAlignment((Qt.AlignLeft if dx > 0 else Qt.AlignRight) | Qt.AlignBottom)
+        self.position.setCoords(x, 0)
+        self.setText("%.2f" % dx)
+
+
+class MainPtrRect(QCPItemRect):
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+        self.setPen(QColor(255, 170, 0, 128))
+        self.setBrush(QColor(255, 170, 0, 128))
+
+    def set2x(self, x: float):
+        """Set starting point"""
+        yaxis = self.parentPlot().yAxis
+        self.topLeft.setCoords(x, yaxis.pixelToCoord(0) - yaxis.pixelToCoord(PTR_RECT_HEIGHT))
+
+    def stretc2x(self, x: float):
+        self.bottomRight.setCoords(x, 0)
 
 
 class SignalChartView(QCustomPlot):
+    _root: QWidget
+    _sibling: SignalCtrlView
     _signal: mycomtrade.Signal
+    _main_ptr: MainPtr
+    _old_ptr: OldPtr
+    _main_ptr_tip: MainPtrTip
+    _main_ptr_rect: MainPtrRect
+    _ptr_onway: bool
 
-    def __init__(self, signal: mycomtrade.Signal, ti: int, parent: QTableWidget = None):
+    def __init__(self, signal: mycomtrade.Signal, ti: int, parent: QTableWidget, root: QWidget,
+                 sibling: SignalCtrlView):
         super().__init__(parent)
+        self._root = root
+        self._sibling = sibling
         self._signal = signal
-        self.addGraph()  # QCPGraph
-        # self.yAxis.setRange(0, 1)  # not helps
+        self._ptr_onway = False
+        self._old_ptr = OldPtr(self)
+        self._main_ptr_tip = MainPtrTip(self)
+        self._main_ptr_rect = MainPtrRect(self)
+        self.addGraph()
+        self._main_ptr = MainPtr(self)  # after graph()
+        self.__set_data()
         self.__squeeze()
         self.__decorate()
-        # xaxis.ticker().setTickCount(len(self.time))  # QCPAxisTicker
-        self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
-        self.__set_data()
         self.__set_style()
+        self.__switch_tips(False)
+        # ymin = min(self._signal.value)
+        # ymax = max(self._signal.value)
+        # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
+        # self.yAxis.setRange(ymin - ypad, ymax + ypad)  # #76, not helps
+        self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
+        self.mousePress.connect(self.__slot_mouse_press)
+        self.mouseMove.connect(self.__slot_mouse_move)
+        self.mouseRelease.connect(self.__slot_mouse_release)
+        self._root.signal_main_ptr_moved_x.connect(self.__slot_main_ptr_moved_x)
+
+    def __set_data(self):
+        z_time = self._signal.raw.trigger_time
+        self.graph().setData([1000 * (t - z_time) for t in self._signal.time], self._signal.value, True)
+        self.xAxis.setRange(
+            1000 * (self._signal.time[0] - z_time),
+            1000 * (self._signal.time[-1] - z_time)
+        )
 
     def __squeeze(self):
         ar = self.axisRect(0)  # QCPAxisRect
         ar.setMinimumMargins(QMargins())  # the best
         ar.removeAxis(self.xAxis2)
         ar.removeAxis(self.yAxis2)
-        #self.yAxis.setVisible(False)  # or cp.graph().valueAxis()
+        # self.yAxis.setVisible(False)  # or cp.graph().valueAxis()
         self.yAxis.setTickLabels(False)
         self.yAxis.setTicks(False)
         self.yAxis.setPadding(0)
@@ -125,14 +258,6 @@ class SignalChartView(QCustomPlot):
         self.yAxis.grid().setZeroLinePen(ZERO_PEN)
         self.xAxis.grid().setZeroLinePen(ZERO_PEN)
 
-    def __set_data(self):
-        z_time = self._signal.raw.trigger_time
-        self.graph().setData([1000 * (t - z_time) for t in self._signal.time], self._signal.value)
-        self.xAxis.setRange(
-            1000 * (self._signal.time[0] - z_time),
-            1000 * (self._signal.time[-1] - z_time)
-        )
-
     def __set_style(self):
         pen = self.graph().pen()  # QPen
         # pen.setWidth(1)
@@ -140,19 +265,93 @@ class SignalChartView(QCustomPlot):
         pen.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setPen(pen)
 
-    def upd_style(self):
+    def __handle_mouse(self, x_px: int, click: bool):
+        """
+        Handle mouse pressed[+moved]
+        :param x_px: mouse x-position (px)
+        :todo: chk pos changed (hint: save `pos` B4)
+        """
+        x_src = self.xAxis.pixelToCoord(x_px)  # real x-position realtive to graph z-point in graaph units
+        x_dst_0: float = self._main_ptr.position.key()  # dont save pos (== &)
+        self._main_ptr.setGraphKey(x_src)
+        self._main_ptr.updatePosition()  # mandatory
+        pos = self._main_ptr.position  # coerced x-postion
+        x_dst = pos.key()
+        if x_dst_0 != x_dst:  # check MPtr moved
+            if click:  # mouse pressed => set old ptr coords, rect start coord
+                self._old_ptr.move2x(x_dst)
+                self._main_ptr_rect.set2x(x_dst)
+                self._ptr_onway = True
+            else:  # mouse moved (when pressed)
+                if not self._old_ptr.visible():  # show tips on demand
+                    self.__switch_tips(True)
+                # refresh tips
+                self._main_ptr_tip.move2x(x_dst, self._old_ptr.x)
+                self._main_ptr_rect.stretc2x(x_dst)
+            self.replot()
+            self._root.slot_main_ptr_moved_x(x_dst)
+            self._sibling.slot_update_value(pos.value())
+
+    def __switch_tips(self, todo: bool):
+        # print(("Off", "On")[int(todo)])
+        self._old_ptr.setVisible(todo)
+        self._main_ptr_tip.setVisible(todo)
+        self._main_ptr_rect.setVisible(todo)
+
+    def __slot_mouse_press(self, event: QMouseEvent):
+        """
+        - check MPtr moved
+        - move MPtr
+        - set old ptr coords, rect start coord
+        - call slots
+        :param event:
+        """
+        if event.button() == Qt.LeftButton:
+            # self.__switch_tips(True)
+            # self._old_ptr.move2x(self._main_ptr.position.key())
+            self.__handle_mouse(event.x(), True)
+
+    def __slot_mouse_move(self, event: QMouseEvent):
+        """
+        - check MPtr moved
+        - move MPtr
+        - show old_ptr, tip, rect (if required)
+        - refresh tip, rect
+        - call slots
+        :param event:
+        """
+        if self._ptr_onway:  # or `event.buttons() & Qt.LeftButton`
+            self.__handle_mouse(event.x(), False)
+
+    def __slot_mouse_release(self, event: QMouseEvent):
+        """Hide all, reset tmp vars"""
+        if event.button() == Qt.LeftButton:
+            self._ptr_onway = False
+            self.__switch_tips(False)
+            self.replot()
+
+    def __slot_main_ptr_moved_x(self, x: float):
+        if not self._ptr_onway:  # check is not myself
+            self._main_ptr.setGraphKey(x)
+            # self._main_ptr.updatePosition()  # not helps
+            self.replot()
+            self._sibling.slot_update_value(self._main_ptr.position.value())
+
+    def slot_upd_style(self):
         self.__set_style()
         self.replot()
 
 
 class AnalogSignalChartView(SignalChartView):
-    def __init__(self, signal: mycomtrade.AnalogSignal, ti: int, parent: QTableWidget = None):
-        super().__init__(signal, ti, parent)
+    def __init__(self, signal: mycomtrade.AnalogSignal, ti: int, parent: QTableWidget, root,
+                 sibling: AnalogSignalCtrlView):
+        super().__init__(signal, ti, parent, root, sibling)
         self.yAxis.setRange(min(signal.value), max(signal.value))
 
 
 class StatusSignalChartView(SignalChartView):
-    def __init__(self, signal: mycomtrade.StatusSignal, ti: int, parent: QTableWidget = None):
-        super().__init__(signal, ti, parent)
+    def __init__(self, signal: mycomtrade.StatusSignal, ti: int, parent: QTableWidget, root: QWidget,
+                 sibling: SignalCtrlView):
+        super().__init__(signal, ti, parent, root, sibling)
         self.yAxis.setRange(0, 1.6)  # note: from -0.1 if Y0 wanted
         self.graph().setBrush(D_BRUSH)
