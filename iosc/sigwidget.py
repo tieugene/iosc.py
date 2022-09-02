@@ -170,11 +170,12 @@ class MainPtrTip(QCPItemText):
         self.setTextAlignment(Qt.AlignCenter)
         self.setFont(QFont('mono', 8))
         self.setPadding(QMargins(2, 2, 2, 2))
-        self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
 
-    def move2x(self, x: float):
-        self.setText("%.2f" % x)
-        self.position.setCoords(x, 0)  # FIXME: left/right side
+    def move2x(self, x: float, x_old: float):
+        dx = x - x_old
+        self.setPositionAlignment((Qt.AlignLeft if dx > 0 else Qt.AlignRight) | Qt.AlignBottom)
+        self.position.setCoords(x, 0)
+        self.setText("%.2f" % dx)
 
 
 class MainPtrRect(QCPItemRect):
@@ -285,7 +286,7 @@ class SignalChartView(QCustomPlot):
                 if not self._old_ptr.visible():  # show tips on demand
                     self.__switch_tips(True)
                 # refresh tips
-                self._main_ptr_tip.move2x(x_dst)
+                self._main_ptr_tip.move2x(x_dst, self._old_ptr.x)
                 self._main_ptr_rect.stretc2x(x_dst)
             self.replot()
             self._root.slot_main_ptr_moved_x(x_dst)
