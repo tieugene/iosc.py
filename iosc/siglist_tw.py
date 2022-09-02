@@ -3,7 +3,6 @@ QTableWidget version
 :todo: try QTableWidgetItem
 """
 # 2. 3rd
-from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableWidget, QLabel
 # 3. local
 import const

@@ -1,6 +1,6 @@
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins
-from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QCursor
+from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent
 from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout
 # 3. 4rd
 from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect
