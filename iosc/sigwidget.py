@@ -81,6 +81,10 @@ class SignalCtrlView(QLabel):
         """Hide signal in table"""
         self.parent().parent().hideRow(self.__signal.i)
 
+    def slot_update_value(self, y: float):
+        ...
+        # self.setText(str(y))
+
 
 class AnalogSignalCtrlView(SignalCtrlView):
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root):
@@ -117,14 +121,16 @@ class OldPtr(QCPItemStraightLine):
 
 class SignalChartView(QCustomPlot):
     _root: QWidget
+    _sibling: SignalCtrlView
     _signal: mycomtrade.Signal
     _main_ptr: MainPtr
     _old_ptr: OldPtr
     _ptr_onway: bool
 
-    def __init__(self, signal: mycomtrade.Signal, ti: int, parent: QTableWidget, root):
+    def __init__(self, signal: mycomtrade.Signal, ti: int, parent: QTableWidget, root, sibling: SignalCtrlView):
         super().__init__(parent)
         self._root = root
+        self._sibling = sibling
         # print(root.metaObject().className())
         self._signal = signal
         self._ptr_onway = False
@@ -219,6 +225,7 @@ class SignalChartView(QCustomPlot):
             # self._main_ptr.updatePosition()  # not helps
             self.replot()
             # self.sibling.main_ptr_moved_y(self.position.value())
+            self._sibling.slot_update_value(self._main_ptr.position.value())
 
     def slot_upd_style(self):  # TODO: convert to slot
         self.__set_style()
@@ -226,13 +233,13 @@ class SignalChartView(QCustomPlot):
 
 
 class AnalogSignalChartView(SignalChartView):
-    def __init__(self, signal: mycomtrade.AnalogSignal, ti: int, parent: QTableWidget, root):
-        super().__init__(signal, ti, parent, root)
+    def __init__(self, signal: mycomtrade.AnalogSignal, ti: int, parent: QTableWidget, root, sibling: AnalogSignalCtrlView):
+        super().__init__(signal, ti, parent, root, sibling)
         self.yAxis.setRange(min(signal.value), max(signal.value))
 
 
 class StatusSignalChartView(SignalChartView):
-    def __init__(self, signal: mycomtrade.StatusSignal, ti: int, parent: QTableWidget, root):
-        super().__init__(signal, ti, parent, root)
+    def __init__(self, signal: mycomtrade.StatusSignal, ti: int, parent: QTableWidget, root, sibling: SignalCtrlView):
+        super().__init__(signal, ti, parent, root, sibling)
         self.yAxis.setRange(0, 1.6)  # note: from -0.1 if Y0 wanted
         self.graph().setBrush(D_BRUSH)

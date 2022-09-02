@@ -31,12 +31,12 @@ class SignalListView(QTableWidget):
         for row in range(len(slist)):
             signal = slist[row]
             if signal.is_bool:
-                self.setCellWidget(row, 0, StatusSignalCtrlView(signal, self, parent))
-                self.setCellWidget(row, 1, StatusSignalChartView(signal, ti, self, parent))
+                self.setCellWidget(row, 0, ctrl := StatusSignalCtrlView(signal, self, parent))
+                self.setCellWidget(row, 1, StatusSignalChartView(signal, ti, self, parent, ctrl))
                 self.setRowHeight(row, const.SIG_D_HEIGHT)
             else:
-                self.setCellWidget(row, 0, AnalogSignalCtrlView(signal, self, parent))
-                self.setCellWidget(row, 1, AnalogSignalChartView(signal, ti, self, parent))
+                self.setCellWidget(row, 0, ctrl := AnalogSignalCtrlView(signal, self, parent))
+                self.setCellWidget(row, 1, AnalogSignalChartView(signal, ti, self, parent, ctrl))
                 self.setRowHeight(row, const.SIG_A_HEIGHT)
 
     def line_up(self, dwidth: int):
