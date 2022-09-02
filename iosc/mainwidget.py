@@ -2,7 +2,7 @@
 RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
 # 2. 3rd
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget
 # 3. local
 import mycomtrade
@@ -26,8 +26,9 @@ class ComtradeWidget(QWidget):
     """
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
+    signal_main_ptr_moved_x = pyqtSignal(float)
 
-    def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget = None):
+    def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
         self.setLayout(QVBoxLayout())
         splitter = QSplitter(Qt.Vertical, self)
@@ -76,3 +77,16 @@ class ComtradeWidget(QWidget):
         """Unhide hidden channels"""
         self.analog_table.sig_unhide()
         self.status_table.sig_unhide()
+
+    def slot_main_ptr_moved_x(self, x: float):
+        """
+        :param x:
+        :type x: ~~QCPItemPosition~~ float
+        Emit slot_main_ptr_move(pos) for:
+        - TimeAxisView (x)
+        - ~~SignalCtrlView (y)~~
+        - SignalChartView (x)
+        - statusbar (x)
+        """
+        # print("You win")
+        self.signal_main_ptr_moved_x.emit(x)

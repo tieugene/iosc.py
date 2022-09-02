@@ -17,7 +17,7 @@ class ComtradeTabWidget(QTabWidget):
     _chartview: list[ComtradeWidget]
     _chartdata: list[MyComtrade]
 
-    def __init__(self, parent: QMainWindow = None):
+    def __init__(self, parent: QMainWindow):
         super().__init__(parent)
         self.setTabsClosable(True)
         self._chartviews = []
@@ -126,8 +126,8 @@ class MainWindow(QMainWindow):
     actAbout: QAction
     actSigUnhideAll: QAction
 
-    def __init__(self, _: list, parent=None):
-        super().__init__(parent)
+    def __init__(self, _: list):
+        super().__init__()
         self.create_widgets()
         self.create_actions()
         self.create_menus()

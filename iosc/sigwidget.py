@@ -1,9 +1,9 @@
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins
 from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent
-from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget
+from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget
 # 3. 4rd
-from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine
+from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemPosition
 # 4. local
 import const
 import mycomtrade
@@ -24,7 +24,7 @@ PEN_STYLE = {
 
 
 class TimeAxisView(QCustomPlot):
-    def __init__(self, tmin: float, t0: float, tmax, ti: int, parent=None):
+    def __init__(self, tmin: float, t0: float, tmax, ti: int, parent, root):
         super().__init__(parent)
         self.xAxis.setRange((tmin - t0) * 1000, (tmax - t0) * 1000)
         # TODO: setTickInterval(ti)
@@ -50,7 +50,7 @@ class TimeAxisView(QCustomPlot):
 class SignalCtrlView(QLabel):
     __signal: mycomtrade.Signal
 
-    def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget = None):
+    def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget, root):
         super().__init__(parent)
         self.__signal = signal
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -75,7 +75,7 @@ class SignalCtrlView(QLabel):
         """Show/set signal properties"""
         if SigPropertiesDialog(self.__signal).execute():
             self.set_style()
-            self.parent().parent().cellWidget(self.__signal.i, 1).upd_style()  # note: 2 x parent
+            self.parent().parent().cellWidget(self.__signal.i, 1).slot_upd_style()  # note: 2 x parent
 
     def __do_sig_hide(self):
         """Hide signal in table"""
@@ -83,13 +83,13 @@ class SignalCtrlView(QLabel):
 
 
 class AnalogSignalCtrlView(SignalCtrlView):
-    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget = None):
-        super().__init__(signal, parent)
+    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root):
+        super().__init__(signal, parent, root)
 
 
 class StatusSignalCtrlView(SignalCtrlView):
-    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget = None):
-        super().__init__(signal, parent)
+    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root):
+        super().__init__(signal, parent, root)
 
 
 class MainPtr(QCPItemTracer):
@@ -116,14 +116,18 @@ class OldPtr(QCPItemStraightLine):
 
 
 class SignalChartView(QCustomPlot):
+    _root: QWidget
     _signal: mycomtrade.Signal
     _main_ptr: MainPtr
     _old_ptr: OldPtr
     _ptr_onway: bool
 
-    def __init__(self, signal: mycomtrade.Signal, ti: int, parent: QTableWidget = None):
+    def __init__(self, signal: mycomtrade.Signal, ti: int, parent: QTableWidget, root):
         super().__init__(parent)
+        self._root = root
+        # print(root.metaObject().className())
         self._signal = signal
+        self._ptr_onway = False
         self.addGraph()  # QCPGraph
         # self.yAxis.setRange(0, 1)  # not helps
         self.__squeeze()
@@ -131,13 +135,13 @@ class SignalChartView(QCustomPlot):
         # xaxis.ticker().setTickCount(len(self.time))  # QCPAxisTicker
         self.__set_data()
         self.__set_style()
-        self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
         self._main_ptr = MainPtr(self)
+        self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
         self._old_ptr = OldPtr(self)
-        self._ptr_onway = False
         self.mousePress.connect(self.__slot_mouse_press)
         self.mouseRelease.connect(self.__slot_mouse_release)
         self.mouseMove.connect(self.__slot_mouse_move)
+        self._root.signal_main_ptr_moved_x.connect(self.__slot_main_ptr_moved_x)
 
     def __squeeze(self):
         ar = self.axisRect(0)  # QCPAxisRect
@@ -185,6 +189,9 @@ class SignalChartView(QCustomPlot):
         self._old_ptr.move2x(x_src)
         # self.label.setText(f"x: {pos.key()}, y: {pos.value()}")
         self.replot()
+        # parent: QTableWidget
+        self._root.slot_main_ptr_moved_x(pos.key())
+        # self.sibling.main_ptr_moved_y(self.position.value())
 
     def __switch_onway(self, todo: bool):
         # print(("Off", "On")[int(todo)])
@@ -193,6 +200,7 @@ class SignalChartView(QCustomPlot):
 
     def __slot_mouse_press(self, event: QMouseEvent):
         if event.button() == Qt.LeftButton:
+            # TODO: move _old_ptr?
             self.__switch_onway(True)
             self.__handle_mouse(event.x())
 
@@ -205,19 +213,26 @@ class SignalChartView(QCustomPlot):
         if self._ptr_onway:  # or `event.buttons() & Qt.LeftButton`
             self.__handle_mouse(event.x())
 
-    def upd_style(self):  # TODO: convert to slot
+    def __slot_main_ptr_moved_x(self, x: float):
+        if not self._ptr_onway:  # check is not myself
+            self._main_ptr.setGraphKey(x)
+            # self._main_ptr.updatePosition()  # not helps
+            self.replot()
+            # self.sibling.main_ptr_moved_y(self.position.value())
+
+    def slot_upd_style(self):  # TODO: convert to slot
         self.__set_style()
         self.replot()
 
 
 class AnalogSignalChartView(SignalChartView):
-    def __init__(self, signal: mycomtrade.AnalogSignal, ti: int, parent: QTableWidget = None):
-        super().__init__(signal, ti, parent)
+    def __init__(self, signal: mycomtrade.AnalogSignal, ti: int, parent: QTableWidget, root):
+        super().__init__(signal, ti, parent, root)
         self.yAxis.setRange(min(signal.value), max(signal.value))
 
 
 class StatusSignalChartView(SignalChartView):
-    def __init__(self, signal: mycomtrade.StatusSignal, ti: int, parent: QTableWidget = None):
-        super().__init__(signal, ti, parent)
+    def __init__(self, signal: mycomtrade.StatusSignal, ti: int, parent: QTableWidget, root):
+        super().__init__(signal, ti, parent, root)
         self.yAxis.setRange(0, 1.6)  # note: from -0.1 if Y0 wanted
         self.graph().setBrush(D_BRUSH)

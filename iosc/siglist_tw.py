@@ -17,7 +17,7 @@ from wtable import WHeaderView
 class SignalListView(QTableWidget):
     slist: mycomtrade.SignalList
 
-    def __init__(self, slist: mycomtrade.SignalList, ti: int, parent=None):
+    def __init__(self, slist: mycomtrade.SignalList, ti: int, parent):
         super().__init__(parent)
         self.slist = slist
         self.setColumnCount(2)
@@ -31,12 +31,12 @@ class SignalListView(QTableWidget):
         for row in range(len(slist)):
             signal = slist[row]
             if signal.is_bool:
-                self.setCellWidget(row, 0, StatusSignalCtrlView(signal, self))
-                self.setCellWidget(row, 1, StatusSignalChartView(signal, ti, self))
+                self.setCellWidget(row, 0, StatusSignalCtrlView(signal, self, parent))
+                self.setCellWidget(row, 1, StatusSignalChartView(signal, ti, self, parent))
                 self.setRowHeight(row, const.SIG_D_HEIGHT)
             else:
-                self.setCellWidget(row, 0, AnalogSignalCtrlView(signal, self))
-                self.setCellWidget(row, 1, AnalogSignalChartView(signal, ti, self))
+                self.setCellWidget(row, 0, AnalogSignalCtrlView(signal, self, parent))
+                self.setCellWidget(row, 1, AnalogSignalChartView(signal, ti, self, parent))
                 self.setRowHeight(row, const.SIG_A_HEIGHT)
 
     def line_up(self, dwidth: int):
@@ -55,12 +55,12 @@ class SignalListView(QTableWidget):
 class AnalogSignalListView(SignalListView):
     time_axis: TimeAxisView
 
-    def __init__(self, slist: mycomtrade.AnalogSignalList, ti: int, parent=None):
+    def __init__(self, slist: mycomtrade.AnalogSignalList, ti: int, parent):
         super().__init__(slist, ti, parent)
         self.setHorizontalHeader(WHeaderView(self))
         self.setHorizontalHeaderLabels(('', ''))  # clean defaults
         self.horizontalHeader().set_widget(0, QLabel("ms"))
-        self.time_axis = TimeAxisView(slist.raw.time[0], slist.raw.trigger_time, slist.raw.time[-1], ti)
+        self.time_axis = TimeAxisView(slist.raw.time[0], slist.raw.trigger_time, slist.raw.time[-1], ti, self, parent)
         self.horizontalHeader().set_widget(1, self.time_axis)
         self.horizontalHeader().setFixedHeight(const.XSCALE_HEIGHT)
 
@@ -71,6 +71,6 @@ class AnalogSignalListView(SignalListView):
 
 
 class StatusSignalListView(SignalListView):
-    def __init__(self, slist: mycomtrade.StatusSignalList, ti: int, parent=None):
+    def __init__(self, slist: mycomtrade.StatusSignalList, ti: int, parent):
         super().__init__(slist, ti, parent)
         self.horizontalHeader().hide()
