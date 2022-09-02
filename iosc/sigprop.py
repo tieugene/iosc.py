@@ -14,19 +14,19 @@ import mycomtrade
 
 
 class SignalPropertiesDialog(QDialog):
+    _signal: mycomtrade.Signal
+    _color: QColor
     f_name: QLineEdit
     f_type: QLineEdit
     f_color: QPushButton
-    f_line: QComboBox  # A-ch only
     button_box: QDialogButtonBox
-    __color: QColor
-    __signal: mycomtrade.Signal
+    _layout: QFormLayout
 
     def __init__(self, signal: mycomtrade.Signal, parent=None):
         super().__init__(parent)
         # 1. store args
-        self.__signal = signal
-        self.__color = QColor.fromRgb(*signal.rgb)
+        self._signal = signal
+        self._color = QColor.fromRgb(*signal.rgb)
         # 2. set widgets
         self.f_name = QLineEdit(signal.sid, self)
         self.f_name.setReadOnly(True)
@@ -34,50 +34,57 @@ class SignalPropertiesDialog(QDialog):
         self.f_type.setReadOnly(True)
         self.f_color = QPushButton(self)
         self.__set_color_button()
-        self.f_line = QComboBox(self)
-        self.f_line.addItems(("Solid", "Dotted", "Dash-dotted"))
-        self.f_line.setCurrentIndex(signal.line_type.value)
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         # 3. set layout
-        layout = QFormLayout(self)  # FIME: not h-stretchable
-        layout.addRow("Name", self.f_name)
-        layout.addRow("Type", self.f_type)
-        layout.addRow("Color", self.f_color)  # QColorDialog.getColor()
-        layout.addRow("Line type", self.f_line)  # QInputDialog.getItem()
-        # the end
-        layout.addRow(self.button_box)
-        layout.setVerticalSpacing(0)
-        self.setLayout(layout)
+        self._layout = QFormLayout(self)  # FIME: not h-stretchable
+        self._layout.addRow("Name", self.f_name)
+        self._layout.addRow("Type", self.f_type)
+        self._layout.addRow("Color", self.f_color)  # QColorDialog.getColor()
+        self._layout.addRow(self.button_box)
+        self._layout.setVerticalSpacing(0)
+        self.setLayout(self._layout)
         # 4. set signals
-        self.f_color.clicked.connect(self.set_color)
+        self.f_color.clicked.connect(self.__set_color)
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
         # 5. go
         self.setWindowTitle("Signal properties")
 
     def __set_color_button(self):
-        self.f_color.setText(self.__color.name(QColor.HexRgb))
-        self.f_color.setStyleSheet("color : %s" % self.__color.name(QColor.HexRgb))
+        self.f_color.setText(self._color.name(QColor.HexRgb))
+        self.f_color.setStyleSheet("color : %s" % self._color.name(QColor.HexRgb))
 
-    def set_color(self):
+    def __set_color(self):
         color = QColorDialog.getColor(Qt.green, self)
         if color.isValid():
-            self.__color = color
+            self._color = color
             self.__set_color_button()
-
-    def execute(self) -> bool:
-        if self.exec_():
-            self.__signal.line_type = mycomtrade.ELineType(self.f_line.currentIndex())
-            self.__signal.rgb = (self.__color.red(), self.__color.green(), self.__color.blue())
-            return True
-        return False
 
 
 class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
+    f_line: QComboBox
+
     def __init__(self, signal: mycomtrade.AnalogSignal, parent=None):
         super().__init__(signal, parent)
+        self.f_line = QComboBox(self)
+        self.f_line.addItems(("Solid", "Dotted", "Dash-dotted"))
+        self.f_line.setCurrentIndex(self._signal.line_type.value)
+        self._layout.insertRow(3, "Line type", self.f_line)  # QInputDialog.getItem()
+
+    def execute(self) -> bool:
+        if self.exec_():
+            self._signal.line_type = mycomtrade.ELineType(self.f_line.currentIndex())
+            self._signal.rgb = (self._color.red(), self._color.green(), self._color.blue())
+            return True
+        return False
 
 
 class StatusSignalPropertiesDialog(SignalPropertiesDialog):
     def __init__(self, signal: mycomtrade.StatusSignal, parent=None):
         super().__init__(signal, parent)
+
+    def execute(self) -> bool:
+        if self.exec_():
+            self._signal.rgb = (self._color.red(), self._color.green(), self._color.blue())
+            return True
+        return False
