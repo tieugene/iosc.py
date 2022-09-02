@@ -158,8 +158,36 @@ class OldPtr(QCPItemStraightLine):
     def x(self):
         return self.__x
 
-# TODO: tip
-# TODO: rect
+
+class MainPtrTip(QCPItemText):
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+        self.setColor(Qt.black)  # text
+        self.setPen(Qt.red)
+        self.setBrush(QBrush(QColor(255, 170, 0)))  # rect
+        self.setTextAlignment(Qt.AlignCenter)
+        self.setFont(QFont('mono', 8))
+        self.setPadding(QMargins(2, 2, 2, 2))
+        self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
+
+    def move2x(self, x: float):
+        self.setText("%.2f" % x)
+        self.position.setCoords(x, 0)
+
+
+class MainPtrRect(QCPItemRect):
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+        self.setPen(QColor(255, 170, 0, 128))
+        self.setBrush(QColor(255, 170, 0, 128))
+
+    def set2x(self, x: float):
+        """Set starting point"""
+        yaxis = self.parentPlot().yAxis
+        self.topLeft.setCoords(x, yaxis.pixelToCoord(0) - yaxis.pixelToCoord(PTR_RECT_HEIGHT))
+
+    def stretc2x(self, x: float):
+        self.bottomRight.setCoords(x, 0)
 
 
 class SignalChartView(QCustomPlot):
@@ -167,9 +195,9 @@ class SignalChartView(QCustomPlot):
     _sibling: SignalCtrlView
     _signal: mycomtrade.Signal
     _main_ptr: MainPtr
-    _main_ptr_tip: QCPItemText
-    _main_ptr_rect: QCPItemRect
     _old_ptr: OldPtr
+    _main_ptr_tip: MainPtrTip
+    _main_ptr_rect: MainPtrRect
     _ptr_onway: bool
 
     def __init__(self, signal: mycomtrade.Signal, ti: int, parent: QTableWidget, root: QWidget,
@@ -178,10 +206,10 @@ class SignalChartView(QCustomPlot):
         self._root = root
         self._sibling = sibling
         self._signal = signal
-        self._main_ptr_tip = QCPItemText(self)
-        self._main_ptr_rect = QCPItemRect(self)
-        self._old_ptr = OldPtr(self)
         self._ptr_onway = False
+        self._old_ptr = OldPtr(self)
+        self._main_ptr_tip = MainPtrTip(self)
+        self._main_ptr_rect = MainPtrRect(self)
         self.addGraph()
         self._main_ptr = MainPtr(self)  # after graph()
         # self.yAxis.setRange(0, 1)  # not helps
@@ -223,16 +251,6 @@ class SignalChartView(QCustomPlot):
         self.yAxis.setBasePen(NO_PEN)  # hack
         self.yAxis.grid().setZeroLinePen(ZERO_PEN)
         self.xAxis.grid().setZeroLinePen(ZERO_PEN)
-        # bk on orange in red rect, oblique
-        self._main_ptr_tip.setColor(Qt.black)  # text
-        self._main_ptr_tip.setPen(Qt.red)
-        self._main_ptr_tip.setBrush(QBrush(QColor(255, 170, 0)))  # rect
-        self._main_ptr_tip.setTextAlignment(Qt.AlignCenter)
-        self._main_ptr_tip.setFont(QFont('mono', 8))
-        self._main_ptr_tip.setPadding(QMargins(2, 2, 2, 2))
-        self._main_ptr_tip.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
-        self._main_ptr_rect.setPen(QColor(255, 170, 0, 128))
-        self._main_ptr_rect.setBrush(QColor(255, 170, 0, 128))
 
     def __set_style(self):
         pen = self.graph().pen()  # QPen
@@ -252,11 +270,9 @@ class SignalChartView(QCustomPlot):
         pos = self._main_ptr.position  # coerced x-postion
         x_dst = pos.key()
         # refresh tips
-        self._main_ptr_tip.setText("%.2f" % x_dst)
-        self._main_ptr_tip.position.setCoords(x_dst, 0)
-        rect_height = self.yAxis.pixelToCoord(0) - self.yAxis.pixelToCoord(PTR_RECT_HEIGHT)
-        self._main_ptr_rect.topLeft.setCoords(self._old_ptr.x, rect_height)
-        self._main_ptr_rect.bottomRight.setCoords(x_dst, 0)
+        self._main_ptr_tip.move2x(x_dst)
+        self._main_ptr_rect.set2x(self._old_ptr.x)
+        self._main_ptr_rect.stretc2x(x_dst)
         # go
         self.replot()
         self._root.slot_main_ptr_moved_x(x_dst)
