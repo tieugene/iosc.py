@@ -1,3 +1,10 @@
+"""Signal properties viewer/editor
+TODO: Add fields (A-ch):
+- uu
+- Px
+- Sx
+- ps
+"""
 # 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -6,12 +13,11 @@ from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, Q
 import mycomtrade
 
 
-class SigPropertiesDialog(QDialog):
-    """:todo: move to sigwidget.py"""
+class SignalPropertiesDialog(QDialog):
     f_name: QLineEdit
     f_type: QLineEdit
     f_color: QPushButton
-    f_line: QComboBox
+    f_line: QComboBox  # A-ch only
     button_box: QDialogButtonBox
     __color: QColor
     __signal: mycomtrade.Signal
@@ -65,3 +71,13 @@ class SigPropertiesDialog(QDialog):
             self.__signal.rgb = (self.__color.red(), self.__color.green(), self.__color.blue())
             return True
         return False
+
+
+class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
+    def __init__(self, signal: mycomtrade.AnalogSignal, parent=None):
+        super().__init__(signal, parent)
+
+
+class StatusSignalPropertiesDialog(SignalPropertiesDialog):
+    def __init__(self, signal: mycomtrade.StatusSignal, parent=None):
+        super().__init__(signal, parent)
