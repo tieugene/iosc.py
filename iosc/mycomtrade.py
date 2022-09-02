@@ -47,7 +47,7 @@ class Signal(Wrapper):
         self._color = None
 
     @property
-    def raw2(self) -> str:
+    def raw2(self) -> Channel:
         return self._raw2
 
     @property
