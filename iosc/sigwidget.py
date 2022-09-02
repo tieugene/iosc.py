@@ -1,7 +1,7 @@
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins
 from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent
-from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget
+from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout
 # 3. 4rd
 from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemPosition
 # 4. local
@@ -49,19 +49,29 @@ class TimeAxisView(QCustomPlot):
 
 class SignalCtrlView(QLabel):
     __signal: mycomtrade.Signal
+    _f_name: QLabel
+    _f_value: QLabel
 
     def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget, root):
         super().__init__(parent)
         self.__signal = signal
+        self.__setup_ui()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self._handle_context_menu)
-        self.setText(signal.sid)
-        self.set_style()
+        self.customContextMenuRequested.connect(self.__slot_context_menu)
 
-    def set_style(self):
+    def __setup_ui(self):
+        self._f_value = QLabel(self)
+        self._f_name = QLabel(self)
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(self._f_name)
+        self.layout().addWidget(self._f_value)
+        self.__set_style()
+        self._f_name.setText(self.__signal.sid)
+
+    def __set_style(self):
         self.setStyleSheet("QLabel { color : rgb(%d,%d,%d); }" % self.__signal.rgb)
 
-    def _handle_context_menu(self, point: QPoint):
+    def __slot_context_menu(self, point: QPoint):
         context_menu = QMenu()
         action_sig_property = context_menu.addAction("Channel property")
         action_sig_hide = context_menu.addAction("Hide channel")
@@ -74,26 +84,29 @@ class SignalCtrlView(QLabel):
     def __do_sig_property(self):
         """Show/set signal properties"""
         if SigPropertiesDialog(self.__signal).execute():
-            self.set_style()
+            self.__set_style()
             self.parent().parent().cellWidget(self.__signal.i, 1).slot_upd_style()  # note: 2 x parent
 
     def __do_sig_hide(self):
         """Hide signal in table"""
         self.parent().parent().hideRow(self.__signal.i)
 
-    def slot_update_value(self, y: float):
-        ...
-        # self.setText(str(y))
-
 
 class AnalogSignalCtrlView(SignalCtrlView):
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root):
         super().__init__(signal, parent, root)
 
+    def slot_update_value(self, y: float):
+        # TODO: u/m//k, dynamic unit
+        self._f_value.setText("%.3f" % y)
+
 
 class StatusSignalCtrlView(SignalCtrlView):
     def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root):
         super().__init__(signal, parent, root)
+
+    def slot_update_value(self, y: float):
+        self._f_value.setText("%d" % y)
 
 
 class MainPtr(QCPItemTracer):

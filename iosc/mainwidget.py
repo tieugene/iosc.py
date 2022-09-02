@@ -50,6 +50,7 @@ class ComtradeWidget(QWidget):
         self.status_table.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
         self.analog_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
         self.status_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
+        self.signal_main_ptr_moved_x.emit(0)
 
     def __sync_hscrolls(self, index):
         self.analog_table.horizontalScrollBar().setValue(index)
