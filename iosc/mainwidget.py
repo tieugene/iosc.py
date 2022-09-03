@@ -38,6 +38,14 @@ class ComtradeWidget(QWidget):
     action_pors: QActionGroup
     action_pors_pri: QAction
     action_pors_sec: QAction
+    action_viewas: QActionGroup
+    action_viewas_is: QAction
+    action_viewas_mid: QAction
+    action_viewas_eff: QAction
+    action_viewas_hrm1: QAction
+    action_viewas_hrm2: QAction
+    action_viewas_hrm3: QAction
+    action_viewas_hrm5: QAction
     menubar: QMenuBar
     toolbar: QToolBar
     analog_table: AnalogSignalListView
@@ -69,7 +77,7 @@ class ComtradeWidget(QWidget):
         self.status_table = StatusSignalListView(self.__osc.status, ti, self)
 
     def __mk_actions(self):
-        self.action_close = QAction(QIcon.fromTheme("window-close"),  # TODO: disable if nobodu
+        self.action_close = QAction(QIcon.fromTheme("window-close"),
                                     "&Close",
                                     self,
                                     shortcut="Ctrl+W",
@@ -101,6 +109,48 @@ class ComtradeWidget(QWidget):
                                        checkable=True,
                                        statusTip="Show secondary signal values",
                                        triggered=self.__do_pors_sec)
+        self.action_viewas_is = QAction(QIcon(),
+                                        "&Is",
+                                        self,
+                                        checkable=True,
+                                        statusTip="Show current signal value",
+                                        triggered=self.__do_viewas)
+        self.action_viewas_mid = QAction(QIcon(),
+                                         "&Middle",
+                                         self,
+                                         checkable=True,
+                                         statusTip="Show running middle of current signal value",
+                                         triggered=self.__do_viewas)
+        self.action_viewas_eff = QAction(QIcon(),
+                                         "&Effective",
+                                         self,
+                                         checkable=True,
+                                         statusTip="Show RMS of current signal value",
+                                         triggered=self.__do_viewas)
+        self.action_viewas_hrm1 = QAction(QIcon(),
+                                          "&Harmonic 1",
+                                          self,
+                                          checkable=True,
+                                          statusTip="Show harmonic #1 of signal value",
+                                          triggered=self.__do_viewas)
+        self.action_viewas_hrm2 = QAction(QIcon(),
+                                          "&Harmonic 2",
+                                          self,
+                                          checkable=True,
+                                          statusTip="Show harmonic #2 of signal value",
+                                          triggered=self.__do_viewas)
+        self.action_viewas_hrm3 = QAction(QIcon(),
+                                          "&Harmonic 3",
+                                          self,
+                                          checkable=True,
+                                          statusTip="Show harmonic #3 of signal value",
+                                          triggered=self.__do_viewas)
+        self.action_viewas_hrm5 = QAction(QIcon(),
+                                          "&Harmonic 5",
+                                          self,
+                                          checkable=True,
+                                          statusTip="Show harmonic #5 of signal value",
+                                          triggered=self.__do_viewas)
         self.action_pors = QActionGroup(self)
         self.action_pors.addAction(self.action_pors_pri)
         self.action_pors.addAction(self.action_pors_sec)
@@ -108,17 +158,34 @@ class ComtradeWidget(QWidget):
             self.action_pors_sec.setChecked(True)
         else:
             self.action_pors_pri.setChecked(True)
+        self.action_viewas = QActionGroup(self)
+        self.action_viewas.addAction(self.action_viewas_is)
+        self.action_viewas.addAction(self.action_viewas_mid)
+        self.action_viewas.addAction(self.action_viewas_eff)
+        self.action_viewas.addAction(self.action_viewas_hrm1)
+        self.action_viewas.addAction(self.action_viewas_hrm2)
+        self.action_viewas.addAction(self.action_viewas_hrm3)
+        self.action_viewas.addAction(self.action_viewas_hrm5)
+        self.action_viewas_is.setChecked(True)
 
     def __mk_menu(self):
         menu_file = self.menubar.addMenu("&File")
         menu_file.addAction(self.action_info)
         menu_file.addAction(self.action_convert)
         menu_file.addAction(self.action_close)
+        menu_view = self.menubar.addMenu("&View")
+        menu_view.addSeparator().setText("Pri/Sec")
+        menu_view.addAction(self.action_pors_pri)
+        menu_view.addAction(self.action_pors_sec)
+        menu_view.addSeparator().setText("View as...")
+        menu_view.addAction(self.action_viewas_is)
+        menu_view.addAction(self.action_viewas_mid)
+        menu_view.addAction(self.action_viewas_eff)
+        menu_view.addAction(self.action_viewas_hrm1)
+        menu_view.addAction(self.action_viewas_hrm2)
+        menu_view.addAction(self.action_viewas_hrm3)
+        menu_view.addAction(self.action_viewas_hrm5)
         menu_channel = self.menubar.addMenu("&Channel")
-        menu_channel.addSeparator().setText("Pri/Sec")
-        menu_channel.addAction(self.action_pors_pri)
-        menu_channel.addAction(self.action_pors_sec)
-        menu_channel.addSeparator()
         menu_channel.addAction(self.action_unhide)
 
     def __mk_toolbar(self):
@@ -202,6 +269,9 @@ class ComtradeWidget(QWidget):
         self.show_sec = True
         self.signal_recalc_achannels.emit()
 
+    def __do_viewas(self):
+        print("Stub")  # stub
+
     def __sync_hscrolls(self, index):
         self.analog_table.horizontalScrollBar().setValue(index)
         self.status_table.horizontalScrollBar().setValue(index)
@@ -226,6 +296,7 @@ class ComtradeWidget(QWidget):
 
     def slot_main_ptr_moved_x(self, x: float):
         """
+        Dispatch all main ptrs
         :param x:
         :type x: ~~QCPItemPosition~~ float
         Emit slot_main_ptr_move(pos) for:
