@@ -7,7 +7,7 @@ from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLin
 # 4. local
 import const
 import mycomtrade
-from sigprop import SignalPropertiesDialog, AnalogSignalPropertiesDialog, StatusSignalPropertiesDialog
+from sigprop import AnalogSignalPropertiesDialog, StatusSignalPropertiesDialog
 
 # x. const
 X_FONT = QFont(*const.XSCALE_FONT)
@@ -24,7 +24,6 @@ PEN_STYLE = {
     mycomtrade.ELineType.Dot: Qt.DotLine,
     mycomtrade.ELineType.DashDot: Qt.DashDotDotLine
 }
-PORS = True  # Secondary
 
 
 class TimeAxisView(QCustomPlot):
@@ -71,6 +70,7 @@ class TimeAxisView(QCustomPlot):
 
 
 class SignalCtrlView(QLabel):
+    _root: QWidget
     _signal: mycomtrade.Signal
     _f_name: QLabel
     _f_value: QLabel
@@ -79,6 +79,7 @@ class SignalCtrlView(QLabel):
     def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget, root: QWidget):
         super().__init__(parent)
         self._signal = signal
+        self._root = root
         self.__setup_ui()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__slot_context_menu)
@@ -128,7 +129,7 @@ class AnalogSignalCtrlView(SignalCtrlView):
         """
         :param y: Value to show (orig * a + b)
         """
-        real_y = y * self._signal.get_mult(PORS)
+        real_y = y * self._signal.get_mult(self._root.show_sec)
         uu = self._signal.uu_orig
         if abs(real_y) < 1:
             real_y *= 1000

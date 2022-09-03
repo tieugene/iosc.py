@@ -8,7 +8,7 @@ from typing import Any
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QGuiApplication
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget, QMenuBar, QToolBar, QAction, QMessageBox, \
-    QFileDialog, QHBoxLayout
+    QFileDialog, QHBoxLayout, QActionGroup
 # 3. local
 import mycomtrade
 from convtrade import convert, ConvertError
@@ -34,15 +34,20 @@ class ComtradeWidget(QWidget):
     action_info: QAction
     action_convert: QAction
     action_unhide: QAction
+    action_pors: QActionGroup
+    action_pors_pri: QAction
+    action_pors_sec: QAction
     menubar: QMenuBar
     toolbar: QToolBar
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
     signal_main_ptr_moved_x = pyqtSignal(float)
+    show_sec: bool
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
         self.__osc = rec
+        self.show_sec = True
         ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
         ti = find_std_ti(ti_wanted)
         # print(f"{ti_wanted} => {ti}")
@@ -82,6 +87,25 @@ class ComtradeWidget(QWidget):
                                        self,
                                        statusTip="Show hidden channels",
                                        triggered=self.__do_unhide)
+        self.action_pors_pri = QAction(QIcon(),
+                                       "&Primary",
+                                       self,
+                                       checkable=True,
+                                       statusTip="Show primary signal value",
+                                       triggered=self.__do_pors_pri)
+        self.action_pors_sec = QAction(QIcon(),
+                                       "&Secondary",
+                                       self,
+                                       checkable=True,
+                                       statusTip="Show secondary signal values",
+                                       triggered=self.__do_pors_sec)
+        self.action_pors = QActionGroup(self)
+        self.action_pors.addAction(self.action_pors_pri)
+        self.action_pors.addAction(self.action_pors_sec)
+        if self.show_sec:
+            self.action_pors_sec.setChecked(True)
+        else:
+            self.action_pors_pri.setChecked(True)
 
     def __mk_menu(self):
         menu_file = self.menubar.addMenu("&File")
@@ -89,9 +113,15 @@ class ComtradeWidget(QWidget):
         menu_file.addAction(self.action_convert)
         menu_file.addAction(self.action_close)
         menu_channel = self.menubar.addMenu("&Channel")
+        menu_channel.addSeparator().setText("Pri/Sec")
+        menu_channel.addAction(self.action_pors_pri)
+        menu_channel.addAction(self.action_pors_sec)
+        menu_channel.addSeparator()
         menu_channel.addAction(self.action_unhide)
 
     def __mk_toolbar(self):
+        self.toolbar.addAction(self.action_pors_pri)
+        self.toolbar.addAction(self.action_pors_sec)
         self.toolbar.addAction(self.action_info)
 
     def __mk_layout(self):
@@ -158,6 +188,12 @@ class ComtradeWidget(QWidget):
     def __do_unhide(self):
         self.analog_table.sig_unhide()
         self.status_table.sig_unhide()
+
+    def __do_pors_pri(self):
+        self.show_sec = False
+
+    def __do_pors_sec(self):
+        self.show_sec = True
 
     def __sync_hscrolls(self, index):
         self.analog_table.horizontalScrollBar().setValue(index)
