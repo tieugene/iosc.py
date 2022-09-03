@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget, QMenuBa
 import mycomtrade
 from convtrade import convert, ConvertError
 from siglist_tw import AnalogSignalListView, StatusSignalListView
+
 # x. const
 TICK_RANGE = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000)
 TICS_PER_CHART = 20
@@ -42,6 +43,7 @@ class ComtradeWidget(QWidget):
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
     signal_main_ptr_moved_x = pyqtSignal(float)
+    signal_recalc_achannels = pyqtSignal()
     show_sec: bool
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
@@ -83,10 +85,10 @@ class ComtradeWidget(QWidget):
                                       shortcut="Ctrl+S",
                                       triggered=self.__do_file_convert)
         self.action_unhide = QAction(QIcon.fromTheme("edit-undo"),
-                                       "&Unhide all",
-                                       self,
-                                       statusTip="Show hidden channels",
-                                       triggered=self.__do_unhide)
+                                     "&Unhide all",
+                                     self,
+                                     statusTip="Show hidden channels",
+                                     triggered=self.__do_unhide)
         self.action_pors_pri = QAction(QIcon(),
                                        "&Primary",
                                        self,
@@ -178,7 +180,10 @@ class ComtradeWidget(QWidget):
         msg.exec_()
 
     def __do_file_convert(self):
-        fn = QFileDialog.getSaveFileName(self, "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[self.__osc.raw.ft])
+        fn = QFileDialog.getSaveFileName(
+            self,
+            "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[self.__osc.raw.ft]
+        )
         if fn[0]:
             try:
                 convert(pathlib.Path(self.__osc.raw.filepath), pathlib.Path(fn[0]))
@@ -191,9 +196,11 @@ class ComtradeWidget(QWidget):
 
     def __do_pors_pri(self):
         self.show_sec = False
+        self.signal_recalc_achannels.emit()
 
     def __do_pors_sec(self):
         self.show_sec = True
+        self.signal_recalc_achannels.emit()
 
     def __sync_hscrolls(self, index):
         self.analog_table.horizontalScrollBar().setValue(index)
