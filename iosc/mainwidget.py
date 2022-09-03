@@ -54,7 +54,6 @@ class ComtradeWidget(QWidget):
         self.__mk_connections()
         # sync
         self.signal_main_ptr_moved_x.emit(0)
-        self.line_up(QGuiApplication.screens()[0].availableGeometry().width() - self.parent().parent().width())
 
     def __mk_widgets(self, ti):
         self.menubar = QMenuBar()
@@ -115,6 +114,7 @@ class ComtradeWidget(QWidget):
         self.status_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
 
     def __do_file_close(self):  # FIXME: not closes tab
+        # self.parent().removeTab(self.__index)
         self.close()
 
     def __do_file_info(self):
@@ -180,9 +180,6 @@ class ComtradeWidget(QWidget):
         """
         self.analog_table.line_up(dwidth)
         self.status_table.line_up(dwidth)
-
-    def sig_unhide(self):
-        """Unhide hidden channels"""
 
     def slot_main_ptr_moved_x(self, x: float):
         """

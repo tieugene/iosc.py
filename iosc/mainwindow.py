@@ -1,24 +1,26 @@
 """Main GUI"""
 # 1. std
 import struct
-from typing import Any
 import pathlib
 # 2. 3rd
 from PyQt5.QtCore import Qt, QCoreApplication
 from PyQt5.QtGui import QIcon, QGuiApplication
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QTabWidget, QMenuBar, QVBoxLayout, QToolBar, \
+    QWidget, QHBoxLayout
 # 3. local
 from mycomtrade import MyComtrade
 from mainwidget import ComtradeWidget
+# x. const
+MAIN_MENU = True  # FIXME: False => hot keys not work
+MAIN_TAB = False  # FIXME: True => signal table too thin
 
 
 class ComtradeTabWidget(QTabWidget):
     def __init__(self, parent: QMainWindow):
         super().__init__(parent)
         self.setTabsClosable(True)
-        self.tabCloseRequested.connect(self.handle_tab_close_request)
-        # tab_bar = self.tabBar()
-        # tab_bar.setSelectionBehaviorOnRemove(QTabBar.SelectPreviousTab)
+        self.tabCloseRequested.connect(self.__slot_tab_close)
+        # self.tabBar().setSelectionBehaviorOnRemove(QTabBar.SelectPreviousTab)
 
     def add_chart_tab(self, path: pathlib.Path):
         """
@@ -32,21 +34,24 @@ class ComtradeTabWidget(QTabWidget):
         except struct.error as e:
             QMessageBox.critical(self, "Loading error", str(e))
         else:
-            index = self.count()
+            # index = self.count()
             item = ComtradeWidget(rec, self)  # table width == 100
-            self.addTab(item, path.name)  # table width == 940 (CLI) | 100 (Open)
+            index = self.addTab(item, path.name)  # table width == 940 (CLI) | 100 (Open)
+            item.line_up(QGuiApplication.screens()[0].availableGeometry().width() - self.parent().width())
             self.setCurrentIndex(index)
             self.setUpdatesEnabled(True)  # table width == right
         finally:
             QGuiApplication.restoreOverrideCursor()
 
-    def handle_tab_close_request(self, index):
-        if index >= 0 and self.count() >= 1:
+    def __slot_tab_close(self, index):
+        max_tabs = int(MAIN_TAB)
+        if index >= max_tabs and self.count() >= (max_tabs + 1):  # main tab unclosable
             self.removeTab(index)
 
 
 class MainWindow(QMainWindow):
     tabs: ComtradeTabWidget
+    act_bar: QToolBar
     actFileOpen: QAction
     actExit: QAction
     actAbout: QAction
@@ -56,13 +61,14 @@ class MainWindow(QMainWindow):
         self.create_widgets()
         self.create_actions()
         self.create_menus()
-        self.create_statusbar()
+        self.__mk_layout()
         self.setWindowTitle("iOsc.py")
         # self.handle_cli()
 
     def create_widgets(self):
         self.tabs = ComtradeTabWidget(self)
         self.setCentralWidget(self.tabs)
+        self.act_bar = QToolBar(self)
 
     def create_actions(self):
         self.actExit = QAction(QIcon.fromTheme("application-exit"),
@@ -71,7 +77,7 @@ class MainWindow(QMainWindow):
                                shortcut="Ctrl+Q",
                                statusTip="Exit the application",
                                triggered=self.close)
-        self.actAbout = QAction(QIcon.fromTheme("help-do_about"),
+        self.actAbout = QAction(QIcon.fromTheme("help-about"),
                                 "&About",
                                 self,
                                 statusTip="Show the application's About box",
@@ -87,14 +93,20 @@ class MainWindow(QMainWindow):
         menu_file = self.menuBar().addMenu("&File")
         menu_file.addAction(self.actFileOpen)
         menu_file.addAction(self.actExit)
-        menu_help = self.menuBar().addMenu("&Help")
-        menu_help.addAction(self.actAbout)
+        self.menuBar().setVisible(MAIN_MENU)
+        self.act_bar.addAction(self.actFileOpen)
+        self.act_bar.addAction(self.actAbout)
+        self.act_bar.addAction(self.actExit)
+        self.act_bar.setOrientation(Qt.Vertical)
+        self.act_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
-    def create_statusbar(self):
-        self.statusBar().showMessage("Ready")
-
-    def update_statusbar(self, s: str):
-        self.statusBar().showMessage(s)
+    def __mk_layout(self):
+        main_tab = QWidget()
+        main_tab.setLayout(QHBoxLayout())
+        main_tab.layout().addWidget(self.act_bar)
+        main_tab.layout().addWidget(QWidget())
+        if MAIN_TAB:
+            self.tabs.addTab(main_tab, "File")
 
     def handle_cli(self):
         """Process CLI arg.
