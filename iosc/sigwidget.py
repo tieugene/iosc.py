@@ -7,7 +7,7 @@ from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLin
 # 4. local
 import const
 import mycomtrade
-from sigprop import SignalPropertiesDialog, AnalogSignalPropertiesDialog, StatusSignalPropertiesDialog
+from sigprop import AnalogSignalPropertiesDialog, StatusSignalPropertiesDialog
 
 # x. const
 X_FONT = QFont(*const.XSCALE_FONT)
@@ -24,7 +24,6 @@ PEN_STYLE = {
     mycomtrade.ELineType.Dot: Qt.DotLine,
     mycomtrade.ELineType.DashDot: Qt.DashDotDotLine
 }
-PORS = True  # Secondary
 
 
 class TimeAxisView(QCustomPlot):
@@ -71,6 +70,7 @@ class TimeAxisView(QCustomPlot):
 
 
 class SignalCtrlView(QLabel):
+    _root: QWidget
     _signal: mycomtrade.Signal
     _f_name: QLabel
     _f_value: QLabel
@@ -79,6 +79,7 @@ class SignalCtrlView(QLabel):
     def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget, root: QWidget):
         super().__init__(parent)
         self._signal = signal
+        self._root = root
         self.__setup_ui()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__slot_context_menu)
@@ -115,8 +116,12 @@ class SignalCtrlView(QLabel):
 
 
 class AnalogSignalCtrlView(SignalCtrlView):
+    __value: float  # original signal value right from chart
+
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root: QWidget):
         super().__init__(signal, parent, root)
+        self.__value = 0.0
+        self._root.signal_recalc_achannels.connect(self.slot_recalc_value)
 
     def _do_sig_property(self):
         """Show/set signal properties"""
@@ -124,19 +129,23 @@ class AnalogSignalCtrlView(SignalCtrlView):
             self._set_style()
             self.signal_restyled.emit()
 
+    def slot_recalc_value(self):
+        pors_y = self.__value * self._signal.get_mult(self._root.show_sec)
+        uu = self._signal.uu_orig
+        if abs(pors_y) < 1:
+            pors_y *= 1000
+            uu = 'm' + uu
+        elif abs(pors_y) > 1000:
+            pors_y /= 1000
+            uu = 'k' + uu
+        self._f_value.setText("%.3f %s" % (pors_y, uu))
+
     def slot_update_value(self, y: float):
         """
         :param y: Value to show (orig * a + b)
         """
-        real_y = y * self._signal.get_mult(PORS)
-        uu = self._signal.uu_orig
-        if abs(real_y) < 1:
-            real_y *= 1000
-            uu = 'm' + uu
-        elif abs(real_y) > 1000:
-            real_y /= 1000
-            uu = 'k' + uu
-        self._f_value.setText("%.3f %s" % (real_y, uu))
+        self.__value = y
+        self.slot_recalc_value()
 
 
 class StatusSignalCtrlView(SignalCtrlView):

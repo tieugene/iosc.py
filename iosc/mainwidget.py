@@ -8,11 +8,12 @@ from typing import Any
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QGuiApplication
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget, QMenuBar, QToolBar, QAction, QMessageBox, \
-    QFileDialog, QHBoxLayout
+    QFileDialog, QHBoxLayout, QActionGroup
 # 3. local
 import mycomtrade
 from convtrade import convert, ConvertError
 from siglist_tw import AnalogSignalListView, StatusSignalListView
+
 # x. const
 TICK_RANGE = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000)
 TICS_PER_CHART = 20
@@ -34,15 +35,21 @@ class ComtradeWidget(QWidget):
     action_info: QAction
     action_convert: QAction
     action_unhide: QAction
+    action_pors: QActionGroup
+    action_pors_pri: QAction
+    action_pors_sec: QAction
     menubar: QMenuBar
     toolbar: QToolBar
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
     signal_main_ptr_moved_x = pyqtSignal(float)
+    signal_recalc_achannels = pyqtSignal()
+    show_sec: bool
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
         self.__osc = rec
+        self.show_sec = True
         ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
         ti = find_std_ti(ti_wanted)
         # print(f"{ti_wanted} => {ti}")
@@ -78,10 +85,29 @@ class ComtradeWidget(QWidget):
                                       shortcut="Ctrl+S",
                                       triggered=self.__do_file_convert)
         self.action_unhide = QAction(QIcon.fromTheme("edit-undo"),
-                                       "&Unhide all",
+                                     "&Unhide all",
+                                     self,
+                                     statusTip="Show hidden channels",
+                                     triggered=self.__do_unhide)
+        self.action_pors_pri = QAction(QIcon(),
+                                       "&Primary",
                                        self,
-                                       statusTip="Show hidden channels",
-                                       triggered=self.__do_unhide)
+                                       checkable=True,
+                                       statusTip="Show primary signal value",
+                                       triggered=self.__do_pors_pri)
+        self.action_pors_sec = QAction(QIcon(),
+                                       "&Secondary",
+                                       self,
+                                       checkable=True,
+                                       statusTip="Show secondary signal values",
+                                       triggered=self.__do_pors_sec)
+        self.action_pors = QActionGroup(self)
+        self.action_pors.addAction(self.action_pors_pri)
+        self.action_pors.addAction(self.action_pors_sec)
+        if self.show_sec:
+            self.action_pors_sec.setChecked(True)
+        else:
+            self.action_pors_pri.setChecked(True)
 
     def __mk_menu(self):
         menu_file = self.menubar.addMenu("&File")
@@ -89,9 +115,15 @@ class ComtradeWidget(QWidget):
         menu_file.addAction(self.action_convert)
         menu_file.addAction(self.action_close)
         menu_channel = self.menubar.addMenu("&Channel")
+        menu_channel.addSeparator().setText("Pri/Sec")
+        menu_channel.addAction(self.action_pors_pri)
+        menu_channel.addAction(self.action_pors_sec)
+        menu_channel.addSeparator()
         menu_channel.addAction(self.action_unhide)
 
     def __mk_toolbar(self):
+        self.toolbar.addAction(self.action_pors_pri)
+        self.toolbar.addAction(self.action_pors_sec)
         self.toolbar.addAction(self.action_info)
 
     def __mk_layout(self):
@@ -148,7 +180,10 @@ class ComtradeWidget(QWidget):
         msg.exec_()
 
     def __do_file_convert(self):
-        fn = QFileDialog.getSaveFileName(self, "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[self.__osc.raw.ft])
+        fn = QFileDialog.getSaveFileName(
+            self,
+            "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[self.__osc.raw.ft]
+        )
         if fn[0]:
             try:
                 convert(pathlib.Path(self.__osc.raw.filepath), pathlib.Path(fn[0]))
@@ -158,6 +193,14 @@ class ComtradeWidget(QWidget):
     def __do_unhide(self):
         self.analog_table.sig_unhide()
         self.status_table.sig_unhide()
+
+    def __do_pors_pri(self):
+        self.show_sec = False
+        self.signal_recalc_achannels.emit()
+
+    def __do_pors_sec(self):
+        self.show_sec = True
+        self.signal_recalc_achannels.emit()
 
     def __sync_hscrolls(self, index):
         self.analog_table.horizontalScrollBar().setValue(index)
