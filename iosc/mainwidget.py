@@ -30,7 +30,10 @@ class ComtradeWidget(QWidget):
     """
     Main osc window. Includes analog and status panels
     """
+    # inner vars
     __osc: mycomtrade.MyComtrade
+    show_sec: bool
+    # actions
     action_close: QAction
     action_info: QAction
     action_convert: QAction
@@ -46,13 +49,14 @@ class ComtradeWidget(QWidget):
     action_viewas_hrm2: QAction
     action_viewas_hrm3: QAction
     action_viewas_hrm5: QAction
+    # widgets
     menubar: QMenuBar
     toolbar: QToolBar
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
+    # signals
     signal_main_ptr_moved_x = pyqtSignal(float)
     signal_recalc_achannels = pyqtSignal()
-    show_sec: bool
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
@@ -101,56 +105,47 @@ class ComtradeWidget(QWidget):
                                        "&Primary",
                                        self,
                                        checkable=True,
-                                       statusTip="Show primary signal value",
-                                       triggered=self.__do_pors_pri)
+                                       statusTip="Show primary signal value")
         self.action_pors_sec = QAction(QIcon(),
                                        "&Secondary",
                                        self,
                                        checkable=True,
-                                       statusTip="Show secondary signal values",
-                                       triggered=self.__do_pors_sec)
+                                       statusTip="Show secondary signal values")
         self.action_viewas_is = QAction(QIcon(),
                                         "&Is",
                                         self,
                                         checkable=True,
-                                        statusTip="Show current signal value",
-                                        triggered=self.__do_viewas)
+                                        statusTip="Show current signal value")
         self.action_viewas_mid = QAction(QIcon(),
                                          "&Middle",
                                          self,
                                          checkable=True,
-                                         statusTip="Show running middle of current signal value",
-                                         triggered=self.__do_viewas)
+                                         statusTip="Show running middle of current signal value")
         self.action_viewas_eff = QAction(QIcon(),
                                          "&Effective",
                                          self,
                                          checkable=True,
-                                         statusTip="Show RMS of current signal value",
-                                         triggered=self.__do_viewas)
+                                         statusTip="Show RMS of current signal value")
         self.action_viewas_hrm1 = QAction(QIcon(),
                                           "&Harmonic 1",
                                           self,
                                           checkable=True,
-                                          statusTip="Show harmonic #1 of signal value",
-                                          triggered=self.__do_viewas)
+                                          statusTip="Show harmonic #1 of signal value")
         self.action_viewas_hrm2 = QAction(QIcon(),
                                           "&Harmonic 2",
                                           self,
                                           checkable=True,
-                                          statusTip="Show harmonic #2 of signal value",
-                                          triggered=self.__do_viewas)
+                                          statusTip="Show harmonic #2 of signal value")
         self.action_viewas_hrm3 = QAction(QIcon(),
                                           "&Harmonic 3",
                                           self,
                                           checkable=True,
-                                          statusTip="Show harmonic #3 of signal value",
-                                          triggered=self.__do_viewas)
+                                          statusTip="Show harmonic #3 of signal value")
         self.action_viewas_hrm5 = QAction(QIcon(),
                                           "&Harmonic 5",
                                           self,
                                           checkable=True,
-                                          statusTip="Show harmonic #5 of signal value",
-                                          triggered=self.__do_viewas)
+                                          statusTip="Show harmonic #5 of signal value")
         self.action_pors = QActionGroup(self)
         self.action_pors.addAction(self.action_pors_pri)
         self.action_pors.addAction(self.action_pors_sec)
@@ -207,6 +202,8 @@ class ComtradeWidget(QWidget):
         self.layout().addWidget(splitter)
 
     def __mk_connections(self):
+        self.action_pors.triggered.connect(self.__do_pors)
+        self.action_viewas.triggered.connect(self.__do_viewas)
         self.analog_table.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
         self.status_table.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
         self.analog_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
@@ -261,12 +258,8 @@ class ComtradeWidget(QWidget):
         self.analog_table.sig_unhide()
         self.status_table.sig_unhide()
 
-    def __do_pors_pri(self):
-        self.show_sec = False
-        self.signal_recalc_achannels.emit()
-
-    def __do_pors_sec(self):
-        self.show_sec = True
+    def __do_pors(self):
+        self.show_sec = self.action_pors_sec.isChecked()
         self.signal_recalc_achannels.emit()
 
     def __do_viewas(self):
