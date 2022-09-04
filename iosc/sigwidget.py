@@ -1,3 +1,5 @@
+"""Signal widgets (chart, ctrl panel).
+TODO: try __slots__"""
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins, pyqtSignal
 from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent

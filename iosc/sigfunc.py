@@ -16,8 +16,8 @@ def asis(a: np.array, n: int, _: int) -> float:
 
 
 def mid(a: np.array, n: int, w: int):
-    """Average in window[, padded by 0 to left]"""
-    return a[n]
+    """Running average in window[, padded by 0 to left]."""
+    return np.sum(a[max(n - w + 1, 0):n + 1]) / w
 
 
 def eff(a: np.array, n: int, w: int):
