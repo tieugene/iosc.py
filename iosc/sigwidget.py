@@ -1,3 +1,5 @@
+"""Signal widgets (chart, ctrl panel).
+TODO: try __slots__"""
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins, pyqtSignal
 from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent
@@ -7,8 +9,8 @@ from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLin
 # 4. local
 import const
 import mycomtrade
+import sigfunc
 from sigprop import AnalogSignalPropertiesDialog, StatusSignalPropertiesDialog
-
 # x. const
 X_FONT = QFont(*const.XSCALE_FONT)
 D_BRUSH = QBrush(Qt.Dense4Pattern)
@@ -38,7 +40,7 @@ class TimeAxisView(QCustomPlot):
         self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: (ti)
         self.__squeeze()
         self.__set_style()
-        self.__root.signal_main_ptr_moved_x.connect(self.__slot_main_ptr_moved_x)  # FIXME: on top of ticks
+        self.__root.signal_main_ptr_moved_x.connect(self.__slot_main_ptr_moved_x)
 
     def __squeeze(self):
         ar = self.axisRect(0)
@@ -63,7 +65,9 @@ class TimeAxisView(QCustomPlot):
         self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
 
     def __slot_main_ptr_moved_x(self, x: float):
-        """Repaint/move main ptr value label (%.2f)"""
+        """Repaint/move main ptr value label (%.2f)
+        :fixme: draw in front ticks
+        """
         self.__main_ptr_label.setText("%.2f" % x)
         self.__main_ptr_label.position.setCoords(x, 0)
         self.replot()
@@ -72,6 +76,7 @@ class TimeAxisView(QCustomPlot):
 class SignalCtrlView(QLabel):
     _root: QWidget
     _signal: mycomtrade.Signal
+    _n: int  # current index of signal array; FIXME: not required here, move to _root
     _f_name: QLabel
     _f_value: QLabel
     signal_restyled = pyqtSignal()
@@ -80,9 +85,11 @@ class SignalCtrlView(QLabel):
         super().__init__(parent)
         self._signal = signal
         self._root = root
+        self._n = 0
         self.__setup_ui()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__slot_context_menu)
+        self._root.signal_main_ptr_moved_n.connect(self.__slot_main_ptr_moved_n)
 
     def __setup_ui(self):
         self._f_value = QLabel(self)
@@ -106,6 +113,11 @@ class SignalCtrlView(QLabel):
         elif chosen_action == action_sig_property:
             self._do_sig_property()
 
+    def __slot_main_ptr_moved_n(self, n: int):
+        """Main pointer moved to n-th position of original signal arrays"""
+        self._n = n
+        self.slot_update_value()
+
     def __do_sig_hide(self):
         """Hide signal in table"""
         self.parent().parent().hideRow(self._signal.i)
@@ -116,12 +128,9 @@ class SignalCtrlView(QLabel):
 
 
 class AnalogSignalCtrlView(SignalCtrlView):
-    __value: float  # original signal value right from chart
-
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root: QWidget):
         super().__init__(signal, parent, root)
-        self.__value = 0.0
-        self._root.signal_recalc_achannels.connect(self.slot_recalc_value)
+        self._root.signal_recalc_achannels.connect(self.slot_update_value)
 
     def _do_sig_property(self):
         """Show/set signal properties"""
@@ -129,8 +138,13 @@ class AnalogSignalCtrlView(SignalCtrlView):
             self._set_style()
             self.signal_restyled.emit()
 
-    def slot_recalc_value(self):
-        pors_y = self.__value * self._signal.get_mult(self._root.show_sec)
+    def slot_update_value(self):
+        func = sigfunc.func_list[self._root.viewas]
+        if self._root.viewas == 3:  # hrm1
+            y, d = func(self._signal.value, self._n, self._root.tpp)
+        else:
+            y = func(self._signal.value, self._n, self._root.tpp)
+        pors_y = y * self._signal.get_mult(self._root.show_sec)
         uu = self._signal.uu_orig
         if abs(pors_y) < 1:
             pors_y *= 1000
@@ -138,14 +152,10 @@ class AnalogSignalCtrlView(SignalCtrlView):
         elif abs(pors_y) > 1000:
             pors_y /= 1000
             uu = 'k' + uu
-        self._f_value.setText("%.3f %s" % (pors_y, uu))
-
-    def slot_update_value(self, y: float):
-        """
-        :param y: Value to show (orig * a + b)
-        """
-        self.__value = y
-        self.slot_recalc_value()
+        if self._root.viewas == 3:  # hrm1
+            self._f_value.setText("%.3f %s / %.3f°" % (pors_y, uu, d))
+        else:
+            self._f_value.setText("%.3f %s" % (pors_y, uu))
 
 
 class StatusSignalCtrlView(SignalCtrlView):
@@ -158,8 +168,8 @@ class StatusSignalCtrlView(SignalCtrlView):
             self._set_style()
             self.signal_restyled.emit()
 
-    def slot_update_value(self, y: float):
-        self._f_value.setText("%d" % y)
+    def slot_update_value(self):
+        self._f_value.setText("%d" % self._signal.value[self._n])
 
 
 class MainPtr(QCPItemTracer):
@@ -301,12 +311,12 @@ class SignalChartView(QCustomPlot):
         :todo: chk pos changed (hint: save `pos` B4)
         """
         x_src = self.xAxis.pixelToCoord(x_px)  # real x-position realtive to graph z-point in graaph units
-        x_dst_0: float = self._main_ptr.position.key()  # dont save pos (== &)
+        x_dst_0: float = self._main_ptr.position.key()  # dont save pos (== &); self.graphKey()
         self._main_ptr.setGraphKey(x_src)
         self._main_ptr.updatePosition()  # mandatory
-        pos = self._main_ptr.position  # coerced x-postion
+        pos = self._main_ptr.position  # coerced x-postion (QCustomPlot2.QCPItemPosition)
         x_dst = pos.key()
-        if x_dst_0 != x_dst:  # check MPtr moved
+        if x_dst_0 != x_dst:  # check MPtr moved (dont do so!)
             if click:  # mouse pressed => set old ptr coords, rect start coord
                 self._old_ptr.move2x(x_dst)
                 self._main_ptr_rect.set2x(x_dst)
@@ -319,7 +329,7 @@ class SignalChartView(QCustomPlot):
                 self._main_ptr_rect.stretc2x(x_dst)
             self.replot()
             self._root.slot_main_ptr_moved_x(x_dst)
-            self._sibling.slot_update_value(pos.value())
+            # self._sibling.slot_update_value(pos.value())
 
     def __switch_tips(self, todo: bool):
         # print(("Off", "On")[int(todo)])
@@ -362,9 +372,8 @@ class SignalChartView(QCustomPlot):
     def __slot_main_ptr_moved_x(self, x: float):
         if not self._ptr_onway:  # check is not myself
             self._main_ptr.setGraphKey(x)
-            # self._main_ptr.updatePosition()  # not helps
             self.replot()
-            self._sibling.slot_update_value(self._main_ptr.position.value())
+            # self._sibling.slot_update_value(self._main_ptr.position.value())
 
     def __slot_signal_restyled(self):
         self._set_style()
