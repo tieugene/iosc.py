@@ -39,22 +39,22 @@ def hrm1(a: np.array, n: int, w: int):
     :todo: return python complex
     """
     c = _fft(a, n, w)
-    return abs(c.real[1]), np.degrees(np.angle(c))[1]
+    return np.absolute(c)[1], np.degrees(np.angle(c))[1]
 
 
 def hrm2(a: np.array, n: int, w: int):
     """2-nd harmnic"""
-    return abs(_fft(a, n, w).real[2])
+    return np.absolute(_fft(a, n, w))[2]
 
 
 def hrm3(a: np.array, n: int, w: int):
     """3-th harmnic"""
-    return abs(_fft(a, n, w).real[3])
+    return np.absolute(_fft(a, n, w))[3]
 
 
 def hrm5(a: np.array, n: int, w: int):
     """5-th harmnic"""
-    return abs(_fft(a, n, w).real[5])
+    return np.absolute(_fft(a, n, w))[5]
 
 
 func_list = (
