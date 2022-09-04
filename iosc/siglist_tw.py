@@ -41,7 +41,7 @@ class SignalListView(QTableWidget):
         self.setSelectionBehavior(self.SelectRows)
         self.setDragDropMode(self.InternalMove)
         for row in range(len(slist)):
-            self.__insert_row(row)
+            self.__insert_row(row, row)
 
     def dropEvent(self, event: QDropEvent):
         def _drop_on(__evt) -> int:
@@ -84,8 +84,8 @@ class SignalListView(QTableWidget):
             # TODO: inner data independent Signal*Widget
         super().dropEvent(event)
 
-    def __insert_row(self, row: int):
-        signal = self._slist[row]
+    def __insert_row(self, row: int, i: int):
+        signal = self._slist[i]
         if signal.is_bool:
             self.setCellWidget(row, 0, ctrl := StatusSignalCtrlView(signal, self, self._parent))
             self.setCellWidget(row, 1, StatusSignalChartView(signal, self._ti, self, self._parent, ctrl))

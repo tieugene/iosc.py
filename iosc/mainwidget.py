@@ -59,7 +59,6 @@ class ComtradeWidget(QWidget):
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
     # signals; FIXME: remove float/int at all
-    signal_main_ptr_moved_x = pyqtSignal(float)
     signal_main_ptr_moved = pyqtSignal()
     signal_recalc_achannels = pyqtSignal()
 
@@ -80,7 +79,6 @@ class ComtradeWidget(QWidget):
         self.__mk_layout()
         self.__mk_connections()
         # sync: default z-point
-        self.signal_main_ptr_moved_x.emit(0)
         self.signal_main_ptr_moved.emit()
 
     @property
