@@ -7,8 +7,8 @@ from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLin
 # 4. local
 import const
 import mycomtrade
+import sigfunc
 from sigprop import AnalogSignalPropertiesDialog, StatusSignalPropertiesDialog
-
 # x. const
 X_FONT = QFont(*const.XSCALE_FONT)
 D_BRUSH = QBrush(Qt.Dense4Pattern)
@@ -74,7 +74,7 @@ class TimeAxisView(QCustomPlot):
 class SignalCtrlView(QLabel):
     _root: QWidget
     _signal: mycomtrade.Signal
-    _n: int  # current index of signal array
+    _n: int  # current index of signal array; FIXME: not required here, move to _root
     _f_name: QLabel
     _f_value: QLabel
     signal_restyled = pyqtSignal()
@@ -137,7 +137,8 @@ class AnalogSignalCtrlView(SignalCtrlView):
             self.signal_restyled.emit()
 
     def slot_update_value(self):
-        pors_y = self._signal.value[self._n] * self._signal.get_mult(self._root.show_sec)
+        y = sigfunc.func_list[self._root.viewas](self._signal.value, self._n, self._root.tpp)
+        pors_y = y * self._signal.get_mult(self._root.show_sec)
         uu = self._signal.uu_orig
         if abs(pors_y) < 1:
             pors_y *= 1000

@@ -30,9 +30,11 @@ class ComtradeWidget(QWidget):
     """
     Main osc window. Includes analog and status panels
     """
-    # inner vars
+    # inner cons
     __osc: mycomtrade.MyComtrade
-    show_sec: bool
+    tpp: int  # tics per signal period
+    # inner vars
+    show_sec: bool  # pri/sec selector
     viewas: int  # TODO: enum
     # actions
     action_close: QAction
@@ -63,6 +65,7 @@ class ComtradeWidget(QWidget):
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
         self.__osc = rec
+        self.tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
         self.show_sec = True
         self.viewas = 0
         ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
