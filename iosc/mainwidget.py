@@ -33,6 +33,7 @@ class ComtradeWidget(QWidget):
     # inner vars
     __osc: mycomtrade.MyComtrade
     show_sec: bool
+    viewas: int  # TODO: enum
     # actions
     action_close: QAction
     action_info: QAction
@@ -63,6 +64,7 @@ class ComtradeWidget(QWidget):
         super().__init__(parent)
         self.__osc = rec
         self.show_sec = True
+        self.viewas = 0
         ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
         ti = find_std_ti(ti_wanted)
         # print(f"{ti_wanted} => {ti}")
@@ -154,19 +156,15 @@ class ComtradeWidget(QWidget):
                                           statusTip="Show harmonic #5 of signal value")
         self.action_pors = QActionGroup(self)
         self.action_pors.addAction(self.action_pors_pri)
-        self.action_pors.addAction(self.action_pors_sec)
-        if self.show_sec:
-            self.action_pors_sec.setChecked(True)
-        else:
-            self.action_pors_pri.setChecked(True)
+        self.action_pors.addAction(self.action_pors_sec).setChecked(True)
         self.action_viewas = QActionGroup(self)
-        self.action_viewas.addAction(self.action_viewas_is)
-        self.action_viewas.addAction(self.action_viewas_mid)
-        self.action_viewas.addAction(self.action_viewas_eff)
-        self.action_viewas.addAction(self.action_viewas_hrm1)
-        self.action_viewas.addAction(self.action_viewas_hrm2)
-        self.action_viewas.addAction(self.action_viewas_hrm3)
-        self.action_viewas.addAction(self.action_viewas_hrm5)
+        self.action_viewas.addAction(self.action_viewas_is).setData(0)
+        self.action_viewas.addAction(self.action_viewas_mid).setData(1)
+        self.action_viewas.addAction(self.action_viewas_eff).setData(2)
+        self.action_viewas.addAction(self.action_viewas_hrm1).setData(3)
+        self.action_viewas.addAction(self.action_viewas_hrm2).setData(4)
+        self.action_viewas.addAction(self.action_viewas_hrm3).setData(5)
+        self.action_viewas.addAction(self.action_viewas_hrm5).setData(6)
         self.action_viewas_is.setChecked(True)
 
     def __mk_menu(self):
@@ -192,7 +190,7 @@ class ComtradeWidget(QWidget):
     def __mk_toolbar(self):
         self.toolbar.addAction(self.action_pors_pri)
         self.toolbar.addAction(self.action_pors_sec)
-        self.toolbar.addActions(self.action_viewas.actions())
+        # self.toolbar.addActions(self.action_viewas.actions())
         self.toolbar.addAction(self.action_info)
 
     def __mk_layout(self):
@@ -265,12 +263,13 @@ class ComtradeWidget(QWidget):
         self.analog_table.sig_unhide()
         self.status_table.sig_unhide()
 
-    def __do_pors(self):
+    def __do_pors(self, _: QAction):
         self.show_sec = self.action_pors_sec.isChecked()
         self.signal_recalc_achannels.emit()
 
-    def __do_viewas(self):
-        print("Stub")  # stub
+    def __do_viewas(self, a: QAction):
+        self.viewas = a.data()
+        self.signal_recalc_achannels.emit()
 
     def __sync_hscrolls(self, index):
         self.analog_table.horizontalScrollBar().setValue(index)
