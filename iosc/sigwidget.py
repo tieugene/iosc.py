@@ -76,7 +76,6 @@ class TimeAxisView(QCustomPlot):
 class SignalCtrlView(QLabel):
     _root: QWidget
     _signal: mycomtrade.Signal
-    _n: int  # current index of signal array; FIXME: not required here, move to _root
     _f_name: QLabel
     _f_value: QLabel
     signal_restyled = pyqtSignal()
@@ -85,11 +84,10 @@ class SignalCtrlView(QLabel):
         super().__init__(parent)
         self._signal = signal
         self._root = root
-        self._n = 0
         self.__setup_ui()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__slot_context_menu)
-        self._root.signal_main_ptr_moved_n.connect(self.__slot_main_ptr_moved_n)
+        self._root.signal_main_ptr_moved.connect(self.slot_update_value)
 
     def __setup_ui(self):
         self._f_value = QLabel(self)
@@ -112,11 +110,6 @@ class SignalCtrlView(QLabel):
             self.__do_sig_hide()
         elif chosen_action == action_sig_property:
             self._do_sig_property()
-
-    def __slot_main_ptr_moved_n(self, n: int):
-        """Main pointer moved to n-th position of original signal arrays"""
-        self._n = n
-        self.slot_update_value()
 
     def __do_sig_hide(self):
         """Hide signal in table"""
@@ -141,9 +134,9 @@ class AnalogSignalCtrlView(SignalCtrlView):
     def slot_update_value(self):
         func = sigfunc.func_list[self._root.viewas]
         if self._root.viewas == 3:  # hrm1
-            y, d = func(self._signal.value, self._n, self._root.tpp)
+            y, d = func(self._signal.value, self._root.mptr, self._root.tpp)
         else:
-            y = func(self._signal.value, self._n, self._root.tpp)
+            y = func(self._signal.value, self._root.mptr, self._root.tpp)
         pors_y = y * self._signal.get_mult(self._root.show_sec)
         uu = self._signal.uu_orig
         if abs(pors_y) < 1:
@@ -169,7 +162,7 @@ class StatusSignalCtrlView(SignalCtrlView):
             self.signal_restyled.emit()
 
     def slot_update_value(self):
-        self._f_value.setText("%d" % self._signal.value[self._n])
+        self._f_value.setText("%d" % self._signal.value[self._root.mptr])
 
 
 class MainPtr(QCPItemTracer):

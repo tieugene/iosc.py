@@ -60,7 +60,7 @@ class ComtradeWidget(QWidget):
     status_table: StatusSignalListView
     # signals; FIXME: remove float/int at all
     signal_main_ptr_moved_x = pyqtSignal(float)
-    signal_main_ptr_moved_n = pyqtSignal(int)
+    signal_main_ptr_moved = pyqtSignal()
     signal_recalc_achannels = pyqtSignal()
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
@@ -81,17 +81,19 @@ class ComtradeWidget(QWidget):
         self.__mk_connections()
         # sync: default z-point
         self.signal_main_ptr_moved_x.emit(0)
-        self.signal_main_ptr_moved_n.emit(self.__mptr)
+        self.signal_main_ptr_moved.emit()
 
-    def tpp(self):
+    @property
+    def tpp(self) -> int:
         return self.__tpp
 
-    def mptr(self):
+    @property
+    def mptr(self) -> int:
         return self.__mptr
 
-    def __x2n(self, x: float):
+    def __x2n(self, x: float) -> int:
         """Recalc graph x-position into index in signal array"""
-        return round((self.__osc.raw.trigger_time + x/1000) * self.__osc.rate[0][0])
+        return int(round((self.__osc.raw.trigger_time + x/1000) * self.__osc.rate[0][0]))
 
     def __mk_widgets(self, ti):
         self.menubar = QMenuBar()
@@ -314,5 +316,6 @@ class ComtradeWidget(QWidget):
         - SignalChartView (x) [=> SignalCtrlView(y)]
         - statusbar (x)
         """
+        self.__mptr = self.__x2n(x)
         self.signal_main_ptr_moved_x.emit(x)
-        self.signal_main_ptr_moved_n.emit(self.__x2n(x))
+        self.signal_main_ptr_moved.emit()
