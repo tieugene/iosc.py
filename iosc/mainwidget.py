@@ -32,8 +32,9 @@ class ComtradeWidget(QWidget):
     """
     # inner cons
     __osc: mycomtrade.MyComtrade
-    tpp: int  # tics per signal period
+    __tpp: int  # tics per signal period
     # inner vars
+    __mptr: int  # current Main Ptr index in source arrays
     show_sec: bool  # pri/sec selector
     viewas: int  # TODO: enum
     # actions
@@ -57,7 +58,7 @@ class ComtradeWidget(QWidget):
     toolbar: QToolBar
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
-    # signals
+    # signals; FIXME: remove float/int at all
     signal_main_ptr_moved_x = pyqtSignal(float)
     signal_main_ptr_moved_n = pyqtSignal(int)
     signal_recalc_achannels = pyqtSignal()
@@ -65,7 +66,8 @@ class ComtradeWidget(QWidget):
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
         self.__osc = rec
-        self.tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
+        self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
+        self.__mptr = self.__x2n(0)
         self.show_sec = True
         self.viewas = 0
         ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
@@ -79,10 +81,16 @@ class ComtradeWidget(QWidget):
         self.__mk_connections()
         # sync: default z-point
         self.signal_main_ptr_moved_x.emit(0)
-        self.signal_main_ptr_moved_n.emit(self.__x2n(0))
+        self.signal_main_ptr_moved_n.emit(self.__mptr)
+
+    def tpp(self):
+        return self.__tpp
+
+    def mptr(self):
+        return self.__mptr
 
     def __x2n(self, x: float):
-        """Recal x-postition into index in signal array"""
+        """Recalc graph x-position into index in signal array"""
         return round((self.__osc.raw.trigger_time + x/1000) * self.__osc.rate[0][0])
 
     def __mk_widgets(self, ti):
@@ -263,8 +271,8 @@ class ComtradeWidget(QWidget):
                 QMessageBox.critical(self, "Converting error", str(e))
 
     def __do_unhide(self):
-        self.analog_table.sig_unhide()
-        self.status_table.sig_unhide()
+        self.analog_table.slot_unhide()
+        self.status_table.slot_unhide()
 
     def __do_pors(self, _: QAction):
         self.show_sec = self.action_pors_sec.isChecked()
@@ -293,8 +301,8 @@ class ComtradeWidget(QWidget):
         Line up table colums (and rows further) according to requirements and actual geometry.
         :param dwidth: Main window widths subtraction (available - actual)
         """
-        self.analog_table.line_up(dwidth)
-        self.status_table.line_up(dwidth)
+        self.analog_table.slot_lineup(dwidth)
+        self.status_table.slot_lineup(dwidth)
 
     def slot_main_ptr_moved_x(self, x: float):
         """
