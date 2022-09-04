@@ -186,6 +186,7 @@ class ComtradeWidget(QWidget):
     def __mk_toolbar(self):
         self.toolbar.addAction(self.action_pors_pri)
         self.toolbar.addAction(self.action_pors_sec)
+        self.toolbar.addActions(self.action_viewas.actions())
         self.toolbar.addAction(self.action_info)
 
     def __mk_layout(self):
@@ -290,12 +291,12 @@ class ComtradeWidget(QWidget):
     def slot_main_ptr_moved_x(self, x: float):
         """
         Dispatch all main ptrs
-        :param x:
+        :param x: New Main Ptr x-position
         :type x: ~~QCPItemPosition~~ float
         Emit slot_main_ptr_move(pos) for:
         - TimeAxisView (x)
         - SignalChartView (x) [=> SignalCtrlView(y)]
         - statusbar (x)
         """
-        # print("You win")
+        # n = round((self.__osc.raw.trigger_time + x/1000) * self.__osc.rate[0][0])
         self.signal_main_ptr_moved_x.emit(x)

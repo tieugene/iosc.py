@@ -301,12 +301,12 @@ class SignalChartView(QCustomPlot):
         :todo: chk pos changed (hint: save `pos` B4)
         """
         x_src = self.xAxis.pixelToCoord(x_px)  # real x-position realtive to graph z-point in graaph units
-        x_dst_0: float = self._main_ptr.position.key()  # dont save pos (== &)
+        x_dst_0: float = self._main_ptr.position.key()  # dont save pos (== &); self.graphKey()
         self._main_ptr.setGraphKey(x_src)
         self._main_ptr.updatePosition()  # mandatory
-        pos = self._main_ptr.position  # coerced x-postion
+        pos = self._main_ptr.position  # coerced x-postion (QCustomPlot2.QCPItemPosition)
         x_dst = pos.key()
-        if x_dst_0 != x_dst:  # check MPtr moved
+        if x_dst_0 != x_dst:  # check MPtr moved (dont do so!)
             if click:  # mouse pressed => set old ptr coords, rect start coord
                 self._old_ptr.move2x(x_dst)
                 self._main_ptr_rect.set2x(x_dst)
