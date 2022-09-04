@@ -265,7 +265,7 @@ class SignalChartView(QCustomPlot):
         self.mouseMove.connect(self.__slot_mouse_move)
         self.mouseRelease.connect(self.__slot_mouse_release)
         self._sibling.signal_restyled.connect(self.__slot_signal_restyled)
-        self._root.signal_main_ptr_moved_x.connect(self.__slot_main_ptr_moved_x)
+        self._root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
 
     def __set_data(self):
         z_time = self._signal.raw.trigger_time
@@ -323,7 +323,6 @@ class SignalChartView(QCustomPlot):
                 self._main_ptr_rect.stretc2x(x_dst)
             self.replot()
             self._root.slot_main_ptr_moved_x(x_dst)
-            # self._sibling.slot_update_value(pos.value())
 
     def __switch_tips(self, todo: bool):
         # print(("Off", "On")[int(todo)])
@@ -363,11 +362,10 @@ class SignalChartView(QCustomPlot):
             self.__switch_tips(False)
             self.replot()
 
-    def __slot_main_ptr_moved_x(self, x: float):
+    def __slot_main_ptr_moved(self):
         if not self._ptr_onway:  # check is not myself
-            self._main_ptr.setGraphKey(x)
+            self._main_ptr.setGraphKey(self._root.mptr_x)
             self.replot()
-            # self._sibling.slot_update_value(self._main_ptr.position.value())
 
     def __slot_signal_restyled(self):
         self._set_style()

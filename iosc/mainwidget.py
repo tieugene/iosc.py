@@ -321,5 +321,4 @@ class ComtradeWidget(QWidget):
         - statusbar (x)
         """
         self.__mptr = self.__x2n(x)
-        self.signal_main_ptr_moved_x.emit(x)
         self.signal_main_ptr_moved.emit()
