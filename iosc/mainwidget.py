@@ -91,6 +91,10 @@ class ComtradeWidget(QWidget):
     def mptr(self) -> int:
         return self.__mptr
 
+    @property
+    def mptr_x(self) -> float:
+        return 1000 * (self.__osc.raw.time[self.__mptr] - self.__osc.raw.trigger_time)
+
     def __x2n(self, x: float) -> int:
         """Recalc graph x-position into index in signal array"""
         return int(round((self.__osc.raw.trigger_time + x/1000) * self.__osc.rate[0][0]))

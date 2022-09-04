@@ -40,7 +40,7 @@ class TimeAxisView(QCustomPlot):
         self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: (ti)
         self.__squeeze()
         self.__set_style()
-        self.__root.signal_main_ptr_moved_x.connect(self.__slot_main_ptr_moved_x)
+        self.__root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
 
     def __squeeze(self):
         ar = self.axisRect(0)
@@ -64,10 +64,11 @@ class TimeAxisView(QCustomPlot):
         self.__main_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
 
-    def __slot_main_ptr_moved_x(self, x: float):
+    def __slot_main_ptr_moved(self):
         """Repaint/move main ptr value label (%.2f)
-        :fixme: draw in front ticks
+        :fixme: draw in front of ticks
         """
+        x = self.__root.mptr_x
         self.__main_ptr_label.setText("%.2f" % x)
         self.__main_ptr_label.position.setCoords(x, 0)
         self.replot()
