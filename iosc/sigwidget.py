@@ -139,7 +139,11 @@ class AnalogSignalCtrlView(SignalCtrlView):
             self.signal_restyled.emit()
 
     def slot_update_value(self):
-        y = sigfunc.func_list[self._root.viewas](self._signal.value, self._n, self._root.tpp)
+        func = sigfunc.func_list[self._root.viewas]
+        if self._root.viewas == 3:  # hrm1
+            y, d = func(self._signal.value, self._n, self._root.tpp)
+        else:
+            y = func(self._signal.value, self._n, self._root.tpp)
         pors_y = y * self._signal.get_mult(self._root.show_sec)
         uu = self._signal.uu_orig
         if abs(pors_y) < 1:
@@ -148,7 +152,10 @@ class AnalogSignalCtrlView(SignalCtrlView):
         elif abs(pors_y) > 1000:
             pors_y /= 1000
             uu = 'k' + uu
-        self._f_value.setText("%.3f %s" % (pors_y, uu))
+        if self._root.viewas == 3:  # hrm1
+            self._f_value.setText("%.3f %s / %.3f°" % (pors_y, uu, d))
+        else:
+            self._f_value.setText("%.3f %s" % (pors_y, uu))
 
 
 class StatusSignalCtrlView(SignalCtrlView):

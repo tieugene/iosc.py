@@ -113,47 +113,47 @@ class ComtradeWidget(QWidget):
                                      statusTip="Show hidden channels",
                                      triggered=self.__do_unhide)
         self.action_pors_pri = QAction(QIcon(),
-                                       "&Primary",
+                                       "&Pri",
                                        self,
                                        checkable=True,
                                        statusTip="Show primary signal value")
         self.action_pors_sec = QAction(QIcon(),
-                                       "&Secondary",
+                                       "&Sec",
                                        self,
                                        checkable=True,
                                        statusTip="Show secondary signal values")
         self.action_viewas_is = QAction(QIcon(),
-                                        "&Is",
+                                        "As &is",
                                         self,
                                         checkable=True,
                                         statusTip="Show current signal value")
         self.action_viewas_mid = QAction(QIcon(),
-                                         "&Middle",
+                                         "&Mid",
                                          self,
                                          checkable=True,
                                          statusTip="Show running middle of current signal value")
         self.action_viewas_eff = QAction(QIcon(),
-                                         "&Effective",
+                                         "&Eff",
                                          self,
                                          checkable=True,
                                          statusTip="Show RMS of current signal value")
         self.action_viewas_hrm1 = QAction(QIcon(),
-                                          "&Harmonic 1",
+                                          "Hrm &1",
                                           self,
                                           checkable=True,
                                           statusTip="Show harmonic #1 of signal value")
         self.action_viewas_hrm2 = QAction(QIcon(),
-                                          "&Harmonic 2",
+                                          "Hrm &2",
                                           self,
                                           checkable=True,
                                           statusTip="Show harmonic #2 of signal value")
         self.action_viewas_hrm3 = QAction(QIcon(),
-                                          "&Harmonic 3",
+                                          "Hrm &3",
                                           self,
                                           checkable=True,
                                           statusTip="Show harmonic #3 of signal value")
         self.action_viewas_hrm5 = QAction(QIcon(),
-                                          "&Harmonic 5",
+                                          "Hrm &5",
                                           self,
                                           checkable=True,
                                           statusTip="Show harmonic #5 of signal value")
@@ -193,7 +193,7 @@ class ComtradeWidget(QWidget):
     def __mk_toolbar(self):
         self.toolbar.addAction(self.action_pors_pri)
         self.toolbar.addAction(self.action_pors_sec)
-        # self.toolbar.addActions(self.action_viewas.actions())
+        self.toolbar.addActions(self.action_viewas.actions())
         self.toolbar.addAction(self.action_info)
 
     def __mk_layout(self):

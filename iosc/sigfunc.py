@@ -6,7 +6,11 @@ import numpy as np
 
 def _cutlpad(a: np.array, n: int, w: int) -> np.array:
     """Cut windows from array and lpad it by zero if required"""
-    return a[n+1-w:n+1] if n+1 >= w else np.pad(a[:n+1], (w-n-1, 0))
+    return a[n + 1 - w:n + 1] if n + 1 >= w else np.pad(a[:n + 1], (w - n - 1, 0))
+
+
+def _fft(a: np.array, n: int, w: int):
+    return np.fft.fft(_cutlpad(a, n, w))
 
 
 def asis(a: np.array, n: int, _: int) -> float:
@@ -31,23 +35,26 @@ def eff(a: np.array, n: int, w: int):
 
 
 def hrm1(a: np.array, n: int, w: int):
-    """1-st harmnic"""
-    return a[n]
+    """1-st harmnic.
+    :todo: return python complex
+    """
+    c = _fft(a, n, w)
+    return abs(c.real[1]), np.degrees(np.angle(c))[1]
 
 
 def hrm2(a: np.array, n: int, w: int):
     """2-nd harmnic"""
-    return a[n]
+    return abs(_fft(a, n, w).real[2])
 
 
 def hrm3(a: np.array, n: int, w: int):
     """3-th harmnic"""
-    return a[n]
+    return abs(_fft(a, n, w).real[3])
 
 
 def hrm5(a: np.array, n: int, w: int):
     """5-th harmnic"""
-    return a[n]
+    return abs(_fft(a, n, w).real[5])
 
 
 func_list = (
