@@ -4,7 +4,7 @@ QTableWidget version
 """
 # 2. 3rd
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QDropEvent
+from PyQt5.QtGui import QDropEvent, QGuiApplication
 from PyQt5.QtWidgets import QTableWidget, QLabel, QWidget
 # 3. local
 import const
@@ -20,10 +20,9 @@ class SignalListView(QTableWidget):
     _parent: QWidget
     _ti: int
 
-    def __init__(self, slist: mycomtrade.SignalList, ti: int, parent):
+    def __init__(self, slist: mycomtrade.SignalList, parent):
         super().__init__(parent)
         self._slist = slist
-        self._ti = ti
         self._parent = parent
         self.setColumnCount(2)
         self.setRowCount(len(slist))
@@ -41,7 +40,8 @@ class SignalListView(QTableWidget):
         self.setSelectionBehavior(self.SelectRows)
         self.setDragDropMode(self.InternalMove)
         for row in range(len(slist)):
-            self.__insert_row(row, row)
+            # self.insertRow(row)
+            self.__apply_row(row, row)
 
     def dropEvent(self, event: QDropEvent):
         def _drop_on(__evt) -> int:
@@ -62,61 +62,67 @@ class SignalListView(QTableWidget):
             return __index.row() + 1 if _is_below(__evt.pos(), __index) else __index.row()
 
         if not event.isAccepted() and event.source() == self:
-            dst_row_num = _drop_on(event)
             src_row_num = self.selectedIndexes()[0].row()
-            self.insertRow(dst_row_num)
-            if src_row_num > dst_row_num:
-                src_row_num += 1
-            # 2. move
-            for column in range(self.columnCount()):
-                self.setItem(dst_row_num, column, self.takeItem(src_row_num, column))
-                self.setCellWidget(dst_row_num, column, self.cellWidget(src_row_num, column))
-            # 3. drop old
+            dst_row_num = _drop_on(event)
+            # 1. save signal (TODO: and its settings)
+            ch_no = self.whois(src_row_num)
+            # 2. drop row
             self.removeRow(src_row_num)
             if dst_row_num > src_row_num:
                 dst_row_num -= 1
+            # 3. create new row from scratch (TODO: restore signal settings)
+            self.insertRow(dst_row_num)
+            self.__apply_row(dst_row_num, ch_no)
             # x. that's all
             event.accept()
-            self.reset()
-            # self.item(dst_row_num, 0).setSelected(True)
-            # self.item(dst_row_num, 1).setSelected(True)
-            # FIXME: dst is empty => drop row and recreate it
-            # TODO: inner data independent Signal*Widget
+            # self.reset()  # reset - celar cells, no reset - squeeze table
+            # self.viewport().update()
+            # self.update()
+            # self.selectRow(dst_row_num)
         super().dropEvent(event)
 
-    def __insert_row(self, row: int, i: int):
+    def __apply_row(self, row: int, i: int):
         signal = self._slist[i]
         if signal.is_bool:
             self.setCellWidget(row, 0, ctrl := StatusSignalCtrlView(signal, self, self._parent))
-            self.setCellWidget(row, 1, StatusSignalChartView(signal, self._ti, self, self._parent, ctrl))
+            self.setCellWidget(row, 1, StatusSignalChartView(signal, self, self._parent, ctrl))
             self.setRowHeight(row, const.SIG_D_HEIGHT)
         else:
             self.setCellWidget(row, 0, ctrl := AnalogSignalCtrlView(signal, self, self._parent))
-            self.setCellWidget(row, 1, AnalogSignalChartView(signal, self._ti, self, self._parent, ctrl))
+            self.setCellWidget(row, 1, AnalogSignalChartView(signal, self, self._parent, ctrl))
             self.setRowHeight(row, const.SIG_A_HEIGHT)
 
-    def slot_lineup(self, dwidth: int):
+    def slot_lineup(self):
         """Resize columns according to requirements.
-        :param dwidth: Main window widths subtraction (available - actual)
         :fixme: subtract something (vheader width?)
         """
+        w_screen = QGuiApplication.screens()[0].availableGeometry().width()  # all available screen (e.g. 1280)
+        w_main = QGuiApplication.topLevelWindows()[0].width()  # current main window width (e.g. 960)
+        w_self = self.width()  # current [table] widget width  (e.g. 940)
         self.setColumnWidth(0, const.COL0_WIDTH)
-        self.setColumnWidth(1, self.width() + dwidth - const.COL0_WIDTH - 48)  # FIXME: magic number
+        self.setColumnWidth(1, w_self + (w_screen - w_main) - const.COL0_WIDTH - const.MAGIC_WIDHT)
 
     def slot_unhide(self):
         for row in range(self.rowCount()):
             self.showRow(row)
 
+    def whois(self, row: int) -> int:
+        """What signal is in the row
+        :param row: Row to ask
+        :return: Signal no in correspondent signal list
+        """
+        return self.cellWidget(row, 0).whoami()
+
 
 class AnalogSignalListView(SignalListView):
     time_axis: TimeAxisView
 
-    def __init__(self, slist: mycomtrade.AnalogSignalList, ti: int, parent):
-        super().__init__(slist, ti, parent)
+    def __init__(self, slist: mycomtrade.AnalogSignalList, parent):
+        super().__init__(slist, parent)
         self.setHorizontalHeader(WHeaderView(self))
         self.setHorizontalHeaderLabels(('', ''))  # clean defaults
         self.horizontalHeader().set_widget(0, QLabel("ms"))
-        self.time_axis = TimeAxisView(slist.raw.time[0], slist.raw.trigger_time, slist.raw.time[-1], ti, self, parent)
+        self.time_axis = TimeAxisView(slist.raw.time[0], slist.raw.trigger_time, slist.raw.time[-1], self, parent)
         self.horizontalHeader().set_widget(1, self.time_axis)
         self.horizontalHeader().setFixedHeight(const.XSCALE_HEIGHT)
 
@@ -127,6 +133,6 @@ class AnalogSignalListView(SignalListView):
 
 
 class StatusSignalListView(SignalListView):
-    def __init__(self, slist: mycomtrade.StatusSignalList, ti: int, parent):
-        super().__init__(slist, ti, parent)
+    def __init__(self, slist: mycomtrade.StatusSignalList, parent):
+        super().__init__(slist, parent)
         self.horizontalHeader().hide()

@@ -6,3 +6,4 @@ SIG_D_HEIGHT = 50
 # old
 Z0_COLOR = 'black'
 PLOTAREA_COLOR = (240, 240, 240)
+MAGIC_WIDHT = 50  # width pad for SignalChartWidget

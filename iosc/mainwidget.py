@@ -32,7 +32,7 @@ class ComtradeWidget(QWidget):
     """
     # inner cons
     __osc: mycomtrade.MyComtrade
-    __tpp: int  # tics per signal period
+    __tpp: int  # tics (samples) per signal period
     # inner vars
     __mptr: int  # current Main Ptr index in source arrays
     show_sec: bool  # pri/sec selector
@@ -58,7 +58,7 @@ class ComtradeWidget(QWidget):
     toolbar: QToolBar
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
-    # signals; FIXME: remove float/int at all
+    # signals
     signal_main_ptr_moved = pyqtSignal()
     signal_recalc_achannels = pyqtSignal()
 
@@ -72,14 +72,14 @@ class ComtradeWidget(QWidget):
         ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
         ti = find_std_ti(ti_wanted)
         # print(f"{ti_wanted} => {ti}")
-        self.__mk_widgets(ti)
+        self.__mk_widgets()
         self.__mk_actions()
         self.__mk_menu()
         self.__mk_toolbar()
         self.__mk_layout()
         self.__mk_connections()
         # sync: default z-point
-        self.signal_main_ptr_moved.emit()
+        # self.signal_main_ptr_moved.emit()
 
     @property
     def tpp(self) -> int:
@@ -97,11 +97,11 @@ class ComtradeWidget(QWidget):
         """Recalc graph x-position into index in signal array"""
         return int(round((self.__osc.raw.trigger_time + x/1000) * self.__osc.rate[0][0]))
 
-    def __mk_widgets(self, ti):
+    def __mk_widgets(self):
         self.menubar = QMenuBar()
         self.toolbar = QToolBar(self)
-        self.analog_table = AnalogSignalListView(self.__osc.analog, ti, self)
-        self.status_table = StatusSignalListView(self.__osc.status, ti, self)
+        self.analog_table = AnalogSignalListView(self.__osc.analog, self)
+        self.status_table = StatusSignalListView(self.__osc.status, self)
 
     def __mk_actions(self):
         self.action_close = QAction(QIcon.fromTheme("window-close"),
@@ -300,13 +300,12 @@ class ComtradeWidget(QWidget):
         self.analog_table.horizontalHeader().resizeSection(l_index, new_size)
         self.status_table.horizontalHeader().resizeSection(l_index, new_size)
 
-    def line_up(self, dwidth: int):
+    def line_up(self):
         """
         Line up table colums (and rows further) according to requirements and actual geometry.
-        :param dwidth: Main window widths subtraction (available - actual)
         """
-        self.analog_table.slot_lineup(dwidth)
-        self.status_table.slot_lineup(dwidth)
+        self.analog_table.slot_lineup()
+        self.status_table.slot_lineup()
 
     def slot_main_ptr_moved_x(self, x: float):
         """
