@@ -1,6 +1,9 @@
 """Signal view functions.
 Calling from AnalogSignalCtrlView to calc requested signal value.
-FFT: [RTFM](http://digitalsubstation.com/i-mt/2016/12/05/modelirovanie-rza-chast-vtoraya/)"""
+FFT:
+- [RTFM](http://digitalsubstation.com/i-mt/2016/12/05/modelirovanie-rza-chast-vtoraya/)
+- [Libs](https://www.nayuki.io/page/free-small-fft-in-multiple-languages)
+"""
 
 import numpy as np
 
