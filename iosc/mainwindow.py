@@ -34,12 +34,10 @@ class ComtradeTabWidget(QTabWidget):
         except struct.error as e:
             QMessageBox.critical(self, "Loading error", str(e))
         else:
-            # index = self.count()
-            item = ComtradeWidget(rec, self)  # table width == 100
-            index = self.addTab(item, path.name)  # table width == 940 (CLI) | 100 (Open)
-            item.line_up(QGuiApplication.screens()[0].availableGeometry().width() - self.parent().width())
+            index = self.addTab(ComtradeWidget(rec, self), path.name)  # table width == 940 (CLI) | 100 (Open)
             self.setCurrentIndex(index)
             self.setUpdatesEnabled(True)  # table width == right
+            self.widget(index).line_up()
         finally:
             QGuiApplication.restoreOverrideCursor()
 

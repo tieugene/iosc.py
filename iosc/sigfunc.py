@@ -1,5 +1,6 @@
 """Signal view functions.
-Calling from AnalogSignalCtrlView to calc requested signal value"""
+Calling from AnalogSignalCtrlView to calc requested signal value.
+FFT: [RTFM](http://digitalsubstation.com/i-mt/2016/12/05/modelirovanie-rza-chast-vtoraya/)"""
 
 import numpy as np
 

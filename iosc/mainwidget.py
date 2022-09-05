@@ -32,8 +32,9 @@ class ComtradeWidget(QWidget):
     """
     # inner cons
     __osc: mycomtrade.MyComtrade
-    tpp: int  # tics per signal period
+    __tpp: int  # tics (samples) per signal period
     # inner vars
+    __mptr: int  # current Main Ptr index in source arrays
     show_sec: bool  # pri/sec selector
     viewas: int  # TODO: enum
     # actions
@@ -58,38 +59,49 @@ class ComtradeWidget(QWidget):
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
     # signals
-    signal_main_ptr_moved_x = pyqtSignal(float)
-    signal_main_ptr_moved_n = pyqtSignal(int)
+    signal_main_ptr_moved = pyqtSignal()
     signal_recalc_achannels = pyqtSignal()
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
         self.__osc = rec
-        self.tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
+        self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
+        self.__mptr = self.__x2n(0)
         self.show_sec = True
         self.viewas = 0
         ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
         ti = find_std_ti(ti_wanted)
         # print(f"{ti_wanted} => {ti}")
-        self.__mk_widgets(ti)
+        self.__mk_widgets()
         self.__mk_actions()
         self.__mk_menu()
         self.__mk_toolbar()
         self.__mk_layout()
         self.__mk_connections()
         # sync: default z-point
-        self.signal_main_ptr_moved_x.emit(0)
-        self.signal_main_ptr_moved_n.emit(self.__x2n(0))
+        # self.signal_main_ptr_moved.emit()
 
-    def __x2n(self, x: float):
-        """Recal x-postition into index in signal array"""
-        return round((self.__osc.raw.trigger_time + x/1000) * self.__osc.rate[0][0])
+    @property
+    def tpp(self) -> int:
+        return self.__tpp
 
-    def __mk_widgets(self, ti):
+    @property
+    def mptr(self) -> int:
+        return self.__mptr
+
+    @property
+    def mptr_x(self) -> float:
+        return 1000 * (self.__osc.raw.time[self.__mptr] - self.__osc.raw.trigger_time)
+
+    def __x2n(self, x: float) -> int:
+        """Recalc graph x-position into index in signal array"""
+        return int(round((self.__osc.raw.trigger_time + x/1000) * self.__osc.rate[0][0]))
+
+    def __mk_widgets(self):
         self.menubar = QMenuBar()
         self.toolbar = QToolBar(self)
-        self.analog_table = AnalogSignalListView(self.__osc.analog, ti, self)
-        self.status_table = StatusSignalListView(self.__osc.status, ti, self)
+        self.analog_table = AnalogSignalListView(self.__osc.analog, self)
+        self.status_table = StatusSignalListView(self.__osc.status, self)
 
     def __mk_actions(self):
         self.action_close = QAction(QIcon.fromTheme("window-close"),
@@ -263,8 +275,8 @@ class ComtradeWidget(QWidget):
                 QMessageBox.critical(self, "Converting error", str(e))
 
     def __do_unhide(self):
-        self.analog_table.sig_unhide()
-        self.status_table.sig_unhide()
+        self.analog_table.slot_unhide()
+        self.status_table.slot_unhide()
 
     def __do_pors(self, _: QAction):
         self.show_sec = self.action_pors_sec.isChecked()
@@ -288,13 +300,12 @@ class ComtradeWidget(QWidget):
         self.analog_table.horizontalHeader().resizeSection(l_index, new_size)
         self.status_table.horizontalHeader().resizeSection(l_index, new_size)
 
-    def line_up(self, dwidth: int):
+    def line_up(self):
         """
         Line up table colums (and rows further) according to requirements and actual geometry.
-        :param dwidth: Main window widths subtraction (available - actual)
         """
-        self.analog_table.line_up(dwidth)
-        self.status_table.line_up(dwidth)
+        self.analog_table.slot_lineup()
+        self.status_table.slot_lineup()
 
     def slot_main_ptr_moved_x(self, x: float):
         """
@@ -306,5 +317,5 @@ class ComtradeWidget(QWidget):
         - SignalChartView (x) [=> SignalCtrlView(y)]
         - statusbar (x)
         """
-        self.signal_main_ptr_moved_x.emit(x)
-        self.signal_main_ptr_moved_n.emit(self.__x2n(x))
+        self.__mptr = self.__x2n(x)
+        self.signal_main_ptr_moved.emit()
