@@ -8,6 +8,8 @@ from enum import IntEnum
 from typing import Optional
 # 2. 3rd
 import chardet
+import numpy as np
+
 # 3. local
 from comtrade import Comtrade, Channel
 # x. const
@@ -37,7 +39,7 @@ class Signal(Wrapper):
     """Signal base."""
     _is_bool: bool
     _raw2: Channel
-    _value: list[float]  # list of values
+    _value: np.array  # list of values
     _color: Optional[int]
 
     def __init__(self, raw: Comtrade, raw2: Channel):
@@ -54,11 +56,11 @@ class Signal(Wrapper):
         return self._raw2.name
 
     @property
-    def time(self) -> list[float]:
+    def time(self) -> np.array:
         return self._raw.time
 
     @property
-    def value(self) -> list[float]:
+    def value(self) -> np.array:
         return self._value
 
     @property
