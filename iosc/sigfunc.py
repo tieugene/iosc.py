@@ -34,8 +34,10 @@ def mid(a: np.array, n: int, w: int):
 
 
 def eff(a: np.array, n: int, w: int):
-    """Effective value"""
-    return np.std(_cutlpad(a, n, w))
+    """Effective value.
+    :note: np.std(_cutlpad(a, n, w)) - not right
+    """
+    return np.sqrt(np.average(_cutlpad(np.array(a), n, w)**2))
 
 
 def hrm1(a: np.array, n: int, w: int):
