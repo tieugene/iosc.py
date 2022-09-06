@@ -14,6 +14,7 @@ def _cutlpad(a: np.array, n: int, w: int) -> np.array:
 
 
 def _fft(a: np.array, n: int, w: int):
+    """FIXME: not right (#100)"""
     return np.fft.fft(_cutlpad(a, n, w))
 
 
