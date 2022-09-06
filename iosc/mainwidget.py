@@ -205,7 +205,7 @@ class ComtradeWidget(QWidget):
     def __mk_toolbar(self):
         self.toolbar.addAction(self.action_pors_pri)
         self.toolbar.addAction(self.action_pors_sec)
-        self.toolbar.addActions(self.action_viewas.actions())
+        self.toolbar.addActions(self.action_viewas.actions())  # FIXME: pull-down (#101)
         self.toolbar.addAction(self.action_info)
 
     def __mk_layout(self):
