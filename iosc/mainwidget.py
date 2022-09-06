@@ -8,7 +8,7 @@ from typing import Any
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QGuiApplication
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget, QMenuBar, QToolBar, QAction, QMessageBox, \
-    QFileDialog, QHBoxLayout, QActionGroup
+    QFileDialog, QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
 import mycomtrade
 from convtrade import convert, ConvertError
@@ -58,6 +58,7 @@ class ComtradeWidget(QWidget):
     toolbar: QToolBar
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
+    viewas_toobutton: QToolButton
     # signals
     signal_main_ptr_moved = pyqtSignal()
     signal_recalc_achannels = pyqtSignal()
@@ -102,6 +103,7 @@ class ComtradeWidget(QWidget):
         self.toolbar = QToolBar(self)
         self.analog_table = AnalogSignalListView(self.__osc.analog, self)
         self.status_table = StatusSignalListView(self.__osc.status, self)
+        self.viewas_toobutton = QToolButton(self)
 
     def __mk_actions(self):
         self.action_close = QAction(QIcon.fromTheme("window-close"),
@@ -203,9 +205,16 @@ class ComtradeWidget(QWidget):
         menu_channel.addAction(self.action_unhide)
 
     def __mk_toolbar(self):
+        # prepare
+        self.viewas_toobutton.setPopupMode(QToolButton.MenuButtonPopup)
+        viewas_menu = QMenu()
+        viewas_menu.addActions(self.action_viewas.actions())
+        self.viewas_toobutton.setMenu(viewas_menu)
+        self.viewas_toobutton.setDefaultAction(self.action_viewas.actions()[self.viewas])
+        # go
         self.toolbar.addAction(self.action_pors_pri)
         self.toolbar.addAction(self.action_pors_sec)
-        self.toolbar.addActions(self.action_viewas.actions())  # FIXME: pull-down (#101)
+        self.toolbar.addWidget(self.viewas_toobutton)
         self.toolbar.addAction(self.action_info)
 
     def __mk_layout(self):
@@ -284,6 +293,7 @@ class ComtradeWidget(QWidget):
 
     def __do_viewas(self, a: QAction):
         self.viewas = a.data()
+        self.viewas_toobutton.setDefaultAction(a)
         self.signal_recalc_achannels.emit()
 
     def __sync_hscrolls(self, index):
