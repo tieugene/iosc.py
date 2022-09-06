@@ -45,6 +45,7 @@ class SignalListView(QTableWidget):
 
     def dropEvent(self, event: QDropEvent):
         def _drop_on(__evt) -> int:
+            # TODO: detect to put over or insert B4
             def _is_below(__pos, __idx) -> bool:
                 __rect = self.visualRect(__idx)
                 margin = 2
@@ -61,25 +62,24 @@ class SignalListView(QTableWidget):
                 return self.rowCount()
             return __index.row() + 1 if _is_below(__evt.pos(), __index) else __index.row()
 
-        if not event.isAccepted() and event.source() == self:
-            src_row_num = self.selectedIndexes()[0].row()
-            dst_row_num = _drop_on(event)
-            # 1. save signal (TODO: and its settings)
-            ch_no = self.whois(src_row_num)
-            # 2. drop row
-            self.removeRow(src_row_num)
-            if dst_row_num > src_row_num:
-                dst_row_num -= 1
-            # 3. create new row from scratch (TODO: restore signal settings)
-            self.insertRow(dst_row_num)
-            self.__apply_row(dst_row_num, ch_no)
-            # x. that's all
-            event.accept()
-            # self.reset()  # reset - celar cells, no reset - squeeze table
-            # self.viewport().update()
-            # self.update()
-            # self.selectRow(dst_row_num)
-        super().dropEvent(event)
+        if event.isAccepted() or event.source() is not self:
+            super().dropEvent(event)
+            return
+        # FIXME: event.accept() and return if before self (like 2=>3)
+        dst_row_num = _drop_on(event)
+        src_row_num = self.selectedIndexes()[0].row()
+        # 1. add
+        self.insertRow(dst_row_num)
+        if src_row_num > dst_row_num:
+            src_row_num += 1
+        # 2. copy
+        self.setCellWidget(dst_row_num, 0, self.cellWidget(src_row_num, 0))
+        self.setCellWidget(dst_row_num, 1, self.cellWidget(src_row_num, 1))
+        self.setRowHeight(dst_row_num, self.rowHeight(src_row_num))
+        # 3. rm
+        self.removeRow(src_row_num)
+        # x. that's all
+        event.ignore()  # warning: don't accept()!
 
     def __apply_row(self, row: int, i: int):
         signal = self._slist[i]
