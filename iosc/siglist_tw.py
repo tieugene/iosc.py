@@ -61,25 +61,28 @@ class SignalListView(QTableWidget):
                 return self.rowCount()
             return __index.row() + 1 if _is_below(__evt.pos(), __index) else __index.row()
 
-        if not event.isAccepted() and event.source() == self:
-            src_row_num = self.selectedIndexes()[0].row()
-            dst_row_num = _drop_on(event)
+        def _rm_ins_create(__src: int, __dst: int):
             # 1. save signal (TODO: and its settings)
-            ch_no = self.whois(src_row_num)
+            __ch_no = self.whois(__src)
+            # print(f"{__src} ({__ch_no}) => {__dst}")
+            # FIXME: event.accept() and return if before self (like 2=>3)
             # 2. drop row
-            self.removeRow(src_row_num)
-            if dst_row_num > src_row_num:
-                dst_row_num -= 1
-            # 3. create new row from scratch (TODO: restore signal settings)
-            self.insertRow(dst_row_num)
-            self.__apply_row(dst_row_num, ch_no)
+            self.removeRow(__src)
+            if __dst > __src:
+                __dst -= 1
+            # 3. create new row from scratch (TODO: and its settings)
+            self.insertRow(__dst)
+            self.__apply_row(__dst, __ch_no)
             # x. that's all
-            event.accept()
-            # self.reset()  # reset - celar cells, no reset - squeeze table
-            # self.viewport().update()
-            # self.update()
-            # self.selectRow(dst_row_num)
-        super().dropEvent(event)
+            self.selectRow(__dst)
+
+        if event.isAccepted() or event.source() is not self:
+            super().dropEvent(event)
+            return
+        dst_row_num = _drop_on(event)
+        src_row_num = self.selectedIndexes()[0].row()
+        _rm_ins_create(src_row_num, dst_row_num)
+        event.ignore()  # warning: don't accept()!
 
     def __apply_row(self, row: int, i: int):
         signal = self._slist[i]
