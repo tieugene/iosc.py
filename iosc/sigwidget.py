@@ -399,7 +399,10 @@ class AnalogSignalChartView(SignalChartView):
         self.graph().setPen(pen)
 
     def __rerange(self):
-        self.yAxis.setRange(min(min(self._signal.value), 0), max(max(self._signal.value), 0))
+        ymin = min(min(self._signal.value), 0)
+        ymax = max(max(self._signal.value), 0)
+        ypad = (ymax - ymin) * const.SIG_A_YPAD
+        self.yAxis.setRange(ymin - ypad, ymax + ypad)
 
     def __slot_shift(self):
         self._set_data()
@@ -411,7 +414,7 @@ class StatusSignalChartView(SignalChartView):
     def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
                  sibling: SignalCtrlView):
         super().__init__(signal, parent, root, sibling)
-        self.yAxis.setRange(-0.1, 1.6)  # note: from -0.1 if Y0 wanted
+        self.yAxis.setRange(const.SIG_D_YMIN, const.SIG_D_YMAX)
 
     def _set_style(self):
         brush = QBrush(D_BRUSH)
