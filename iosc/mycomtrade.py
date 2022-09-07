@@ -60,10 +60,6 @@ class Signal(Wrapper):
         return self._raw.time
 
     @property
-    def value(self) -> np.array:
-        return self._value
-
-    @property
     def is_bool(self) -> bool:
         return self._is_bool
 
@@ -98,16 +94,23 @@ class StatusSignal(Signal):
         super().__init__(raw, raw.cfg.status_channels[i])
         self._value = self._raw.status[i]
 
+    @property
+    def value(self) -> np.array:
+        return self._value
+
 
 class AnalogSignal(Signal):
     _is_bool = False
     __line_style: ELineType
     __mult: tuple[float, float]
     __uu_orig: str  # original uu (w/o m/k)
+    __is_shifted: bool = False  # class and ancessors -wide static
+    __value_shifted: np.array
 
     def __init__(self, raw: Comtrade, i: int):
         super().__init__(raw, raw.cfg.analog_channels[i])
         self._value = self._raw.analog[i]
+        self.__value_shifted = self._value - np.average(self._value)
         self.__line_style = ELineType.Solid
         # pri/sec multipliers
         if self._raw2.uu.startswith('m'):
@@ -126,6 +129,19 @@ class AnalogSignal(Signal):
             pri = self._raw2.primary / self._raw2.secondary
             sec = 1
         self.__mult = (pri * uu, sec * uu)
+
+    @property
+    def value(self) -> np.array:
+        return self.__value_shifted if self.__is_shifted else self._value
+
+    @property
+    def shifted(self):
+        return AnalogSignal.__is_shifted
+
+    @staticmethod
+    def shift(v: bool):
+        """Switch all signals between original and shifted modes"""
+        AnalogSignal.__is_shifted = v
 
     @property
     def line_type(self) -> ELineType:
