@@ -104,7 +104,6 @@ class AnalogSignal(Signal):
     __line_style: ELineType
     __mult: tuple[float, float]
     __uu_orig: str  # original uu (w/o m/k)
-    __is_shifted: bool = False  # class and ancessors -wide static
     __value_shifted: np.array
 
     def __init__(self, raw: Comtrade, i: int):
@@ -132,16 +131,7 @@ class AnalogSignal(Signal):
 
     @property
     def value(self) -> np.array:
-        return self.__value_shifted if self.__is_shifted else self._value
-
-    @property
-    def shifted(self):
-        return AnalogSignal.__is_shifted
-
-    @staticmethod
-    def shift(v: bool):
-        """Switch all signals between original and shifted modes"""
-        AnalogSignal.__is_shifted = v
+        return self.__value_shifted if self._raw.x_shifted else self._value
 
     @property
     def line_type(self) -> ELineType:
@@ -224,6 +214,7 @@ class MyComtrade(Wrapper):
             self._raw.load(str(path), encoding=encoding)
         else:
             self._raw.load(str(path))
+        self._raw.x_shifted = False  # FIXME: hacking xtra-var injection
         self.__analog = AnalogSignalList(self._raw)
         self.__status = StatusSignalList(self._raw)
         self.__rate = RateList(self._raw)
@@ -239,3 +230,12 @@ class MyComtrade(Wrapper):
     @property
     def rate(self) -> RateList:
         return self.__rate
+
+    @property
+    def shifted(self):
+        return self._raw.x_shifted
+
+    @shifted.setter
+    def shifted(self, v: bool):
+        """Switch all signals between original and shifted modes"""
+        self._raw.x_shifted = v

@@ -35,7 +35,7 @@ class ComtradeWidget(QWidget):
     __tpp: int  # tics (samples) per signal period
     # inner vars
     __mptr: int  # current Main Ptr index in source arrays
-    shifted: bool  # original/shifted selector
+    __shifted: bool  # original/shifted selector
     show_sec: bool  # pri/sec selector
     viewas: int  # TODO: enum
     # actions
@@ -62,17 +62,18 @@ class ComtradeWidget(QWidget):
     toolbar: QToolBar
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
-    viewas_toobutton: QToolButton
+    viewas_toolbutton: QToolButton
     # signals
     signal_main_ptr_moved = pyqtSignal()
     signal_recalc_achannels = pyqtSignal()
+    signal_shift_achannels = pyqtSignal()
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
         self.__osc = rec
         self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
         self.__mptr = self.__x2n(0)
-        self.shifted = False
+        self.__shifted = False
         self.show_sec = True
         self.viewas = 0
         ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
@@ -96,6 +97,10 @@ class ComtradeWidget(QWidget):
         return self.__mptr
 
     @property
+    def shifted(self):
+        return self.__osc.shifted
+
+    @property
     def mptr_x(self) -> float:
         return 1000 * (self.__osc.raw.time[self.__mptr] - self.__osc.raw.trigger_time)
 
@@ -108,7 +113,7 @@ class ComtradeWidget(QWidget):
         self.toolbar = QToolBar(self)
         self.analog_table = AnalogSignalListView(self.__osc.analog, self)
         self.status_table = StatusSignalListView(self.__osc.status, self)
-        self.viewas_toobutton = QToolButton(self)
+        self.viewas_toolbutton = QToolButton(self)
 
     def __mk_actions(self):
         self.action_close = QAction(QIcon.fromTheme("window-close"),
@@ -227,17 +232,17 @@ class ComtradeWidget(QWidget):
 
     def __mk_toolbar(self):
         # prepare
-        self.viewas_toobutton.setPopupMode(QToolButton.MenuButtonPopup)
+        self.viewas_toolbutton.setPopupMode(QToolButton.MenuButtonPopup)
         viewas_menu = QMenu()
         viewas_menu.addActions(self.action_viewas.actions())
-        self.viewas_toobutton.setMenu(viewas_menu)
-        self.viewas_toobutton.setDefaultAction(self.action_viewas.actions()[self.viewas])
+        self.viewas_toolbutton.setMenu(viewas_menu)
+        self.viewas_toolbutton.setDefaultAction(self.action_viewas.actions()[self.viewas])
         # go
         self.toolbar.addAction(self.action_shift_not)
         self.toolbar.addAction(self.action_shift_yes)
         self.toolbar.addAction(self.action_pors_pri)
         self.toolbar.addAction(self.action_pors_sec)
-        self.toolbar.addWidget(self.viewas_toobutton)
+        self.toolbar.addWidget(self.viewas_toolbutton)
         self.toolbar.addAction(self.action_info)
 
     def __mk_layout(self):
@@ -312,12 +317,8 @@ class ComtradeWidget(QWidget):
         self.status_table.slot_unhide()
 
     def __do_shift(self, _: QAction):
-        self.shifted = self.action_shift_yes.isChecked()
-        print("Shift:", self.shifted)
-        # switch signal
-        # repaint sigcharts
-        # reaclc sigviews
-        # self.signal_recalc_achannels.emit()
+        self.__osc.shifted = self.action_shift_yes.isChecked()
+        self.signal_shift_achannels.emit()
 
     def __do_pors(self, _: QAction):
         self.show_sec = self.action_pors_sec.isChecked()
@@ -325,7 +326,7 @@ class ComtradeWidget(QWidget):
 
     def __do_viewas(self, a: QAction):
         self.viewas = a.data()
-        self.viewas_toobutton.setDefaultAction(a)
+        self.viewas_toolbutton.setDefaultAction(a)
         self.signal_recalc_achannels.emit()
 
     def __sync_hscrolls(self, index):
