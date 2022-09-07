@@ -390,7 +390,7 @@ class AnalogSignalChartView(SignalChartView):
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root,
                  sibling: AnalogSignalCtrlView):
         super().__init__(signal, parent, root, sibling)
-        self.yAxis.setRange(min(signal.value), max(signal.value))
+        self.__rerange()
         self._root.signal_shift_achannels.connect(self.__slot_shift)
 
     def _set_style(self):
@@ -398,8 +398,12 @@ class AnalogSignalChartView(SignalChartView):
         pen.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setPen(pen)
 
+    def __rerange(self):
+        self.yAxis.setRange(min(min(self._signal.value), 0), max(max(self._signal.value), 0))
+
     def __slot_shift(self):
         self._set_data()
+        self.__rerange()
         self.replot()
 
 
