@@ -313,7 +313,7 @@ class SignalChartView(QCustomPlot):
         """
         Handle mouse pressed[+moved]
         :param x_px: mouse x-position (px)
-        :todo: chk pos changed (hint: save `pos` B4)
+        :todo: RTFM QCPAbstractItem.setSelectable(), QCP.setInteraction(), QCP.itemClick
         """
         x_src = self.xAxis.pixelToCoord(x_px)  # real x-position realtive to graph z-point in graaph units
         x_dst_0: float = self._main_ptr.position.key()  # dont save pos (== &); self.graphKey()
@@ -321,17 +321,18 @@ class SignalChartView(QCustomPlot):
         self._main_ptr.updatePosition()  # mandatory
         pos = self._main_ptr.position  # coerced x-postion (QCustomPlot2.QCPItemPosition)
         x_dst = pos.key()
-        if x_dst_0 != x_dst:  # check MPtr moved (dont do so!)
-            if click:  # mouse pressed => set old ptr coords, rect start coord
-                self._old_ptr.move2x(x_dst)
-                self._main_ptr_rect.set2x(x_dst)
-                self._ptr_onway = True
-            else:  # mouse moved (when pressed)
-                if not self._old_ptr.visible():  # show tips on demand
-                    self.__switch_tips(True)
-                # refresh tips
-                self._main_ptr_tip.move2x(x_dst, self._old_ptr.x)
-                self._main_ptr_rect.stretc2x(x_dst)
+        mptr_jumped = x_dst_0 != x_dst  # Don't do that!
+        if click:  # mouse pressed => set old ptr coords, rect start coord
+            self._old_ptr.move2x(x_dst)
+            self._main_ptr_rect.set2x(x_dst)
+            self._ptr_onway = True
+        elif mptr_jumped:  # mouse moved & pressed & mptr jumped
+            if not self._old_ptr.visible():  # show tips on demand
+                self.__switch_tips(True)
+            # refresh tips
+            self._main_ptr_tip.move2x(x_dst, self._old_ptr.x)
+            self._main_ptr_rect.stretc2x(x_dst)
+        if mptr_jumped:
             self.replot()
             self._root.slot_main_ptr_moved_x(x_dst)
 
