@@ -35,6 +35,7 @@ class ComtradeWidget(QWidget):
     __tpp: int  # tics (samples) per signal period
     # inner vars
     __mptr: int  # current Main Ptr index in source arrays
+    shifted: bool  # original/shifted selector
     show_sec: bool  # pri/sec selector
     viewas: int  # TODO: enum
     # actions
@@ -42,6 +43,9 @@ class ComtradeWidget(QWidget):
     action_info: QAction
     action_convert: QAction
     action_unhide: QAction
+    action_shift: QActionGroup
+    action_shift_not: QAction
+    action_shift_yes: QAction
     action_pors: QActionGroup
     action_pors_pri: QAction
     action_pors_sec: QAction
@@ -68,6 +72,7 @@ class ComtradeWidget(QWidget):
         self.__osc = rec
         self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
         self.__mptr = self.__x2n(0)
+        self.shifted = False
         self.show_sec = True
         self.viewas = 0
         ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
@@ -126,6 +131,16 @@ class ComtradeWidget(QWidget):
                                      self,
                                      statusTip="Show hidden channels",
                                      triggered=self.__do_unhide)
+        self.action_shift_not = QAction(QIcon(),
+                                       "&Original",
+                                       self,
+                                       checkable=True,
+                                       statusTip="Use original signal")
+        self.action_shift_yes = QAction(QIcon(),
+                                       "&Shifted",
+                                       self,
+                                       checkable=True,
+                                       statusTip="Use shifted signal")
         self.action_pors_pri = QAction(QIcon(),
                                        "&Pri",
                                        self,
@@ -171,6 +186,9 @@ class ComtradeWidget(QWidget):
                                           self,
                                           checkable=True,
                                           statusTip="Show harmonic #5 of signal value")
+        self.action_shift = QActionGroup(self)
+        self.action_shift.addAction(self.action_shift_not).setChecked(True)
+        self.action_shift.addAction(self.action_shift_yes)
         self.action_pors = QActionGroup(self)
         self.action_pors.addAction(self.action_pors_pri)
         self.action_pors.addAction(self.action_pors_sec).setChecked(True)
@@ -190,6 +208,9 @@ class ComtradeWidget(QWidget):
         menu_file.addAction(self.action_convert)
         menu_file.addAction(self.action_close)
         menu_view = self.menubar.addMenu("&View")
+        menu_view_shift = menu_view.addMenu("Original/Shifted")
+        menu_view_shift.addAction(self.action_shift_not)
+        menu_view_shift.addAction(self.action_shift_yes)
         menu_view_pors = menu_view.addMenu("Pri/Sec")
         menu_view_pors.addAction(self.action_pors_pri)
         menu_view_pors.addAction(self.action_pors_sec)
@@ -212,6 +233,8 @@ class ComtradeWidget(QWidget):
         self.viewas_toobutton.setMenu(viewas_menu)
         self.viewas_toobutton.setDefaultAction(self.action_viewas.actions()[self.viewas])
         # go
+        self.toolbar.addAction(self.action_shift_not)
+        self.toolbar.addAction(self.action_shift_yes)
         self.toolbar.addAction(self.action_pors_pri)
         self.toolbar.addAction(self.action_pors_sec)
         self.toolbar.addWidget(self.viewas_toobutton)
@@ -231,6 +254,7 @@ class ComtradeWidget(QWidget):
         self.layout().addWidget(splitter)
 
     def __mk_connections(self):
+        self.action_shift.triggered.connect(self.__do_shift)
         self.action_pors.triggered.connect(self.__do_pors)
         self.action_viewas.triggered.connect(self.__do_viewas)
         self.analog_table.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
@@ -286,6 +310,14 @@ class ComtradeWidget(QWidget):
     def __do_unhide(self):
         self.analog_table.slot_unhide()
         self.status_table.slot_unhide()
+
+    def __do_shift(self, _: QAction):
+        self.shifted = self.action_shift_yes.isChecked()
+        print("Shift:", self.shifted)
+        # switch signal
+        # repaint sigcharts
+        # reaclc sigviews
+        # self.signal_recalc_achannels.emit()
 
     def __do_pors(self, _: QAction):
         self.show_sec = self.action_pors_sec.isChecked()
