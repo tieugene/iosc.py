@@ -60,10 +60,6 @@ class Signal(Wrapper):
         return self._raw.time
 
     @property
-    def value(self) -> np.array:
-        return self._value
-
-    @property
     def is_bool(self) -> bool:
         return self._is_bool
 
@@ -98,16 +94,22 @@ class StatusSignal(Signal):
         super().__init__(raw, raw.cfg.status_channels[i])
         self._value = self._raw.status[i]
 
+    @property
+    def value(self) -> np.array:
+        return self._value
+
 
 class AnalogSignal(Signal):
     _is_bool = False
     __line_style: ELineType
     __mult: tuple[float, float]
     __uu_orig: str  # original uu (w/o m/k)
+    __value_shifted: np.array
 
     def __init__(self, raw: Comtrade, i: int):
         super().__init__(raw, raw.cfg.analog_channels[i])
         self._value = self._raw.analog[i]
+        self.__value_shifted = self._value - np.average(self._value)
         self.__line_style = ELineType.Solid
         # pri/sec multipliers
         if self._raw2.uu.startswith('m'):
@@ -126,6 +128,10 @@ class AnalogSignal(Signal):
             pri = self._raw2.primary / self._raw2.secondary
             sec = 1
         self.__mult = (pri * uu, sec * uu)
+
+    @property
+    def value(self) -> np.array:
+        return self.__value_shifted if self._raw.x_shifted else self._value
 
     @property
     def line_type(self) -> ELineType:
@@ -208,6 +214,7 @@ class MyComtrade(Wrapper):
             self._raw.load(str(path), encoding=encoding)
         else:
             self._raw.load(str(path))
+        self._raw.x_shifted = False  # FIXME: hacking xtra-var injection
         self.__analog = AnalogSignalList(self._raw)
         self.__status = StatusSignalList(self._raw)
         self.__rate = RateList(self._raw)
@@ -223,3 +230,12 @@ class MyComtrade(Wrapper):
     @property
     def rate(self) -> RateList:
         return self.__rate
+
+    @property
+    def shifted(self):
+        return self._raw.x_shifted
+
+    @shifted.setter
+    def shifted(self, v: bool):
+        """Switch all signals between original and shifted modes"""
+        self._raw.x_shifted = v

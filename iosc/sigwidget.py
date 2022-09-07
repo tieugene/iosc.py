@@ -136,6 +136,7 @@ class AnalogSignalCtrlView(SignalCtrlView):
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root: QWidget):
         super().__init__(signal, parent, root)
         self._root.signal_recalc_achannels.connect(self.slot_update_value)
+        self._root.signal_shift_achannels.connect(self.slot_update_value)
 
     def _do_sig_property(self):
         """Show/set signal properties"""
@@ -149,6 +150,7 @@ class AnalogSignalCtrlView(SignalCtrlView):
             y, d = func(self._signal.value, self._root.mptr, self._root.tpp)
         else:
             y = func(self._signal.value, self._root.mptr, self._root.tpp)
+            d = None  # stub for linter
         pors_y = y * self._signal.get_mult(self._root.show_sec)
         uu = self._signal.uu_orig
         if abs(pors_y) < 1:
@@ -262,7 +264,7 @@ class SignalChartView(QCustomPlot):
         self._main_ptr_rect = MainPtrRect(self)
         self.addGraph()
         self._main_ptr = MainPtr(self)  # after graph()
-        self.__set_data()
+        self._set_data()
         self.__squeeze()
         self.__decorate()
         self._set_style()
@@ -278,7 +280,7 @@ class SignalChartView(QCustomPlot):
         self._sibling.signal_restyled.connect(self.__slot_signal_restyled)
         self._root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
 
-    def __set_data(self):
+    def _set_data(self):
         z_time = self._signal.raw.trigger_time
         self.graph().setData([1000 * (t - z_time) for t in self._signal.time], self._signal.value, True)
         self.xAxis.setRange(
@@ -389,11 +391,16 @@ class AnalogSignalChartView(SignalChartView):
                  sibling: AnalogSignalCtrlView):
         super().__init__(signal, parent, root, sibling)
         self.yAxis.setRange(min(signal.value), max(signal.value))
+        self._root.signal_shift_achannels.connect(self.__slot_shift)
 
     def _set_style(self):
         pen = QPen(PEN_STYLE[self._signal.line_type])
         pen.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setPen(pen)
+
+    def __slot_shift(self):
+        self._set_data()
+        self.replot()
 
 
 class StatusSignalChartView(SignalChartView):
