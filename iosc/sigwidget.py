@@ -178,6 +178,10 @@ class SignalCtrlView(QWidget):
         """
         return self._signal.i
 
+    @property
+    def signal(self) -> mycomtrade.Signal:
+        return self._signal
+
 
 class AnalogSignalCtrlView(SignalCtrlView):
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root: QWidget):

@@ -42,6 +42,8 @@ class ComtradeWidget(QWidget):
     action_close: QAction
     action_info: QAction
     action_convert: QAction
+    action_vzoom_in: QAction
+    action_vzoom_out: QAction
     action_unhide: QAction
     action_shift: QActionGroup
     action_shift_not: QAction
@@ -106,7 +108,7 @@ class ComtradeWidget(QWidget):
 
     def __x2n(self, x: float) -> int:
         """Recalc graph x-position into index in signal array"""
-        return int(round((self.__osc.raw.trigger_time + x/1000) * self.__osc.rate[0][0]))
+        return int(round((self.__osc.raw.trigger_time + x / 1000) * self.__osc.rate[0][0]))
 
     def __mk_widgets(self):
         self.menubar = QMenuBar()
@@ -131,21 +133,31 @@ class ComtradeWidget(QWidget):
                                       self,
                                       shortcut="Ctrl+S",
                                       triggered=self.__do_file_convert)
+        self.action_vzoom_in = QAction(QIcon.fromTheme("zoom-in"),
+                                       "Zoom &in",
+                                       self,
+                                       statusTip="Vertical zoom in all",
+                                       triggered=self.__do_vzoom_in)
+        self.action_vzoom_out = QAction(QIcon.fromTheme("zoom-out"),
+                                        "Zoom &out",
+                                        self,
+                                        statusTip="Vertical zoom out all",
+                                        triggered=self.__do_vzoom_out)
         self.action_unhide = QAction(QIcon.fromTheme("edit-undo"),
                                      "&Unhide all",
                                      self,
                                      statusTip="Show hidden channels",
                                      triggered=self.__do_unhide)
         self.action_shift_not = QAction(QIcon(),
-                                       "&Original",
-                                       self,
-                                       checkable=True,
-                                       statusTip="Use original signal")
+                                        "&Original",
+                                        self,
+                                        checkable=True,
+                                        statusTip="Use original signal")
         self.action_shift_yes = QAction(QIcon(),
-                                       "&Shifted",
-                                       self,
-                                       checkable=True,
-                                       statusTip="Use shifted signal")
+                                        "&Shifted",
+                                        self,
+                                        checkable=True,
+                                        statusTip="Use shifted signal")
         self.action_pors_pri = QAction(QIcon(),
                                        "&Pri",
                                        self,
@@ -213,6 +225,8 @@ class ComtradeWidget(QWidget):
         menu_file.addAction(self.action_convert)
         menu_file.addAction(self.action_close)
         menu_view = self.menubar.addMenu("&View")
+        menu_view.addAction(self.action_vzoom_in)
+        menu_view.addAction(self.action_vzoom_out)
         menu_view_shift = menu_view.addMenu("Original/Shifted")
         menu_view_shift.addAction(self.action_shift_not)
         menu_view_shift.addAction(self.action_shift_yes)
@@ -238,6 +252,8 @@ class ComtradeWidget(QWidget):
         self.viewas_toolbutton.setMenu(viewas_menu)
         self.viewas_toolbutton.setDefaultAction(self.action_viewas.actions()[self.viewas])
         # go
+        self.toolbar.addAction(self.action_vzoom_in)
+        self.toolbar.addAction(self.action_vzoom_out)
         self.toolbar.addAction(self.action_shift_not)
         self.toolbar.addAction(self.action_shift_yes)
         self.toolbar.addAction(self.action_pors_pri)
@@ -315,6 +331,14 @@ class ComtradeWidget(QWidget):
     def __do_unhide(self):
         self.analog_table.slot_unhide()
         self.status_table.slot_unhide()
+
+    def __do_vzoom_in(self):
+        self.analog_table.slot_zoom_in()
+        self.status_table.slot_zoom_in()
+
+    def __do_vzoom_out(self):
+        self.analog_table.slot_zoom_out()
+        self.status_table.slot_zoom_out()
 
     def __do_shift(self, _: QAction):
         self.__osc.shifted = self.action_shift_yes.isChecked()

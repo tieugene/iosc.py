@@ -113,9 +113,19 @@ class SignalListView(QTableWidget):
     def whois(self, row: int) -> int:
         """What signal is in the row
         :param row: Row to ask
-        :return: Signal no in correspondent signal list
+        :return: Signal No in correspondent signal list
         """
         return self.cellWidget(row, 0).whoami()
+
+    def slot_zoom_in(self):
+        for row in range(self.rowCount()):
+            if not self.cellWidget(row, 0).signal.is_bool:
+                self.setRowHeight(row, int(self.rowHeight(row) * 1.2))
+
+    def slot_zoom_out(self):
+        for row in range(self.rowCount()):
+            if not self.cellWidget(row, 0).signal.is_bool:
+                self.setRowHeight(row, int(self.rowHeight(row) / 1.2))
 
 
 class AnalogSignalListView(SignalListView):
