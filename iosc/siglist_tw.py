@@ -89,12 +89,14 @@ class SignalListView(QTableWidget):
             # self.setCellWidget(row, 1, StatusSignalChartView(signal, self, self._parent, ctrl))
             sa.setWidget(StatusSignalChartView(signal, sa, self._parent, ctrl))
             self.setCellWidget(row, 1, sa)
-            self.setRowHeight(row, const.SIG_D_HEIGHT)
+            self.setRowHeight(row, const.SIG_HEIGHT_DEFAULT_D)
         else:
             self.setCellWidget(row, 0, ctrl := AnalogSignalCtrlView(signal, self, self._parent))
             sa.setWidget(AnalogSignalChartView(signal, sa, self._parent, ctrl))
             self.setCellWidget(row, 1, sa)
-            self.setRowHeight(row, const.SIG_A_HEIGHT)
+            self.setRowHeight(row, const.SIG_HEIGHT_DEFAULT_A)
+        self.verticalHeader().setMinimumSectionSize(const.SIG_HEIGHT_MIN)
+        # self.verticalHeader().hide()
 
     def slot_lineup(self):
         """Resize columns according to requirements.
