@@ -2,8 +2,8 @@
 TODO: try __slots__"""
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins, pyqtSignal
-from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QResizeEvent
-from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout, QScrollArea
+from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QResizeEvent, QIcon
+from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout, QScrollArea, QHBoxLayout, QPushButton
 # 3. 4rd
 from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
@@ -75,31 +75,70 @@ class TimeAxisView(QCustomPlot):
         self.replot()
 
 
-class SignalCtrlView(QLabel):
+class ZoomButton(QPushButton):
+    def __init__(self, txt: str, parent: QWidget = None):
+        super().__init__(txt, parent)
+        self.setContentsMargins(QMargins())  # not helps
+        self.setFixedWidth(const.SIG_ZOOM_BTN_WIDTH)
+        # TODO: squeeze
+
+
+class SignalCtrlView(QWidget):
     _root: QWidget
     _signal: mycomtrade.Signal
     _f_name: QLabel
     _f_value: QLabel
+    _b_side: QWidget
+    _b_zoom_in: ZoomButton
+    _b_zoom_0: ZoomButton
+    _b_zoom_out: ZoomButton
     signal_restyled = pyqtSignal()
 
     def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget, root: QWidget):
         super().__init__(parent)
         self._signal = signal
         self._root = root
-        self.__setup_ui()
+        self.__mk_widgets()
+        self.__mk_layout()
+        self._set_style()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__slot_context_menu)
         self._root.signal_main_ptr_moved.connect(self.slot_update_value)
         self.slot_update_value()
 
-    def __setup_ui(self):
-        self._f_value = QLabel(self)
-        self._f_name = QLabel(self)
-        self.setLayout(QVBoxLayout())
-        self.layout().addWidget(self._f_name)
-        self.layout().addWidget(self._f_value)
-        self._set_style()
+    def __mk_widgets(self):
+        self._f_value = QLabel()
+        self._f_name = QLabel()
         self._f_name.setText(self._signal.sid)
+        self._b_side = QWidget(self)
+        self._b_zoom_in = ZoomButton("+")
+        self._b_zoom_0 = ZoomButton("=")
+        self._b_zoom_out = ZoomButton("-")
+
+    def __mk_layout(self):
+        self.setContentsMargins(QMargins())
+        # left side
+        text_side = QWidget(self)
+        text_side.setLayout(QVBoxLayout())
+        text_side.layout().addWidget(self._f_value)
+        text_side.layout().addWidget(self._f_name)
+        text_side.layout().setSpacing(0)
+        # text_side.layout().setContentsMargins(QMargins())
+        # right side
+        self._b_side.setLayout(QVBoxLayout())
+        self._b_side.layout().addWidget(self._b_zoom_in)
+        self._b_side.layout().addWidget(self._b_zoom_0)
+        self._b_side.layout().addWidget(self._b_zoom_out)
+        self._b_side.layout().setSpacing(0)
+        self._b_side.layout().setContentsMargins(QMargins())
+        # altogether
+        self.setLayout(QHBoxLayout(self))
+        self.layout().setSpacing(0)
+        self.layout().setContentsMargins(QMargins())
+        self.layout().addWidget(text_side)
+        self.layout().addWidget(self._b_side)
+        self.layout().setStretch(0, 1)
+        self.layout().setStretch(1, 0)
 
     def _set_style(self):
         self.setStyleSheet("QLabel { color : rgb(%d,%d,%d); }" % self._signal.rgb)
@@ -168,6 +207,7 @@ class AnalogSignalCtrlView(SignalCtrlView):
 class StatusSignalCtrlView(SignalCtrlView):
     def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root):
         super().__init__(signal, parent, root)
+        self._b_side.hide()
 
     def _do_sig_property(self):
         """Show/set signal properties"""
