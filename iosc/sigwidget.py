@@ -2,8 +2,8 @@
 TODO: try __slots__"""
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins, pyqtSignal
-from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent
-from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout
+from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QResizeEvent
+from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout, QScrollArea
 # 3. 4rd
 from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
@@ -13,7 +13,7 @@ import sigfunc
 from sigprop import AnalogSignalPropertiesDialog, StatusSignalPropertiesDialog
 # x. const
 X_FONT = QFont(*const.XSCALE_FONT)
-D_BRUSH = QBrush(Qt.Dense4Pattern)
+D_BRUSH = QBrush(Qt.DiagCrossPattern)
 ZERO_PEN = QPen(Qt.black)
 NO_PEN = QPen(QColor(255, 255, 255, 0))
 MAIN_PTR_PEN = QPen(QBrush(QColor('orange')), 2)
@@ -252,7 +252,7 @@ class SignalChartView(QCustomPlot):
     _main_ptr_rect: MainPtrRect
     _ptr_onway: bool
 
-    def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget, root: QWidget,
+    def __init__(self, signal: mycomtrade.Signal, parent: QScrollArea, root: QWidget,
                  sibling: SignalCtrlView):
         super().__init__(parent)
         self._root = root
@@ -274,6 +274,7 @@ class SignalChartView(QCustomPlot):
         # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
         # self.yAxis.setRange(ymin - ypad, ymax + ypad)  # #76, not helps
         self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
+        self.setFixedWidth(1000)
         self.mousePress.connect(self.__slot_mouse_press)
         self.mouseMove.connect(self.__slot_mouse_move)
         self.mouseRelease.connect(self.__slot_mouse_release)
@@ -387,9 +388,12 @@ class SignalChartView(QCustomPlot):
 
 
 class AnalogSignalChartView(SignalChartView):
+    __zoom: int
+
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root,
                  sibling: AnalogSignalCtrlView):
         super().__init__(signal, parent, root, sibling)
+        self.__zoom = 1
         self.__rerange()
         self._root.signal_shift_achannels.connect(self.__slot_shift)
 
@@ -409,6 +413,21 @@ class AnalogSignalChartView(SignalChartView):
         self.__rerange()
         self.replot()
 
+    @property
+    def zoom(self):
+        return self.__zoom
+
+    @zoom.setter
+    def zoom(self, z: int):
+        if z != self.zoom:
+            self.__zoom = z
+            self.slot_vresize()
+
+    def slot_vresize(self):
+        h_vscroller = self.parent().height()
+        if self.height() != (new_height := h_vscroller * self.__zoom):
+            self.setFixedHeight(new_height)
+
 
 class StatusSignalChartView(SignalChartView):
     def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
@@ -420,3 +439,20 @@ class StatusSignalChartView(SignalChartView):
         brush = QBrush(D_BRUSH)
         brush.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setBrush(brush)
+
+    def slot_vresize(self):
+        h_vscroller = self.parent().height()
+        if self.height() != (new_height := h_vscroller):
+            self.setFixedHeight(new_height)
+
+
+class SignalScrollArea(QScrollArea):
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # self.horizontalScrollBar().hide()
+
+    def resizeEvent(self, event: QResizeEvent):
+        event.accept()
+        if event.size().height() != event.oldSize().height():
+            self.widget().slot_vresize()
