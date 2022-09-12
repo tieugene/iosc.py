@@ -18,7 +18,6 @@ from wtable import WHeaderView
 class SignalListView(QTableWidget):
     _slist: mycomtrade.SignalList
     _parent: QWidget
-    _ti: int
 
     def __init__(self, slist: mycomtrade.SignalList, parent):
         super().__init__(parent)
@@ -96,13 +95,14 @@ class SignalListView(QTableWidget):
             self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, const.SIG_HEIGHT_DEFAULT_A)
         self.verticalHeader().setMinimumSectionSize(const.SIG_HEIGHT_MIN)
+        self.verticalHeader().setMaximumSectionSize(int(QGuiApplication.screens()[0].availableGeometry().height()*2/3))
         # self.verticalHeader().hide()
 
     def slot_lineup(self):
         """Resize columns according to requirements.
         :fixme: subtract something (vheader width?)
         """
-        w_screen = QGuiApplication.screens()[0].availableGeometry().width()  # all available screen (e.g. 1280)
+        w_screen = QGuiApplication.screens()[0].availableGeometry().width()  # all available desktop (e.g. 1280)
         w_main = QGuiApplication.topLevelWindows()[0].width()  # current main window width (e.g. 960)
         w_self = self.width()  # current [table] widget width  (e.g. 940)
         self.setColumnWidth(0, const.COL0_WIDTH)
