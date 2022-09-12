@@ -5,7 +5,7 @@ QTableWidget version
 # 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QDropEvent, QGuiApplication
-from PyQt5.QtWidgets import QTableWidget, QLabel, QWidget
+from PyQt5.QtWidgets import QTableWidget, QLabel, QWidget, QHeaderView
 # 3. local
 import const
 import mycomtrade
@@ -96,7 +96,10 @@ class SignalListView(QTableWidget):
             self.setRowHeight(row, const.SIG_HEIGHT_DEFAULT_A)
         self.verticalHeader().setMinimumSectionSize(const.SIG_HEIGHT_MIN)
         self.verticalHeader().setMaximumSectionSize(int(QGuiApplication.screens()[0].availableGeometry().height()*2/3))
-        # self.verticalHeader().hide()
+        # test
+        # self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # self.verticalHeader().setSectionsMovable(True)
+        self.verticalHeader().hide()
 
     def slot_lineup(self):
         """Resize columns according to requirements.
