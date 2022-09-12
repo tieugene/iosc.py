@@ -465,7 +465,7 @@ class SignalChartView(QCustomPlot):
 class AnalogSignalChartView(SignalChartView):
     __zoom: int
 
-    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root,
+    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root,
                  sibling: AnalogSignalCtrlView):
         super().__init__(signal, parent, root, sibling)
         self.__zoom = 1
@@ -497,6 +497,7 @@ class AnalogSignalChartView(SignalChartView):
         if z != self.zoom:
             self.__zoom = z
             self.slot_vresize()
+            self.parent().parent().slot_set_zoom_factor(z)  # WTF? x2 parents
 
     def slot_vresize(self):
         h_vscroller = self.parent().height()
@@ -522,12 +523,28 @@ class StatusSignalChartView(SignalChartView):
 
 
 class SignalScrollArea(QScrollArea):
+    __zoom_factor: QLabel
+
     def __init__(self, parent: QWidget):
         super().__init__(parent)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         # self.horizontalScrollBar().hide()
+        self.__zoom_factor = QLabel(self)
+        self.__zoom_factor.setVisible(False)
+        self.__zoom_factor.setStyleSheet("QLabel { background-color : red; color : rgba(255,255,255,255) }")
 
     def resizeEvent(self, event: QResizeEvent):
         event.accept()
         if event.size().height() != event.oldSize().height():
             self.widget().slot_vresize()
+
+    def slot_set_zoom_factor(self, z: int):
+        """Set label according to zoom"""
+        if z > 1:
+            if not self.__zoom_factor.isVisible():
+                self.__zoom_factor.setVisible(True)
+            self.__zoom_factor.setText(f"x{z}")
+            self.__zoom_factor.adjustSize()
+        else:
+            self.__zoom_factor.clear()
+            self.__zoom_factor.setVisible(False)
