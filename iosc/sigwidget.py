@@ -119,6 +119,9 @@ class SignalCtrlView(QWidget):
         self._b_zoom_in = ZoomButton("+")
         self._b_zoom_0 = ZoomButton("=")
         self._b_zoom_out = ZoomButton("-")
+        # initial state
+        self._b_zoom_0.setEnabled(False)
+        self._b_zoom_out.setEnabled(False)
 
     def __mk_layout(self):
         self.setContentsMargins(QMargins())
@@ -212,15 +215,23 @@ class AnalogSignalCtrlView(SignalCtrlView):
             self._f_value.setText("%.3f %s" % (pors_y, uu))
 
     def slot_zoom_in(self):
+        if self.sibling.zoom == 1:
+            self._b_zoom_0.setEnabled(True)
+            self._b_zoom_out.setEnabled(True)
         self.sibling.zoom += 1
 
     def slot_zoom_0(self):
         if self.sibling.zoom > 1:
             self.sibling.zoom = 1
+            self._b_zoom_0.setEnabled(False)
+            self._b_zoom_out.setEnabled(False)
 
     def slot_zoom_out(self):
         if self.sibling.zoom > 1:
             self.sibling.zoom -= 1
+            if self.sibling.zoom == 1:
+                self._b_zoom_0.setEnabled(False)
+                self._b_zoom_out.setEnabled(False)
 
 
 class StatusSignalCtrlView(SignalCtrlView):
