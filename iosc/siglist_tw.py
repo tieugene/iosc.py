@@ -99,7 +99,7 @@ class SignalListView(QTableWidget):
         # test
         # self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         # self.verticalHeader().setSectionsMovable(True)
-        self.verticalHeader().hide()
+        # self.verticalHeader().hide()
 
     def slot_lineup(self):
         """Resize columns according to requirements.
