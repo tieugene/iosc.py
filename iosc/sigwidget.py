@@ -1,5 +1,7 @@
 """Signal widgets (chart, ctrl panel).
 TODO: try __slots__"""
+from typing import Optional
+
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins, pyqtSignal
 from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QResizeEvent, QIcon
@@ -80,6 +82,7 @@ class ZoomButton(QPushButton):
         super().__init__(txt, parent)
         self.setContentsMargins(QMargins())  # not helps
         self.setFixedWidth(const.SIG_ZOOM_BTN_WIDTH)
+        # self.setFlat(True)
         # TODO: squeeze
 
 
@@ -92,12 +95,14 @@ class SignalCtrlView(QWidget):
     _b_zoom_in: ZoomButton
     _b_zoom_0: ZoomButton
     _b_zoom_out: ZoomButton
+    sibling: Optional[QCustomPlot]
     signal_restyled = pyqtSignal()
 
     def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget, root: QWidget):
         super().__init__(parent)
         self._signal = signal
         self._root = root
+        self.sibling = None
         self.__mk_widgets()
         self.__mk_layout()
         self._set_style()
@@ -176,6 +181,9 @@ class AnalogSignalCtrlView(SignalCtrlView):
         super().__init__(signal, parent, root)
         self._root.signal_recalc_achannels.connect(self.slot_update_value)
         self._root.signal_shift_achannels.connect(self.slot_update_value)
+        self._b_zoom_in.clicked.connect(self.slot_zoom_in)
+        self._b_zoom_0.clicked.connect(self.slot_zoom_0)
+        self._b_zoom_out.clicked.connect(self.slot_zoom_out)
 
     def _do_sig_property(self):
         """Show/set signal properties"""
@@ -202,6 +210,17 @@ class AnalogSignalCtrlView(SignalCtrlView):
             self._f_value.setText("%.3f %s / %.3f°" % (pors_y, uu, d))
         else:
             self._f_value.setText("%.3f %s" % (pors_y, uu))
+
+    def slot_zoom_in(self):
+        self.sibling.zoom += 1
+
+    def slot_zoom_0(self):
+        if self.sibling.zoom > 1:
+            self.sibling.zoom = 1
+
+    def slot_zoom_out(self):
+        if self.sibling.zoom > 1:
+            self.sibling.zoom -= 1
 
 
 class StatusSignalCtrlView(SignalCtrlView):
@@ -297,6 +316,7 @@ class SignalChartView(QCustomPlot):
         super().__init__(parent)
         self._root = root
         self._sibling = sibling
+        self._sibling.sibling = self
         self._signal = signal
         self._ptr_onway = False
         self._old_ptr = OldPtr(self)
