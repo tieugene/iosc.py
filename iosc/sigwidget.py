@@ -1,9 +1,11 @@
 """Signal widgets (chart, ctrl panel).
 TODO: try __slots__"""
+from typing import Optional
+
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins, pyqtSignal
-from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent
-from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout
+from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QResizeEvent, QIcon
+from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout, QScrollArea, QHBoxLayout, QPushButton
 # 3. 4rd
 from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
@@ -13,7 +15,7 @@ import sigfunc
 from sigprop import AnalogSignalPropertiesDialog, StatusSignalPropertiesDialog
 # x. const
 X_FONT = QFont(*const.XSCALE_FONT)
-D_BRUSH = QBrush(Qt.Dense4Pattern)
+D_BRUSH = QBrush(Qt.DiagCrossPattern)
 ZERO_PEN = QPen(Qt.black)
 NO_PEN = QPen(QColor(255, 255, 255, 0))
 MAIN_PTR_PEN = QPen(QBrush(QColor('orange')), 2)
@@ -75,31 +77,76 @@ class TimeAxisView(QCustomPlot):
         self.replot()
 
 
-class SignalCtrlView(QLabel):
+class ZoomButton(QPushButton):
+    def __init__(self, txt: str, parent: QWidget = None):
+        super().__init__(txt, parent)
+        self.setContentsMargins(QMargins())  # not helps
+        self.setFixedWidth(const.SIG_ZOOM_BTN_WIDTH)
+        # self.setFlat(True)
+        # TODO: squeeze
+
+
+class SignalCtrlView(QWidget):
     _root: QWidget
     _signal: mycomtrade.Signal
     _f_name: QLabel
     _f_value: QLabel
+    _b_side: QWidget
+    _b_zoom_in: ZoomButton
+    _b_zoom_0: ZoomButton
+    _b_zoom_out: ZoomButton
+    sibling: Optional[QCustomPlot]
     signal_restyled = pyqtSignal()
 
     def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget, root: QWidget):
         super().__init__(parent)
         self._signal = signal
         self._root = root
-        self.__setup_ui()
+        self.sibling = None
+        self.__mk_widgets()
+        self.__mk_layout()
+        self._set_style()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__slot_context_menu)
         self._root.signal_main_ptr_moved.connect(self.slot_update_value)
         self.slot_update_value()
 
-    def __setup_ui(self):
-        self._f_value = QLabel(self)
-        self._f_name = QLabel(self)
-        self.setLayout(QVBoxLayout())
-        self.layout().addWidget(self._f_name)
-        self.layout().addWidget(self._f_value)
-        self._set_style()
+    def __mk_widgets(self):
+        self._f_value = QLabel()
+        self._f_name = QLabel()
         self._f_name.setText(self._signal.sid)
+        self._b_side = QWidget(self)
+        self._b_zoom_in = ZoomButton("+")
+        self._b_zoom_0 = ZoomButton("=")
+        self._b_zoom_out = ZoomButton("-")
+        # initial state
+        self._b_zoom_0.setEnabled(False)
+        self._b_zoom_out.setEnabled(False)
+
+    def __mk_layout(self):
+        self.setContentsMargins(QMargins())
+        # left side
+        text_side = QWidget(self)
+        text_side.setLayout(QVBoxLayout())
+        text_side.layout().addWidget(self._f_value)
+        text_side.layout().addWidget(self._f_name)
+        text_side.layout().setSpacing(0)
+        # text_side.layout().setContentsMargins(QMargins())
+        # right side
+        self._b_side.setLayout(QVBoxLayout())
+        self._b_side.layout().addWidget(self._b_zoom_in)
+        self._b_side.layout().addWidget(self._b_zoom_0)
+        self._b_side.layout().addWidget(self._b_zoom_out)
+        self._b_side.layout().setSpacing(0)
+        self._b_side.layout().setContentsMargins(QMargins())
+        # altogether
+        self.setLayout(QHBoxLayout(self))
+        self.layout().setSpacing(0)
+        self.layout().setContentsMargins(QMargins())
+        self.layout().addWidget(text_side)
+        self.layout().addWidget(self._b_side)
+        self.layout().setStretch(0, 1)
+        self.layout().setStretch(1, 0)
 
     def _set_style(self):
         self.setStyleSheet("QLabel { color : rgb(%d,%d,%d); }" % self._signal.rgb)
@@ -137,6 +184,9 @@ class AnalogSignalCtrlView(SignalCtrlView):
         super().__init__(signal, parent, root)
         self._root.signal_recalc_achannels.connect(self.slot_update_value)
         self._root.signal_shift_achannels.connect(self.slot_update_value)
+        self._b_zoom_in.clicked.connect(self.slot_zoom_in)
+        self._b_zoom_0.clicked.connect(self.slot_zoom_0)
+        self._b_zoom_out.clicked.connect(self.slot_zoom_out)
 
     def _do_sig_property(self):
         """Show/set signal properties"""
@@ -164,10 +214,30 @@ class AnalogSignalCtrlView(SignalCtrlView):
         else:
             self._f_value.setText("%.3f %s" % (pors_y, uu))
 
+    def slot_zoom_in(self):
+        if self.sibling.zoom == 1:
+            self._b_zoom_0.setEnabled(True)
+            self._b_zoom_out.setEnabled(True)
+        self.sibling.zoom += 1
+
+    def slot_zoom_0(self):
+        if self.sibling.zoom > 1:
+            self.sibling.zoom = 1
+            self._b_zoom_0.setEnabled(False)
+            self._b_zoom_out.setEnabled(False)
+
+    def slot_zoom_out(self):
+        if self.sibling.zoom > 1:
+            self.sibling.zoom -= 1
+            if self.sibling.zoom == 1:
+                self._b_zoom_0.setEnabled(False)
+                self._b_zoom_out.setEnabled(False)
+
 
 class StatusSignalCtrlView(SignalCtrlView):
     def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root):
         super().__init__(signal, parent, root)
+        self._b_side.hide()
 
     def _do_sig_property(self):
         """Show/set signal properties"""
@@ -252,11 +322,12 @@ class SignalChartView(QCustomPlot):
     _main_ptr_rect: MainPtrRect
     _ptr_onway: bool
 
-    def __init__(self, signal: mycomtrade.Signal, parent: QTableWidget, root: QWidget,
+    def __init__(self, signal: mycomtrade.Signal, parent: QScrollArea, root: QWidget,
                  sibling: SignalCtrlView):
         super().__init__(parent)
         self._root = root
         self._sibling = sibling
+        self._sibling.sibling = self
         self._signal = signal
         self._ptr_onway = False
         self._old_ptr = OldPtr(self)
@@ -274,6 +345,7 @@ class SignalChartView(QCustomPlot):
         # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
         # self.yAxis.setRange(ymin - ypad, ymax + ypad)  # #76, not helps
         self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
+        self.setFixedWidth(1000)
         self.mousePress.connect(self.__slot_mouse_press)
         self.mouseMove.connect(self.__slot_mouse_move)
         self.mouseRelease.connect(self.__slot_mouse_release)
@@ -387,9 +459,12 @@ class SignalChartView(QCustomPlot):
 
 
 class AnalogSignalChartView(SignalChartView):
+    __zoom: int
+
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root,
                  sibling: AnalogSignalCtrlView):
         super().__init__(signal, parent, root, sibling)
+        self.__zoom = 1
         self.__rerange()
         self._root.signal_shift_achannels.connect(self.__slot_shift)
 
@@ -409,6 +484,21 @@ class AnalogSignalChartView(SignalChartView):
         self.__rerange()
         self.replot()
 
+    @property
+    def zoom(self):
+        return self.__zoom
+
+    @zoom.setter
+    def zoom(self, z: int):
+        if z != self.zoom:
+            self.__zoom = z
+            self.slot_vresize()
+
+    def slot_vresize(self):
+        h_vscroller = self.parent().height()
+        if self.height() != (new_height := h_vscroller * self.__zoom):
+            self.setFixedHeight(new_height)
+
 
 class StatusSignalChartView(SignalChartView):
     def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
@@ -420,3 +510,20 @@ class StatusSignalChartView(SignalChartView):
         brush = QBrush(D_BRUSH)
         brush.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setBrush(brush)
+
+    def slot_vresize(self):
+        h_vscroller = self.parent().height()
+        if self.height() != (new_height := h_vscroller):
+            self.setFixedHeight(new_height)
+
+
+class SignalScrollArea(QScrollArea):
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # self.horizontalScrollBar().hide()
+
+    def resizeEvent(self, event: QResizeEvent):
+        event.accept()
+        if event.size().height() != event.oldSize().height():
+            self.widget().slot_vresize()

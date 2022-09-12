@@ -11,7 +11,7 @@ import const
 import mycomtrade
 from sigwidget import TimeAxisView, \
     AnalogSignalCtrlView, AnalogSignalChartView, \
-    StatusSignalCtrlView, StatusSignalChartView
+    StatusSignalCtrlView, StatusSignalChartView, SignalScrollArea
 from wtable import WHeaderView
 
 
@@ -83,13 +83,17 @@ class SignalListView(QTableWidget):
 
     def __apply_row(self, row: int, i: int):
         signal = self._slist[i]
+        sa = SignalScrollArea(self)
         if signal.is_bool:
             self.setCellWidget(row, 0, ctrl := StatusSignalCtrlView(signal, self, self._parent))
-            self.setCellWidget(row, 1, StatusSignalChartView(signal, self, self._parent, ctrl))
+            # self.setCellWidget(row, 1, StatusSignalChartView(signal, self, self._parent, ctrl))
+            sa.setWidget(StatusSignalChartView(signal, sa, self._parent, ctrl))
+            self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, const.SIG_D_HEIGHT)
         else:
             self.setCellWidget(row, 0, ctrl := AnalogSignalCtrlView(signal, self, self._parent))
-            self.setCellWidget(row, 1, AnalogSignalChartView(signal, self, self._parent, ctrl))
+            sa.setWidget(AnalogSignalChartView(signal, sa, self._parent, ctrl))
+            self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, const.SIG_A_HEIGHT)
 
     def slot_lineup(self):
