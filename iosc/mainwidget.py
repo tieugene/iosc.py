@@ -11,8 +11,9 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget, QMenuBa
     QFileDialog, QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
 import mycomtrade
+import const
 from convtrade import convert, ConvertError
-from siglist_tw import AnalogSignalListView, StatusSignalListView
+from siglist_tw import AnalogSignalListView, StatusSignalListView, TimeAxisTable
 
 # x. const
 TICK_RANGE = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000)
@@ -62,13 +63,15 @@ class ComtradeWidget(QWidget):
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
+    timeaxis_table: TimeAxisTable
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
     viewas_toolbutton: QToolButton
     # signals
-    signal_main_ptr_moved = pyqtSignal()
-    signal_recalc_achannels = pyqtSignal()
-    signal_shift_achannels = pyqtSignal()
+    signal_main_ptr_moved = pyqtSignal()  # refresh Signal(Ctrl/Chart)View on MainPtr moved
+    signal_recalc_achannels = pyqtSignal()  # recalc ASignalCtrlView on ...
+    signal_shift_achannels = pyqtSignal()  # refresh ASignal*View on switching original/shifted
+    signal_xscale = pyqtSignal(int)  # set signal chart widths
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
@@ -113,6 +116,7 @@ class ComtradeWidget(QWidget):
     def __mk_widgets(self):
         self.menubar = QMenuBar()
         self.toolbar = QToolBar(self)
+        self.timeaxis_table = TimeAxisTable(self.__osc, self)
         self.analog_table = AnalogSignalListView(self.__osc.analog, self)
         self.status_table = StatusSignalListView(self.__osc.status, self)
         self.viewas_toolbutton = QToolButton(self)
@@ -268,6 +272,8 @@ class ComtradeWidget(QWidget):
         topbar.layout().addWidget(self.menubar)
         topbar.layout().addWidget(self.toolbar)
         self.layout().addWidget(topbar)
+        self.layout().addWidget(self.timeaxis_table)
+        # self.layout().set  # FIXME: minimize
         splitter = QSplitter(Qt.Vertical, self)
         splitter.setStyleSheet("QSplitter::handle{background: grey;}")
         splitter.addWidget(self.analog_table)
@@ -354,6 +360,7 @@ class ComtradeWidget(QWidget):
         self.signal_recalc_achannels.emit()
 
     def __sync_hscrolls(self, index):
+        # self.timeaxis_table.horizontalScrollBar().setValue(index)
         self.analog_table.horizontalScrollBar().setValue(index)
         self.status_table.horizontalScrollBar().setValue(index)
 
@@ -364,6 +371,7 @@ class ComtradeWidget(QWidget):
         :param new_size: New size
         :return:
         """
+        self.timeaxis_table.horizontalHeader().resizeSection(l_index, new_size)
         self.analog_table.horizontalHeader().resizeSection(l_index, new_size)
         self.status_table.horizontalHeader().resizeSection(l_index, new_size)
 
@@ -371,8 +379,14 @@ class ComtradeWidget(QWidget):
         """
         Line up table colums (and rows further) according to requirements and actual geometry.
         """
-        self.analog_table.slot_lineup()
-        self.status_table.slot_lineup()
+        w_screen = QGuiApplication.screens()[0].availableGeometry().width()  # all available desktop (e.g. 1280)
+        w_main = QGuiApplication.topLevelWindows()[0].width()  # current main window width (e.g. 960)
+        w_self = self.analog_table.width()  # current [table] widget width  (e.g. 940)
+        chart_width = w_self + (w_screen - w_main) - const.COL0_WIDTH  # - const.MAGIC_WIDHT
+        # print(chart_width)
+        self.signal_xscale.emit(chart_width * 2)
+        # self.analog_table.slot_lineup()
+        # self.status_table.slot_lineup()
 
     def slot_main_ptr_moved_x(self, x: float):
         """
