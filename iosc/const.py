@@ -1,5 +1,6 @@
 COL0_WIDTH = 155  # 180-25
-XSCALE_HEIGHT = 24  # height of timeline, px
+XSCALE_HEIGHT = 24  # height of timeline widget, px
+XSCALE_H_PAD = 4
 XSCALE_FONT = ('mono', 8)  # font of timeline ticks labels
 SIG_HEIGHT_MIN = 48  # FIXME: dirty hack
 SIG_HEIGHT_DEFAULT_A = 100  # height of analog signal row, px

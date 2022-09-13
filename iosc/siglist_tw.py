@@ -28,11 +28,16 @@ class TimeAxisTable(QTableWidget):
         self.time_axis = TimeAxisView(self.__osc.raw.time[0], self.__osc.raw.trigger_time, self.__osc.raw.time[-1], sa, parent)
         sa.setWidget(self.time_axis)
         self.setCellWidget(0, 1, sa)
+        self.setEditTriggers(self.NoEditTriggers)
+        self.setSelectionMode(self.NoSelection)
         self.setColumnWidth(0, const.COL0_WIDTH)
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().hide()
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.resizeRowsToContents()
         # self.setRowHeight(0, const.XSCALE_HEIGHT)
+        self.setFixedHeight(self.rowHeight(0) + const.XSCALE_H_PAD)
 
 
 class SignalListView(QTableWidget):

@@ -85,8 +85,6 @@ class TimeAxisView(QCustomPlot):
 class TimeAxisScrollArea(QScrollArea):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
-        # self.verticalScrollBar().setEnabled(False)  # not helps
-        # self.horizontalScrollBar().hide()  # not helps
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 

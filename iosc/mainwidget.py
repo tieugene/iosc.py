@@ -267,9 +267,13 @@ class ComtradeWidget(QWidget):
 
     def __mk_layout(self):
         self.setLayout(QVBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.layout().setSpacing(0)
         # 1. top
         topbar = QWidget()
         topbar.setLayout(QHBoxLayout())
+        topbar.layout().setContentsMargins(0, 0, 0, 0)
+        topbar.layout().setSpacing(0)
         topbar.layout().addWidget(self.menubar)
         topbar.layout().addWidget(self.toolbar)
         self.layout().addWidget(topbar)
@@ -391,7 +395,7 @@ class ComtradeWidget(QWidget):
         w_self = self.analog_table.width()  # current [table] widget width  (e.g. 940)
         chart_width = w_self + (w_screen - w_main) - const.COL0_WIDTH  # - const.MAGIC_WIDHT
         # print(chart_width)
-        self.signal_xscale.emit(chart_width * 2)
+        self.signal_xscale.emit(chart_width)
         # self.analog_table.slot_lineup()
         # self.status_table.slot_lineup()
 
