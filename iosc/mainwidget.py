@@ -296,9 +296,9 @@ class ComtradeWidget(QWidget):
         self.action_pors.triggered.connect(self.__do_pors)
         self.action_viewas.triggered.connect(self.__do_viewas)
         self.analog_table.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
-        self.status_table.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
         self.analog_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
-        self.status_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
+        # self.status_table.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
+        # self.status_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
 
     def __do_file_close(self):  # FIXME: not closes tab
         # self.parent().removeTab(self.__index)
@@ -371,8 +371,8 @@ class ComtradeWidget(QWidget):
         self.signal_recalc_achannels.emit()
 
     def __sync_hscrolls(self, index):
-        # self.timeaxis_table.horizontalScrollBar().setValue(index)
-        self.analog_table.horizontalScrollBar().setValue(index)
+        self.timeaxis_table.horizontalScrollBar().setValue(index)
+        # self.analog_table.horizontalScrollBar().setValue(index)  # don't touch itself
         self.status_table.horizontalScrollBar().setValue(index)
 
     def __sync_hresize(self, l_index: int, _: int, new_size: int):
@@ -383,7 +383,7 @@ class ComtradeWidget(QWidget):
         :return:
         """
         self.timeaxis_table.horizontalHeader().resizeSection(l_index, new_size)
-        self.analog_table.horizontalHeader().resizeSection(l_index, new_size)
+        # self.analog_table.horizontalHeader().resizeSection(l_index, new_size)  # don't touch itself
         self.status_table.horizontalHeader().resizeSection(l_index, new_size)
 
     def line_up(self):
