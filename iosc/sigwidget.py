@@ -480,12 +480,12 @@ class SignalChartView(QCustomPlot):
 
 
 class AnalogSignalChartView(SignalChartView):
-    __zoom: int
+    __vzoom: int
 
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root,
                  sibling: AnalogSignalCtrlView):
         super().__init__(signal, parent, root, sibling)
-        self.__zoom = 1
+        self.__vzoom = 1
         self.__rerange()
         self._root.signal_shift_achannels.connect(self.__slot_shift)
 
@@ -507,18 +507,18 @@ class AnalogSignalChartView(SignalChartView):
 
     @property
     def zoom(self):
-        return self.__zoom
+        return self.__vzoom
 
     @zoom.setter
     def zoom(self, z: int):
-        if z != self.zoom:
-            self.__zoom = z
+        if z != self.__vzoom:
+            self.__vzoom = z
             self.slot_vresize()
             self.parent().parent().slot_set_zoom_factor(z)  # WTF? x2 parents
 
     def slot_vresize(self):
         h_vscroller = self.parent().height()
-        if self.height() != (new_height := h_vscroller * self.__zoom):
+        if self.height() != (new_height := h_vscroller * self.__vzoom):
             self.setFixedHeight(new_height)
 
 
@@ -540,15 +540,15 @@ class StatusSignalChartView(SignalChartView):
 
 
 class SignalScrollArea(QScrollArea):
-    __zoom_factor: QLabel
+    __vzoom_factor: QLabel
 
     def __init__(self, parent: QWidget):
         super().__init__(parent)
         #self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         # self.horizontalScrollBar().hide()
-        self.__zoom_factor = QLabel(self)
-        self.__zoom_factor.setVisible(False)
-        self.__zoom_factor.setStyleSheet("QLabel { background-color : red; color : rgba(255,255,255,255) }")
+        self.__vzoom_factor = QLabel(self)
+        self.__vzoom_factor.setVisible(False)
+        self.__vzoom_factor.setStyleSheet("QLabel { background-color : red; color : rgba(255,255,255,255) }")
 
     def resizeEvent(self, event: QResizeEvent):
         event.accept()
@@ -558,10 +558,10 @@ class SignalScrollArea(QScrollArea):
     def slot_set_zoom_factor(self, z: int):
         """Set label according to zoom"""
         if z > 1:
-            if not self.__zoom_factor.isVisible():
-                self.__zoom_factor.setVisible(True)
-            self.__zoom_factor.setText(f"x{z}")
-            self.__zoom_factor.adjustSize()
+            if not self.__vzoom_factor.isVisible():
+                self.__vzoom_factor.setVisible(True)
+            self.__vzoom_factor.setText(f"x{z}")
+            self.__vzoom_factor.adjustSize()
         else:
-            self.__zoom_factor.clear()
-            self.__zoom_factor.setVisible(False)
+            self.__vzoom_factor.clear()
+            self.__vzoom_factor.setVisible(False)

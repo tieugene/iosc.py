@@ -295,9 +295,8 @@ class ComtradeWidget(QWidget):
         self.action_shift.triggered.connect(self.__do_shift)
         self.action_pors.triggered.connect(self.__do_pors)
         self.action_viewas.triggered.connect(self.__do_viewas)
-        self.analog_table.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
+        # self.analog_table.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
         self.analog_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
-        # self.status_table.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
         # self.status_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
 
     def __do_file_close(self):  # FIXME: not closes tab
@@ -350,12 +349,12 @@ class ComtradeWidget(QWidget):
         self.status_table.slot_unhide()
 
     def __do_vzoom_in(self):
-        self.analog_table.slot_zoom_in()
-        self.status_table.slot_zoom_in()
+        self.analog_table.slot_vzoom_in()
+        self.status_table.slot_vzoom_in()
 
     def __do_vzoom_out(self):
-        self.analog_table.slot_zoom_out()
-        self.status_table.slot_zoom_out()
+        self.analog_table.slot_vzoom_out()
+        self.status_table.slot_vzoom_out()
 
     def __do_shift(self, _: QAction):
         self.__osc.shifted = self.action_shift_yes.isChecked()

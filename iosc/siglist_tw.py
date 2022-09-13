@@ -52,8 +52,7 @@ class SignalListView(QTableWidget):
         self.setRowCount(len(slist))
         self.setEditTriggers(self.NoEditTriggers)
         self.setVerticalScrollMode(self.ScrollPerPixel)
-        # self.setHorizontalScrollMode(self.ScrollPerPixel)
-        # self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # not helps
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # not helps
         self.verticalHeader().setMinimumSectionSize(const.SIG_HEIGHT_MIN)
         self.verticalHeader().setMaximumSectionSize(int(QGuiApplication.screens()[0].availableGeometry().height()*2/3))
         # self.setAutoScroll(False)
@@ -141,12 +140,12 @@ class SignalListView(QTableWidget):
         """
         return self.cellWidget(row, 0).whoami()
 
-    def slot_zoom_in(self):
+    def slot_vzoom_in(self):
         for row in range(self.rowCount()):
             if not self.cellWidget(row, 0).signal.is_bool:
                 self.setRowHeight(row, int(self.rowHeight(row) * 1.2))
 
-    def slot_zoom_out(self):
+    def slot_vzoom_out(self):
         for row in range(self.rowCount()):
             if not self.cellWidget(row, 0).signal.is_bool:
                 self.setRowHeight(row, int(self.rowHeight(row) / 1.2))
@@ -162,4 +161,5 @@ class AnalogSignalListView(SignalListView):
 class StatusSignalListView(SignalListView):
     def __init__(self, slist: mycomtrade.StatusSignalList, parent):
         super().__init__(slist, parent)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.horizontalHeader().hide()
