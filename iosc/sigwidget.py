@@ -57,6 +57,7 @@ class TimeAxisView(QCustomPlot):
         self.xAxis.setTickLabelSide(QCPAxis.lsInside)
         self.xAxis.grid().setVisible(False)
         self.xAxis.setPadding(0)
+        self.setFixedHeight(const.XSCALE_HEIGHT)
 
     def __set_style(self):
         # TODO: setLabelFormat("%d")
@@ -84,6 +85,10 @@ class TimeAxisView(QCustomPlot):
 class TimeAxisScrollArea(QScrollArea):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
+        # self.verticalScrollBar().setEnabled(False)  # not helps
+        # self.horizontalScrollBar().hide()  # not helps
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
 
 class ZoomButton(QPushButton):

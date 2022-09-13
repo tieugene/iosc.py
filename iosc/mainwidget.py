@@ -267,18 +267,25 @@ class ComtradeWidget(QWidget):
 
     def __mk_layout(self):
         self.setLayout(QVBoxLayout())
+        # 1. top
         topbar = QWidget()
         topbar.setLayout(QHBoxLayout())
         topbar.layout().addWidget(self.menubar)
         topbar.layout().addWidget(self.toolbar)
         self.layout().addWidget(topbar)
+        # self.layout().setStretch(0, 0)
+        # 2. timeline
         self.layout().addWidget(self.timeaxis_table)
         # self.layout().set  # FIXME: minimize
+        # self.layout().setStretch(1, 0)
+        # 3. 2 x signal tables
         splitter = QSplitter(Qt.Vertical, self)
         splitter.setStyleSheet("QSplitter::handle{background: grey;}")
         splitter.addWidget(self.analog_table)
         splitter.addWidget(self.status_table)
         self.layout().addWidget(splitter)
+        # self.layout().setStretch(2, 1)
+        # self.layout().setStretch(3, 1)
 
     def __mk_connections(self):
         self.action_shift.triggered.connect(self.__do_shift)

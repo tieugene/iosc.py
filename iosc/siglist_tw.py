@@ -23,9 +23,9 @@ class TimeAxisTable(QTableWidget):
         self.__osc = osc
         self.setColumnCount(2)
         self.setRowCount(1)
-        self.time_axis = TimeAxisView(self.__osc.raw.time[0], self.__osc.raw.trigger_time, self.__osc.raw.time[-1], self, parent)
         self.setItem(0, 0, QTableWidgetItem())
         sa = TimeAxisScrollArea(self)
+        self.time_axis = TimeAxisView(self.__osc.raw.time[0], self.__osc.raw.trigger_time, self.__osc.raw.time[-1], sa, parent)
         sa.setWidget(self.time_axis)
         self.setCellWidget(0, 1, sa)
         self.setColumnWidth(0, const.COL0_WIDTH)
