@@ -5,14 +5,39 @@ QTableWidget version
 # 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QDropEvent, QGuiApplication
-from PyQt5.QtWidgets import QTableWidget, QLabel, QWidget, QHeaderView
+from PyQt5.QtWidgets import QTableWidget, QLabel, QWidget, QHeaderView, QTableWidgetItem
 # 3. local
 import const
 import mycomtrade
 from sigwidget import TimeAxisView, \
     AnalogSignalCtrlView, AnalogSignalChartView, \
-    StatusSignalCtrlView, StatusSignalChartView, SignalScrollArea
-from wtable import WHeaderView
+    StatusSignalCtrlView, StatusSignalChartView, SignalScrollArea, TimeAxisScrollArea
+
+
+class TimeAxisTable(QTableWidget):
+    __osc: mycomtrade.MyComtrade
+    time_axis: TimeAxisView
+
+    def __init__(self, osc: mycomtrade.MyComtrade, parent):
+        super().__init__(parent)
+        self.__osc = osc
+        self.setColumnCount(2)
+        self.setRowCount(1)
+        self.setItem(0, 0, QTableWidgetItem())
+        sa = TimeAxisScrollArea(self)
+        self.time_axis = TimeAxisView(self.__osc.raw.time[0], self.__osc.raw.trigger_time, self.__osc.raw.time[-1], sa, parent)
+        sa.setWidget(self.time_axis)
+        self.setCellWidget(0, 1, sa)
+        self.setEditTriggers(self.NoEditTriggers)
+        self.setSelectionMode(self.NoSelection)
+        self.setColumnWidth(0, const.COL0_WIDTH)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().hide()
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.resizeRowsToContents()
+        # self.setRowHeight(0, const.XSCALE_HEIGHT)
+        self.setFixedHeight(self.rowHeight(0) + const.XSCALE_H_PAD)
 
 
 class SignalListView(QTableWidget):
@@ -27,8 +52,19 @@ class SignalListView(QTableWidget):
         self.setRowCount(len(slist))
         self.setEditTriggers(self.NoEditTriggers)
         self.setVerticalScrollMode(self.ScrollPerPixel)
-        self.setHorizontalScrollMode(self.ScrollPerPixel)
+        # self.setHorizontalScrollMode(self.ScrollPerPixel)
+        # self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # not helps
+        self.verticalHeader().setMinimumSectionSize(const.SIG_HEIGHT_MIN)
+        self.verticalHeader().setMaximumSectionSize(int(QGuiApplication.screens()[0].availableGeometry().height()*2/3))
         # self.setAutoScroll(False)
+        self.setColumnWidth(0, const.COL0_WIDTH)
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)
+        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.horizontalHeader().setStretchLastSection(True)
+        # test
+        # self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # self.verticalHeader().setSectionsMovable(True)
+        # self.verticalHeader().hide()
         # DnD
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
@@ -85,7 +121,6 @@ class SignalListView(QTableWidget):
         sa = SignalScrollArea(self)
         if signal.is_bool:
             self.setCellWidget(row, 0, ctrl := StatusSignalCtrlView(signal, self, self._parent))
-            # self.setCellWidget(row, 1, StatusSignalChartView(signal, self, self._parent, ctrl))
             sa.setWidget(StatusSignalChartView(signal, sa, self._parent, ctrl))
             self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, const.SIG_HEIGHT_DEFAULT_D)
@@ -94,22 +129,6 @@ class SignalListView(QTableWidget):
             sa.setWidget(AnalogSignalChartView(signal, sa, self._parent, ctrl))
             self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, const.SIG_HEIGHT_DEFAULT_A)
-        self.verticalHeader().setMinimumSectionSize(const.SIG_HEIGHT_MIN)
-        self.verticalHeader().setMaximumSectionSize(int(QGuiApplication.screens()[0].availableGeometry().height()*2/3))
-        # test
-        # self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        # self.verticalHeader().setSectionsMovable(True)
-        # self.verticalHeader().hide()
-
-    def slot_lineup(self):
-        """Resize columns according to requirements.
-        :fixme: subtract something (vheader width?)
-        """
-        w_screen = QGuiApplication.screens()[0].availableGeometry().width()  # all available desktop (e.g. 1280)
-        w_main = QGuiApplication.topLevelWindows()[0].width()  # current main window width (e.g. 960)
-        w_self = self.width()  # current [table] widget width  (e.g. 940)
-        self.setColumnWidth(0, const.COL0_WIDTH)
-        self.setColumnWidth(1, w_self + (w_screen - w_main) - const.COL0_WIDTH - const.MAGIC_WIDHT)
 
     def slot_unhide(self):
         for row in range(self.rowCount()):
@@ -138,17 +157,6 @@ class AnalogSignalListView(SignalListView):
 
     def __init__(self, slist: mycomtrade.AnalogSignalList, parent):
         super().__init__(slist, parent)
-        self.setHorizontalHeader(WHeaderView(self))
-        self.setHorizontalHeaderLabels(('', ''))  # clean defaults
-        self.horizontalHeader().set_widget(0, QLabel("ms"))
-        self.time_axis = TimeAxisView(slist.raw.time[0], slist.raw.trigger_time, slist.raw.time[-1], self, parent)
-        self.horizontalHeader().set_widget(1, self.time_axis)
-        self.horizontalHeader().setFixedHeight(const.XSCALE_HEIGHT)
-
-    def scrollContentsBy(self, dx: int, dy: int):
-        super().scrollContentsBy(dx, dy)
-        if dx:
-            self.horizontalHeader().fix_widget_positions()
 
 
 class StatusSignalListView(SignalListView):

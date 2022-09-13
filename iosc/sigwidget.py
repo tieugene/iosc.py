@@ -42,8 +42,9 @@ class TimeAxisView(QCustomPlot):
         self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: (ti)
         self.__squeeze()
         self.__set_style()
-        self.__root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
         self.__slot_main_ptr_moved()
+        self.__root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
+        self.__root.signal_xscale.connect(self._slot_chg_width)
 
     def __squeeze(self):
         ar = self.axisRect(0)
@@ -56,6 +57,7 @@ class TimeAxisView(QCustomPlot):
         self.xAxis.setTickLabelSide(QCPAxis.lsInside)
         self.xAxis.grid().setVisible(False)
         self.xAxis.setPadding(0)
+        self.setFixedHeight(const.XSCALE_HEIGHT)
 
     def __set_style(self):
         # TODO: setLabelFormat("%d")
@@ -75,6 +77,16 @@ class TimeAxisView(QCustomPlot):
         self.__main_ptr_label.setText("%.2f" % x)
         self.__main_ptr_label.position.setCoords(x, 0)
         self.replot()
+
+    def _slot_chg_width(self, w: int):
+        self.setFixedWidth(w)
+
+
+class TimeAxisScrollArea(QScrollArea):
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
 
 class ZoomButton(QPushButton):
@@ -355,6 +367,7 @@ class SignalChartView(QCustomPlot):
         self.mouseRelease.connect(self.__slot_mouse_release)
         self._sibling.signal_restyled.connect(self.__slot_signal_restyled)
         self._root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
+        self._root.signal_xscale.connect(self._slot_chg_width)
 
     def _set_data(self):
         z_time = self._signal.raw.trigger_time
@@ -461,6 +474,10 @@ class SignalChartView(QCustomPlot):
         self._set_style()
         self.replot()
 
+    def _slot_chg_width(self, w: int):
+        self.setFixedWidth(w)
+        # self.replot()
+
 
 class AnalogSignalChartView(SignalChartView):
     __zoom: int
@@ -527,7 +544,7 @@ class SignalScrollArea(QScrollArea):
 
     def __init__(self, parent: QWidget):
         super().__init__(parent)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        #self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         # self.horizontalScrollBar().hide()
         self.__zoom_factor = QLabel(self)
         self.__zoom_factor.setVisible(False)
