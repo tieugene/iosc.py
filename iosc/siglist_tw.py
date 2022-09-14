@@ -5,7 +5,7 @@ QTableWidget version
 # 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QDropEvent, QGuiApplication
-from PyQt5.QtWidgets import QTableWidget, QLabel, QWidget, QHeaderView, QTableWidgetItem
+from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem
 # 3. local
 import const
 import mycomtrade
@@ -163,8 +163,6 @@ class SignalListView(QTableWidget):
 
 
 class AnalogSignalListView(SignalListView):
-    time_axis: TimeAxisView
-
     def __init__(self, slist: mycomtrade.AnalogSignalList, parent):
         super().__init__(slist, parent)
 
@@ -172,5 +170,4 @@ class AnalogSignalListView(SignalListView):
 class StatusSignalListView(SignalListView):
     def __init__(self, slist: mycomtrade.StatusSignalList, parent):
         super().__init__(slist, parent)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.horizontalHeader().hide()

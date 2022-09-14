@@ -8,7 +8,7 @@ from typing import Any, Optional
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QGuiApplication
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget, QMenuBar, QToolBar, QAction, QMessageBox, \
-    QFileDialog, QHBoxLayout, QActionGroup, QToolButton, QMenu, QScrollBar
+    QFileDialog, QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
 import mycomtrade
 import const
