@@ -69,7 +69,6 @@ class TimeAxisView(QCustomPlot):
         self.__main_ptr_label = QCPItemText(self)
         t0 = osc.raw.trigger_time
         self.xAxis.setRange((osc.raw.time[0] - t0) * 1000, (osc.raw.time[-1] - t0) * 1000)
-        self.xAxis.ticker().setTickCount(const.TICK_COUNT)  # QCPAxisTicker; FIXME: (ti)
         self.__squeeze()
         self.__set_style()
         self.__slot_main_ptr_moved()
@@ -110,6 +109,8 @@ class TimeAxisView(QCustomPlot):
 
     def _slot_chg_width(self, w: int):  # dafault: 1117
         self.setFixedWidth(w)
+        self.xAxis.ticker().setTickCount(const.TICK_COUNT * self.__root.xzoom)
+        self.replot()
 
 
 class StatusBarView(QCustomPlot):
@@ -443,8 +444,7 @@ class SignalChartView(QCustomPlot):
         # ymax = max(self._signal.value)
         # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
         # self.yAxis.setRange(ymin - ypad, ymax + ypad)  # #76, not helps
-        self.xAxis.ticker().setTickCount(const.TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
-        self.setFixedWidth(1000)
+        # self.setFixedWidth(1000)
         self.mousePress.connect(self.__slot_mouse_press)
         self.mouseMove.connect(self.__slot_mouse_move)
         self.mouseRelease.connect(self.__slot_mouse_release)
@@ -560,6 +560,7 @@ class SignalChartView(QCustomPlot):
     def _slot_chg_width(self, w: int):
         """Changing signal chart real width (px)"""
         self.setFixedWidth(w)
+        self.xAxis.ticker().setTickCount(const.TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
         # self.replot()
 
 
@@ -617,6 +618,7 @@ class AnalogSignalChartView(SignalChartView):
                 shape = QCPScatterStyle.ssPlus
             self.graph().setScatterStyle(QCPScatterStyle(shape))
             self.__pps = pps
+            self.replot()
 
 
 class StatusSignalChartView(SignalChartView):
