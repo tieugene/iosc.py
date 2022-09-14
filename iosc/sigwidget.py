@@ -657,23 +657,24 @@ class AnalogSignalChartView(SignalChartView):
         pps = int(w / len(self._signal.value))
         if self.__pps != pps:
             if pps < const.X_SCATTER_MARK:
-                scatter = QCPScatterStyle(QCPScatterStyle.ssNone)
+                shape = QCPScatterStyle(QCPScatterStyle.ssNone)
             else:
-                scatter = QCPScatterStyle(QCPScatterStyle.ssPlus)
-            # if pps >= const.X_SCATTER_NUM:
-            #    scatter = NumScatterStyle()
-            self.graph().setScatterStyle(scatter)
+                shape = QCPScatterStyle(QCPScatterStyle.ssPlus)
+            self.graph().setScatterStyle(QCPScatterStyle(shape))
+            # <dirtyhack>
+            if self.__pps < const.X_SCATTER_NUM <= pps:
+                self.__fill_nums()
+            elif self.__pps >= const.X_SCATTER_NUM > pps:
+                self.clearItems()
+            # </dirtyhack>
             self.__pps = pps
             self.replot()
 
-
-'''
-class NumScatterStyle(QCPScatterStyle):
-    def __init__(self):
-        super().__init__(QCPScatterStyle.ssCustom)
-        print("My scatter")
-
-    def drawShape(self, painter: QCPPainter, x, y):
-        print("Bingo")
-        # super().drawShape(painter, pos)
-'''
+    def __fill_nums(self):
+        """Fill samples with their numbers"""
+        for i, d in enumerate(self.graph().data()):
+            txt = QCPItemText(self)
+            txt.position.setCoords(d.key, d.value)
+            txt.setPositionAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+            txt.setText(str(i))
+            txt.setFont(QFont('mono', 8))
