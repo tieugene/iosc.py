@@ -116,7 +116,7 @@ class ComtradeWidget(QWidget):
 
     @property
     def chart_width(self):
-        return self.__chart_width
+        return self.__chart_width * self.__xzoom if self.__chart_width is not None else None
 
     @property
     def mptr_x(self) -> float:
@@ -247,6 +247,7 @@ class ComtradeWidget(QWidget):
         self.action_viewas.addAction(self.action_viewas_hrm3).setData(5)
         self.action_viewas.addAction(self.action_viewas_hrm5).setData(6)
         self.action_viewas_is.setChecked(True)
+        self.action_xzoom_out.setEnabled(False)
 
     def __mk_menu(self):
         menu_file = self.menubar.addMenu("&File")
@@ -384,10 +385,17 @@ class ComtradeWidget(QWidget):
         self.status_table.slot_vzoom_out()
 
     def __do_xzoom_in(self):
-        ...
+        self.__xzoom += 1
+        if not self.action_xzoom_out.isEnabled():
+            self.action_xzoom_out.setEnabled(True)
+        self.signal_xscale.emit(self.chart_width)
 
     def __do_xzoom_out(self):
-        ...
+        if self.__xzoom > 1:
+            self.__xzoom -= 1
+            if self.__xzoom == 1:
+                self.action_xzoom_out.setEnabled(False)
+            self.signal_xscale.emit(self.chart_width)
 
     def __do_shift(self, _: QAction):
         self.__osc.shifted = self.action_shift_yes.isChecked()
@@ -424,7 +432,7 @@ class ComtradeWidget(QWidget):
         w_main = QGuiApplication.topLevelWindows()[0].width()  # current main window width (e.g. 960)
         w_self = self.analog_table.width()  # current [table] widget width  (e.g. 940)
         self.__chart_width = w_self + (w_screen - w_main) - const.COL0_WIDTH  # - const.MAGIC_WIDHT
-        self.signal_xscale.emit(self.__chart_width)
+        self.signal_xscale.emit(self.chart_width)
 
     def slot_main_ptr_moved_x(self, x: float):
         """
