@@ -8,7 +8,8 @@ from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QResizeEvent
 from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout, QScrollArea, QHBoxLayout, QPushButton, \
     QScrollBar
 # 3. 4rd
-from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect
+from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect, \
+    QCPScatterStyle
 # 4. local
 import mycomtrade
 import const
@@ -68,7 +69,6 @@ class TimeAxisView(QCustomPlot):
         self.__main_ptr_label = QCPItemText(self)
         t0 = osc.raw.trigger_time
         self.xAxis.setRange((osc.raw.time[0] - t0) * 1000, (osc.raw.time[-1] - t0) * 1000)
-        self.xAxis.ticker().setTickCount(const.TICK_COUNT)  # QCPAxisTicker; FIXME: (ti)
         self.__squeeze()
         self.__set_style()
         self.__slot_main_ptr_moved()
@@ -109,6 +109,8 @@ class TimeAxisView(QCustomPlot):
 
     def _slot_chg_width(self, w: int):  # dafault: 1117
         self.setFixedWidth(w)
+        self.xAxis.ticker().setTickCount(const.TICK_COUNT * self.__root.xzoom)
+        self.replot()
 
 
 class StatusBarView(QCustomPlot):
@@ -277,6 +279,21 @@ class SignalCtrlView(QWidget):
         return self._signal
 
 
+class StatusSignalCtrlView(SignalCtrlView):
+    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root):
+        super().__init__(signal, parent, root)
+        self._b_side.hide()
+
+    def _do_sig_property(self):
+        """Show/set signal properties"""
+        if StatusSignalPropertiesDialog(self._signal).execute():
+            self._set_style()
+            self.signal_restyled.emit()
+
+    def slot_update_value(self):
+        self._f_value.setText("%d" % self._signal.value[self._root.mptr])
+
+
 class AnalogSignalCtrlView(SignalCtrlView):
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root: QWidget):
         super().__init__(signal, parent, root)
@@ -332,19 +349,32 @@ class AnalogSignalCtrlView(SignalCtrlView):
                 self._b_zoom_out.setEnabled(False)
 
 
-class StatusSignalCtrlView(SignalCtrlView):
-    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root):
-        super().__init__(signal, parent, root)
-        self._b_side.hide()
+class SignalScrollArea(QScrollArea):
+    __vzoom_factor: QLabel
 
-    def _do_sig_property(self):
-        """Show/set signal properties"""
-        if StatusSignalPropertiesDialog(self._signal).execute():
-            self._set_style()
-            self.signal_restyled.emit()
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # self.horizontalScrollBar().hide()
+        self.__vzoom_factor = QLabel(self)
+        self.__vzoom_factor.setVisible(False)
+        self.__vzoom_factor.setStyleSheet("QLabel { background-color : red; color : rgba(255,255,255,255) }")
 
-    def slot_update_value(self):
-        self._f_value.setText("%d" % self._signal.value[self._root.mptr])
+    def resizeEvent(self, event: QResizeEvent):
+        event.accept()
+        if event.size().height() != event.oldSize().height():
+            self.widget().slot_vresize()
+
+    def slot_set_zoom_factor(self, z: int):
+        """Set label according to zoom"""
+        if z > 1:
+            if not self.__vzoom_factor.isVisible():
+                self.__vzoom_factor.setVisible(True)
+            self.__vzoom_factor.setText(f"x{z}")
+            self.__vzoom_factor.adjustSize()
+        else:
+            self.__vzoom_factor.clear()
+            self.__vzoom_factor.setVisible(False)
 
 
 class MainPtr(QCPItemTracer):
@@ -442,8 +472,7 @@ class SignalChartView(QCustomPlot):
         # ymax = max(self._signal.value)
         # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
         # self.yAxis.setRange(ymin - ypad, ymax + ypad)  # #76, not helps
-        self.xAxis.ticker().setTickCount(const.TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
-        self.setFixedWidth(1000)
+        # self.setFixedWidth(1000)
         self.mousePress.connect(self.__slot_mouse_press)
         self.mouseMove.connect(self.__slot_mouse_move)
         self.mouseRelease.connect(self.__slot_mouse_release)
@@ -557,17 +586,37 @@ class SignalChartView(QCustomPlot):
         self.replot()
 
     def _slot_chg_width(self, w: int):
+        """Changing signal chart real width (px)"""
         self.setFixedWidth(w)
+        self.xAxis.ticker().setTickCount(const.TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
         # self.replot()
+
+
+class StatusSignalChartView(SignalChartView):
+    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
+                 sibling: SignalCtrlView):
+        super().__init__(signal, parent, root, sibling)
+        self.yAxis.setRange(const.SIG_D_YMIN, const.SIG_D_YMAX)
+
+    def _set_style(self):
+        brush = QBrush(const.D_BRUSH)
+        brush.setColor(QColor.fromRgb(*self._signal.rgb))
+        self.graph().setBrush(brush)
+
+    def slot_vresize(self):
+        h_vscroller = self.parent().height()
+        if self.height() != (new_height := h_vscroller):
+            self.setFixedHeight(new_height)
 
 
 class AnalogSignalChartView(SignalChartView):
     __vzoom: int
+    __pps: int  # px/sample
 
-    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root,
-                 sibling: AnalogSignalCtrlView):
+    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root, sibling: AnalogSignalCtrlView):
         super().__init__(signal, parent, root, sibling)
         self.__vzoom = 1
+        self.__pps = 0
         self.__rerange()
         self._root.signal_shift_achannels.connect(self.__slot_shift)
 
@@ -603,47 +652,29 @@ class AnalogSignalChartView(SignalChartView):
         if self.height() != (new_height := h_vscroller * self.__vzoom):
             self.setFixedHeight(new_height)
 
-
-class StatusSignalChartView(SignalChartView):
-    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
-                 sibling: SignalCtrlView):
-        super().__init__(signal, parent, root, sibling)
-        self.yAxis.setRange(const.SIG_D_YMIN, const.SIG_D_YMAX)
-
-    def _set_style(self):
-        brush = QBrush(const.D_BRUSH)
-        brush.setColor(QColor.fromRgb(*self._signal.rgb))
-        self.graph().setBrush(brush)
-
-    def slot_vresize(self):
-        h_vscroller = self.parent().height()
-        if self.height() != (new_height := h_vscroller):
-            self.setFixedHeight(new_height)
+    def _slot_chg_width(self, w: int):
+        super()._slot_chg_width(w)
+        pps = int(w / len(self._signal.value))
+        if self.__pps != pps:
+            if pps < const.X_SCATTER_MARK:
+                scatter = QCPScatterStyle(QCPScatterStyle.ssNone)
+            elif pps < const.X_SCATTER_NUM:
+                scatter = QCPScatterStyle(QCPScatterStyle.ssPlus)
+            else:
+                # scatter = NumScatterStyle()
+                scatter = QCPScatterStyle(QCPScatterStyle.ssPlusCircle)
+            self.graph().setScatterStyle(scatter)
+            self.__pps = pps
+            self.replot()
 
 
-class SignalScrollArea(QScrollArea):
-    __vzoom_factor: QLabel
+'''
+class NumScatterStyle(QCPScatterStyle):
+    def __init__(self):
+        super().__init__(QCPScatterStyle.ssCustom)
+        print("My scatter")
 
-    def __init__(self, parent: QWidget):
-        super().__init__(parent)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # self.horizontalScrollBar().hide()
-        self.__vzoom_factor = QLabel(self)
-        self.__vzoom_factor.setVisible(False)
-        self.__vzoom_factor.setStyleSheet("QLabel { background-color : red; color : rgba(255,255,255,255) }")
-
-    def resizeEvent(self, event: QResizeEvent):
-        event.accept()
-        if event.size().height() != event.oldSize().height():
-            self.widget().slot_vresize()
-
-    def slot_set_zoom_factor(self, z: int):
-        """Set label according to zoom"""
-        if z > 1:
-            if not self.__vzoom_factor.isVisible():
-                self.__vzoom_factor.setVisible(True)
-            self.__vzoom_factor.setText(f"x{z}")
-            self.__vzoom_factor.adjustSize()
-        else:
-            self.__vzoom_factor.clear()
-            self.__vzoom_factor.setVisible(False)
+    def drawShape(self, painter: QCPPainter, x, y):
+        print("Bingo")
+        # super().drawShape(painter, pos)
+'''
