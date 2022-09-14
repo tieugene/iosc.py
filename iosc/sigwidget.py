@@ -658,11 +658,10 @@ class AnalogSignalChartView(SignalChartView):
         if self.__pps != pps:
             if pps < const.X_SCATTER_MARK:
                 scatter = QCPScatterStyle(QCPScatterStyle.ssNone)
-            elif pps < const.X_SCATTER_NUM:
-                scatter = QCPScatterStyle(QCPScatterStyle.ssPlus)
             else:
-                # scatter = NumScatterStyle()
-                scatter = QCPScatterStyle(QCPScatterStyle.ssPlusCircle)
+                scatter = QCPScatterStyle(QCPScatterStyle.ssPlus)
+            # if pps >= const.X_SCATTER_NUM:
+            #    scatter = NumScatterStyle()
             self.graph().setScatterStyle(scatter)
             self.__pps = pps
             self.replot()
