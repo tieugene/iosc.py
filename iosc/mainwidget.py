@@ -2,18 +2,19 @@
 RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
 import pathlib
-from typing import Any
+from typing import Any, Optional
 
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QGuiApplication
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget, QMenuBar, QToolBar, QAction, QMessageBox, \
-    QFileDialog, QHBoxLayout, QActionGroup, QToolButton, QMenu
+    QFileDialog, QHBoxLayout, QActionGroup, QToolButton, QMenu, QScrollBar
 # 3. local
 import mycomtrade
 import const
 from convtrade import convert, ConvertError
 from siglist_tw import AnalogSignalListView, StatusSignalListView, TimeAxisTable
+from sigwidget import HScroller
 
 # x. const
 TICK_RANGE = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000)
@@ -37,6 +38,7 @@ class ComtradeWidget(QWidget):
     # inner vars
     __mptr: int  # current Main Ptr index in source arrays
     __shifted: bool  # original/shifted selector
+    __chart_width: Optional[int]  # width (px) of nested QCP charts
     show_sec: bool  # pri/sec selector
     viewas: int  # TODO: enum
     # actions
@@ -63,10 +65,11 @@ class ComtradeWidget(QWidget):
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
+    viewas_toolbutton: QToolButton
     timeaxis_table: TimeAxisTable
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
-    viewas_toolbutton: QToolButton
+    hsb: HScroller  # bottom horizontal scroll bar
     # signals
     signal_main_ptr_moved = pyqtSignal()  # refresh Signal(Ctrl/Chart)View on MainPtr moved
     signal_recalc_achannels = pyqtSignal()  # recalc ASignalCtrlView on ...
@@ -79,6 +82,7 @@ class ComtradeWidget(QWidget):
         self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
         self.__mptr = self.__x2n(0)
         self.__shifted = False
+        self.__chart_width = None  # wait for line_up
         self.show_sec = True
         self.viewas = 0
         ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
@@ -106,6 +110,10 @@ class ComtradeWidget(QWidget):
         return self.__osc.shifted
 
     @property
+    def chart_width(self):
+        return self.__chart_width
+
+    @property
     def mptr_x(self) -> float:
         return 1000 * (self.__osc.raw.time[self.__mptr] - self.__osc.raw.trigger_time)
 
@@ -116,10 +124,11 @@ class ComtradeWidget(QWidget):
     def __mk_widgets(self):
         self.menubar = QMenuBar()
         self.toolbar = QToolBar(self)
+        self.viewas_toolbutton = QToolButton(self)
+        self.hsb = HScroller(self)
         self.timeaxis_table = TimeAxisTable(self.__osc, self)
         self.analog_table = AnalogSignalListView(self.__osc.analog, self)
         self.status_table = StatusSignalListView(self.__osc.status, self)
-        self.viewas_toolbutton = QToolButton(self)
 
     def __mk_actions(self):
         self.action_close = QAction(QIcon.fromTheme("window-close"),
@@ -277,25 +286,22 @@ class ComtradeWidget(QWidget):
         topbar.layout().addWidget(self.menubar)
         topbar.layout().addWidget(self.toolbar)
         self.layout().addWidget(topbar)
-        # self.layout().setStretch(0, 0)
         # 2. timeline
         self.layout().addWidget(self.timeaxis_table)
-        # self.layout().set  # FIXME: minimize
-        # self.layout().setStretch(1, 0)
         # 3. 2 x signal tables
         splitter = QSplitter(Qt.Vertical, self)
         splitter.setStyleSheet("QSplitter::handle{background: grey;}")
         splitter.addWidget(self.analog_table)
         splitter.addWidget(self.status_table)
         self.layout().addWidget(splitter)
-        # self.layout().setStretch(2, 1)
-        # self.layout().setStretch(3, 1)
+        # 4. bottom status bar
+        # 5. bottom scrollbar
+        self.layout().addWidget(self.hsb)
 
     def __mk_connections(self):
         self.action_shift.triggered.connect(self.__do_shift)
         self.action_pors.triggered.connect(self.__do_pors)
         self.action_viewas.triggered.connect(self.__do_viewas)
-        # self.analog_table.horizontalScrollBar().valueChanged.connect(self.__sync_hscrolls)
         self.analog_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
         # self.status_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
 
@@ -369,11 +375,6 @@ class ComtradeWidget(QWidget):
         self.viewas_toolbutton.setDefaultAction(a)
         self.signal_recalc_achannels.emit()
 
-    def __sync_hscrolls(self, index):
-        self.timeaxis_table.horizontalScrollBar().setValue(index)
-        # self.analog_table.horizontalScrollBar().setValue(index)  # don't touch itself
-        self.status_table.horizontalScrollBar().setValue(index)
-
     def __sync_hresize(self, l_index: int, _: int, new_size: int):
         """
         :param l_index: Column index
@@ -381,9 +382,11 @@ class ComtradeWidget(QWidget):
         :param new_size: New size
         :return:
         """
-        self.timeaxis_table.horizontalHeader().resizeSection(l_index, new_size)
         # self.analog_table.horizontalHeader().resizeSection(l_index, new_size)  # don't touch itself
+        self.timeaxis_table.horizontalHeader().resizeSection(l_index, new_size)
         self.status_table.horizontalHeader().resizeSection(l_index, new_size)
+        if l_index == 1:  # it is chart column
+            self.hsb.slot_col_resize(new_size)
 
     def line_up(self):
         """
@@ -392,11 +395,8 @@ class ComtradeWidget(QWidget):
         w_screen = QGuiApplication.screens()[0].availableGeometry().width()  # all available desktop (e.g. 1280)
         w_main = QGuiApplication.topLevelWindows()[0].width()  # current main window width (e.g. 960)
         w_self = self.analog_table.width()  # current [table] widget width  (e.g. 940)
-        chart_width = w_self + (w_screen - w_main) - const.COL0_WIDTH  # - const.MAGIC_WIDHT
-        # print(chart_width)
-        self.signal_xscale.emit(chart_width)
-        # self.analog_table.slot_lineup()
-        # self.status_table.slot_lineup()
+        self.__chart_width = w_self + (w_screen - w_main) - const.COL0_WIDTH  # - const.MAGIC_WIDHT
+        self.signal_xscale.emit(self.__chart_width)
 
     def slot_main_ptr_moved_x(self, x: float):
         """

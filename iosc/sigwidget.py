@@ -5,7 +5,8 @@ from typing import Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins, pyqtSignal
 from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QResizeEvent, QIcon
-from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout, QScrollArea, QHBoxLayout, QPushButton
+from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout, QScrollArea, QHBoxLayout, QPushButton, \
+    QScrollBar
 # 3. 4rd
 from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
@@ -13,6 +14,7 @@ import const
 import mycomtrade
 import sigfunc
 from sigprop import AnalogSignalPropertiesDialog, StatusSignalPropertiesDialog
+
 # x. const
 X_FONT = QFont(*const.XSCALE_FONT)
 D_BRUSH = QBrush(Qt.DiagCrossPattern)
@@ -78,7 +80,7 @@ class TimeAxisView(QCustomPlot):
         self.__main_ptr_label.position.setCoords(x, 0)
         self.replot()
 
-    def _slot_chg_width(self, w: int):
+    def _slot_chg_width(self, w: int):  # dafault: 1117
         self.setFixedWidth(w)
 
 
@@ -544,7 +546,7 @@ class SignalScrollArea(QScrollArea):
 
     def __init__(self, parent: QWidget):
         super().__init__(parent)
-        #self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         # self.horizontalScrollBar().hide()
         self.__vzoom_factor = QLabel(self)
         self.__vzoom_factor.setVisible(False)
@@ -565,3 +567,32 @@ class SignalScrollArea(QScrollArea):
         else:
             self.__vzoom_factor.clear()
             self.__vzoom_factor.setVisible(False)
+
+
+class HScroller(QScrollBar):
+    """Bottom scrollbar"""
+    def __init__(self, parent: QWidget):
+        """
+        :param parent:
+        :type parent: ComtradeWidget
+        """
+        super().__init__(Qt.Horizontal, parent)
+        parent.signal_xscale.connect(self.slot_chart_resize)
+
+    def slot_col_resize(self, w: int):
+        """Recalc scroller parm on aim column resized.
+        :param w: New chart column width
+        :todo: link to signal
+        """
+        self.setPageStep(w)
+        if (chart_width := self.parent().chart_width) is not None:
+            self.slot_chart_resize(chart_width)
+
+    def slot_chart_resize(self, w: int):
+        """Recalc scroller parm on aim column resized.
+        :param w: New chart itself width
+        """
+        range_max = w - self.pageStep()
+        self.setRange(0, range_max)
+        if self.value() > range_max:
+            self.setValue(range_max)

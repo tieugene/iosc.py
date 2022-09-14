@@ -9,16 +9,16 @@ from PyQt5.QtWidgets import QTableWidget, QLabel, QWidget, QHeaderView, QTableWi
 # 3. local
 import const
 import mycomtrade
-from sigwidget import TimeAxisView, \
+from sigwidget import TimeAxisScrollArea, TimeAxisView, \
     AnalogSignalCtrlView, AnalogSignalChartView, \
-    StatusSignalCtrlView, StatusSignalChartView, SignalScrollArea, TimeAxisScrollArea
+    StatusSignalCtrlView, StatusSignalChartView, SignalScrollArea
 
 
 class TimeAxisTable(QTableWidget):
     __osc: mycomtrade.MyComtrade
     time_axis: TimeAxisView
 
-    def __init__(self, osc: mycomtrade.MyComtrade, parent):
+    def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
         super().__init__(parent)
         self.__osc = osc
         self.setColumnCount(2)
@@ -38,6 +38,7 @@ class TimeAxisTable(QTableWidget):
         self.resizeRowsToContents()
         # self.setRowHeight(0, const.XSCALE_HEIGHT)
         self.setFixedHeight(self.rowHeight(0) + const.XSCALE_H_PAD)
+        parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
 
 class SignalListView(QTableWidget):
@@ -128,6 +129,7 @@ class SignalListView(QTableWidget):
             sa.setWidget(AnalogSignalChartView(signal, sa, self._parent, ctrl))
             self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, const.SIG_HEIGHT_DEFAULT_A)
+        self._parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
     def slot_unhide(self):
         for row in range(self.rowCount()):
