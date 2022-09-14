@@ -613,8 +613,7 @@ class AnalogSignalChartView(SignalChartView):
     __vzoom: int
     __pps: int  # px/sample
 
-    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root,
-                 sibling: AnalogSignalCtrlView):
+    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root, sibling: AnalogSignalCtrlView):
         super().__init__(signal, parent, root, sibling)
         self.__vzoom = 1
         self.__pps = 0
@@ -655,12 +654,27 @@ class AnalogSignalChartView(SignalChartView):
 
     def _slot_chg_width(self, w: int):
         super()._slot_chg_width(w)
-        pps = int(w/len(self._signal.value))
+        pps = int(w / len(self._signal.value))
         if self.__pps != pps:
             if pps < const.X_SCATTER_MARK:
-                shape = QCPScatterStyle.ssNone
+                scatter = QCPScatterStyle(QCPScatterStyle.ssNone)
+            elif pps < const.X_SCATTER_NUM:
+                scatter = QCPScatterStyle(QCPScatterStyle.ssPlus)
             else:
-                shape = QCPScatterStyle.ssPlus
-            self.graph().setScatterStyle(QCPScatterStyle(shape))
+                # scatter = NumScatterStyle()
+                scatter = QCPScatterStyle(QCPScatterStyle.ssPlusCircle)
+            self.graph().setScatterStyle(scatter)
             self.__pps = pps
             self.replot()
+
+
+'''
+class NumScatterStyle(QCPScatterStyle):
+    def __init__(self):
+        super().__init__(QCPScatterStyle.ssCustom)
+        print("My scatter")
+
+    def drawShape(self, painter: QCPPainter, x, y):
+        print("Bingo")
+        # super().drawShape(painter, pos)
+'''
