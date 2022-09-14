@@ -385,14 +385,14 @@ class ComtradeWidget(QWidget):
         self.status_table.slot_vzoom_out()
 
     def __do_xzoom_in(self):
-        self.__xzoom += 1
+        self.__xzoom *= 2
         if not self.action_xzoom_out.isEnabled():
             self.action_xzoom_out.setEnabled(True)
         self.signal_xscale.emit(self.chart_width)
 
     def __do_xzoom_out(self):
         if self.__xzoom > 1:
-            self.__xzoom -= 1
+            self.__xzoom /= 2
             if self.__xzoom == 1:
                 self.action_xzoom_out.setEnabled(False)
             self.signal_xscale.emit(self.chart_width)
