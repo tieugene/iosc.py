@@ -611,7 +611,7 @@ class AnalogSignalChartView(SignalChartView):
         super()._slot_chg_width(w)
         pps = int(w/len(self._signal.value))
         if self.__pps != pps:
-            if pps < const.X_SCATTER_1:
+            if pps < const.X_SCATTER_MARK:
                 shape = QCPScatterStyle.ssNone
             else:
                 shape = QCPScatterStyle.ssPlus
