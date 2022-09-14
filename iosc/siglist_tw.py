@@ -9,21 +9,16 @@ from PyQt5.QtWidgets import QTableWidget, QLabel, QWidget, QHeaderView, QTableWi
 # 3. local
 import const
 import mycomtrade
-from sigwidget import CleanScrollArea, TimeAxisView, \
+from sigwidget import CleanScrollArea, TimeAxisView, StatusBarView, \
     AnalogSignalCtrlView, AnalogSignalChartView, \
     StatusSignalCtrlView, StatusSignalChartView, SignalScrollArea
 
 
-class TimeAxisTable(QTableWidget):
-    def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
+class OneRowTable(QTableWidget):
+    def __init__(self, parent: QWidget):
         super().__init__(parent)
         self.setColumnCount(2)
         self.setRowCount(1)
-        self.setItem(0, 0, QTableWidgetItem("ms"))
-        sa = CleanScrollArea(self)
-        time_axis = TimeAxisView(osc, parent, sa)
-        sa.setWidget(time_axis)
-        self.setCellWidget(0, 1, sa)
         self.setEditTriggers(self.NoEditTriggers)
         self.setSelectionMode(self.NoSelection)
         self.setColumnWidth(0, const.COL0_WIDTH)
@@ -32,8 +27,26 @@ class TimeAxisTable(QTableWidget):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.resizeRowsToContents()
-        # self.setRowHeight(0, const.XSCALE_HEIGHT)
         self.setFixedHeight(self.rowHeight(0) + const.XSCALE_H_PAD)
+
+
+class TimeAxisTable(OneRowTable):
+    def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
+        super().__init__(parent)
+        self.setItem(0, 0, QTableWidgetItem("ms"))
+        sa = CleanScrollArea(self)
+        sa.setWidget(TimeAxisView(osc, parent, sa))
+        self.setCellWidget(0, 1, sa)
+        parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
+
+
+class StatusBarTable(OneRowTable):
+    def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
+        super().__init__(parent)
+        self.setItem(0, 0, QTableWidgetItem("date will be there"))
+        sa = CleanScrollArea(self)
+        sa.setWidget(StatusBarView(osc, parent, sa))
+        self.setCellWidget(0, 1, sa)
         parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
 
