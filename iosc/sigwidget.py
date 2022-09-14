@@ -1,30 +1,19 @@
 """Signal widgets (chart, ctrl panel).
 TODO: try __slots__"""
 from typing import Optional
-
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins, pyqtSignal
-from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QResizeEvent, QIcon
+from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QResizeEvent
 from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout, QScrollArea, QHBoxLayout, QPushButton, \
     QScrollBar
 # 3. 4rd
 from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
-import const
 import mycomtrade
+import const
 import sigfunc
 from sigprop import AnalogSignalPropertiesDialog, StatusSignalPropertiesDialog
-
 # x. const
-X_FONT = QFont(*const.XSCALE_FONT)
-D_BRUSH = QBrush(Qt.DiagCrossPattern)
-ZERO_PEN = QPen(Qt.black)
-NO_PEN = QPen(QColor(255, 255, 255, 0))
-MAIN_PTR_PEN = QPen(QBrush(QColor('orange')), 2)
-OLD_PTR_PEN = QPen(QBrush(Qt.green), 1, Qt.DotLine)
-PTR_RECT_HEIGHT = 20
-TICK_COUNT = 20
-Y_PAD = 0.1  # upper and lower Y-padding; 0.1 == 10%
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
     mycomtrade.ELineType.Dot: Qt.DotLine,
@@ -80,7 +69,7 @@ class TimeAxisView(QCustomPlot):
         t0 = osc.raw.trigger_time
         tmax = osc.raw.time[-1]
         self.xAxis.setRange((tmin - t0) * 1000, (tmax - t0) * 1000)
-        self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: (ti)
+        self.xAxis.ticker().setTickCount(const.TICK_COUNT)  # QCPAxisTicker; FIXME: (ti)
         self.__squeeze()
         self.__set_style()
         self.__slot_main_ptr_moved()
@@ -102,7 +91,7 @@ class TimeAxisView(QCustomPlot):
 
     def __set_style(self):
         # TODO: setLabelFormat("%d")
-        self.xAxis.setTickLabelFont(X_FONT)
+        self.xAxis.setTickLabelFont(const.X_FONT)
         self.__main_ptr_label.setColor(Qt.white)  # text
         self.__main_ptr_label.setBrush(QBrush(Qt.red))  # rect
         self.__main_ptr_label.setTextAlignment(Qt.AlignCenter)
@@ -303,7 +292,7 @@ class MainPtr(QCPItemTracer):
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
         self.setGraph(cp.graph())
-        self.setPen(MAIN_PTR_PEN)
+        self.setPen(const.MAIN_PTR_PEN)
         self.position.setAxes(cp.xAxis, None)
         # cp.setCursor(QCursor(Qt.CrossCursor))
 
@@ -313,7 +302,7 @@ class OldPtr(QCPItemStraightLine):
 
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
-        self.setPen(OLD_PTR_PEN)
+        self.setPen(const.OLD_PTR_PEN)
         self.setVisible(False)
 
     def move2x(self, x: float):
@@ -356,7 +345,7 @@ class MainPtrRect(QCPItemRect):
     def set2x(self, x: float):
         """Set starting point"""
         yaxis = self.parentPlot().yAxis
-        self.topLeft.setCoords(x, yaxis.pixelToCoord(0) - yaxis.pixelToCoord(PTR_RECT_HEIGHT))
+        self.topLeft.setCoords(x, yaxis.pixelToCoord(0) - yaxis.pixelToCoord(const.PTR_RECT_HEIGHT))
 
     def stretc2x(self, x: float):
         self.bottomRight.setCoords(x, 0)
@@ -394,7 +383,7 @@ class SignalChartView(QCustomPlot):
         # ymax = max(self._signal.value)
         # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
         # self.yAxis.setRange(ymin - ypad, ymax + ypad)  # #76, not helps
-        self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
+        self.xAxis.ticker().setTickCount(const.TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
         self.setFixedWidth(1000)
         self.mousePress.connect(self.__slot_mouse_press)
         self.mouseMove.connect(self.__slot_mouse_move)
@@ -427,9 +416,9 @@ class SignalChartView(QCustomPlot):
 
     def __decorate(self):
         # self.yAxis.grid().setPen(QPen(QColor(255, 255, 255, 0)))
-        self.yAxis.setBasePen(NO_PEN)  # hack
-        self.yAxis.grid().setZeroLinePen(ZERO_PEN)
-        self.xAxis.grid().setZeroLinePen(ZERO_PEN)
+        self.yAxis.setBasePen(const.NO_PEN)  # hack
+        self.yAxis.grid().setZeroLinePen(const.ZERO_PEN)
+        self.xAxis.grid().setZeroLinePen(const.ZERO_PEN)
 
     def _set_style(self):
         ...  # stub
@@ -563,7 +552,7 @@ class StatusSignalChartView(SignalChartView):
         self.yAxis.setRange(const.SIG_D_YMIN, const.SIG_D_YMAX)
 
     def _set_style(self):
-        brush = QBrush(D_BRUSH)
+        brush = QBrush(const.D_BRUSH)
         brush.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setBrush(brush)
 
