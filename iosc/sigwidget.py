@@ -1,5 +1,6 @@
 """Signal widgets (chart, ctrl panel).
 TODO: try __slots__"""
+import datetime
 from typing import Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins, pyqtSignal
@@ -113,19 +114,21 @@ class TimeAxisView(QCustomPlot):
 class StatusBarView(QCustomPlot):
     """:todo: join TimeAxisView"""
     __root: QWidget
+    __zero_timestamp: datetime.datetime
     __zero_ptr_label: QCPItemText
     __main_ptr_label: QCPItemText
 
     def __init__(self, osc: mycomtrade.MyComtrade, root: QWidget, parent: CleanScrollArea):
         super().__init__(parent)
         self.__root = root
+        self.__zero_timestamp = osc.raw.cfg.trigger_timestamp
         self.__zero_ptr_label = QCPItemText(self)
         self.__main_ptr_label = QCPItemText(self)
         t0 = osc.raw.trigger_time
         self.xAxis.setRange((osc.raw.time[0] - t0) * 1000, (osc.raw.time[-1] - t0) * 1000)
         self.__squeeze()
         self.__set_style()
-        self.__zero_ptr_label.setText("time will be there")
+        self.__zero_ptr_label.setText(self.__zero_timestamp.time().isoformat())
         self.__slot_main_ptr_moved()
         self.__root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
         self.__root.signal_xscale.connect(self._slot_chg_width)
@@ -145,7 +148,6 @@ class StatusBarView(QCustomPlot):
     def __set_style(self):
         # zero
         self.__zero_ptr_label.setColor(const.Z_LABEL_COLOR)  # text
-        # self.__zero_ptr_label.setBrush(const.X_LABEL_BRUSH)  # rect
         self.__zero_ptr_label.setTextAlignment(Qt.AlignCenter)
         self.__zero_ptr_label.setFont(const.X_FONT)
         self.__zero_ptr_label.setPadding(QMargins(2, 2, 2, 2))
@@ -159,11 +161,9 @@ class StatusBarView(QCustomPlot):
         self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
 
     def __slot_main_ptr_moved(self):
-        """Repaint/move main ptr value label (%.2f)
-        :fixme: draw in front of ticks
-        """
-        x = self.__root.mptr_x
-        self.__main_ptr_label.setText("%.2f" % x)
+        """Repaint/move main ptr value label"""
+        x = self.__root.mptr_x  # from z-point, , ms
+        self.__main_ptr_label.setText((self.__zero_timestamp + datetime.timedelta(milliseconds=x)).time().isoformat())
         self.__main_ptr_label.position.setCoords(x, 0)
         self.replot()
 

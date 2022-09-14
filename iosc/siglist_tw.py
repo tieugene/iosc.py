@@ -43,7 +43,7 @@ class TimeAxisTable(OneRowTable):
 class StatusBarTable(OneRowTable):
     def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
         super().__init__(parent)
-        self.setItem(0, 0, QTableWidgetItem("date will be there"))
+        self.setItem(0, 0, QTableWidgetItem(osc.raw.cfg.start_timestamp.date().isoformat()))
         sa = CleanScrollArea(self)
         sa.setWidget(StatusBarView(osc, parent, sa))
         self.setCellWidget(0, 1, sa)
