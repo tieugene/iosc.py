@@ -25,3 +25,5 @@ OLD_PTR_PEN = QPen(QBrush(Qt.green), 1, Qt.DotLine)
 PTR_RECT_HEIGHT = 20
 TICK_COUNT = 20
 Y_PAD = 0.1  # upper and lower Y-padding; 0.1 == 10%
+X_SCATTER_1 = 20  # lowest px/sample to show samples as '+'
+X_SCATTER_2 = 50  # lowest px/sample to show samples as No

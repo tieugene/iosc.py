@@ -8,7 +8,8 @@ from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QResizeEvent
 from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout, QScrollArea, QHBoxLayout, QPushButton, \
     QScrollBar
 # 3. 4rd
-from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect
+from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect, \
+    QCPScatterStyle
 # 4. local
 import mycomtrade
 import const
@@ -557,17 +558,20 @@ class SignalChartView(QCustomPlot):
         self.replot()
 
     def _slot_chg_width(self, w: int):
+        """Changing signal chart real width (px)"""
         self.setFixedWidth(w)
         # self.replot()
 
 
 class AnalogSignalChartView(SignalChartView):
     __vzoom: int
+    __pps: int  # px/sample
 
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root,
                  sibling: AnalogSignalCtrlView):
         super().__init__(signal, parent, root, sibling)
         self.__vzoom = 1
+        self.__pps = 0
         self.__rerange()
         self._root.signal_shift_achannels.connect(self.__slot_shift)
 
@@ -602,6 +606,17 @@ class AnalogSignalChartView(SignalChartView):
         h_vscroller = self.parent().height()
         if self.height() != (new_height := h_vscroller * self.__vzoom):
             self.setFixedHeight(new_height)
+
+    def _slot_chg_width(self, w: int):
+        super()._slot_chg_width(w)
+        pps = int(w/len(self._signal.value))
+        if self.__pps != pps:
+            if pps < const.X_SCATTER_1:
+                shape = QCPScatterStyle.ssNone
+            else:
+                shape = QCPScatterStyle.ssPlus
+            self.graph().setScatterStyle(QCPScatterStyle(shape))
+            self.__pps = pps
 
 
 class StatusSignalChartView(SignalChartView):
