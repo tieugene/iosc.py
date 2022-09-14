@@ -9,16 +9,16 @@ from PyQt5.QtWidgets import QTableWidget, QLabel, QWidget, QHeaderView, QTableWi
 # 3. local
 import const
 import mycomtrade
-from sigwidget import TimeAxisView, \
+from sigwidget import TimeAxisScrollArea, TimeAxisView, \
     AnalogSignalCtrlView, AnalogSignalChartView, \
-    StatusSignalCtrlView, StatusSignalChartView, SignalScrollArea, TimeAxisScrollArea
+    StatusSignalCtrlView, StatusSignalChartView, SignalScrollArea
 
 
 class TimeAxisTable(QTableWidget):
     __osc: mycomtrade.MyComtrade
     time_axis: TimeAxisView
 
-    def __init__(self, osc: mycomtrade.MyComtrade, parent):
+    def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
         super().__init__(parent)
         self.__osc = osc
         self.setColumnCount(2)
@@ -38,6 +38,7 @@ class TimeAxisTable(QTableWidget):
         self.resizeRowsToContents()
         # self.setRowHeight(0, const.XSCALE_HEIGHT)
         self.setFixedHeight(self.rowHeight(0) + const.XSCALE_H_PAD)
+        parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
 
 class SignalListView(QTableWidget):
@@ -52,8 +53,7 @@ class SignalListView(QTableWidget):
         self.setRowCount(len(slist))
         self.setEditTriggers(self.NoEditTriggers)
         self.setVerticalScrollMode(self.ScrollPerPixel)
-        # self.setHorizontalScrollMode(self.ScrollPerPixel)
-        # self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # not helps
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # not helps
         self.verticalHeader().setMinimumSectionSize(const.SIG_HEIGHT_MIN)
         self.verticalHeader().setMaximumSectionSize(int(QGuiApplication.screens()[0].availableGeometry().height()*2/3))
         # self.setAutoScroll(False)
@@ -129,6 +129,7 @@ class SignalListView(QTableWidget):
             sa.setWidget(AnalogSignalChartView(signal, sa, self._parent, ctrl))
             self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, const.SIG_HEIGHT_DEFAULT_A)
+        self._parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
     def slot_unhide(self):
         for row in range(self.rowCount()):
@@ -141,12 +142,12 @@ class SignalListView(QTableWidget):
         """
         return self.cellWidget(row, 0).whoami()
 
-    def slot_zoom_in(self):
+    def slot_vzoom_in(self):
         for row in range(self.rowCount()):
             if not self.cellWidget(row, 0).signal.is_bool:
                 self.setRowHeight(row, int(self.rowHeight(row) * 1.2))
 
-    def slot_zoom_out(self):
+    def slot_vzoom_out(self):
         for row in range(self.rowCount()):
             if not self.cellWidget(row, 0).signal.is_bool:
                 self.setRowHeight(row, int(self.rowHeight(row) / 1.2))
@@ -162,4 +163,5 @@ class AnalogSignalListView(SignalListView):
 class StatusSignalListView(SignalListView):
     def __init__(self, slist: mycomtrade.StatusSignalList, parent):
         super().__init__(slist, parent)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.horizontalHeader().hide()
