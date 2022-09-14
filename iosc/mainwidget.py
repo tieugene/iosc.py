@@ -385,16 +385,22 @@ class ComtradeWidget(QWidget):
         self.status_table.slot_vzoom_out()
 
     def __do_xzoom_in(self):
-        self.__xzoom *= 2
-        if not self.action_xzoom_out.isEnabled():
-            self.action_xzoom_out.setEnabled(True)
-        self.signal_xscale.emit(self.chart_width)
+        samples = len(self.__osc.raw.time)
+        if int(self.__chart_width * (zoom_new := self.__xzoom * 2) / samples) <= const.X_SCATTER_MAX:
+            self.__xzoom = zoom_new
+            if not self.action_xzoom_out.isEnabled():
+                self.action_xzoom_out.setEnabled(True)
+            if int(self.__chart_width * self.__xzoom * 2 / samples) > const.X_SCATTER_MAX:
+                self.action_xzoom_in.setEnabled(False)
+            self.signal_xscale.emit(self.chart_width)
 
     def __do_xzoom_out(self):
         if self.__xzoom > 1:
             self.__xzoom /= 2
             if self.__xzoom == 1:
                 self.action_xzoom_out.setEnabled(False)
+            if not self.action_xzoom_in.isEnabled():
+                self.action_xzoom_in.setEnabled(True)
             self.signal_xscale.emit(self.chart_width)
 
     def __do_shift(self, _: QAction):

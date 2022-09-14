@@ -27,4 +27,4 @@ TICK_COUNT = 20
 Y_PAD = 0.1  # upper and lower Y-padding; 0.1 == 10%
 X_SCATTER_MARK = 20  # lowest px/sample to show samples as '+'
 X_SCATTER_NUM = 50  # lowest px/sample to show samples as No
-X_SCATTER_MAX = 60  # highest px/sample, don't expand further
+X_SCATTER_MAX = 100  # highest px/sample, don't expand further
