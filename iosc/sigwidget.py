@@ -65,10 +65,8 @@ class TimeAxisView(QCustomPlot):
         super().__init__(parent)
         self.__root = root
         self.__main_ptr_label = QCPItemText(self)
-        tmin = osc.raw.time[0]
         t0 = osc.raw.trigger_time
-        tmax = osc.raw.time[-1]
-        self.xAxis.setRange((tmin - t0) * 1000, (tmax - t0) * 1000)
+        self.xAxis.setRange((osc.raw.time[0] - t0) * 1000, (osc.raw.time[-1] - t0) * 1000)
         self.xAxis.ticker().setTickCount(const.TICK_COUNT)  # QCPAxisTicker; FIXME: (ti)
         self.__squeeze()
         self.__set_style()
@@ -92,10 +90,71 @@ class TimeAxisView(QCustomPlot):
     def __set_style(self):
         # TODO: setLabelFormat("%d")
         self.xAxis.setTickLabelFont(const.X_FONT)
-        self.__main_ptr_label.setColor(Qt.white)  # text
-        self.__main_ptr_label.setBrush(QBrush(Qt.red))  # rect
+        self.__main_ptr_label.setColor(const.X_LABEL_COLOR)  # text
+        self.__main_ptr_label.setBrush(const.X_LABEL_BRUSH)  # rect
         self.__main_ptr_label.setTextAlignment(Qt.AlignCenter)
-        self.__main_ptr_label.setFont(QFont('mono', 8))
+        self.__main_ptr_label.setFont(const.X_FONT)
+        self.__main_ptr_label.setPadding(QMargins(2, 2, 2, 2))
+        self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
+
+    def __slot_main_ptr_moved(self):
+        """Repaint/move main ptr value label (%.2f)
+        :fixme: draw in front of ticks
+        """
+        x = self.__root.mptr_x
+        self.__main_ptr_label.setText("%.2f" % x)
+        self.__main_ptr_label.position.setCoords(x, 0)
+        self.replot()
+
+    def _slot_chg_width(self, w: int):  # dafault: 1117
+        self.setFixedWidth(w)
+
+
+class StatusBarView(QCustomPlot):
+    """:todo: join TimeAxisView"""
+    __root: QWidget
+    __zero_ptr_label: QCPItemText
+    __main_ptr_label: QCPItemText
+
+    def __init__(self, osc: mycomtrade.MyComtrade, root: QWidget, parent: CleanScrollArea):
+        super().__init__(parent)
+        self.__root = root
+        self.__zero_ptr_label = QCPItemText(self)
+        self.__main_ptr_label = QCPItemText(self)
+        t0 = osc.raw.trigger_time
+        self.xAxis.setRange((osc.raw.time[0] - t0) * 1000, (osc.raw.time[-1] - t0) * 1000)
+        self.__squeeze()
+        self.__set_style()
+        self.__zero_ptr_label.setText("time will be there")
+        self.__slot_main_ptr_moved()
+        self.__root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
+        self.__root.signal_xscale.connect(self._slot_chg_width)
+
+    def __squeeze(self):
+        ar = self.axisRect(0)
+        ar.setMinimumMargins(QMargins())
+        ar.removeAxis(self.yAxis)
+        ar.removeAxis(self.yAxis2)
+        ar.removeAxis(self.xAxis2)
+        # -xaxis.setTickLabels(False)
+        # -xaxis.setTicks(False)
+        self.xAxis.grid().setVisible(False)
+        self.xAxis.setPadding(0)
+        self.setFixedHeight(const.XSCALE_HEIGHT)
+
+    def __set_style(self):
+        # zero
+        self.__zero_ptr_label.setColor(const.Z_LABEL_COLOR)  # text
+        # self.__zero_ptr_label.setBrush(const.X_LABEL_BRUSH)  # rect
+        self.__zero_ptr_label.setTextAlignment(Qt.AlignCenter)
+        self.__zero_ptr_label.setFont(const.X_FONT)
+        self.__zero_ptr_label.setPadding(QMargins(2, 2, 2, 2))
+        self.__zero_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
+        # mptr
+        self.__main_ptr_label.setColor(const.X_LABEL_COLOR)  # text
+        self.__main_ptr_label.setBrush(const.X_LABEL_BRUSH)  # rect
+        self.__main_ptr_label.setTextAlignment(Qt.AlignCenter)
+        self.__main_ptr_label.setFont(const.X_FONT)
         self.__main_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
 

@@ -13,6 +13,10 @@ SIG_D_YMIN = -0.1   # bottom margin of digital signal chart, natural units
 SIG_ZOOM_BTN_WIDTH = 32
 # (moved)
 X_FONT = QFont('mono', 8)  # font of timeline ticks labels
+X_LABEL_COLOR = Qt.white
+X_LABEL_BRUSH = QBrush(Qt.red)
+Z_LABEL_COLOR = Qt.black
+Z_LABEL_BRUSH = QBrush(Qt.white)
 D_BRUSH = QBrush(Qt.DiagCrossPattern)
 ZERO_PEN = QPen(Qt.black)
 NO_PEN = QPen(QColor(255, 255, 255, 0))
