@@ -39,6 +39,7 @@ class ComtradeWidget(QWidget):
     __mptr: int  # current Main Ptr index in source arrays
     __shifted: bool  # original/shifted selector
     __chart_width: Optional[int]  # width (px) of nested QCP charts
+    __xzoom: int
     show_sec: bool  # pri/sec selector
     viewas: int  # TODO: enum
     # actions
@@ -47,6 +48,8 @@ class ComtradeWidget(QWidget):
     action_convert: QAction
     action_vzoom_in: QAction
     action_vzoom_out: QAction
+    action_xzoom_in: QAction
+    action_xzoom_out: QAction
     action_unhide: QAction
     action_shift: QActionGroup
     action_shift_not: QAction
@@ -84,6 +87,7 @@ class ComtradeWidget(QWidget):
         self.__mptr = self.__x2n(0)
         self.__shifted = False
         self.__chart_width = None  # wait for line_up
+        self.__xzoom = 1
         self.show_sec = True
         self.viewas = 0
         ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
@@ -149,15 +153,25 @@ class ComtradeWidget(QWidget):
                                       shortcut="Ctrl+S",
                                       triggered=self.__do_file_convert)
         self.action_vzoom_in = QAction(QIcon.fromTheme("zoom-in"),
-                                       "Zoom &in",
+                                       "Y-Zoom &in",
                                        self,
                                        statusTip="Vertical zoom in all",
                                        triggered=self.__do_vzoom_in)
         self.action_vzoom_out = QAction(QIcon.fromTheme("zoom-out"),
-                                        "Zoom &out",
+                                        "Y-Zoom &out",
                                         self,
                                         statusTip="Vertical zoom out all",
                                         triggered=self.__do_vzoom_out)
+        self.action_xzoom_in = QAction(QIcon.fromTheme("zoom-in"),
+                                       "X-Zoom in",
+                                       self,
+                                       statusTip="Horizontal zoom in all",
+                                       triggered=self.__do_xzoom_in)
+        self.action_xzoom_out = QAction(QIcon.fromTheme("zoom-out"),
+                                        "X-Zoom out",
+                                        self,
+                                        statusTip="Horizontal zoom out all",
+                                        triggered=self.__do_xzoom_out)
         self.action_unhide = QAction(QIcon.fromTheme("edit-undo"),
                                      "&Unhide all",
                                      self,
@@ -242,6 +256,8 @@ class ComtradeWidget(QWidget):
         menu_view = self.menubar.addMenu("&View")
         menu_view.addAction(self.action_vzoom_in)
         menu_view.addAction(self.action_vzoom_out)
+        menu_view.addAction(self.action_xzoom_in)
+        menu_view.addAction(self.action_xzoom_out)
         menu_view_shift = menu_view.addMenu("Original/Shifted")
         menu_view_shift.addAction(self.action_shift_not)
         menu_view_shift.addAction(self.action_shift_yes)
@@ -269,6 +285,8 @@ class ComtradeWidget(QWidget):
         # go
         self.toolbar.addAction(self.action_vzoom_in)
         self.toolbar.addAction(self.action_vzoom_out)
+        self.toolbar.addAction(self.action_xzoom_in)
+        self.toolbar.addAction(self.action_xzoom_out)
         self.toolbar.addAction(self.action_shift_not)
         self.toolbar.addAction(self.action_shift_yes)
         self.toolbar.addAction(self.action_pors_pri)
@@ -364,6 +382,12 @@ class ComtradeWidget(QWidget):
     def __do_vzoom_out(self):
         self.analog_table.slot_vzoom_out()
         self.status_table.slot_vzoom_out()
+
+    def __do_xzoom_in(self):
+        ...
+
+    def __do_xzoom_out(self):
+        ...
 
     def __do_shift(self, _: QAction):
         self.__osc.shifted = self.action_shift_yes.isChecked()
