@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget, QMenuBa
 import mycomtrade
 import const
 from convtrade import convert, ConvertError
-from siglist_tw import AnalogSignalListView, StatusSignalListView, TimeAxisTable
+from siglist_tw import TimeAxisTable, AnalogSignalListView, StatusSignalListView, StatusBarTable
 from sigwidget import HScroller
 
 # x. const
@@ -69,6 +69,7 @@ class ComtradeWidget(QWidget):
     timeaxis_table: TimeAxisTable
     analog_table: AnalogSignalListView
     status_table: StatusSignalListView
+    statusbar_table: StatusBarTable
     hsb: HScroller  # bottom horizontal scroll bar
     # signals
     signal_main_ptr_moved = pyqtSignal()  # refresh Signal(Ctrl/Chart)View on MainPtr moved
@@ -129,6 +130,7 @@ class ComtradeWidget(QWidget):
         self.timeaxis_table = TimeAxisTable(self.__osc, self)
         self.analog_table = AnalogSignalListView(self.__osc.analog, self)
         self.status_table = StatusSignalListView(self.__osc.status, self)
+        self.statusbar_table = StatusBarTable(self.__osc, self)
 
     def __mk_actions(self):
         self.action_close = QAction(QIcon.fromTheme("window-close"),
@@ -295,6 +297,7 @@ class ComtradeWidget(QWidget):
         splitter.addWidget(self.status_table)
         self.layout().addWidget(splitter)
         # 4. bottom status bar
+        self.layout().addWidget(self.statusbar_table)
         # 5. bottom scrollbar
         self.layout().addWidget(self.hsb)
 
@@ -385,6 +388,7 @@ class ComtradeWidget(QWidget):
         # self.analog_table.horizontalHeader().resizeSection(l_index, new_size)  # don't touch itself
         self.timeaxis_table.horizontalHeader().resizeSection(l_index, new_size)
         self.status_table.horizontalHeader().resizeSection(l_index, new_size)
+        self.statusbar_table.horizontalHeader().resizeSection(l_index, new_size)
         if l_index == 1:  # it is chart column
             self.hsb.slot_col_resize(new_size)
 
