@@ -5,29 +5,20 @@ QTableWidget version
 # 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QDropEvent, QGuiApplication
-from PyQt5.QtWidgets import QTableWidget, QLabel, QWidget, QHeaderView, QTableWidgetItem
+from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem
 # 3. local
 import const
 import mycomtrade
-from sigwidget import TimeAxisScrollArea, TimeAxisView, \
+from sigwidget import CleanScrollArea, TimeAxisView, StatusBarView, \
     AnalogSignalCtrlView, AnalogSignalChartView, \
     StatusSignalCtrlView, StatusSignalChartView, SignalScrollArea
 
 
-class TimeAxisTable(QTableWidget):
-    __osc: mycomtrade.MyComtrade
-    time_axis: TimeAxisView
-
-    def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
+class OneRowTable(QTableWidget):
+    def __init__(self, parent: QWidget):
         super().__init__(parent)
-        self.__osc = osc
         self.setColumnCount(2)
         self.setRowCount(1)
-        self.setItem(0, 0, QTableWidgetItem())
-        sa = TimeAxisScrollArea(self)
-        self.time_axis = TimeAxisView(self.__osc.raw.time[0], self.__osc.raw.trigger_time, self.__osc.raw.time[-1], sa, parent)
-        sa.setWidget(self.time_axis)
-        self.setCellWidget(0, 1, sa)
         self.setEditTriggers(self.NoEditTriggers)
         self.setSelectionMode(self.NoSelection)
         self.setColumnWidth(0, const.COL0_WIDTH)
@@ -36,8 +27,26 @@ class TimeAxisTable(QTableWidget):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.resizeRowsToContents()
-        # self.setRowHeight(0, const.XSCALE_HEIGHT)
         self.setFixedHeight(self.rowHeight(0) + const.XSCALE_H_PAD)
+
+
+class TimeAxisTable(OneRowTable):
+    def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
+        super().__init__(parent)
+        self.setItem(0, 0, QTableWidgetItem("ms"))
+        sa = CleanScrollArea(self)
+        sa.setWidget(TimeAxisView(osc, parent, sa))
+        self.setCellWidget(0, 1, sa)
+        parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
+
+
+class StatusBarTable(OneRowTable):
+    def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
+        super().__init__(parent)
+        self.setItem(0, 0, QTableWidgetItem(osc.raw.cfg.start_timestamp.date().isoformat()))
+        sa = CleanScrollArea(self)
+        sa.setWidget(StatusBarView(osc, parent, sa))
+        self.setCellWidget(0, 1, sa)
         parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
 
@@ -154,8 +163,6 @@ class SignalListView(QTableWidget):
 
 
 class AnalogSignalListView(SignalListView):
-    time_axis: TimeAxisView
-
     def __init__(self, slist: mycomtrade.AnalogSignalList, parent):
         super().__init__(slist, parent)
 
@@ -163,5 +170,4 @@ class AnalogSignalListView(SignalListView):
 class StatusSignalListView(SignalListView):
     def __init__(self, slist: mycomtrade.StatusSignalList, parent):
         super().__init__(slist, parent)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.horizontalHeader().hide()

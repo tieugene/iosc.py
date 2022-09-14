@@ -1,30 +1,20 @@
 """Signal widgets (chart, ctrl panel).
 TODO: try __slots__"""
+import datetime
 from typing import Optional
-
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins, pyqtSignal
-from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QResizeEvent, QIcon
+from PyQt5.QtGui import QColor, QBrush, QFont, QPen, QMouseEvent, QResizeEvent
 from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout, QScrollArea, QHBoxLayout, QPushButton, \
     QScrollBar
 # 3. 4rd
 from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
-import const
 import mycomtrade
+import const
 import sigfunc
 from sigprop import AnalogSignalPropertiesDialog, StatusSignalPropertiesDialog
-
 # x. const
-X_FONT = QFont(*const.XSCALE_FONT)
-D_BRUSH = QBrush(Qt.DiagCrossPattern)
-ZERO_PEN = QPen(Qt.black)
-NO_PEN = QPen(QColor(255, 255, 255, 0))
-MAIN_PTR_PEN = QPen(QBrush(QColor('orange')), 2)
-OLD_PTR_PEN = QPen(QBrush(Qt.green), 1, Qt.DotLine)
-PTR_RECT_HEIGHT = 20
-TICK_COUNT = 20
-Y_PAD = 0.1  # upper and lower Y-padding; 0.1 == 10%
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
     mycomtrade.ELineType.Dot: Qt.DotLine,
@@ -32,16 +22,53 @@ PEN_STYLE = {
 }
 
 
+class HScroller(QScrollBar):
+    """Bottom scrollbar"""
+    def __init__(self, parent: QWidget):
+        """
+        :param parent:
+        :type parent: ComtradeWidget
+        """
+        super().__init__(Qt.Horizontal, parent)
+        parent.signal_xscale.connect(self.slot_chart_resize)
+
+    def slot_col_resize(self, w: int):
+        """Recalc scroller parm on aim column resized.
+        :param w: New chart column width
+        :todo: link to signal
+        """
+        self.setPageStep(w)
+        if (chart_width := self.parent().chart_width) is not None:
+            self.slot_chart_resize(chart_width)
+
+    def slot_chart_resize(self, w: int):
+        """Recalc scroller parm on aim column resized.
+        :param w: New chart itself width
+        """
+        range_max = w - self.pageStep()
+        self.setRange(0, range_max)
+        if self.value() > range_max:
+            self.setValue(range_max)
+
+
+class CleanScrollArea(QScrollArea):
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+
 class TimeAxisView(QCustomPlot):
     __root: QWidget
     __main_ptr_label: QCPItemText
 
-    def __init__(self, tmin: float, t0: float, tmax, parent, root: QWidget):
+    def __init__(self, osc: mycomtrade.MyComtrade, root: QWidget, parent: CleanScrollArea):
         super().__init__(parent)
         self.__root = root
         self.__main_ptr_label = QCPItemText(self)
-        self.xAxis.setRange((tmin - t0) * 1000, (tmax - t0) * 1000)
-        self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: (ti)
+        t0 = osc.raw.trigger_time
+        self.xAxis.setRange((osc.raw.time[0] - t0) * 1000, (osc.raw.time[-1] - t0) * 1000)
+        self.xAxis.ticker().setTickCount(const.TICK_COUNT)  # QCPAxisTicker; FIXME: (ti)
         self.__squeeze()
         self.__set_style()
         self.__slot_main_ptr_moved()
@@ -63,11 +90,11 @@ class TimeAxisView(QCustomPlot):
 
     def __set_style(self):
         # TODO: setLabelFormat("%d")
-        self.xAxis.setTickLabelFont(X_FONT)
-        self.__main_ptr_label.setColor(Qt.white)  # text
-        self.__main_ptr_label.setBrush(QBrush(Qt.red))  # rect
+        self.xAxis.setTickLabelFont(const.X_FONT)
+        self.__main_ptr_label.setColor(const.X_LABEL_COLOR)  # text
+        self.__main_ptr_label.setBrush(const.X_LABEL_BRUSH)  # rect
         self.__main_ptr_label.setTextAlignment(Qt.AlignCenter)
-        self.__main_ptr_label.setFont(QFont('mono', 8))
+        self.__main_ptr_label.setFont(const.X_FONT)
         self.__main_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
 
@@ -84,11 +111,64 @@ class TimeAxisView(QCustomPlot):
         self.setFixedWidth(w)
 
 
-class TimeAxisScrollArea(QScrollArea):
-    def __init__(self, parent: QWidget):
+class StatusBarView(QCustomPlot):
+    """:todo: join TimeAxisView"""
+    __root: QWidget
+    __zero_timestamp: datetime.datetime
+    __zero_ptr_label: QCPItemText
+    __main_ptr_label: QCPItemText
+
+    def __init__(self, osc: mycomtrade.MyComtrade, root: QWidget, parent: CleanScrollArea):
         super().__init__(parent)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.__root = root
+        self.__zero_timestamp = osc.raw.cfg.trigger_timestamp
+        self.__zero_ptr_label = QCPItemText(self)
+        self.__main_ptr_label = QCPItemText(self)
+        t0 = osc.raw.trigger_time
+        self.xAxis.setRange((osc.raw.time[0] - t0) * 1000, (osc.raw.time[-1] - t0) * 1000)
+        self.__squeeze()
+        self.__set_style()
+        self.__zero_ptr_label.setText(self.__zero_timestamp.time().isoformat())
+        self.__slot_main_ptr_moved()
+        self.__root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
+        self.__root.signal_xscale.connect(self._slot_chg_width)
+
+    def __squeeze(self):
+        ar = self.axisRect(0)
+        ar.setMinimumMargins(QMargins())
+        ar.removeAxis(self.yAxis)
+        ar.removeAxis(self.yAxis2)
+        ar.removeAxis(self.xAxis2)
+        self.xAxis.setTickLabels(False)
+        self.xAxis.setTicks(False)
+        self.xAxis.grid().setVisible(False)
+        self.xAxis.setPadding(0)
+        self.setFixedHeight(const.XSCALE_HEIGHT)
+
+    def __set_style(self):
+        # zero
+        self.__zero_ptr_label.setColor(const.Z_LABEL_COLOR)  # text
+        self.__zero_ptr_label.setTextAlignment(Qt.AlignCenter)
+        self.__zero_ptr_label.setFont(const.X_FONT)
+        self.__zero_ptr_label.setPadding(QMargins(2, 2, 2, 2))
+        self.__zero_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
+        # mptr
+        self.__main_ptr_label.setColor(const.X_LABEL_COLOR)  # text
+        self.__main_ptr_label.setBrush(const.X_LABEL_BRUSH)  # rect
+        self.__main_ptr_label.setTextAlignment(Qt.AlignCenter)
+        self.__main_ptr_label.setFont(const.X_FONT)
+        self.__main_ptr_label.setPadding(QMargins(2, 2, 2, 2))
+        self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
+
+    def __slot_main_ptr_moved(self):
+        """Repaint/move main ptr value label"""
+        x = self.__root.mptr_x  # from z-point, , ms
+        self.__main_ptr_label.setText((self.__zero_timestamp + datetime.timedelta(milliseconds=x)).time().isoformat())
+        self.__main_ptr_label.position.setCoords(x, 0)
+        self.replot()
+
+    def _slot_chg_width(self, w: int):  # dafault: 1117
+        self.setFixedWidth(w)
 
 
 class ZoomButton(QPushButton):
@@ -271,7 +351,7 @@ class MainPtr(QCPItemTracer):
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
         self.setGraph(cp.graph())
-        self.setPen(MAIN_PTR_PEN)
+        self.setPen(const.MAIN_PTR_PEN)
         self.position.setAxes(cp.xAxis, None)
         # cp.setCursor(QCursor(Qt.CrossCursor))
 
@@ -281,7 +361,7 @@ class OldPtr(QCPItemStraightLine):
 
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
-        self.setPen(OLD_PTR_PEN)
+        self.setPen(const.OLD_PTR_PEN)
         self.setVisible(False)
 
     def move2x(self, x: float):
@@ -324,7 +404,7 @@ class MainPtrRect(QCPItemRect):
     def set2x(self, x: float):
         """Set starting point"""
         yaxis = self.parentPlot().yAxis
-        self.topLeft.setCoords(x, yaxis.pixelToCoord(0) - yaxis.pixelToCoord(PTR_RECT_HEIGHT))
+        self.topLeft.setCoords(x, yaxis.pixelToCoord(0) - yaxis.pixelToCoord(const.PTR_RECT_HEIGHT))
 
     def stretc2x(self, x: float):
         self.bottomRight.setCoords(x, 0)
@@ -362,7 +442,7 @@ class SignalChartView(QCustomPlot):
         # ymax = max(self._signal.value)
         # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
         # self.yAxis.setRange(ymin - ypad, ymax + ypad)  # #76, not helps
-        self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
+        self.xAxis.ticker().setTickCount(const.TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
         self.setFixedWidth(1000)
         self.mousePress.connect(self.__slot_mouse_press)
         self.mouseMove.connect(self.__slot_mouse_move)
@@ -395,9 +475,9 @@ class SignalChartView(QCustomPlot):
 
     def __decorate(self):
         # self.yAxis.grid().setPen(QPen(QColor(255, 255, 255, 0)))
-        self.yAxis.setBasePen(NO_PEN)  # hack
-        self.yAxis.grid().setZeroLinePen(ZERO_PEN)
-        self.xAxis.grid().setZeroLinePen(ZERO_PEN)
+        self.yAxis.setBasePen(const.NO_PEN)  # hack
+        self.yAxis.grid().setZeroLinePen(const.ZERO_PEN)
+        self.xAxis.grid().setZeroLinePen(const.ZERO_PEN)
 
     def _set_style(self):
         ...  # stub
@@ -531,7 +611,7 @@ class StatusSignalChartView(SignalChartView):
         self.yAxis.setRange(const.SIG_D_YMIN, const.SIG_D_YMAX)
 
     def _set_style(self):
-        brush = QBrush(D_BRUSH)
+        brush = QBrush(const.D_BRUSH)
         brush.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setBrush(brush)
 
@@ -567,32 +647,3 @@ class SignalScrollArea(QScrollArea):
         else:
             self.__vzoom_factor.clear()
             self.__vzoom_factor.setVisible(False)
-
-
-class HScroller(QScrollBar):
-    """Bottom scrollbar"""
-    def __init__(self, parent: QWidget):
-        """
-        :param parent:
-        :type parent: ComtradeWidget
-        """
-        super().__init__(Qt.Horizontal, parent)
-        parent.signal_xscale.connect(self.slot_chart_resize)
-
-    def slot_col_resize(self, w: int):
-        """Recalc scroller parm on aim column resized.
-        :param w: New chart column width
-        :todo: link to signal
-        """
-        self.setPageStep(w)
-        if (chart_width := self.parent().chart_width) is not None:
-            self.slot_chart_resize(chart_width)
-
-    def slot_chart_resize(self, w: int):
-        """Recalc scroller parm on aim column resized.
-        :param w: New chart itself width
-        """
-        range_max = w - self.pageStep()
-        self.setRange(0, range_max)
-        if self.value() > range_max:
-            self.setValue(range_max)
