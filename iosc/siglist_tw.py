@@ -9,24 +9,20 @@ from PyQt5.QtWidgets import QTableWidget, QLabel, QWidget, QHeaderView, QTableWi
 # 3. local
 import const
 import mycomtrade
-from sigwidget import TimeAxisScrollArea, TimeAxisView, \
+from sigwidget import CleanScrollArea, TimeAxisView, \
     AnalogSignalCtrlView, AnalogSignalChartView, \
     StatusSignalCtrlView, StatusSignalChartView, SignalScrollArea
 
 
 class TimeAxisTable(QTableWidget):
-    __osc: mycomtrade.MyComtrade
-    time_axis: TimeAxisView
-
     def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
         super().__init__(parent)
-        self.__osc = osc
         self.setColumnCount(2)
         self.setRowCount(1)
-        self.setItem(0, 0, QTableWidgetItem())
-        sa = TimeAxisScrollArea(self)
-        self.time_axis = TimeAxisView(self.__osc.raw.time[0], self.__osc.raw.trigger_time, self.__osc.raw.time[-1], sa, parent)
-        sa.setWidget(self.time_axis)
+        self.setItem(0, 0, QTableWidgetItem("ms"))
+        sa = CleanScrollArea(self)
+        time_axis = TimeAxisView(osc, parent, sa)
+        sa.setWidget(time_axis)
         self.setCellWidget(0, 1, sa)
         self.setEditTriggers(self.NoEditTriggers)
         self.setSelectionMode(self.NoSelection)

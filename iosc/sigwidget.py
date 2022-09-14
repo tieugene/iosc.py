@@ -32,14 +32,53 @@ PEN_STYLE = {
 }
 
 
+class HScroller(QScrollBar):
+    """Bottom scrollbar"""
+    def __init__(self, parent: QWidget):
+        """
+        :param parent:
+        :type parent: ComtradeWidget
+        """
+        super().__init__(Qt.Horizontal, parent)
+        parent.signal_xscale.connect(self.slot_chart_resize)
+
+    def slot_col_resize(self, w: int):
+        """Recalc scroller parm on aim column resized.
+        :param w: New chart column width
+        :todo: link to signal
+        """
+        self.setPageStep(w)
+        if (chart_width := self.parent().chart_width) is not None:
+            self.slot_chart_resize(chart_width)
+
+    def slot_chart_resize(self, w: int):
+        """Recalc scroller parm on aim column resized.
+        :param w: New chart itself width
+        """
+        range_max = w - self.pageStep()
+        self.setRange(0, range_max)
+        if self.value() > range_max:
+            self.setValue(range_max)
+
+
+class CleanScrollArea(QScrollArea):
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+
 class TimeAxisView(QCustomPlot):
     __root: QWidget
     __main_ptr_label: QCPItemText
 
-    def __init__(self, tmin: float, t0: float, tmax, parent, root: QWidget):
+    def __init__(self, osc: mycomtrade.MyComtrade, root: QWidget, parent: CleanScrollArea):
         super().__init__(parent)
         self.__root = root
         self.__main_ptr_label = QCPItemText(self)
+        tmin = osc.raw.time[0]
+        t0 = osc.raw.trigger_time
+        tmax = osc.raw.time[-1]
         self.xAxis.setRange((tmin - t0) * 1000, (tmax - t0) * 1000)
         self.xAxis.ticker().setTickCount(TICK_COUNT)  # QCPAxisTicker; FIXME: (ti)
         self.__squeeze()
@@ -82,13 +121,6 @@ class TimeAxisView(QCustomPlot):
 
     def _slot_chg_width(self, w: int):  # dafault: 1117
         self.setFixedWidth(w)
-
-
-class TimeAxisScrollArea(QScrollArea):
-    def __init__(self, parent: QWidget):
-        super().__init__(parent)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
 
 class ZoomButton(QPushButton):
@@ -567,32 +599,3 @@ class SignalScrollArea(QScrollArea):
         else:
             self.__vzoom_factor.clear()
             self.__vzoom_factor.setVisible(False)
-
-
-class HScroller(QScrollBar):
-    """Bottom scrollbar"""
-    def __init__(self, parent: QWidget):
-        """
-        :param parent:
-        :type parent: ComtradeWidget
-        """
-        super().__init__(Qt.Horizontal, parent)
-        parent.signal_xscale.connect(self.slot_chart_resize)
-
-    def slot_col_resize(self, w: int):
-        """Recalc scroller parm on aim column resized.
-        :param w: New chart column width
-        :todo: link to signal
-        """
-        self.setPageStep(w)
-        if (chart_width := self.parent().chart_width) is not None:
-            self.slot_chart_resize(chart_width)
-
-    def slot_chart_resize(self, w: int):
-        """Recalc scroller parm on aim column resized.
-        :param w: New chart itself width
-        """
-        range_max = w - self.pageStep()
-        self.setRange(0, range_max)
-        if self.value() > range_max:
-            self.setValue(range_max)
