@@ -31,7 +31,7 @@ class HScroller(QScrollBar):
         :type parent: ComtradeWidget
         """
         super().__init__(Qt.Horizontal, parent)
-        parent.signal_xscale.connect(self.slot_chart_resize)
+        parent.signal_xscale.connect(self._slot_chg_width)
 
     def slot_col_resize(self, w: int):
         """Recalc scroller parm on aim column resized.
@@ -40,16 +40,23 @@ class HScroller(QScrollBar):
         """
         self.setPageStep(w)
         if (chart_width := self.parent().chart_width) is not None:
-            self.slot_chart_resize(chart_width)
+            range_new = chart_width - self.pageStep()
+            self.setRange(0, range_new)
+            if self.value() > range_new:
+                self.setValue(range_new)
 
-    def slot_chart_resize(self, w: int):
+    def _slot_chg_width(self, w_old: int, w_new: int):
         """Recalc scroller parm on aim column resized.
-        :param w: New chart itself width
+        :param w_old: Old chart width
+        :param w_new: New chart width
         """
-        range_max = w - self.pageStep()
-        self.setRange(0, range_max)
-        if self.value() > range_max:
-            self.setValue(range_max)
+        # 1. range
+        range_new = w_new - self.pageStep()
+        self.setRange(0, range_new)
+        # 2. start ptr
+        # 3. limit start ptr
+        if self.value() > range_new:
+            self.setValue(range_new)
 
 
 class CleanScrollArea(QScrollArea):
@@ -107,8 +114,8 @@ class TimeAxisView(QCustomPlot):
         self.__main_ptr_label.position.setCoords(x, 0)
         self.replot()
 
-    def _slot_chg_width(self, w: int):  # dafault: 1117
-        self.setFixedWidth(w)
+    def _slot_chg_width(self, _: int, w_new: int):  # dafault: 1117
+        self.setFixedWidth(w_new)
         self.xAxis.ticker().setTickCount(const.TICK_COUNT * self.__root.xzoom)
         self.replot()
 
@@ -169,8 +176,8 @@ class StatusBarView(QCustomPlot):
         self.__main_ptr_label.position.setCoords(x, 0)
         self.replot()
 
-    def _slot_chg_width(self, w: int):  # dafault: 1117
-        self.setFixedWidth(w)
+    def _slot_chg_width(self, _: int, w_new: int):  # dafault: 1117
+        self.setFixedWidth(w_new)
 
 
 class ZoomButton(QPushButton):
@@ -299,9 +306,9 @@ class AnalogSignalCtrlView(SignalCtrlView):
         super().__init__(signal, parent, root)
         self._root.signal_recalc_achannels.connect(self.slot_update_value)
         self._root.signal_shift_achannels.connect(self.slot_update_value)
-        self._b_zoom_in.clicked.connect(self.slot_zoom_in)
-        self._b_zoom_0.clicked.connect(self.slot_zoom_0)
-        self._b_zoom_out.clicked.connect(self.slot_zoom_out)
+        self._b_zoom_in.clicked.connect(self.slot_vzoom_in)
+        self._b_zoom_0.clicked.connect(self.slot_vzoom_0)
+        self._b_zoom_out.clicked.connect(self.slot_vzoom_out)
 
     def _do_sig_property(self):
         """Show/set signal properties"""
@@ -329,19 +336,19 @@ class AnalogSignalCtrlView(SignalCtrlView):
         else:
             self._f_value.setText("%.3f %s" % (pors_y, uu))
 
-    def slot_zoom_in(self):
+    def slot_vzoom_in(self):
         if self.sibling.zoom == 1:
             self._b_zoom_0.setEnabled(True)
             self._b_zoom_out.setEnabled(True)
         self.sibling.zoom += 1
 
-    def slot_zoom_0(self):
+    def slot_vzoom_0(self):
         if self.sibling.zoom > 1:
             self.sibling.zoom = 1
             self._b_zoom_0.setEnabled(False)
             self._b_zoom_out.setEnabled(False)
 
-    def slot_zoom_out(self):
+    def slot_vzoom_out(self):
         if self.sibling.zoom > 1:
             self.sibling.zoom -= 1
             if self.sibling.zoom == 1:
@@ -585,10 +592,10 @@ class SignalChartView(QCustomPlot):
         self._set_style()
         self.replot()
 
-    def _slot_chg_width(self, w: int):
+    def _slot_chg_width(self, _: int, w_new: int):
         """Changing signal chart real width (px)"""
-        self.setFixedWidth(w)
-        self.xAxis.ticker().setTickCount(const.TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
+        self.setFixedWidth(w_new)
+        self.xAxis.ticker().setTickCount(const.TICK_COUNT * self._root.xzoom)  # QCPAxisTicker; FIXME: 200ms default
         # self.replot()
 
 
@@ -652,9 +659,9 @@ class AnalogSignalChartView(SignalChartView):
         if self.height() != (new_height := h_vscroller * self.__vzoom):
             self.setFixedHeight(new_height)
 
-    def _slot_chg_width(self, w: int):
-        super()._slot_chg_width(w)
-        pps = int(w / len(self._signal.value))
+    def _slot_chg_width(self, w_old: int, w_new: int):
+        super()._slot_chg_width(w_old, w_new)
+        pps = int(w_new / len(self._signal.value))
         if self.__pps != pps:
             if pps < const.X_SCATTER_MARK:
                 shape = QCPScatterStyle(QCPScatterStyle.ssNone)
