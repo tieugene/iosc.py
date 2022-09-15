@@ -56,9 +56,12 @@ class HScroller(QScrollBar):
         if w_old == 0:  # initial => value() == 0
             return
         # 2. start ptr
-        p_half = self.pageStep() / 2  # relative page mid
         b_old = self.value()  # old begin
-        b_new = int(round((b_old + p_half) * w_new / w_old - p_half))
+        if const.X_CENTERED:
+            p_half = self.pageStep() / 2  # relative page mid
+            b_new = int(round((b_old + p_half) * w_new / w_old - p_half))  # FIXME: glitches with right list scroller
+        else:  # plan B (w/o glitches)
+            b_new = b_old
         # 3. limit start ptr
         if b_new < 0:
             b_new = 0
@@ -702,7 +705,7 @@ class AnalogSignalChartView(SignalChartView):
                 for i, d in enumerate(self.graph().data()):
                     ScatterLabel(i, d, self)
             elif self.__pps >= const.X_SCATTER_NUM > pps:
-                for i in range(self.itemCount()):
+                for i in reversed(range(self.itemCount())):
                     if isinstance(self.item(i), ScatterLabel):
                         self.removeItem(i)
             # </dirtyhack>
