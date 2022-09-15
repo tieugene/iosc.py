@@ -47,16 +47,24 @@ class HScroller(QScrollBar):
 
     def _slot_chg_width(self, w_old: int, w_new: int):
         """Recalc scroller parm on aim column resized.
-        :param w_old: Old chart width
-        :param w_new: New chart width
+        :param w_old: Old chart width (px)
+        :param w_new: New chart width (px)
         """
         # 1. range
         range_new = w_new - self.pageStep()
         self.setRange(0, range_new)
+        if w_old == 0:  # initial => value() == 0
+            return
         # 2. start ptr
+        p_half = self.pageStep() / 2  # relative page mid
+        b_old = self.value()  # old begin
+        b_new = int(round((b_old + p_half) * w_new / w_old - p_half))
         # 3. limit start ptr
-        if self.value() > range_new:
-            self.setValue(range_new)
+        if b_new < 0:
+            b_new = 0
+        elif b_new > range_new:
+            b_new = range_new
+        self.setValue(b_new)
 
 
 class CleanScrollArea(QScrollArea):
