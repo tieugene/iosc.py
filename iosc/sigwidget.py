@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout, Q
     QScrollBar
 # 3. 4rd
 from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect, \
-    QCPScatterStyle
+    QCPScatterStyle, QCPPainter, QCPGraphData
 # 4. local
 import mycomtrade
 import const
@@ -624,9 +624,28 @@ class StatusSignalChartView(SignalChartView):
             self.setFixedHeight(new_height)
 
 
+class NumScatterStyle(QCPScatterStyle):
+    def __init__(self):
+        super().__init__(QCPScatterStyle.ssPlus)
+        print("My scatter")
+
+    def drawShape(self, painter: QCPPainter, *__args):
+        print("Bingo")
+
+
+class ScatterLabel(QCPItemText):
+    def __init__(self, num: int, point: QCPGraphData, parent: SignalChartView):
+        super().__init__(parent)
+        self.setPositionAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+        self.setFont(QFont('mono', 8))
+        self.setText(str(num))
+        self.position.setCoords(point.key, point.value)
+
+
 class AnalogSignalChartView(SignalChartView):
     __vzoom: int
     __pps: int  # px/sample
+    # __myscatter: NumScatterStyle
 
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root, sibling: AnalogSignalCtrlView):
         super().__init__(signal, parent, root, sibling)
@@ -634,6 +653,7 @@ class AnalogSignalChartView(SignalChartView):
         self.__pps = 0
         self.__rerange()
         self._root.signal_shift_achannels.connect(self.__slot_shift)
+        # self.__myscatter = NumScatterStyle()
 
     def _set_style(self):
         pen = QPen(PEN_STYLE[self._signal.line_type])
@@ -678,18 +698,13 @@ class AnalogSignalChartView(SignalChartView):
             self.graph().setScatterStyle(QCPScatterStyle(shape))
             # <dirtyhack>
             if self.__pps < const.X_SCATTER_NUM <= pps:
-                self.__fill_nums()
+                # self.graph().setScatterStyle(self.__myscatter)
+                for i, d in enumerate(self.graph().data()):
+                    ScatterLabel(i, d, self)
             elif self.__pps >= const.X_SCATTER_NUM > pps:
-                self.clearItems()
+                for i in range(self.itemCount()):
+                    if isinstance(self.item(i), ScatterLabel):
+                        self.removeItem(i)
             # </dirtyhack>
             self.__pps = pps
             self.replot()
-
-    def __fill_nums(self):
-        """Fill samples with their numbers"""
-        for i, d in enumerate(self.graph().data()):
-            txt = QCPItemText(self)
-            txt.position.setCoords(d.key, d.value)
-            txt.setPositionAlignment(Qt.AlignBottom | Qt.AlignHCenter)
-            txt.setText(str(i))
-            txt.setFont(QFont('mono', 8))
