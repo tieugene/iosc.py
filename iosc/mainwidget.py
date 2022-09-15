@@ -78,7 +78,7 @@ class ComtradeWidget(QWidget):
     signal_main_ptr_moved = pyqtSignal()  # refresh Signal(Ctrl/Chart)View on MainPtr moved
     signal_recalc_achannels = pyqtSignal()  # recalc ASignalCtrlView on ...
     signal_shift_achannels = pyqtSignal()  # refresh ASignal*View on switching original/shifted
-    signal_xscale = pyqtSignal(int)  # set signal chart widths
+    signal_xscale = pyqtSignal(int, int)  # set signal chart widths
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
@@ -391,21 +391,23 @@ class ComtradeWidget(QWidget):
     def __do_xzoom_in(self):
         samples = len(self.__osc.raw.time)
         if int(self.__chart_width * (zoom_new := self.__xzoom << 1) / samples) <= const.X_SCATTER_MAX:
-            self.__xzoom = zoom_new
             if not self.action_xzoom_out.isEnabled():
                 self.action_xzoom_out.setEnabled(True)
-            if int(self.__chart_width * (self.__xzoom << 1) / samples) > const.X_SCATTER_MAX:
+            if int(self.__chart_width * (zoom_new << 1) / samples) > const.X_SCATTER_MAX:
                 self.action_xzoom_in.setEnabled(False)
-            self.signal_xscale.emit(self.chart_width)
+            chart_width_old = self.chart_width
+            self.__xzoom = zoom_new
+            self.signal_xscale.emit(chart_width_old, self.chart_width)
 
     def __do_xzoom_out(self):
         if self.__xzoom > 1:
-            self.__xzoom >>= 1
-            if self.__xzoom == 1:
+            if self.__xzoom == 2:
                 self.action_xzoom_out.setEnabled(False)
-            if not self.action_xzoom_in.isEnabled():
+            if not self.action_xzoom_in.isEnabled():  # TODO: not
                 self.action_xzoom_in.setEnabled(True)
-            self.signal_xscale.emit(self.chart_width)
+            chart_width_old = self.chart_width
+            self.__xzoom >>= 1
+            self.signal_xscale.emit(chart_width_old, self.chart_width)
 
     def __do_shift(self, _: QAction):
         self.__osc.shifted = self.action_shift_yes.isChecked()
@@ -436,13 +438,13 @@ class ComtradeWidget(QWidget):
 
     def line_up(self):
         """
-        Line up table colums (and rows further) according to requirements and actual geometry.
+        Initial line up table colums (and rows further) according to requirements and actual geometry.
         """
-        w_screen = QGuiApplication.screens()[0].availableGeometry().width()  # all available desktop (e.g. 1280)
-        w_main = QGuiApplication.topLevelWindows()[0].width()  # current main window width (e.g. 960)
+        w_main_avail = QGuiApplication.screens()[0].availableGeometry().width()  # all available desktop (e.g. 1280)
+        w_main_real = QGuiApplication.topLevelWindows()[0].width()  # current main window width (e.g. 960)
         w_self = self.analog_table.width()  # current [table] widget width  (e.g. 940)
-        self.__chart_width = w_self + (w_screen - w_main) - const.COL0_WIDTH  # - const.MAGIC_WIDHT
-        self.signal_xscale.emit(self.chart_width)
+        self.__chart_width = w_self + (w_main_avail - w_main_real) - const.COL0_WIDTH  # - const.MAGIC_WIDHT
+        self.signal_xscale.emit(0, self.chart_width)
 
     def slot_main_ptr_moved_x(self, x: float):
         """

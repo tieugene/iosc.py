@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout, Q
     QScrollBar
 # 3. 4rd
 from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect, \
-    QCPScatterStyle
+    QCPScatterStyle, QCPPainter, QCPGraphData
 # 4. local
 import mycomtrade
 import const
@@ -31,7 +31,7 @@ class HScroller(QScrollBar):
         :type parent: ComtradeWidget
         """
         super().__init__(Qt.Horizontal, parent)
-        parent.signal_xscale.connect(self.slot_chart_resize)
+        parent.signal_xscale.connect(self._slot_chg_width)
 
     def slot_col_resize(self, w: int):
         """Recalc scroller parm on aim column resized.
@@ -40,16 +40,34 @@ class HScroller(QScrollBar):
         """
         self.setPageStep(w)
         if (chart_width := self.parent().chart_width) is not None:
-            self.slot_chart_resize(chart_width)
+            range_new = chart_width - self.pageStep()
+            self.setRange(0, range_new)
+            if self.value() > range_new:
+                self.setValue(range_new)
 
-    def slot_chart_resize(self, w: int):
+    def _slot_chg_width(self, w_old: int, w_new: int):
         """Recalc scroller parm on aim column resized.
-        :param w: New chart itself width
+        :param w_old: Old chart width (px)
+        :param w_new: New chart width (px)
         """
-        range_max = w - self.pageStep()
-        self.setRange(0, range_max)
-        if self.value() > range_max:
-            self.setValue(range_max)
+        # 1. range
+        range_new = w_new - self.pageStep()
+        self.setRange(0, range_new)
+        if w_old == 0:  # initial => value() == 0
+            return
+        # 2. start ptr
+        b_old = self.value()  # old begin
+        if const.X_CENTERED:
+            p_half = self.pageStep() / 2  # relative page mid
+            b_new = int(round((b_old + p_half) * w_new / w_old - p_half))  # FIXME: glitches with right list scroller
+        else:  # plan B (w/o glitches)
+            b_new = b_old
+        # 3. limit start ptr
+        if b_new < 0:
+            b_new = 0
+        elif b_new > range_new:
+            b_new = range_new
+        self.setValue(b_new)
 
 
 class CleanScrollArea(QScrollArea):
@@ -107,8 +125,8 @@ class TimeAxisView(QCustomPlot):
         self.__main_ptr_label.position.setCoords(x, 0)
         self.replot()
 
-    def _slot_chg_width(self, w: int):  # dafault: 1117
-        self.setFixedWidth(w)
+    def _slot_chg_width(self, _: int, w_new: int):  # dafault: 1117
+        self.setFixedWidth(w_new)
         self.xAxis.ticker().setTickCount(const.TICK_COUNT * self.__root.xzoom)
         self.replot()
 
@@ -169,8 +187,8 @@ class StatusBarView(QCustomPlot):
         self.__main_ptr_label.position.setCoords(x, 0)
         self.replot()
 
-    def _slot_chg_width(self, w: int):  # dafault: 1117
-        self.setFixedWidth(w)
+    def _slot_chg_width(self, _: int, w_new: int):  # dafault: 1117
+        self.setFixedWidth(w_new)
 
 
 class ZoomButton(QPushButton):
@@ -299,9 +317,9 @@ class AnalogSignalCtrlView(SignalCtrlView):
         super().__init__(signal, parent, root)
         self._root.signal_recalc_achannels.connect(self.slot_update_value)
         self._root.signal_shift_achannels.connect(self.slot_update_value)
-        self._b_zoom_in.clicked.connect(self.slot_zoom_in)
-        self._b_zoom_0.clicked.connect(self.slot_zoom_0)
-        self._b_zoom_out.clicked.connect(self.slot_zoom_out)
+        self._b_zoom_in.clicked.connect(self.slot_vzoom_in)
+        self._b_zoom_0.clicked.connect(self.slot_vzoom_0)
+        self._b_zoom_out.clicked.connect(self.slot_vzoom_out)
 
     def _do_sig_property(self):
         """Show/set signal properties"""
@@ -329,19 +347,19 @@ class AnalogSignalCtrlView(SignalCtrlView):
         else:
             self._f_value.setText("%.3f %s" % (pors_y, uu))
 
-    def slot_zoom_in(self):
+    def slot_vzoom_in(self):
         if self.sibling.zoom == 1:
             self._b_zoom_0.setEnabled(True)
             self._b_zoom_out.setEnabled(True)
         self.sibling.zoom += 1
 
-    def slot_zoom_0(self):
+    def slot_vzoom_0(self):
         if self.sibling.zoom > 1:
             self.sibling.zoom = 1
             self._b_zoom_0.setEnabled(False)
             self._b_zoom_out.setEnabled(False)
 
-    def slot_zoom_out(self):
+    def slot_vzoom_out(self):
         if self.sibling.zoom > 1:
             self.sibling.zoom -= 1
             if self.sibling.zoom == 1:
@@ -585,10 +603,10 @@ class SignalChartView(QCustomPlot):
         self._set_style()
         self.replot()
 
-    def _slot_chg_width(self, w: int):
+    def _slot_chg_width(self, _: int, w_new: int):
         """Changing signal chart real width (px)"""
-        self.setFixedWidth(w)
-        self.xAxis.ticker().setTickCount(const.TICK_COUNT)  # QCPAxisTicker; FIXME: 200ms default
+        self.setFixedWidth(w_new)
+        self.xAxis.ticker().setTickCount(const.TICK_COUNT * self._root.xzoom)  # QCPAxisTicker; FIXME: 200ms default
         # self.replot()
 
 
@@ -609,9 +627,28 @@ class StatusSignalChartView(SignalChartView):
             self.setFixedHeight(new_height)
 
 
+class NumScatterStyle(QCPScatterStyle):
+    def __init__(self):
+        super().__init__(QCPScatterStyle.ssPlus)
+        print("My scatter")
+
+    def drawShape(self, painter: QCPPainter, *__args):
+        print("Bingo")
+
+
+class ScatterLabel(QCPItemText):
+    def __init__(self, num: int, point: QCPGraphData, parent: SignalChartView):
+        super().__init__(parent)
+        self.setPositionAlignment(Qt.AlignBottom | Qt.AlignHCenter)
+        self.setFont(QFont('mono', 8))
+        self.setText(str(num))
+        self.position.setCoords(point.key, point.value)
+
+
 class AnalogSignalChartView(SignalChartView):
     __vzoom: int
     __pps: int  # px/sample
+    # __myscatter: NumScatterStyle
 
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root, sibling: AnalogSignalCtrlView):
         super().__init__(signal, parent, root, sibling)
@@ -619,6 +656,7 @@ class AnalogSignalChartView(SignalChartView):
         self.__pps = 0
         self.__rerange()
         self._root.signal_shift_achannels.connect(self.__slot_shift)
+        # self.__myscatter = NumScatterStyle()
 
     def _set_style(self):
         pen = QPen(PEN_STYLE[self._signal.line_type])
@@ -652,9 +690,9 @@ class AnalogSignalChartView(SignalChartView):
         if self.height() != (new_height := h_vscroller * self.__vzoom):
             self.setFixedHeight(new_height)
 
-    def _slot_chg_width(self, w: int):
-        super()._slot_chg_width(w)
-        pps = int(w / len(self._signal.value))
+    def _slot_chg_width(self, w_old: int, w_new: int):
+        super()._slot_chg_width(w_old, w_new)
+        pps = int(w_new / len(self._signal.value))
         if self.__pps != pps:
             if pps < const.X_SCATTER_MARK:
                 shape = QCPScatterStyle(QCPScatterStyle.ssNone)
@@ -663,18 +701,13 @@ class AnalogSignalChartView(SignalChartView):
             self.graph().setScatterStyle(QCPScatterStyle(shape))
             # <dirtyhack>
             if self.__pps < const.X_SCATTER_NUM <= pps:
-                self.__fill_nums()
+                # self.graph().setScatterStyle(self.__myscatter)
+                for i, d in enumerate(self.graph().data()):
+                    ScatterLabel(i, d, self)
             elif self.__pps >= const.X_SCATTER_NUM > pps:
-                self.clearItems()
+                for i in reversed(range(self.itemCount())):
+                    if isinstance(self.item(i), ScatterLabel):
+                        self.removeItem(i)
             # </dirtyhack>
             self.__pps = pps
             self.replot()
-
-    def __fill_nums(self):
-        """Fill samples with their numbers"""
-        for i, d in enumerate(self.graph().data()):
-            txt = QCPItemText(self)
-            txt.position.setCoords(d.key, d.value)
-            txt.setPositionAlignment(Qt.AlignBottom | Qt.AlignHCenter)
-            txt.setText(str(i))
-            txt.setFont(QFont('mono', 8))
