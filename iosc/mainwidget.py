@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget, QMenuBa
 # 3. local
 import mycomtrade
 import const
+from icon import svg_icon, ESvgSrc
 from convtrade import convert, ConvertError
 from siglist_tw import TimeAxisTable, AnalogSignalListView, StatusSignalListView, StatusBarTable
 from sigwidget import HScroller
@@ -156,22 +157,22 @@ class ComtradeWidget(QWidget):
                                       self,
                                       shortcut="Ctrl+S",
                                       triggered=self.__do_file_convert)
-        self.action_vzoom_in = QAction(QIcon.fromTheme("zoom-in"),
+        self.action_vzoom_in = QAction(svg_icon(ESvgSrc.VZoomIn),
                                        "Y-Zoom &in",
                                        self,
                                        statusTip="Vertical zoom in all",
                                        triggered=self.__do_vzoom_in)
-        self.action_vzoom_out = QAction(QIcon.fromTheme("zoom-out"),
+        self.action_vzoom_out = QAction(svg_icon(ESvgSrc.VZoomOut),
                                         "Y-Zoom &out",
                                         self,
                                         statusTip="Vertical zoom out all",
                                         triggered=self.__do_vzoom_out)
-        self.action_xzoom_in = QAction(QIcon.fromTheme("zoom-in"),
+        self.action_xzoom_in = QAction(svg_icon(ESvgSrc.HZoomIn),
                                        "X-Zoom in",
                                        self,
                                        statusTip="Horizontal zoom in all",
                                        triggered=self.__do_xzoom_in)
-        self.action_xzoom_out = QAction(QIcon.fromTheme("zoom-out"),
+        self.action_xzoom_out = QAction(svg_icon(ESvgSrc.HZoomOut),
                                         "X-Zoom out",
                                         self,
                                         statusTip="Horizontal zoom out all",
@@ -181,22 +182,22 @@ class ComtradeWidget(QWidget):
                                      self,
                                      statusTip="Show hidden channels",
                                      triggered=self.__do_unhide)
-        self.action_shift_not = QAction(QIcon(),
+        self.action_shift_not = QAction(svg_icon(ESvgSrc.ShiftOrig),
                                         "&Original",
                                         self,
                                         checkable=True,
                                         statusTip="Use original signal")
-        self.action_shift_yes = QAction(QIcon(),
-                                        "&Shifted",
+        self.action_shift_yes = QAction(svg_icon(ESvgSrc.ShiftCentered),
+                                        "&Centered",
                                         self,
                                         checkable=True,
                                         statusTip="Use shifted signal")
-        self.action_pors_pri = QAction(QIcon(),
+        self.action_pors_pri = QAction(svg_icon(ESvgSrc.PorsP),
                                        "&Pri",
                                        self,
                                        checkable=True,
                                        statusTip="Show primary signal value")
-        self.action_pors_sec = QAction(QIcon(),
+        self.action_pors_sec = QAction(svg_icon(ESvgSrc.PorsS),
                                        "&Sec",
                                        self,
                                        checkable=True,
