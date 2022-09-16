@@ -2,6 +2,8 @@
 Calling from AnalogSignalCtrlView to calc requested signal value.
 FFT: [Libs](https://www.nayuki.io/page/free-small-fft-in-multiple-languages)
 """
+import cmath
+import math
 
 import numpy as np
 
@@ -11,9 +13,19 @@ def _cutlpad(a: np.array, n: int, w: int) -> np.array:
     return a[n + 1 - w:n + 1] if n + 1 >= w else np.pad(a[:n + 1], (w - n - 1, 0))
 
 
-def _fft(a: np.array, n: int, w: int):
-    """FIXME: not right (#100)"""
-    return np.fft.fft(_cutlpad(a, n, w))
+def _sft(a: np.array, n: int, w: int, h: int) -> complex:
+    if n < (w - 1):
+        return 0+0j
+    win = a[n+1-w:n+1]
+    mult_2 = 2 / w / math.sqrt(2)
+    mult_1 = 2 * math.pi * h / w
+    arg = n * mult_1
+    sum_r = sum_i = 0.0
+    for i, v in enumerate(win):
+        arg += mult_1  # arg = (n + 1 + i) * mult_1
+        sum_r += v * math.sin(arg)
+        sum_i += v * math.cos(arg)
+    return complex(sum_r * mult_2, sum_i * mult_2)
 
 
 def asis(a: np.array, n: int, _: int) -> float:
@@ -27,48 +39,39 @@ def asis(a: np.array, n: int, _: int) -> float:
     return a[n]
 
 
-def mid(a: np.array, n: int, w: int):
+def mid(a: np.array, n: int, w: int) -> float:
     """Running average in window[, padded by 0 to left]."""
     return np.sum(a[max(n + 1 - w, 0):n + 1]) / w
 
 
-def rms(a: np.array, n: int, w: int):
+def rms(a: np.array, n: int, w: int) -> float:
     """Effective value.
     :note: np.std(_cutlpad(a, n, w)) - not right
+    :note: the same: np.sqrt(np.average(_cutlpad(np.array(a), n, w)**2))
     """
-    # or np.sqrt(np.average(_cutlpad(np.array(a), n, w)**2))
     return np.sqrt(sum(np.array(a[max(n + 1 - w, 0):n + 1]) ** 2) / w)
 
 
-def hrm1(a: np.array, n: int, w: int):
-    """1-st harmnic.
+def hrm1(a: np.array, n: int, w: int) -> complex:
+    """1-st harmonic.
     :todo: return python complex
     """
-    c = _fft(a, n, w)
-    return np.absolute(c)[1], np.degrees(np.angle(c))[1]
+    return _sft(a, n, w, 1)
 
 
-def hrm2(a: np.array, n: int, w: int):
-    """2-nd harmnic"""
-    return np.absolute(_fft(a, n, w))[2]
+def hrm2(a: np.array, n: int, w: int) -> float:
+    """2-nd harmonic"""
+    return abs(_sft(a, n, w, 2))
 
 
-def hrm3(a: np.array, n: int, w: int):
-    """3-th harmnic"""
-    return np.absolute(_fft(a, n, w))[3]
+def hrm3(a: np.array, n: int, w: int) -> float:
+    """3-th harmonic"""
+    return abs(_sft(a, n, w, 3))
 
 
-def hrm5(a: np.array, n: int, w: int):
-    """5-th harmnic"""
-    return np.absolute(_fft(a, n, w))[5]
+def hrm5(a: np.array, n: int, w: int) -> float:
+    """5-th harmonic"""
+    return abs(_sft(a, n, w, 5))
 
 
-func_list = (
-    asis,
-    mid,
-    rms,
-    hrm1,
-    hrm2,
-    hrm3,
-    hrm5
-)
+func_list = (asis, mid, rms, hrm1, hrm2, hrm3, hrm5)

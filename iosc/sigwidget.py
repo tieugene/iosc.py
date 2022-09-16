@@ -1,6 +1,8 @@
 """Signal widgets (chart, ctrl panel).
 TODO: try __slots__"""
+import cmath
 import datetime
+import math
 from typing import Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QMargins, pyqtSignal
@@ -329,11 +331,11 @@ class AnalogSignalCtrlView(SignalCtrlView):
 
     def slot_update_value(self):
         func = sigfunc.func_list[self._root.viewas]
-        if self._root.viewas == 3:  # hrm1
-            y, d = func(self._signal.value, self._root.mptr, self._root.tpp)
+        v = func(self._signal.value, self._root.mptr, self._root.tpp)
+        if isinstance(v, complex):  # hrm1
+            y = abs(v)
         else:
-            y = func(self._signal.value, self._root.mptr, self._root.tpp)
-            d = None  # stub for linter
+            y = v
         pors_y = y * self._signal.get_mult(self._root.show_sec)
         uu = self._signal.uu_orig
         if abs(pors_y) < 1:
@@ -342,8 +344,8 @@ class AnalogSignalCtrlView(SignalCtrlView):
         elif abs(pors_y) > 1000:
             pors_y /= 1000
             uu = 'k' + uu
-        if self._root.viewas == 3:  # hrm1
-            self._f_value.setText("%.3f %s / %.3f°" % (pors_y, uu, d))
+        if isinstance(v, complex):  # hrm1
+            self._f_value.setText("%.3f %s / %.3f°" % (pors_y, uu, math.degrees(cmath.phase(v))))
         else:
             self._f_value.setText("%.3f %s" % (pors_y, uu))
 
