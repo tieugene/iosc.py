@@ -121,12 +121,15 @@ class AnalogSignal(Signal):
         else:
             uu = 1
             self.__uu_orig = self._raw2.uu
-        if self._raw2.pors.lower() == 'p':
-            pri = 1
-            sec = self._raw2.secondary / self._raw2.primary
-        else:
-            pri = self._raw2.primary / self._raw2.secondary
-            sec = 1
+        if bool(self._raw2.primary) and bool(self._raw2.secondary):
+            if self._raw2.pors.lower() == 'p':
+                pri = 1
+                sec = self._raw2.secondary / self._raw2.primary
+            else:
+                pri = self._raw2.primary / self._raw2.secondary
+                sec = 1
+        else:  # trivial
+            pri = sec = 1
         self.__mult = (pri * uu, sec * uu)
 
     @property
