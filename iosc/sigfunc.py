@@ -1,8 +1,6 @@
 """Signal view functions.
 Calling from AnalogSignalCtrlView to calc requested signal value.
-FFT:
-- [RTFM](http://digitalsubstation.com/i-mt/2016/12/05/modelirovanie-rza-chast-vtoraya/)
-- [Libs](https://www.nayuki.io/page/free-small-fft-in-multiple-languages)
+FFT: [Libs](https://www.nayuki.io/page/free-small-fft-in-multiple-languages)
 """
 
 import numpy as np
@@ -34,11 +32,12 @@ def mid(a: np.array, n: int, w: int):
     return np.sum(a[max(n + 1 - w, 0):n + 1]) / w
 
 
-def eff(a: np.array, n: int, w: int):
+def rms(a: np.array, n: int, w: int):
     """Effective value.
     :note: np.std(_cutlpad(a, n, w)) - not right
     """
-    return np.sqrt(np.average(_cutlpad(np.array(a), n, w)**2))
+    # or np.sqrt(np.average(_cutlpad(np.array(a), n, w)**2))
+    return np.sqrt(sum(np.array(a[max(n + 1 - w, 0):n + 1]) ** 2) / w)
 
 
 def hrm1(a: np.array, n: int, w: int):
@@ -67,7 +66,7 @@ def hrm5(a: np.array, n: int, w: int):
 func_list = (
     asis,
     mid,
-    eff,
+    rms,
     hrm1,
     hrm2,
     hrm3,
