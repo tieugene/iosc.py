@@ -423,19 +423,19 @@ class ComtradeWidget(QWidget):
         self.viewas_toolbutton.setDefaultAction(a)
         self.signal_recalc_achannels.emit()
 
-    def __sync_hresize(self, l_index: int, _: int, new_size: int):
+    def __sync_hresize(self, l_index: int, old_size: int, new_size: int):
         """
         :param l_index: Column index
-        :param _: Old size
+        :param old_size: Old size
         :param new_size: New size
-        :return:
+        :todo: remake to signal/slot
         """
         # self.analog_table.horizontalHeader().resizeSection(l_index, new_size)  # don't touch itself
         self.timeaxis_table.horizontalHeader().resizeSection(l_index, new_size)
         self.status_table.horizontalHeader().resizeSection(l_index, new_size)
         self.statusbar_table.horizontalHeader().resizeSection(l_index, new_size)
         if l_index == 1:  # it is chart column
-            self.hsb.slot_col_resize(new_size)
+            self.hsb.slot_col_resize(old_size, new_size)
 
     def line_up(self):
         """

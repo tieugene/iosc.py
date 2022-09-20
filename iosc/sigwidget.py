@@ -26,29 +26,35 @@ PEN_STYLE = {
 
 
 class HScroller(QScrollBar):
-    """Bottom scrollbar"""
+    """Bottom scrollbar.
+    Subscribers of valueChaged() -> sa.horizontalScrollBar().setValue:
+    - TimeAxisTable.__init__()
+    - StatuBarTable.__init__()
+    - SignalListView.__init__()
+    """
     def __init__(self, parent: QWidget):
         """
         :param parent:
         :type parent: ComtradeWidget
         """
         super().__init__(Qt.Horizontal, parent)
-        parent.signal_xscale.connect(self._slot_chg_width)
+        parent.signal_xscale.connect(self._slot_chart_xscaled)
 
-    def slot_col_resize(self, w: int):
-        """Recalc scroller parm on aim column resized.
-        :param w: New chart column width
+    def slot_col_resize(self, _: int, w_new: int):
+        """Recalc scroller parm on aim column resized with mouse.
+        :param _: Old chart column size
+        :param w_new: New chart column width
         :todo: link to signal
         """
-        self.setPageStep(w)
+        self.setPageStep(w_new)
         if (chart_width := self.parent().chart_width) is not None:
             range_new = chart_width - self.pageStep()
             self.setRange(0, range_new)
             if self.value() > range_new:
                 self.setValue(range_new)
 
-    def _slot_chg_width(self, w_old: int, w_new: int):
-        """Recalc scroller parm on aim column resized.
+    def _slot_chart_xscaled(self, w_old: int, w_new: int):
+        """Recalc scroller parm on aim column x-scaled.
         :param w_old: Old chart width (px)
         :param w_new: New chart width (px)
         """
