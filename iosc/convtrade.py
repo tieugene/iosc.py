@@ -99,6 +99,8 @@ def convert(sfname: pathlib.Path, dfname: pathlib.Path):
     :note: cfg only
     """
     # 0. checks
+    if sfname.suffix.lower() == 'cff':
+        raise ConvertError(f"CFF export not supported yet")
     if not sfname.is_file():
         raise ConvertError(f"Src '{sfname}' not exists")
     if sfname.with_suffix('') == dfname.with_suffix(''):
