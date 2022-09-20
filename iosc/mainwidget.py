@@ -373,7 +373,7 @@ class ComtradeWidget(QWidget):
         )
         if fn[0]:
             try:
-                convert(pathlib.Path(self.__osc.raw.filepath), pathlib.Path(fn[0]))
+                convert(pathlib.Path(self.__osc.raw.cfg.filepath), pathlib.Path(fn[0]))
             except ConvertError as e:
                 QMessageBox.critical(self, "Converting error", str(e))
 
