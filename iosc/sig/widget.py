@@ -13,10 +13,9 @@ from PyQt5.QtWidgets import QLabel, QMenu, QTableWidget, QWidget, QVBoxLayout, Q
 from QCustomPlot2 import QCustomPlot, QCPAxis, QCPItemTracer, QCPItemStraightLine, QCPItemText, QCPItemRect, \
     QCPScatterStyle, QCPPainter, QCPGraphData
 # 4. local
-import mycomtrade
-import const
-import sigfunc
-from sigprop import AnalogSignalPropertiesDialog, StatusSignalPropertiesDialog
+from iosc.core import mycomtrade, sigfunc
+import iosc.const
+from iosc.sig.prop import AnalogSignalPropertiesDialog, StatusSignalPropertiesDialog
 # x. const
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
@@ -65,7 +64,7 @@ class HScroller(QScrollBar):
             return
         # 2. start ptr
         b_old = self.value()  # old begin
-        if const.X_CENTERED:
+        if iosc.const.X_CENTERED:
             p_half = self.pageStep() / 2  # relative page mid
             b_new = int(round((b_old + p_half) * w_new / w_old - p_half))  # FIXME: glitches with right list scroller
         else:  # plan B (w/o glitches)
@@ -112,15 +111,15 @@ class TimeAxisView(QCustomPlot):
         self.xAxis.setTickLabelSide(QCPAxis.lsInside)
         self.xAxis.grid().setVisible(False)
         self.xAxis.setPadding(0)
-        self.setFixedHeight(const.XSCALE_HEIGHT)
+        self.setFixedHeight(iosc.const.XSCALE_HEIGHT)
 
     def __set_style(self):
         # TODO: setLabelFormat("%d")
-        self.xAxis.setTickLabelFont(const.X_FONT)
-        self.__main_ptr_label.setColor(const.X_LABEL_COLOR)  # text
-        self.__main_ptr_label.setBrush(const.X_LABEL_BRUSH)  # rect
+        self.xAxis.setTickLabelFont(iosc.const.X_FONT)
+        self.__main_ptr_label.setColor(iosc.const.X_LABEL_COLOR)  # text
+        self.__main_ptr_label.setBrush(iosc.const.X_LABEL_BRUSH)  # rect
         self.__main_ptr_label.setTextAlignment(Qt.AlignCenter)
-        self.__main_ptr_label.setFont(const.X_FONT)
+        self.__main_ptr_label.setFont(iosc.const.X_FONT)
         self.__main_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
 
@@ -135,7 +134,7 @@ class TimeAxisView(QCustomPlot):
 
     def _slot_chg_width(self, _: int, w_new: int):  # dafault: 1117
         self.setFixedWidth(w_new)
-        self.xAxis.ticker().setTickCount(const.TICK_COUNT * self.__root.xzoom)
+        self.xAxis.ticker().setTickCount(iosc.const.TICK_COUNT * self.__root.xzoom)
         self.replot()
 
 
@@ -171,20 +170,20 @@ class StatusBarView(QCustomPlot):
         self.xAxis.setTicks(False)
         self.xAxis.grid().setVisible(False)
         self.xAxis.setPadding(0)
-        self.setFixedHeight(const.XSCALE_HEIGHT)
+        self.setFixedHeight(iosc.const.XSCALE_HEIGHT)
 
     def __set_style(self):
         # zero
-        self.__zero_ptr_label.setColor(const.Z_LABEL_COLOR)  # text
+        self.__zero_ptr_label.setColor(iosc.const.Z_LABEL_COLOR)  # text
         self.__zero_ptr_label.setTextAlignment(Qt.AlignCenter)
-        self.__zero_ptr_label.setFont(const.X_FONT)
+        self.__zero_ptr_label.setFont(iosc.const.X_FONT)
         self.__zero_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__zero_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
         # mptr
-        self.__main_ptr_label.setColor(const.X_LABEL_COLOR)  # text
-        self.__main_ptr_label.setBrush(const.X_LABEL_BRUSH)  # rect
+        self.__main_ptr_label.setColor(iosc.const.X_LABEL_COLOR)  # text
+        self.__main_ptr_label.setBrush(iosc.const.X_LABEL_BRUSH)  # rect
         self.__main_ptr_label.setTextAlignment(Qt.AlignCenter)
-        self.__main_ptr_label.setFont(const.X_FONT)
+        self.__main_ptr_label.setFont(iosc.const.X_FONT)
         self.__main_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
 
@@ -203,7 +202,7 @@ class ZoomButton(QPushButton):
     def __init__(self, txt: str, parent: QWidget = None):
         super().__init__(txt, parent)
         self.setContentsMargins(QMargins())  # not helps
-        self.setFixedWidth(const.SIG_ZOOM_BTN_WIDTH)
+        self.setFixedWidth(iosc.const.SIG_ZOOM_BTN_WIDTH)
         # self.setFlat(True)
         # TODO: squeeze
 
@@ -407,7 +406,7 @@ class MainPtr(QCPItemTracer):
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
         self.setGraph(cp.graph())
-        self.setPen(const.MAIN_PTR_PEN)
+        self.setPen(iosc.const.MAIN_PTR_PEN)
         self.position.setAxes(cp.xAxis, None)
         # cp.setCursor(QCursor(Qt.CrossCursor))
 
@@ -417,7 +416,7 @@ class OldPtr(QCPItemStraightLine):
 
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
-        self.setPen(const.OLD_PTR_PEN)
+        self.setPen(iosc.const.OLD_PTR_PEN)
         self.setVisible(False)
 
     def move2x(self, x: float):
@@ -460,7 +459,7 @@ class MainPtrRect(QCPItemRect):
     def set2x(self, x: float):
         """Set starting point"""
         yaxis = self.parentPlot().yAxis
-        self.topLeft.setCoords(x, yaxis.pixelToCoord(0) - yaxis.pixelToCoord(const.PTR_RECT_HEIGHT))
+        self.topLeft.setCoords(x, yaxis.pixelToCoord(0) - yaxis.pixelToCoord(iosc.const.PTR_RECT_HEIGHT))
 
     def stretc2x(self, x: float):
         self.bottomRight.setCoords(x, 0)
@@ -530,9 +529,9 @@ class SignalChartView(QCustomPlot):
 
     def __decorate(self):
         # self.yAxis.grid().setPen(QPen(QColor(255, 255, 255, 0)))
-        self.yAxis.setBasePen(const.NO_PEN)  # hack
-        self.yAxis.grid().setZeroLinePen(const.ZERO_PEN)
-        self.xAxis.grid().setZeroLinePen(const.ZERO_PEN)
+        self.yAxis.setBasePen(iosc.const.NO_PEN)  # hack
+        self.yAxis.grid().setZeroLinePen(iosc.const.ZERO_PEN)
+        self.xAxis.grid().setZeroLinePen(iosc.const.ZERO_PEN)
 
     def _set_style(self):
         ...  # stub
@@ -614,7 +613,7 @@ class SignalChartView(QCustomPlot):
     def _slot_chg_width(self, _: int, w_new: int):
         """Changing signal chart real width (px)"""
         self.setFixedWidth(w_new)
-        self.xAxis.ticker().setTickCount(const.TICK_COUNT * self._root.xzoom)  # QCPAxisTicker; FIXME: 200ms default
+        self.xAxis.ticker().setTickCount(iosc.const.TICK_COUNT * self._root.xzoom)  # QCPAxisTicker; FIXME: 200ms default
         # self.replot()
 
 
@@ -622,10 +621,10 @@ class StatusSignalChartView(SignalChartView):
     def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
                  sibling: SignalCtrlView):
         super().__init__(signal, parent, root, sibling)
-        self.yAxis.setRange(const.SIG_D_YMIN, const.SIG_D_YMAX)
+        self.yAxis.setRange(iosc.const.SIG_D_YMIN, iosc.const.SIG_D_YMAX)
 
     def _set_style(self):
-        brush = QBrush(const.D_BRUSH)
+        brush = QBrush(iosc.const.D_BRUSH)
         brush.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setBrush(brush)
 
@@ -674,7 +673,7 @@ class AnalogSignalChartView(SignalChartView):
     def __rerange(self):
         ymin = min(min(self._signal.value), 0)
         ymax = max(max(self._signal.value), 0)
-        ypad = (ymax - ymin) * const.SIG_A_YPAD
+        ypad = (ymax - ymin) * iosc.const.SIG_A_YPAD
         self.yAxis.setRange(ymin - ypad, ymax + ypad)
 
     def __slot_shift(self):
@@ -702,17 +701,17 @@ class AnalogSignalChartView(SignalChartView):
         super()._slot_chg_width(w_old, w_new)
         pps = int(w_new / len(self._signal.value))
         if self.__pps != pps:
-            if pps < const.X_SCATTER_MARK:
+            if pps < iosc.const.X_SCATTER_MARK:
                 shape = QCPScatterStyle(QCPScatterStyle.ssNone)
             else:
                 shape = QCPScatterStyle(QCPScatterStyle.ssPlus)
             self.graph().setScatterStyle(QCPScatterStyle(shape))
             # <dirtyhack>
-            if self.__pps < const.X_SCATTER_NUM <= pps:
+            if self.__pps < iosc.const.X_SCATTER_NUM <= pps:
                 # self.graph().setScatterStyle(self.__myscatter)
                 for i, d in enumerate(self.graph().data()):
                     ScatterLabel(i, d, self)
-            elif self.__pps >= const.X_SCATTER_NUM > pps:
+            elif self.__pps >= iosc.const.X_SCATTER_NUM > pps:
                 for i in reversed(range(self.itemCount())):
                     if isinstance(self.item(i), ScatterLabel):
                         self.removeItem(i)

@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QPushButton, QColorDialog, QLineEdit
 # 3. local
-import mycomtrade
+from iosc.core import mycomtrade
 
 
 class SignalPropertiesDialog(QDialog):

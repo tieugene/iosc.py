@@ -10,12 +10,12 @@ from PyQt5.QtGui import QIcon, QGuiApplication
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget, QMenuBar, QToolBar, QAction, QMessageBox, \
     QFileDialog, QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
-import mycomtrade
-import const
-from icon import svg_icon, ESvgSrc
-from convtrade import convert, ConvertError
-from siglist_tw import TimeAxisTable, AnalogSignalListView, StatusSignalListView, StatusBarTable
-from sigwidget import HScroller
+import iosc.const
+from iosc.core import mycomtrade
+from iosc.icon import svg_icon, ESvgSrc
+from iosc.core.convtrade import convert, ConvertError
+from iosc.sig.table import TimeAxisTable, AnalogSignalListView, StatusSignalListView, StatusBarTable
+from iosc.sig.widget import HScroller
 
 # x. const
 TICK_RANGE = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000)
@@ -391,10 +391,10 @@ class ComtradeWidget(QWidget):
 
     def __do_xzoom_in(self):
         samples = len(self.__osc.raw.time)
-        if int(self.__chart_width * (zoom_new := self.__xzoom << 1) / samples) <= const.X_SCATTER_MAX:
+        if int(self.__chart_width * (zoom_new := self.__xzoom << 1) / samples) <= iosc.const.X_SCATTER_MAX:
             if not self.action_xzoom_out.isEnabled():
                 self.action_xzoom_out.setEnabled(True)
-            if int(self.__chart_width * (zoom_new << 1) / samples) > const.X_SCATTER_MAX:
+            if int(self.__chart_width * (zoom_new << 1) / samples) > iosc.const.X_SCATTER_MAX:
                 self.action_xzoom_in.setEnabled(False)
             chart_width_old = self.chart_width
             self.__xzoom = zoom_new
@@ -444,7 +444,7 @@ class ComtradeWidget(QWidget):
         w_main_avail = QGuiApplication.screens()[0].availableGeometry().width()  # all available desktop (e.g. 1280)
         w_main_real = QGuiApplication.topLevelWindows()[0].width()  # current main window width (e.g. 960)
         w_self = self.analog_table.width()  # current [table] widget width  (e.g. 940)
-        self.__chart_width = w_self + (w_main_avail - w_main_real) - const.COL0_WIDTH  # - const.MAGIC_WIDHT
+        self.__chart_width = w_self + (w_main_avail - w_main_real) - iosc.const.COL0_WIDTH  # - const.MAGIC_WIDHT
         self.signal_xscale.emit(0, self.chart_width)
 
     def slot_main_ptr_moved_x(self, x: float):

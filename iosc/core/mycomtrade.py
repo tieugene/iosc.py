@@ -11,7 +11,7 @@ import chardet
 import numpy as np
 
 # 3. local
-from comtrade import Comtrade, Channel
+from iosc.core.comtrade import Comtrade, Channel
 # x. const
 # orange (255, 127, 39), green (0, 128, 0), red (198, 0, 0)
 DEFAULT_SIG_COLOR = {'a': 16744231, 'b': 32768, 'c': 12976128}
