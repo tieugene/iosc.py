@@ -1,17 +1,22 @@
 from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtGui import QBrush, QColor, QFont
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
-
+# 4. local
 import iosc.const
 
 
-class MainPtr(QCPItemTracer):
+class Ptr(QCPItemTracer):
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
         self.setGraph(cp.graph())
-        self.setPen(iosc.const.MAIN_PTR_PEN)
         self.position.setAxes(cp.xAxis, None)
         # cp.setCursor(QCursor(Qt.CrossCursor))
+
+
+class MainPtr(Ptr):
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+        self.setPen(iosc.const.MAIN_PTR_PEN)
 
 
 class OldPtr(QCPItemStraightLine):
@@ -66,3 +71,9 @@ class MainPtrRect(QCPItemRect):
 
     def stretc2x(self, x: float):
         self.bottomRight.setCoords(x, 0)
+
+
+class SCPtr(Ptr):
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+        self.setPen(iosc.const.OMP_PTR_PEN)

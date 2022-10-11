@@ -50,7 +50,7 @@ class TimeAxisWidget(QCustomPlot):
         """Repaint/move main ptr value label (%.2f)
         :fixme: draw in front of ticks
         """
-        x = self.__root.mptr_x
+        x = self.__root.main_ptr_x
         self.__main_ptr_label.setText("%.2f" % x)
         self.__main_ptr_label.position.setCoords(x, 0)
         self.replot()

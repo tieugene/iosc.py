@@ -50,7 +50,7 @@ class StatusBarWidget(QCustomPlot):
         self.__zero_ptr_label.setFont(iosc.const.X_FONT)
         self.__zero_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__zero_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
-        # mptr
+        # main_ptr_i
         self.__main_ptr_label.setColor(iosc.const.X_LABEL_COLOR)  # text
         self.__main_ptr_label.setBrush(iosc.const.X_LABEL_BRUSH)  # rect
         self.__main_ptr_label.setTextAlignment(Qt.AlignCenter)
@@ -60,7 +60,7 @@ class StatusBarWidget(QCustomPlot):
 
     def __slot_main_ptr_moved(self):
         """Repaint/move main ptr value label"""
-        x = self.__root.mptr_x  # from z-point, , ms
+        x = self.__root.main_ptr_x  # from z-point, , ms
         self.__main_ptr_label.setText((self.__zero_timestamp + datetime.timedelta(milliseconds=x)).time().isoformat())
         self.__main_ptr_label.position.setCoords(x, 0)
         self.replot()
