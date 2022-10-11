@@ -10,12 +10,11 @@ from PyQt5.QtGui import QIcon, QGuiApplication
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget, QMenuBar, QToolBar, QAction, QMessageBox, \
     QFileDialog, QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
-import mycomtrade
-import const
-from icon import svg_icon, ESvgSrc
-from convtrade import convert, ConvertError
-from siglist_tw import TimeAxisTable, AnalogSignalListView, StatusSignalListView, StatusBarTable
-from sigwidget import HScroller
+import iosc.const
+from iosc.core import mycomtrade
+from iosc.icon import svg_icon, ESvgSrc
+from iosc.core.convtrade import convert, ConvertError
+from iosc.sig.section import TimeAxisTable, SignalListTable, StatusBarTable, HScroller
 
 # x. const
 TICK_RANGE = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000)
@@ -71,8 +70,8 @@ class ComtradeWidget(QWidget):
     toolbar: QToolBar
     viewas_toolbutton: QToolButton
     timeaxis_table: TimeAxisTable
-    analog_table: AnalogSignalListView
-    status_table: StatusSignalListView
+    analog_table: SignalListTable
+    status_table: SignalListTable
     statusbar_table: StatusBarTable
     hsb: HScroller  # bottom horizontal scroll bar
     # signals
@@ -137,8 +136,8 @@ class ComtradeWidget(QWidget):
         self.viewas_toolbutton = QToolButton(self)
         self.hsb = HScroller(self)
         self.timeaxis_table = TimeAxisTable(self.__osc, self)
-        self.analog_table = AnalogSignalListView(self.__osc.analog, self)
-        self.status_table = StatusSignalListView(self.__osc.status, self)
+        self.analog_table = SignalListTable(self.__osc.analog, self)
+        self.status_table = SignalListTable(self.__osc.status, self)
         self.statusbar_table = StatusBarTable(self.__osc, self)
 
     def __mk_actions(self):
@@ -329,8 +328,7 @@ class ComtradeWidget(QWidget):
         self.action_shift.triggered.connect(self.__do_shift)
         self.action_pors.triggered.connect(self.__do_pors)
         self.action_viewas.triggered.connect(self.__do_viewas)
-        self.analog_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
-        # self.status_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
+        self.timeaxis_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
 
     def __do_file_close(self):  # FIXME: not closes tab
         # self.parent().removeTab(self.__index)
@@ -391,10 +389,10 @@ class ComtradeWidget(QWidget):
 
     def __do_xzoom_in(self):
         samples = len(self.__osc.raw.time)
-        if int(self.__chart_width * (zoom_new := self.__xzoom << 1) / samples) <= const.X_SCATTER_MAX:
+        if int(self.__chart_width * (zoom_new := self.__xzoom << 1) / samples) <= iosc.const.X_SCATTER_MAX:
             if not self.action_xzoom_out.isEnabled():
                 self.action_xzoom_out.setEnabled(True)
-            if int(self.__chart_width * (zoom_new << 1) / samples) > const.X_SCATTER_MAX:
+            if int(self.__chart_width * (zoom_new << 1) / samples) > iosc.const.X_SCATTER_MAX:
                 self.action_xzoom_in.setEnabled(False)
             chart_width_old = self.chart_width
             self.__xzoom = zoom_new
@@ -430,8 +428,8 @@ class ComtradeWidget(QWidget):
         :param new_size: New size
         :todo: remake to signal/slot
         """
-        # self.analog_table.horizontalHeader().resizeSection(l_index, new_size)  # don't touch itself
-        self.timeaxis_table.horizontalHeader().resizeSection(l_index, new_size)
+        # self.timeaxis_table.horizontalHeader().resizeSection(l_index, new_size)  # don't touch itself
+        self.analog_table.horizontalHeader().resizeSection(l_index, new_size)
         self.status_table.horizontalHeader().resizeSection(l_index, new_size)
         self.statusbar_table.horizontalHeader().resizeSection(l_index, new_size)
         if l_index == 1:  # it is chart column
@@ -444,7 +442,7 @@ class ComtradeWidget(QWidget):
         w_main_avail = QGuiApplication.screens()[0].availableGeometry().width()  # all available desktop (e.g. 1280)
         w_main_real = QGuiApplication.topLevelWindows()[0].width()  # current main window width (e.g. 960)
         w_self = self.analog_table.width()  # current [table] widget width  (e.g. 940)
-        self.__chart_width = w_self + (w_main_avail - w_main_real) - const.COL0_WIDTH  # - const.MAGIC_WIDHT
+        self.__chart_width = w_self + (w_main_avail - w_main_real) - iosc.const.COL0_WIDTH  # - const.MAGIC_WIDHT
         self.signal_xscale.emit(0, self.chart_width)
 
     def slot_main_ptr_moved_x(self, x: float):
@@ -453,8 +451,8 @@ class ComtradeWidget(QWidget):
         :param x: New Main Ptr x-position
         :type x: ~~QCPItemPosition~~ float
         Emit slot_main_ptr_move(pos) for:
-        - TimeAxisView (x)
-        - SignalChartView (x) [=> SignalCtrlView(y)]
+        - TimeAxisWidget (x)
+        - SignalChartWidget (x) [=> SignalCtrlWidget(y)]
         - statusbar (x)
         """
         self.__mptr = self.__x2n(x)

@@ -1,5 +1,5 @@
 """Signal view functions.
-Calling from AnalogSignalCtrlView to calc requested signal value.
+Calling from AnalogSignalCtrlWidget to calc requested signal value.
 FFT: [Libs](https://www.nayuki.io/page/free-small-fft-in-multiple-languages)
 """
 import cmath

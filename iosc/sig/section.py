@@ -1,17 +1,16 @@
-"""Signal list view.
-QTableWidget version
-:todo: try QTableWidgetItem
-"""
+"""Mainwidget widget lists"""
 # 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QDropEvent, QGuiApplication
-from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem
+from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem, QScrollBar
 # 3. local
-import const
-import mycomtrade
-from sigwidget import CleanScrollArea, TimeAxisView, StatusBarView, \
-    AnalogSignalCtrlView, AnalogSignalChartView, \
-    StatusSignalCtrlView, StatusSignalChartView, SignalScrollArea
+import iosc.const
+from iosc.core import mycomtrade
+from iosc.sig.widget.common import CleanScrollArea
+from iosc.sig.widget.bottom import StatusBarWidget
+from iosc.sig.widget.top import TimeAxisWidget
+from iosc.sig.widget.ctrl import StatusSignalCtrlWidget, AnalogSignalCtrlWidget
+from iosc.sig.widget.chart import SignalScrollArea, StatusSignalChartWidget, AnalogSignalChartWidget
 
 
 class OneRowTable(QTableWidget):
@@ -21,13 +20,12 @@ class OneRowTable(QTableWidget):
         self.setRowCount(1)
         self.setEditTriggers(self.NoEditTriggers)
         self.setSelectionMode(self.NoSelection)
-        self.setColumnWidth(0, const.COL0_WIDTH)
+        self.setColumnWidth(0, iosc.const.COL0_WIDTH)
         self.horizontalHeader().setStretchLastSection(True)
-        self.horizontalHeader().hide()
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.resizeRowsToContents()
-        self.setFixedHeight(self.rowHeight(0) + const.XSCALE_H_PAD)
+        self.setFixedHeight(self.rowHeight(0) + self.horizontalHeader().height() + iosc.const.XSCALE_H_PAD)
 
 
 class TimeAxisTable(OneRowTable):
@@ -35,7 +33,7 @@ class TimeAxisTable(OneRowTable):
         super().__init__(parent)
         self.setItem(0, 0, QTableWidgetItem("ms"))
         sa = CleanScrollArea(self)
-        sa.setWidget(TimeAxisView(osc, parent, sa))
+        sa.setWidget(TimeAxisWidget(osc, parent, sa))
         self.setCellWidget(0, 1, sa)
         parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
@@ -43,14 +41,15 @@ class TimeAxisTable(OneRowTable):
 class StatusBarTable(OneRowTable):
     def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
         super().__init__(parent)
+        self.horizontalHeader().hide()
         self.setItem(0, 0, QTableWidgetItem(osc.raw.cfg.start_timestamp.date().isoformat()))
         sa = CleanScrollArea(self)
-        sa.setWidget(StatusBarView(osc, parent, sa))
+        sa.setWidget(StatusBarWidget(osc, parent, sa))
         self.setCellWidget(0, 1, sa)
         parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
 
-class SignalListView(QTableWidget):
+class SignalListTable(QTableWidget):
     _slist: mycomtrade.SignalList
     _parent: QWidget
 
@@ -63,13 +62,14 @@ class SignalListView(QTableWidget):
         self.setEditTriggers(self.NoEditTriggers)
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # not helps
-        self.verticalHeader().setMinimumSectionSize(const.SIG_HEIGHT_MIN)
+        self.verticalHeader().setMinimumSectionSize(iosc.const.SIG_HEIGHT_MIN)
         self.verticalHeader().setMaximumSectionSize(int(QGuiApplication.screens()[0].availableGeometry().height()*2/3))
         # self.setAutoScroll(False)
-        self.setColumnWidth(0, const.COL0_WIDTH)
+        self.setColumnWidth(0, iosc.const.COL0_WIDTH)
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().hide()
         # test
         # self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         # self.verticalHeader().setSectionsMovable(True)
@@ -129,15 +129,15 @@ class SignalListView(QTableWidget):
         signal = self._slist[i]
         sa = SignalScrollArea(self)
         if signal.is_bool:
-            self.setCellWidget(row, 0, ctrl := StatusSignalCtrlView(signal, self, self._parent))
-            sa.setWidget(StatusSignalChartView(signal, sa, self._parent, ctrl))
+            self.setCellWidget(row, 0, ctrl := StatusSignalCtrlWidget(signal, self, self._parent))
+            sa.setWidget(StatusSignalChartWidget(signal, sa, self._parent, ctrl))
             self.setCellWidget(row, 1, sa)
-            self.setRowHeight(row, const.SIG_HEIGHT_DEFAULT_D)
+            self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_D)
         else:
-            self.setCellWidget(row, 0, ctrl := AnalogSignalCtrlView(signal, self, self._parent))
-            sa.setWidget(AnalogSignalChartView(signal, sa, self._parent, ctrl))
+            self.setCellWidget(row, 0, ctrl := AnalogSignalCtrlWidget(signal, self, self._parent))
+            sa.setWidget(AnalogSignalChartWidget(signal, sa, self._parent, ctrl))
             self.setCellWidget(row, 1, sa)
-            self.setRowHeight(row, const.SIG_HEIGHT_DEFAULT_A)
+            self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_A)
         self._parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
     def slot_unhide(self):
@@ -162,12 +162,54 @@ class SignalListView(QTableWidget):
                 self.setRowHeight(row, int(self.rowHeight(row) / 1.2))
 
 
-class AnalogSignalListView(SignalListView):
-    def __init__(self, slist: mycomtrade.AnalogSignalList, parent):
-        super().__init__(slist, parent)
+class HScroller(QScrollBar):
+    """Bottom scrollbar.
+    Subscribers of valueChaged() -> sa.horizontalScrollBar().setValue:
+    - TimeAxisTable.__init__()
+    - StatuBarTable.__init__()
+    - SignalListTable.__init__()
+    """
+    def __init__(self, parent: QWidget):
+        """
+        :param parent:
+        :type parent: ComtradeWidget
+        """
+        super().__init__(Qt.Horizontal, parent)
+        parent.signal_xscale.connect(self._slot_chart_xscaled)
 
+    def slot_col_resize(self, _: int, w_new: int):
+        """Recalc scroller parm on aim column resized with mouse.
+        :param _: Old chart column size
+        :param w_new: New chart column width
+        :todo: link to signal
+        """
+        self.setPageStep(w_new)
+        if (chart_width := self.parent().chart_width) is not None:
+            range_new = chart_width - self.pageStep()
+            self.setRange(0, range_new)
+            if self.value() > range_new:
+                self.setValue(range_new)
 
-class StatusSignalListView(SignalListView):
-    def __init__(self, slist: mycomtrade.StatusSignalList, parent):
-        super().__init__(slist, parent)
-        self.horizontalHeader().hide()
+    def _slot_chart_xscaled(self, w_old: int, w_new: int):
+        """Recalc scroller parm on aim column x-scaled.
+        :param w_old: Old chart width (px)
+        :param w_new: New chart width (px)
+        """
+        # 1. range
+        range_new = w_new - self.pageStep()
+        self.setRange(0, range_new)
+        if w_old == 0:  # initial => value() == 0
+            return
+        # 2. start ptr
+        b_old = self.value()  # old begin
+        if iosc.const.X_CENTERED:
+            p_half = self.pageStep() / 2  # relative page mid
+            b_new = int(round((b_old + p_half) * w_new / w_old - p_half))  # FIXME: glitches with right list scroller
+        else:  # plan B (w/o glitches)
+            b_new = b_old
+        # 3. limit start ptr
+        if b_new < 0:
+            b_new = 0
+        elif b_new > range_new:
+            b_new = range_new
+        self.setValue(b_new)
