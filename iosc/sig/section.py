@@ -22,11 +22,10 @@ class OneRowTable(QTableWidget):
         self.setSelectionMode(self.NoSelection)
         self.setColumnWidth(0, iosc.const.COL0_WIDTH)
         self.horizontalHeader().setStretchLastSection(True)
-        self.horizontalHeader().hide()
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.resizeRowsToContents()
-        self.setFixedHeight(self.rowHeight(0) + iosc.const.XSCALE_H_PAD)
+        self.setFixedHeight(self.rowHeight(0) + self.horizontalHeader().height() + iosc.const.XSCALE_H_PAD)
 
 
 class TimeAxisTable(OneRowTable):
@@ -42,6 +41,7 @@ class TimeAxisTable(OneRowTable):
 class StatusBarTable(OneRowTable):
     def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
         super().__init__(parent)
+        self.horizontalHeader().hide()
         self.setItem(0, 0, QTableWidgetItem(osc.raw.cfg.start_timestamp.date().isoformat()))
         sa = CleanScrollArea(self)
         sa.setWidget(StatusBarWidget(osc, parent, sa))
@@ -69,6 +69,7 @@ class SignalListTable(QTableWidget):
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().hide()
         # test
         # self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         # self.verticalHeader().setSectionsMovable(True)
@@ -169,7 +170,6 @@ class AnalogSignalListTable(SignalListTable):
 class StatusSignalListTable(SignalListTable):
     def __init__(self, slist: mycomtrade.StatusSignalList, parent):
         super().__init__(slist, parent)
-        self.horizontalHeader().hide()
 
 
 class HScroller(QScrollBar):

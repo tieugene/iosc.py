@@ -328,8 +328,7 @@ class ComtradeWidget(QWidget):
         self.action_shift.triggered.connect(self.__do_shift)
         self.action_pors.triggered.connect(self.__do_pors)
         self.action_viewas.triggered.connect(self.__do_viewas)
-        self.analog_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
-        # self.status_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
+        self.timeaxis_table.horizontalHeader().sectionResized.connect(self.__sync_hresize)
 
     def __do_file_close(self):  # FIXME: not closes tab
         # self.parent().removeTab(self.__index)
@@ -429,8 +428,8 @@ class ComtradeWidget(QWidget):
         :param new_size: New size
         :todo: remake to signal/slot
         """
-        # self.analog_table.horizontalHeader().resizeSection(l_index, new_size)  # don't touch itself
-        self.timeaxis_table.horizontalHeader().resizeSection(l_index, new_size)
+        # self.timeaxis_table.horizontalHeader().resizeSection(l_index, new_size)  # don't touch itself
+        self.analog_table.horizontalHeader().resizeSection(l_index, new_size)
         self.status_table.horizontalHeader().resizeSection(l_index, new_size)
         self.statusbar_table.horizontalHeader().resizeSection(l_index, new_size)
         if l_index == 1:  # it is chart column
