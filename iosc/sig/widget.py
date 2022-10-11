@@ -84,7 +84,7 @@ class CleanScrollArea(QScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
 
-class TimeAxisView(QCustomPlot):
+class TimeAxisWidget(QCustomPlot):
     __root: QWidget
     __main_ptr_label: QCPItemText
 
@@ -138,8 +138,8 @@ class TimeAxisView(QCustomPlot):
         self.replot()
 
 
-class StatusBarView(QCustomPlot):
-    """:todo: join TimeAxisView"""
+class StatusBarWidget(QCustomPlot):
+    """:todo: join TimeAxisWidget"""
     __root: QWidget
     __zero_timestamp: datetime.datetime
     __zero_ptr_label: QCPItemText
@@ -207,7 +207,7 @@ class ZoomButton(QPushButton):
         # TODO: squeeze
 
 
-class SignalCtrlView(QWidget):
+class SignalCtrlWidget(QWidget):
     _root: QWidget
     _signal: mycomtrade.Signal
     _f_name: QLabel
@@ -304,7 +304,7 @@ class SignalCtrlView(QWidget):
         return self._signal
 
 
-class StatusSignalCtrlView(SignalCtrlView):
+class StatusSignalCtrlWidget(SignalCtrlWidget):
     def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root):
         super().__init__(signal, parent, root)
         self._b_side.hide()
@@ -319,7 +319,7 @@ class StatusSignalCtrlView(SignalCtrlView):
         self._f_value.setText("%d" % self._signal.value[self._root.mptr])
 
 
-class AnalogSignalCtrlView(SignalCtrlView):
+class AnalogSignalCtrlWidget(SignalCtrlWidget):
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root: QWidget):
         super().__init__(signal, parent, root)
         self._root.signal_recalc_achannels.connect(self.slot_update_value)
@@ -465,9 +465,9 @@ class MainPtrRect(QCPItemRect):
         self.bottomRight.setCoords(x, 0)
 
 
-class SignalChartView(QCustomPlot):
+class SignalChartWidget(QCustomPlot):
     _root: QWidget
-    _sibling: SignalCtrlView
+    _sibling: SignalCtrlWidget
     _signal: mycomtrade.Signal
     _main_ptr: MainPtr
     _old_ptr: OldPtr
@@ -476,7 +476,7 @@ class SignalChartView(QCustomPlot):
     _ptr_onway: bool
 
     def __init__(self, signal: mycomtrade.Signal, parent: QScrollArea, root: QWidget,
-                 sibling: SignalCtrlView):
+                 sibling: SignalCtrlWidget):
         super().__init__(parent)
         self._root = root
         self._sibling = sibling
@@ -617,9 +617,9 @@ class SignalChartView(QCustomPlot):
         # self.replot()
 
 
-class StatusSignalChartView(SignalChartView):
+class StatusSignalChartWidget(SignalChartWidget):
     def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
-                 sibling: SignalCtrlView):
+                 sibling: SignalCtrlWidget):
         super().__init__(signal, parent, root, sibling)
         self.yAxis.setRange(iosc.const.SIG_D_YMIN, iosc.const.SIG_D_YMAX)
 
@@ -644,7 +644,7 @@ class NumScatterStyle(QCPScatterStyle):
 
 
 class ScatterLabel(QCPItemText):
-    def __init__(self, num: int, point: QCPGraphData, parent: SignalChartView):
+    def __init__(self, num: int, point: QCPGraphData, parent: SignalChartWidget):
         super().__init__(parent)
         self.setPositionAlignment(Qt.AlignBottom | Qt.AlignHCenter)
         self.setFont(QFont('mono', 8))
@@ -652,12 +652,12 @@ class ScatterLabel(QCPItemText):
         self.position.setCoords(point.key, point.value)
 
 
-class AnalogSignalChartView(SignalChartView):
+class AnalogSignalChartWidget(SignalChartWidget):
     __vzoom: int
     __pps: int  # px/sample
     # __myscatter: NumScatterStyle
 
-    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root, sibling: AnalogSignalCtrlView):
+    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root, sibling: AnalogSignalCtrlWidget):
         super().__init__(signal, parent, root, sibling)
         self.__vzoom = 1
         self.__pps = 0

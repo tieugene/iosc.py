@@ -453,8 +453,8 @@ class ComtradeWidget(QWidget):
         :param x: New Main Ptr x-position
         :type x: ~~QCPItemPosition~~ float
         Emit slot_main_ptr_move(pos) for:
-        - TimeAxisView (x)
-        - SignalChartView (x) [=> SignalCtrlView(y)]
+        - TimeAxisWidget (x)
+        - SignalChartWidget (x) [=> SignalCtrlWidget(y)]
         - statusbar (x)
         """
         self.__mptr = self.__x2n(x)

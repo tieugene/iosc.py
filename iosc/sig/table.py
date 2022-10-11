@@ -6,9 +6,9 @@ from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.sig.widget import CleanScrollArea, TimeAxisView, StatusBarView, \
-    AnalogSignalCtrlView, AnalogSignalChartView, \
-    StatusSignalCtrlView, StatusSignalChartView, SignalScrollArea
+from iosc.sig.widget import CleanScrollArea, TimeAxisWidget, StatusBarWidget, \
+    AnalogSignalCtrlWidget, AnalogSignalChartWidget, \
+    StatusSignalCtrlWidget, StatusSignalChartWidget, SignalScrollArea
 
 
 class OneRowTable(QTableWidget):
@@ -32,7 +32,7 @@ class TimeAxisTable(OneRowTable):
         super().__init__(parent)
         self.setItem(0, 0, QTableWidgetItem("ms"))
         sa = CleanScrollArea(self)
-        sa.setWidget(TimeAxisView(osc, parent, sa))
+        sa.setWidget(TimeAxisWidget(osc, parent, sa))
         self.setCellWidget(0, 1, sa)
         parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
@@ -42,7 +42,7 @@ class StatusBarTable(OneRowTable):
         super().__init__(parent)
         self.setItem(0, 0, QTableWidgetItem(osc.raw.cfg.start_timestamp.date().isoformat()))
         sa = CleanScrollArea(self)
-        sa.setWidget(StatusBarView(osc, parent, sa))
+        sa.setWidget(StatusBarWidget(osc, parent, sa))
         self.setCellWidget(0, 1, sa)
         parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
@@ -126,13 +126,13 @@ class SignalListView(QTableWidget):
         signal = self._slist[i]
         sa = SignalScrollArea(self)
         if signal.is_bool:
-            self.setCellWidget(row, 0, ctrl := StatusSignalCtrlView(signal, self, self._parent))
-            sa.setWidget(StatusSignalChartView(signal, sa, self._parent, ctrl))
+            self.setCellWidget(row, 0, ctrl := StatusSignalCtrlWidget(signal, self, self._parent))
+            sa.setWidget(StatusSignalChartWidget(signal, sa, self._parent, ctrl))
             self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_D)
         else:
-            self.setCellWidget(row, 0, ctrl := AnalogSignalCtrlView(signal, self, self._parent))
-            sa.setWidget(AnalogSignalChartView(signal, sa, self._parent, ctrl))
+            self.setCellWidget(row, 0, ctrl := AnalogSignalCtrlWidget(signal, self, self._parent))
+            sa.setWidget(AnalogSignalChartWidget(signal, sa, self._parent, ctrl))
             self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_A)
         self._parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
