@@ -2,13 +2,15 @@
 # 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QDropEvent, QGuiApplication
-from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem
+from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem, QScrollBar
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.sig.widget import CleanScrollArea, TimeAxisWidget, StatusBarWidget, \
-    AnalogSignalCtrlWidget, AnalogSignalChartWidget, \
-    StatusSignalCtrlWidget, StatusSignalChartWidget, SignalScrollArea
+from iosc.sig.widget.common import CleanScrollArea
+from iosc.sig.widget.bottom import StatusBarWidget
+from iosc.sig.widget.top import TimeAxisWidget
+from iosc.sig.widget.ctrl import StatusSignalCtrlWidget, AnalogSignalCtrlWidget
+from iosc.sig.widget.chart import SignalScrollArea, StatusSignalChartWidget, AnalogSignalChartWidget
 
 
 class OneRowTable(QTableWidget):
@@ -47,7 +49,7 @@ class StatusBarTable(OneRowTable):
         parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
 
-class SignalListView(QTableWidget):
+class SignalListTable(QTableWidget):
     _slist: mycomtrade.SignalList
     _parent: QWidget
 
@@ -159,12 +161,65 @@ class SignalListView(QTableWidget):
                 self.setRowHeight(row, int(self.rowHeight(row) / 1.2))
 
 
-class AnalogSignalListView(SignalListView):
+class AnalogSignalListTable(SignalListTable):
     def __init__(self, slist: mycomtrade.AnalogSignalList, parent):
         super().__init__(slist, parent)
 
 
-class StatusSignalListView(SignalListView):
+class StatusSignalListTable(SignalListTable):
     def __init__(self, slist: mycomtrade.StatusSignalList, parent):
         super().__init__(slist, parent)
         self.horizontalHeader().hide()
+
+
+class HScroller(QScrollBar):
+    """Bottom scrollbar.
+    Subscribers of valueChaged() -> sa.horizontalScrollBar().setValue:
+    - TimeAxisTable.__init__()
+    - StatuBarTable.__init__()
+    - SignalListTable.__init__()
+    """
+    def __init__(self, parent: QWidget):
+        """
+        :param parent:
+        :type parent: ComtradeWidget
+        """
+        super().__init__(Qt.Horizontal, parent)
+        parent.signal_xscale.connect(self._slot_chart_xscaled)
+
+    def slot_col_resize(self, _: int, w_new: int):
+        """Recalc scroller parm on aim column resized with mouse.
+        :param _: Old chart column size
+        :param w_new: New chart column width
+        :todo: link to signal
+        """
+        self.setPageStep(w_new)
+        if (chart_width := self.parent().chart_width) is not None:
+            range_new = chart_width - self.pageStep()
+            self.setRange(0, range_new)
+            if self.value() > range_new:
+                self.setValue(range_new)
+
+    def _slot_chart_xscaled(self, w_old: int, w_new: int):
+        """Recalc scroller parm on aim column x-scaled.
+        :param w_old: Old chart width (px)
+        :param w_new: New chart width (px)
+        """
+        # 1. range
+        range_new = w_new - self.pageStep()
+        self.setRange(0, range_new)
+        if w_old == 0:  # initial => value() == 0
+            return
+        # 2. start ptr
+        b_old = self.value()  # old begin
+        if iosc.const.X_CENTERED:
+            p_half = self.pageStep() / 2  # relative page mid
+            b_new = int(round((b_old + p_half) * w_new / w_old - p_half))  # FIXME: glitches with right list scroller
+        else:  # plan B (w/o glitches)
+            b_new = b_old
+        # 3. limit start ptr
+        if b_new < 0:
+            b_new = 0
+        elif b_new > range_new:
+            b_new = range_new
+        self.setValue(b_new)

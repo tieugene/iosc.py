@@ -14,8 +14,7 @@ import iosc.const
 from iosc.core import mycomtrade
 from iosc.icon import svg_icon, ESvgSrc
 from iosc.core.convtrade import convert, ConvertError
-from iosc.sig.table import TimeAxisTable, AnalogSignalListView, StatusSignalListView, StatusBarTable
-from iosc.sig.widget import HScroller
+from iosc.sig.section import TimeAxisTable, AnalogSignalListTable, StatusSignalListTable, StatusBarTable, HScroller
 
 # x. const
 TICK_RANGE = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000)
@@ -71,8 +70,8 @@ class ComtradeWidget(QWidget):
     toolbar: QToolBar
     viewas_toolbutton: QToolButton
     timeaxis_table: TimeAxisTable
-    analog_table: AnalogSignalListView
-    status_table: StatusSignalListView
+    analog_table: AnalogSignalListTable
+    status_table: StatusSignalListTable
     statusbar_table: StatusBarTable
     hsb: HScroller  # bottom horizontal scroll bar
     # signals
@@ -137,8 +136,8 @@ class ComtradeWidget(QWidget):
         self.viewas_toolbutton = QToolButton(self)
         self.hsb = HScroller(self)
         self.timeaxis_table = TimeAxisTable(self.__osc, self)
-        self.analog_table = AnalogSignalListView(self.__osc.analog, self)
-        self.status_table = StatusSignalListView(self.__osc.status, self)
+        self.analog_table = AnalogSignalListTable(self.__osc.analog, self)
+        self.status_table = StatusSignalListTable(self.__osc.status, self)
         self.statusbar_table = StatusBarTable(self.__osc, self)
 
     def __mk_actions(self):
