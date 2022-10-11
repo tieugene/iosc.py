@@ -162,16 +162,6 @@ class SignalListTable(QTableWidget):
                 self.setRowHeight(row, int(self.rowHeight(row) / 1.2))
 
 
-class AnalogSignalListTable(SignalListTable):
-    def __init__(self, slist: mycomtrade.AnalogSignalList, parent):
-        super().__init__(slist, parent)
-
-
-class StatusSignalListTable(SignalListTable):
-    def __init__(self, slist: mycomtrade.StatusSignalList, parent):
-        super().__init__(slist, parent)
-
-
 class HScroller(QScrollBar):
     """Bottom scrollbar.
     Subscribers of valueChaged() -> sa.horizontalScrollBar().setValue:
