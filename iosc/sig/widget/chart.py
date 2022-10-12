@@ -53,7 +53,6 @@ class SignalChartWidget(QCustomPlot):
     _main_ptr_rect: MainPtrRect
     _main_ptr_onway: bool
     _sc_ptr: SCPtr
-    _sc_ptr_onway: bool
 
     def __init__(self, signal: mycomtrade.Signal, parent: QScrollArea, root: QWidget,
                  sibling: SignalCtrlWidget):
@@ -63,7 +62,6 @@ class SignalChartWidget(QCustomPlot):
         self._sibling.sibling = self
         self._signal = signal
         self._main_ptr_onway = False
-        self._sc_ptr_onway = False
         self._old_ptr = OldPtr(self)
         self._main_ptr_tip = MainPtrTip(self)
         self._main_ptr_rect = MainPtrRect(self)
@@ -74,7 +72,7 @@ class SignalChartWidget(QCustomPlot):
         self.__squeeze()
         self.__decorate()
         self._set_style()
-        self.__switch_tips(False)
+        # # self.__switch_tips(False)
         # ymin = min(self._signal.value)
         # ymax = max(self._signal.value)
         # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
