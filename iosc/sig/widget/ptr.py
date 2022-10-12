@@ -90,13 +90,23 @@ class _PRPtr(QCPItemStraightLine):
 
 class SCPtr(Ptr):
     __pr_ptr: _PRPtr
+    __x_limit: tuple[float, float]
 
     """OMP SC (Short Circuit) pointer."""
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp, root)
         self.setPen(iosc.const.OMP_PTR_PEN)
         self.__pr_ptr = _PRPtr(cp)
+        self.__set_limits()
         self._root.signal_sc_ptr_moved.connect(self.__slot_sc_ptr_moved)
+
+    def __set_limits(self):
+        """Set limits for moves"""
+        i_z = self._root.x2i(0.0)
+        self.__x_limit = (
+            self._root.i2x(i_z + 1),
+            self._root.i2x(i_z + self._root.omp_width * self._root.tpp - 1)
+        )
 
     @property
     def i(self) -> int:
@@ -119,9 +129,10 @@ class SCPtr(Ptr):
         :note: self.mouseMoveEvent() unusable because points to click position
         """
         event.accept()
+        x_ms: float = self.parentPlot().xAxis.pixelToCoord(event.pos().x())  # ms, realative to z-point
+        if not (self.__x_limit[0] <= x_ms <= self.__x_limit[1]):
+            return
         i_old: int = self.i
-        x_px: int = event.pos().x()  # 710x - px, relative to QCP width
-        x_ms: float = self.parentPlot().xAxis.pixelToCoord(x_px)  # ms, realative to z-point
         self.setGraphKey(x_ms)
         self.updatePosition()  # mandatory
         if i_old != (i_new := self.i):
