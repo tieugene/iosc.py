@@ -77,18 +77,18 @@ class MainPtrRect(QCPItemRect):
         self.bottomRight.setCoords(x, 0)
 
 
-class _PRPtr(QCPItemStraightLine):
-    """OMP PR (previous state) pointer"""
-    def __init__(self, cp: QCustomPlot):
-        super().__init__(cp)
-        self.setPen(iosc.const.OMP_PTR_PEN)
-
-    def move2x(self, x: float):
-        self.point1.setCoords(x, 0)
-        self.point2.setCoords(x, 1)
-
-
 class SCPtr(Ptr):
+    class _PRPtr(QCPItemStraightLine):
+        """OMP PR (previous state) pointer"""
+
+        def __init__(self, cp: QCustomPlot):
+            super().__init__(cp)
+            self.setPen(iosc.const.OMP_PTR_PEN)
+
+        def move2x(self, x: float):
+            self.point1.setCoords(x, 0)
+            self.point2.setCoords(x, 1)
+
     __pr_ptr: _PRPtr
     __x_limit: tuple[float, float]
 
@@ -96,7 +96,7 @@ class SCPtr(Ptr):
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp, root)
         self.setPen(iosc.const.OMP_PTR_PEN)
-        self.__pr_ptr = _PRPtr(cp)
+        self.__pr_ptr = self._PRPtr(cp)
         self.__set_limits()
         self._root.signal_sc_ptr_moved.connect(self.__slot_sc_ptr_moved)
 
