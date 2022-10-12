@@ -36,7 +36,9 @@ class ComtradeWidget(QWidget):
     __osc: mycomtrade.MyComtrade
     __tpp: int  # tics (samples) per signal period
     # inner vars
-    __mptr: int  # current Main Ptr index in source arrays
+    __main_ptr_i: int  # current Main Ptr index in source arrays
+    __sc_ptr_i: int  # current OMP SC Ptr index in source arrays
+    __omp_width: int  # distance from OMP PR and SC pointers, periods
     __shifted: bool  # original/shifted selector
     __chart_width: Optional[int]  # width (px) of nested QCP charts
     __xzoom: int
@@ -75,16 +77,19 @@ class ComtradeWidget(QWidget):
     statusbar_table: StatusBarTable
     hsb: HScroller  # bottom horizontal scroll bar
     # signals
-    signal_main_ptr_moved = pyqtSignal()  # refresh Signal(Ctrl/Chart)View on MainPtr moved
     signal_recalc_achannels = pyqtSignal()  # recalc ASignalCtrlView on ...
     signal_shift_achannels = pyqtSignal()  # refresh ASignal*View on switching original/shifted
     signal_xscale = pyqtSignal(int, int)  # set signal chart widths
+    signal_main_ptr_moved = pyqtSignal()  # refresh Signal(Ctrl/Chart)View on MainPtr moved
+    signal_sc_ptr_moved = pyqtSignal()  # refresh SignalChartWidget on OMP SC Ptr moved
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
         self.__osc = rec
         self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
-        self.__mptr = self.__x2n(0)
+        self.__main_ptr_i = self.x2i(0)  # default: Z
+        self.__sc_ptr_i = self.__main_ptr_i + 2 * self.__tpp  # TODO: chk limit
+        self.__omp_width = 3
         self.__shifted = False
         self.__chart_width = None  # wait for line_up
         self.__xzoom = 1
@@ -101,14 +106,37 @@ class ComtradeWidget(QWidget):
         self.__mk_connections()
         # sync: default z-point
         # self.signal_main_ptr_moved.emit()
+        self.signal_sc_ptr_moved.emit()
 
     @property
     def tpp(self) -> int:
         return self.__tpp
 
     @property
-    def mptr(self) -> int:
-        return self.__mptr
+    def main_ptr_i(self) -> int:
+        return self.__main_ptr_i
+
+    @property
+    def main_ptr_x(self) -> float:
+        return self.i2x(self.__main_ptr_i)
+
+    @property
+    def sc_ptr_i(self) -> int:
+        return self.__sc_ptr_i
+
+    @property
+    def sc_ptr_x(self) -> float:
+        return self.i2x(self.__sc_ptr_i)
+
+    @property
+    def omp_width(self) -> int:
+        return self.__omp_width
+
+    @omp_width.setter
+    def omp_width(self, i):
+        # self.__omp_width = i
+        # self.signal_omp_width_changed.emit()
+        print(i)
 
     @property
     def shifted(self):
@@ -122,13 +150,13 @@ class ComtradeWidget(QWidget):
     def xzoom(self):
         return self.__xzoom
 
-    @property
-    def mptr_x(self) -> float:
-        return 1000 * (self.__osc.raw.time[self.__mptr] - self.__osc.raw.trigger_time)
-
-    def __x2n(self, x: float) -> int:
-        """Recalc graph x-position into index in signal array"""
+    def x2i(self, x: float) -> int:
+        """Recalc graph x-position (ms) into index in signal array"""
         return int(round((self.__osc.raw.trigger_time + x / 1000) * self.__osc.rate[0][0]))
+
+    def i2x(self, i: int) -> float:
+        """Recalc index in signal array int graph x-position (ms)"""
+        return 1000 * (self.__osc.raw.time[i] - self.__osc.raw.trigger_time)
 
     def __mk_widgets(self):
         self.menubar = QMenuBar()
@@ -455,5 +483,17 @@ class ComtradeWidget(QWidget):
         - SignalChartWidget (x) [=> SignalCtrlWidget(y)]
         - statusbar (x)
         """
-        self.__mptr = self.__x2n(x)
+        self.__main_ptr_i = self.x2i(x)
         self.signal_main_ptr_moved.emit()
+
+    def slot_sc_ptr_moved_i(self, i: int):
+        """
+        Dispatch all OMP SC ptrs
+        :param i: New SC Ptr index
+        :type i: ~~QCPItemPosition~~ float
+        Emit slot_sc_ptr_move(pos) for:
+        - [TimeAxisWidget (x)]
+        - SignalChartWidget
+        """
+        self.__sc_ptr_i = i
+        self.signal_sc_ptr_moved.emit()

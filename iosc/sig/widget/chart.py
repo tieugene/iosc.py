@@ -1,13 +1,12 @@
 from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtGui import QResizeEvent, QMouseEvent, QBrush, QColor, QFont, QPen
 from PyQt5.QtWidgets import QScrollArea, QLabel, QWidget, QTableWidget
-from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPPainter, QCPItemText, QCPGraphData
+from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPPainter, QCPItemText, QCPGraphData, QCP
 
 import iosc.const
 from iosc.core import mycomtrade
 from iosc.sig.widget.ctrl import SignalCtrlWidget, AnalogSignalCtrlWidget
-from iosc.sig.widget.ptr import MainPtr, OldPtr, MainPtrTip, MainPtrRect
-
+from iosc.sig.widget.ptr import MainPtr, OldPtr, MainPtrTip, MainPtrRect, SCPtr
 
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
@@ -52,7 +51,9 @@ class SignalChartWidget(QCustomPlot):
     _old_ptr: OldPtr
     _main_ptr_tip: MainPtrTip
     _main_ptr_rect: MainPtrRect
-    _ptr_onway: bool
+    _main_ptr_onway: bool
+    _sc_ptr: SCPtr
+    _sc_ptr_onway: bool
 
     def __init__(self, signal: mycomtrade.Signal, parent: QScrollArea, root: QWidget,
                  sibling: SignalCtrlWidget):
@@ -61,12 +62,14 @@ class SignalChartWidget(QCustomPlot):
         self._sibling = sibling
         self._sibling.sibling = self
         self._signal = signal
-        self._ptr_onway = False
+        self._main_ptr_onway = False
+        self._sc_ptr_onway = False
         self._old_ptr = OldPtr(self)
         self._main_ptr_tip = MainPtrTip(self)
         self._main_ptr_rect = MainPtrRect(self)
         self.addGraph()
-        self._main_ptr = MainPtr(self)  # after graph()
+        self._main_ptr = MainPtr(self, self._root)  # after graph()
+        self._sc_ptr = SCPtr(self, self._root)
         self._set_data()
         self.__squeeze()
         self.__decorate()
@@ -77,12 +80,14 @@ class SignalChartWidget(QCustomPlot):
         # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
         # self.yAxis.setRange(ymin - ypad, ymax + ypad)  # #76, not helps
         # self.setFixedWidth(1000)
-        self.mousePress.connect(self.__slot_mouse_press)
-        self.mouseMove.connect(self.__slot_mouse_move)
-        self.mouseRelease.connect(self.__slot_mouse_release)
+        # self.setInteractions(QCP.Interactions(QCP.iSelectItems))  # select on click=mousePressed+mouseReleased
+        # tmp disabled
+        # self.mousePress.connect(self.__slot_mouse_press)
+        # self.mouseMove.connect(self.__slot_mouse_move)
+        # self.mouseRelease.connect(self.__slot_mouse_release)
         self._sibling.signal_restyled.connect(self.__slot_signal_restyled)
-        self._root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
         self._root.signal_xscale.connect(self._slot_chg_width)
+        self._root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
 
     def _set_data(self):
         z_time = self._signal.raw.trigger_time
@@ -119,10 +124,9 @@ class SignalChartWidget(QCustomPlot):
         """
         Handle mouse pressed[+moved]
         :param x_px: mouse x-position (px)
-        :todo: RTFM QCPAbstractItem.setSelectable(), QCP.setInteraction(), QCP.itemClick
         """
-        x_src = self.xAxis.pixelToCoord(x_px)  # real x-position realtive to graph z-point in graaph units
-        x_dst_0: float = self._main_ptr.position.key()  # dont save pos (== &); self.graphKey()
+        x_src = self.xAxis.pixelToCoord(x_px)  # real x-position (ms) realtive to graph z-point in graph units
+        x_dst_0: float = self._main_ptr.position.key()  # don't save pos (== &); self.graphKey()
         self._main_ptr.setGraphKey(x_src)
         self._main_ptr.updatePosition()  # mandatory
         pos = self._main_ptr.position  # coerced x-postion (QCustomPlot2.QCPItemPosition)
@@ -131,8 +135,8 @@ class SignalChartWidget(QCustomPlot):
         if click:  # mouse pressed => set old ptr coords, rect start coord
             self._old_ptr.move2x(x_dst)
             self._main_ptr_rect.set2x(x_dst)
-            self._ptr_onway = True
-        elif mptr_jumped:  # mouse moved & pressed & mptr jumped
+            self._main_ptr_onway = True
+        elif mptr_jumped:  # mouse moved & pressed & main_ptr_i jumped
             if not self._old_ptr.visible():  # show tips on demand
                 self.__switch_tips(True)
             # refresh tips
@@ -170,19 +174,19 @@ class SignalChartWidget(QCustomPlot):
         - call slots
         :param event:
         """
-        if self._ptr_onway:  # or `event.buttons() & Qt.LeftButton`
+        if self._main_ptr_onway:  # or `event.buttons() & Qt.LeftButton`
             self.__handle_mouse(event.x(), False)
 
     def __slot_mouse_release(self, event: QMouseEvent):
         """Hide all, reset tmp vars"""
         if event.button() == Qt.LeftButton:
-            self._ptr_onway = False
+            self._main_ptr_onway = False
             self.__switch_tips(False)
             self.replot()
 
     def __slot_main_ptr_moved(self):
-        if not self._ptr_onway:  # check is not myself
-            self._main_ptr.setGraphKey(self._root.mptr_x)
+        if not self._main_ptr_onway:  # check is not myself
+            self._main_ptr.setGraphKey(self._root.main_ptr_x)
             self.replot()
 
     def __slot_signal_restyled(self):

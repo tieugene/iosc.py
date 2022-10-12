@@ -129,7 +129,7 @@ class StatusSignalCtrlWidget(SignalCtrlWidget):
             self.signal_restyled.emit()
 
     def slot_update_value(self):
-        self._f_value.setText("%d" % self._signal.value[self._root.mptr])
+        self._f_value.setText("%d" % self._signal.value[self._root.main_ptr_i])
 
 
 class AnalogSignalCtrlWidget(SignalCtrlWidget):
@@ -149,7 +149,7 @@ class AnalogSignalCtrlWidget(SignalCtrlWidget):
 
     def slot_update_value(self):
         func = sigfunc.func_list[self._root.viewas]
-        v = func(self._signal.value, self._root.mptr, self._root.tpp)
+        v = func(self._signal.value, self._root.main_ptr_i, self._root.tpp)
         if isinstance(v, complex):  # hrm1
             y = abs(v)
         else:
