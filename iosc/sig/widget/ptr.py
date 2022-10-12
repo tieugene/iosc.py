@@ -50,13 +50,11 @@ class Ptr(QCPItemTracer):
         return self.parentPlot().xAxis.pixelToCoord(event.pos().x())  # ms, realative to z-point
 
 
-class OldPtr(QCPItemStraightLine):
+class VLine(QCPItemStraightLine):
     __x: float
 
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
-        self.setPen(iosc.const.OLD_PTR_PEN)
-        self.setVisible(False)
 
     def move2x(self, x: float):
         """
@@ -105,14 +103,15 @@ class MainPtrRect(QCPItemRect):
 
 
 class MainPtr(Ptr):
-    __old_ptr: OldPtr
+    __old_ptr: VLine
     __rect: MainPtrRect
     __tip: MainPtrTip
 
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp, root)
         self.setPen(iosc.const.MAIN_PTR_PEN)
-        self.__old_ptr = OldPtr(cp)
+        self.__old_ptr = VLine(cp)
+        self.__old_ptr.setPen(iosc.const.OLD_PTR_PEN)
         self.__rect = MainPtrRect(cp)
         self.__tip = MainPtrTip(cp)
         self.__switch_tips(False)
@@ -166,25 +165,14 @@ class MainPtr(Ptr):
 
 class SCPtr(Ptr):
     """OMP SC (Short Circuit) pointer."""
-
-    class _PRPtr(QCPItemStraightLine):
-        """OMP PR (previous state) pointer"""
-
-        def __init__(self, cp: QCustomPlot):
-            super().__init__(cp)
-            self.setPen(iosc.const.OMP_PTR_PEN)
-
-        def move2x(self, x: float):
-            self.point1.setCoords(x, 0)
-            self.point2.setCoords(x, 1)
-
-    __pr_ptr: _PRPtr
+    __pr_ptr: VLine
     __x_limit: tuple[float, float]
 
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp, root)
         self.setPen(iosc.const.OMP_PTR_PEN)
-        self.__pr_ptr = self._PRPtr(cp)
+        self.__pr_ptr = VLine(cp)
+        self.__pr_ptr.setPen(iosc.const.OMP_PTR_PEN)
         self.__set_limits()
         self.selectionChanged.connect(self.__selection_chg)
         self._root.signal_sc_ptr_moved.connect(self.__slot_sc_ptr_moved)
