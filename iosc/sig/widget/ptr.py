@@ -1,21 +1,25 @@
 from PyQt5.QtCore import Qt, QMargins, QPointF
 from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent
+from PyQt5.QtWidgets import QWidget
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
 import iosc.const
 
 
 class Ptr(QCPItemTracer):
-    def __init__(self, cp: QCustomPlot):
+    _root: QWidget
+
+    def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp)
+        self._root = root
         self.setGraph(cp.graph())
         self.position.setAxes(cp.xAxis, None)
         # cp.setCursor(QCursor(Qt.CrossCursor))
 
 
 class MainPtr(Ptr):
-    def __init__(self, cp: QCustomPlot):
-        super().__init__(cp)
+    def __init__(self, cp: QCustomPlot, root: QWidget):
+        super().__init__(cp, root)
         self.setPen(iosc.const.MAIN_PTR_PEN)
 
 
@@ -77,13 +81,19 @@ class SCPtr(Ptr):
     """OMP SC (Short Circuit) pointer.
     :note: self.mouseMoveEvent() unusable because points to click position
     """
-    def __init__(self, cp: QCustomPlot):
-        super().__init__(cp)
+    def __init__(self, cp: QCustomPlot, root: QWidget):
+        super().__init__(cp, root)
         self.setPen(iosc.const.OMP_PTR_PEN)
+        self._root.signal_sc_ptr_moved.connect(self.__slot_sc_ptr_moved)
 
     def mousePressEvent(self, event: QMouseEvent, details):
         event.accept()
         self.setSelected(True)
+
+    def mouseReleaseEvent(self, event: QMouseEvent, pos: QPointF):
+        event.accept()
+        self.setSelected(False)
+        self.parentPlot().replot()  # update selection decoration
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
         """
@@ -99,9 +109,9 @@ class SCPtr(Ptr):
         x_new_ms: float = self.position.key()  # ms, new position (was x_dst)
         if x_old_ms != x_new_ms:  # FIXME: cmp value indexes
             self.parentPlot().replot()
-            # self._root.slot_main_ptr_moved_x(x_new_ms)
+            self._root.slot_sc_ptr_moved_x(x_new_ms)
 
-    def mouseReleaseEvent(self, event: QMouseEvent, pos: QPointF):
-        event.accept()
-        self.setSelected(False)
-        self.parentPlot().replot()  # update selection decoration
+    def __slot_sc_ptr_moved(self):
+        if not self.selected():  # check is not myself
+            self.setGraphKey(self._root.sc_ptr_x)
+            self.parentPlot().replot()

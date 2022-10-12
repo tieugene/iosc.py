@@ -68,8 +68,8 @@ class SignalChartWidget(QCustomPlot):
         self._main_ptr_tip = MainPtrTip(self)
         self._main_ptr_rect = MainPtrRect(self)
         self.addGraph()
-        self._main_ptr = MainPtr(self)  # after graph()
-        self._sc_ptr = SCPtr(self)
+        self._main_ptr = MainPtr(self, self._root)  # after graph()
+        self._sc_ptr = SCPtr(self, self._root)
         self._set_data()
         self.__squeeze()
         self.__decorate()
@@ -88,7 +88,7 @@ class SignalChartWidget(QCustomPlot):
         self._sibling.signal_restyled.connect(self.__slot_signal_restyled)
         self._root.signal_xscale.connect(self._slot_chg_width)
         self._root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
-        self._root.signal_sc_ptr_moved.connect(self.__slot_sc_ptr_moved)
+        # self._root.signal_sc_ptr_moved.connect(self.__slot_sc_ptr_moved)
 
     def _set_data(self):
         z_time = self._signal.raw.trigger_time
