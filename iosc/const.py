@@ -20,6 +20,7 @@ Z_LABEL_BRUSH = QBrush(Qt.white)
 D_BRUSH = QBrush(Qt.DiagCrossPattern)
 ZERO_PEN = QPen(Qt.black)
 NO_PEN = QPen(QColor(255, 255, 255, 0))
+PTR_CURSOR = Qt.SplitHCursor
 MAIN_PTR_PEN = QPen(QBrush(QColor('orange')), 1)
 OLD_PTR_PEN = QPen(QBrush(Qt.green), 1, Qt.DotLine)
 OMP_PTR_PEN = QPen(QBrush(Qt.red), 1)

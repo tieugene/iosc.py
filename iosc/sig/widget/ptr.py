@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt, QMargins, QPointF
-from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent
+from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor
 from PyQt5.QtWidgets import QWidget, QInputDialog
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
@@ -7,6 +7,7 @@ import iosc.const
 
 
 class Ptr(QCPItemTracer):
+    __cursor: QCursor
     _root: QWidget
 
     def __init__(self, cp: QCustomPlot, root: QWidget):
@@ -14,7 +15,15 @@ class Ptr(QCPItemTracer):
         self._root = root
         self.setGraph(cp.graph())
         self.position.setAxes(cp.xAxis, None)
-        # cp.setCursor(QCursor(Qt.CrossCursor))
+        self.selectionChanged.connect(self.__sel_chg)
+
+    def __sel_chg(self, selected: bool):
+        if selected:
+            self.__cursor = self._root.cursor()
+            cur = iosc.const.PTR_CURSOR
+        else:
+            cur = self.__cursor
+        self._root.setCursor(cur)
 
 
 class MainPtr(Ptr):
