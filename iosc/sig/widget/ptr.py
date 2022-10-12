@@ -98,6 +98,11 @@ class SCPtr(Ptr):
         self.__pr_ptr = _PRPtr(cp)
         self._root.signal_sc_ptr_moved.connect(self.__slot_sc_ptr_moved)
 
+    @property
+    def i(self) -> int:
+        """Index of value in current self position"""
+        return self._root.x2i(self.position.key())
+
     def mousePressEvent(self, event: QMouseEvent, details):
         event.accept()
         self.setSelected(True)
@@ -114,14 +119,13 @@ class SCPtr(Ptr):
         :note: self.mouseMoveEvent() unusable because points to click position
         """
         event.accept()
+        i_old: int = self.i
         x_px: int = event.pos().x()  # 710x - px, relative to QCP width
         x_ms: float = self.parentPlot().xAxis.pixelToCoord(x_px)  # ms, realative to z-point
-        x_old_ms: float = self.position.key()  # ms, current postition (was x_dst_0)
         self.setGraphKey(x_ms)
         self.updatePosition()  # mandatory
-        x_new_ms: float = self.position.key()  # ms, new position (was x_dst)
-        if x_old_ms != x_new_ms:  # FIXME: cmp value indexes
-            self._root.slot_sc_ptr_moved_x(x_new_ms)  # replot after PR moving
+        if i_old != (i_new := self.i):
+            self._root.slot_sc_ptr_moved_i(i_new)  # replot after PR moving
 
     def __slot_sc_ptr_moved(self):
         if not self.selected():  # check is not myself

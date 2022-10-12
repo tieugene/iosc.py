@@ -480,14 +480,14 @@ class ComtradeWidget(QWidget):
         self.__main_ptr_i = self.x2i(x)
         self.signal_main_ptr_moved.emit()
 
-    def slot_sc_ptr_moved_x(self, x: float):
+    def slot_sc_ptr_moved_i(self, i: int):
         """
         Dispatch all OMP SC ptrs
-        :param x: New SC Ptr x-position
-        :type x: ~~QCPItemPosition~~ float
+        :param i: New SC Ptr index
+        :type i: ~~QCPItemPosition~~ float
         Emit slot_sc_ptr_move(pos) for:
         - [TimeAxisWidget (x)]
-        - SignalChartWidget (x)
+        - SignalChartWidget
         """
-        self.__sc_ptr_i = self.x2i(x)
+        self.__sc_ptr_i = i
         self.signal_sc_ptr_moved.emit()
