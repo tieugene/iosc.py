@@ -51,8 +51,6 @@ class Ptr(QCPItemTracer):
 
 
 class VLine(QCPItemStraightLine):
-    __x: float
-
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
 
@@ -61,13 +59,12 @@ class VLine(QCPItemStraightLine):
         :param x:
         :note: for  QCPItemLine: s/point1/start/, s/point2/end/
         """
-        self.__x = x
         self.point1.setCoords(x, 0)
         self.point2.setCoords(x, 1)
 
     @property
     def x(self):
-        return self.__x
+        return self.point1.coords().x()
 
 
 class MainPtrTip(QCPItemText):
