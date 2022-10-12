@@ -1,7 +1,7 @@
 from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtGui import QResizeEvent, QMouseEvent, QBrush, QColor, QFont, QPen
 from PyQt5.QtWidgets import QScrollArea, QLabel, QWidget, QTableWidget
-from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPPainter, QCPItemText, QCPGraphData
+from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPPainter, QCPItemText, QCPGraphData, QCP
 
 import iosc.const
 from iosc.core import mycomtrade
@@ -80,9 +80,11 @@ class SignalChartWidget(QCustomPlot):
         # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
         # self.yAxis.setRange(ymin - ypad, ymax + ypad)  # #76, not helps
         # self.setFixedWidth(1000)
-        self.mousePress.connect(self.__slot_mouse_press)
-        self.mouseMove.connect(self.__slot_mouse_move)
-        self.mouseRelease.connect(self.__slot_mouse_release)
+        # self.setInteractions(QCP.Interactions(QCP.iSelectItems))  # select on click=mousePressed+mouseReleased
+        # tmp disabled
+        # self.mousePress.connect(self.__slot_mouse_press)
+        # self.mouseMove.connect(self.__slot_mouse_move)
+        # self.mouseRelease.connect(self.__slot_mouse_release)
         self._sibling.signal_restyled.connect(self.__slot_signal_restyled)
         self._root.signal_xscale.connect(self._slot_chg_width)
         self._root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
@@ -125,8 +127,8 @@ class SignalChartWidget(QCustomPlot):
         :param x_px: mouse x-position (px)
         :todo: RTFM QCPAbstractItem.setSelectable(), QCP.setInteraction(), QCP.itemClick
         """
-        x_src = self.xAxis.pixelToCoord(x_px)  # real x-position realtive to graph z-point in graaph units
-        x_dst_0: float = self._main_ptr.position.key()  # dont save pos (== &); self.graphKey()
+        x_src = self.xAxis.pixelToCoord(x_px)  # real x-position (ms) realtive to graph z-point in graph units
+        x_dst_0: float = self._main_ptr.position.key()  # don't save pos (== &); self.graphKey()
         self._main_ptr.setGraphKey(x_src)
         self._main_ptr.updatePosition()  # mandatory
         pos = self._main_ptr.position  # coerced x-postion (QCustomPlot2.QCPItemPosition)

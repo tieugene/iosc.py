@@ -17,7 +17,17 @@ Current job: [OMP ptrs](https://github.com/michDaven/AbScan-TechReq/blob/main/as
 ## Plan
 
 - [x] SC ptr show
-- [ ] SC ptr move
+- [x] SC ptr move (1)
+- [ ] SC ptr move (all)
 - [ ] PD ptr move
 - [ ] limits
 - [ ] 2-click
+
+## Ptr behaviour
+
+- On Item.mousePressed:
+  + select item
+- On QCP.mouseMove:
+  + move selected item
+- On Item.mouseReleased:
+  + deselect item
