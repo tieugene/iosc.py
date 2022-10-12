@@ -1,4 +1,4 @@
-"""Signal properties viewer/editor"""
+"""Edit dialogs"""
 # 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor

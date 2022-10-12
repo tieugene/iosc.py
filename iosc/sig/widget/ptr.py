@@ -1,6 +1,6 @@
 from PyQt5.QtCore import Qt, QMargins, QPointF
 from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QInputDialog
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
 import iosc.const
@@ -113,7 +113,13 @@ class SCPtr(Ptr):
         """Index of value in current self position"""
         return self._root.x2i(self.position.key())
 
-    def mousePressEvent(self, event: QMouseEvent, details):
+    def __slot_sc_ptr_moved(self):
+        if not self.selected():  # check is not myself
+            self.setGraphKey(self._root.sc_ptr_x)
+        self.__pr_ptr.move2x(self._root.i2x(self._root.sc_ptr_i - self._root.omp_width * self._root.tpp))
+        self.parentPlot().replot()
+
+    def mousePressEvent(self, event: QMouseEvent, _):
         event.accept()
         self.setSelected(True)
 
@@ -128,6 +134,9 @@ class SCPtr(Ptr):
         :param pos: Where mouse was pressed (looks like fixed)
         :note: self.mouseMoveEvent() unusable because points to click position
         """
+        if not self.selected():  # protection against 2click
+            event.ignore()
+            return
         event.accept()
         x_ms: float = self.parentPlot().xAxis.pixelToCoord(event.pos().x())  # ms, realative to z-point
         if not (self.__x_limit[0] <= x_ms <= self.__x_limit[1]):
@@ -138,8 +147,15 @@ class SCPtr(Ptr):
         if i_old != (i_new := self.i):
             self._root.slot_sc_ptr_moved_i(i_new)  # replot after PR moving
 
-    def __slot_sc_ptr_moved(self):
-        if not self.selected():  # check is not myself
-            self.setGraphKey(self._root.sc_ptr_x)
-        self.__pr_ptr.move2x(self._root.i2x(self._root.sc_ptr_i - self._root.omp_width * self._root.tpp))
-        self.parentPlot().replot()
+    def mouseDoubleClickEvent(self, event: QMouseEvent, _):
+        event.accept()
+        new_omp_width, ok = QInputDialog.getInt(
+            self._root,
+            "Distance between PR and SC",
+            "Main frequency periods number",
+            self._root.omp_width,
+            1,
+            10
+        )
+        if ok and new_omp_width != self._root.omp_width:
+            self._root.omp_width = new_omp_width

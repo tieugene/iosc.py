@@ -132,6 +132,12 @@ class ComtradeWidget(QWidget):
     def omp_width(self) -> int:
         return self.__omp_width
 
+    @omp_width.setter
+    def omp_width(self, i):
+        # self.__omp_width = i
+        # self.signal_omp_width_changed.emit()
+        print(i)
+
     @property
     def shifted(self):
         return self.__osc.shifted
