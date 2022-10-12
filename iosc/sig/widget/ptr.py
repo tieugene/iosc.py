@@ -77,13 +77,25 @@ class MainPtrRect(QCPItemRect):
         self.bottomRight.setCoords(x, 0)
 
 
+class _PRPtr(QCPItemStraightLine):
+    """OMP PR (previous state) pointer"""
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+        self.setPen(iosc.const.OMP_PTR_PEN)
+
+    def move2x(self, x: float):
+        self.point1.setCoords(x, 0)
+        self.point2.setCoords(x, 1)
+
+
 class SCPtr(Ptr):
-    """OMP SC (Short Circuit) pointer.
-    :note: self.mouseMoveEvent() unusable because points to click position
-    """
+    __pr_ptr: _PRPtr
+
+    """OMP SC (Short Circuit) pointer."""
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp, root)
         self.setPen(iosc.const.OMP_PTR_PEN)
+        self.__pr_ptr = _PRPtr(cp)
         self._root.signal_sc_ptr_moved.connect(self.__slot_sc_ptr_moved)
 
     def mousePressEvent(self, event: QMouseEvent, details):
@@ -99,19 +111,20 @@ class SCPtr(Ptr):
         """
         :param event:
         :param pos: Where mouse was pressed (looks like fixed)
+        :note: self.mouseMoveEvent() unusable because points to click position
         """
         event.accept()
         x_px: int = event.pos().x()  # 710x - px, relative to QCP width
-        x_ms: float = self.parentPlot().xAxis.pixelToCoord(x_px)  # ms, realtive to z-point
+        x_ms: float = self.parentPlot().xAxis.pixelToCoord(x_px)  # ms, realative to z-point
         x_old_ms: float = self.position.key()  # ms, current postition (was x_dst_0)
         self.setGraphKey(x_ms)
         self.updatePosition()  # mandatory
         x_new_ms: float = self.position.key()  # ms, new position (was x_dst)
         if x_old_ms != x_new_ms:  # FIXME: cmp value indexes
-            self.parentPlot().replot()
-            self._root.slot_sc_ptr_moved_x(x_new_ms)
+            self._root.slot_sc_ptr_moved_x(x_new_ms)  # replot after PR moving
 
     def __slot_sc_ptr_moved(self):
         if not self.selected():  # check is not myself
             self.setGraphKey(self._root.sc_ptr_x)
-            self.parentPlot().replot()
+        self.__pr_ptr.move2x(self._root.i2x(self._root.sc_ptr_i - self._root.omp_width * self._root.tpp))
+        self.parentPlot().replot()

@@ -38,6 +38,7 @@ class ComtradeWidget(QWidget):
     # inner vars
     __main_ptr_i: int  # current Main Ptr index in source arrays
     __sc_ptr_i: int  # current OMP SC Ptr index in source arrays
+    __omp_width: int  # distance from OMP PR and SC pointers, periods
     __shifted: bool  # original/shifted selector
     __chart_width: Optional[int]  # width (px) of nested QCP charts
     __xzoom: int
@@ -86,8 +87,9 @@ class ComtradeWidget(QWidget):
         super().__init__(parent)
         self.__osc = rec
         self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
-        self.__main_ptr_i = self.__x2i(0)  # default: Z
+        self.__main_ptr_i = self.x2i(0)  # default: Z
         self.__sc_ptr_i = self.__main_ptr_i + 2 * self.__tpp  # TODO: chk limit
+        self.__omp_width = 3
         self.__shifted = False
         self.__chart_width = None  # wait for line_up
         self.__xzoom = 1
@@ -116,7 +118,7 @@ class ComtradeWidget(QWidget):
 
     @property
     def main_ptr_x(self) -> float:
-        return self.__i2x(self.__main_ptr_i)
+        return self.i2x(self.__main_ptr_i)
 
     @property
     def sc_ptr_i(self) -> int:
@@ -124,7 +126,11 @@ class ComtradeWidget(QWidget):
 
     @property
     def sc_ptr_x(self) -> float:
-        return self.__i2x(self.__sc_ptr_i)
+        return self.i2x(self.__sc_ptr_i)
+
+    @property
+    def omp_width(self) -> int:
+        return self.__omp_width
 
     @property
     def shifted(self):
@@ -138,12 +144,12 @@ class ComtradeWidget(QWidget):
     def xzoom(self):
         return self.__xzoom
 
-    def __x2i(self, x: float) -> int:
-        """Recalc graph x-position into index in signal array"""
+    def x2i(self, x: float) -> int:
+        """Recalc graph x-position (ms) into index in signal array"""
         return int(round((self.__osc.raw.trigger_time + x / 1000) * self.__osc.rate[0][0]))
 
-    def __i2x(self, i: int) -> float:
-        """Recalc index in signal array int graph x-position"""
+    def i2x(self, i: int) -> float:
+        """Recalc index in signal array int graph x-position (ms)"""
         return 1000 * (self.__osc.raw.time[i] - self.__osc.raw.trigger_time)
 
     def __mk_widgets(self):
@@ -471,7 +477,7 @@ class ComtradeWidget(QWidget):
         - SignalChartWidget (x) [=> SignalCtrlWidget(y)]
         - statusbar (x)
         """
-        self.__main_ptr_i = self.__x2i(x)
+        self.__main_ptr_i = self.x2i(x)
         self.signal_main_ptr_moved.emit()
 
     def slot_sc_ptr_moved_x(self, x: float):
@@ -483,5 +489,5 @@ class ComtradeWidget(QWidget):
         - [TimeAxisWidget (x)]
         - SignalChartWidget (x)
         """
-        self.__sc_ptr_i = self.__x2i(x)
+        self.__sc_ptr_i = self.x2i(x)
         self.signal_sc_ptr_moved.emit()

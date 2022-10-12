@@ -88,7 +88,6 @@ class SignalChartWidget(QCustomPlot):
         self._sibling.signal_restyled.connect(self.__slot_signal_restyled)
         self._root.signal_xscale.connect(self._slot_chg_width)
         self._root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
-        # self._root.signal_sc_ptr_moved.connect(self.__slot_sc_ptr_moved)
 
     def _set_data(self):
         z_time = self._signal.raw.trigger_time
@@ -125,7 +124,6 @@ class SignalChartWidget(QCustomPlot):
         """
         Handle mouse pressed[+moved]
         :param x_px: mouse x-position (px)
-        :todo: RTFM QCPAbstractItem.setSelectable(), QCP.setInteraction(), QCP.itemClick
         """
         x_src = self.xAxis.pixelToCoord(x_px)  # real x-position (ms) realtive to graph z-point in graph units
         x_dst_0: float = self._main_ptr.position.key()  # don't save pos (== &); self.graphKey()
@@ -189,11 +187,6 @@ class SignalChartWidget(QCustomPlot):
     def __slot_main_ptr_moved(self):
         if not self._main_ptr_onway:  # check is not myself
             self._main_ptr.setGraphKey(self._root.main_ptr_x)
-            self.replot()
-
-    def __slot_sc_ptr_moved(self):
-        if not self._sc_ptr_onway:  # check is not myself
-            self._sc_ptr.setGraphKey(self._root.sc_ptr_x)
             self.replot()
 
     def __slot_signal_restyled(self):
