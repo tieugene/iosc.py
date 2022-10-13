@@ -29,6 +29,7 @@ class Ptr(QCPItemTracer):
     __cursor: QCursor
     _root: QWidget
     signal_ptr_moved = pyqtSignal(int)
+    signal_rmb_clicked = pyqtSignal(QPointF)
 
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp)
@@ -40,12 +41,20 @@ class Ptr(QCPItemTracer):
         if event.button() == Qt.LeftButton:
             event.accept()
             self.selection = True
+        elif event.button() == Qt.RightButton:
+            event.accept()  # for signal_rmb_clicked
         else:
             event.ignore()
 
     def mouseReleaseEvent(self, event: QMouseEvent, _):
-        event.accept()
-        self.selection = False
+        if event.button() == Qt.LeftButton:
+            if self.selection:
+                event.accept()
+                self.selection = False
+        elif event.button() == Qt.RightButton:
+            self.signal_rmb_clicked.emit(event.pos())
+        else:
+            event.ignore()
 
     @property
     def selection(self) -> bool:
@@ -257,6 +266,7 @@ class TmpPtr(_PowerPtr):
         self.setPen(iosc.const.PEN_PTR_TMP)
         self.signal_ptr_moved_tmp.connect(self._root.slot_ptr_moved_tmp)
         self._root.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
+        self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
     def __slot_ptr_move(self, uid: int, i: int):
         if not self.selected() and uid == self._uid:  # check is not myself and myself
@@ -271,3 +281,6 @@ class TmpPtr(_PowerPtr):
         """
         if (i_new := self._handle_mouse_move_event(event)) is not None:
             self.signal_ptr_moved_tmp.emit(self._uid, i_new)
+
+    def __slot_context_menu(self, pos: QPointF):
+        print("Context menu")
