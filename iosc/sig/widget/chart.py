@@ -49,7 +49,7 @@ class SignalChartWidget(QCustomPlot):
     _signal: mycomtrade.Signal
     _main_ptr: MainPtr
     _sc_ptr: SCPtr
-    _tmp_ptr: list[TmpPtr]
+    _tmp_ptr: dict[int, TmpPtr]
     _ptr_selected: bool
 
     def __init__(self, signal: mycomtrade.Signal, parent: QScrollArea, root: QWidget,
@@ -62,7 +62,7 @@ class SignalChartWidget(QCustomPlot):
         self.addGraph()
         self._main_ptr = MainPtr(self, self._root)  # after graph()
         self._sc_ptr = SCPtr(self, self._root)
-        self._tmp_ptr = list()
+        self._tmp_ptr = dict()
         self._ptr_selected = False
         self._set_data()
         self.__squeeze()
@@ -75,6 +75,8 @@ class SignalChartWidget(QCustomPlot):
         # self.setFixedWidth(1000)
         self._sibling.signal_restyled.connect(self.__slot_signal_restyled)
         self._root.signal_xscale.connect(self._slot_chg_width)
+        self._root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
+        self._root.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
 
     def _set_data(self):
         z_time = self._signal.raw.trigger_time
@@ -131,6 +133,16 @@ class SignalChartWidget(QCustomPlot):
         self.setFixedWidth(w_new)
         self.xAxis.ticker().setTickCount(iosc.const.TICK_COUNT * self._root.xzoom)  # QCPAxisTicker; TODO: 200ms default
         # self.replot()
+
+    def _slot_ptr_add_tmp(self, ptr_id: int):
+        """Add new TmpPtr"""
+        tmp_ptr = TmpPtr(self, self._root)
+        self._tmp_ptr[ptr_id] = tmp_ptr
+        tmp_ptr.ptr_move()
+
+    def _slot_ptr_del_tmp(self, ptr_id: int):
+        """Del TmpPtr"""
+        del self._tmp_ptr[ptr_id]
 
 
 class StatusSignalChartWidget(SignalChartWidget):

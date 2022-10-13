@@ -6,6 +6,23 @@ from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPIte
 import iosc.const
 
 
+class VLine(QCPItemStraightLine):
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+
+    def move2x(self, x: float):
+        """
+        :param x:
+        :note: for  QCPItemLine: s/point1/start/, s/point2/end/
+        """
+        self.point1.setCoords(x, 0)
+        self.point2.setCoords(x, 1)
+
+    @property
+    def x(self):
+        return self.point1.coords().x()
+
+
 class Ptr(QCPItemTracer):
     __cursor: QCursor
     _root: QWidget
@@ -59,116 +76,6 @@ class Ptr(QCPItemTracer):
         return self.parentPlot().xAxis.pixelToCoord(event.pos().x())  # ms, realative to z-point
 
 
-class VLine(QCPItemStraightLine):
-    def __init__(self, cp: QCustomPlot):
-        super().__init__(cp)
-
-    def move2x(self, x: float):
-        """
-        :param x:
-        :note: for  QCPItemLine: s/point1/start/, s/point2/end/
-        """
-        self.point1.setCoords(x, 0)
-        self.point2.setCoords(x, 1)
-
-    @property
-    def x(self):
-        return self.point1.coords().x()
-
-
-class PtrTip(QCPItemText):
-    def __init__(self, cp: QCustomPlot):
-        super().__init__(cp)
-        self.setColor(Qt.black)  # text
-        self.setPen(Qt.red)
-        self.setBrush(QBrush(QColor(255, 170, 0)))  # rect
-        self.setTextAlignment(Qt.AlignCenter)
-        self.setFont(QFont('mono', 8))
-        self.setPadding(QMargins(2, 2, 2, 2))
-
-    def move2x(self, x: float, x_old: float):
-        dx = x - x_old
-        self.setPositionAlignment((Qt.AlignLeft if dx > 0 else Qt.AlignRight) | Qt.AlignBottom)
-        self.position.setCoords(x, 0)
-        self.setText("%.2f" % dx)
-
-
-class PtrRect(QCPItemRect):
-    def __init__(self, cp: QCustomPlot):
-        super().__init__(cp)
-        self.setPen(QColor(255, 170, 0, 128))
-        self.setBrush(QColor(255, 170, 0, 128))
-
-    def set2x(self, x: float):
-        """Set starting point"""
-        yaxis = self.parentPlot().yAxis
-        self.topLeft.setCoords(x, yaxis.pixelToCoord(0) - yaxis.pixelToCoord(iosc.const.PTR_RECT_HEIGHT))
-
-    def stretc2x(self, x: float):
-        self.bottomRight.setCoords(x, 0)
-
-
-class MainPtr(Ptr):
-    __old_ptr: VLine
-    __rect: PtrRect
-    __tip: PtrTip
-
-    def __init__(self, cp: QCustomPlot, root: QWidget):
-        super().__init__(cp, root)
-        self.setPen(iosc.const.MAIN_PTR_PEN)
-        self.__old_ptr = VLine(cp)
-        self.__old_ptr.setPen(iosc.const.OLD_PTR_PEN)
-        self.__rect = PtrRect(cp)
-        self.__tip = PtrTip(cp)
-        self.__switch_tips(False)
-        self.selectionChanged.connect(self.__selection_chg)
-        self._root.signal_ptr_moved_main.connect(self.__slot_main_ptr_moved)
-
-    def __switch_tips(self, todo: bool):
-        # print(("Off", "On")[int(todo)])
-        self.__old_ptr.setVisible(todo)
-        self.__tip.setVisible(todo)
-        self.__rect.setVisible(todo)
-
-    def __selection_chg(self, selection: bool):
-        self._switch_cursor(selection)
-        if selection:
-            x = self.x
-            self.__old_ptr.move2x(x)
-            self.__rect.set2x(x)
-        else:
-            self.__switch_tips(False)
-        self.parentPlot().replot()  # selection update
-
-    def __slot_main_ptr_moved(self):
-        if not self.selected():  # check is not myself
-            self.setGraphKey(self._root.main_ptr_x)
-            self.parentPlot().replot()
-
-    def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
-        """
-        :param event:
-        :param pos: Where mouse was pressed (looks like fixed)
-        :note: self.mouseMoveEvent() unusable because points to click position
-        """
-        if not self.selected():  # protection against something
-            event.ignore()
-            return
-        event.accept()
-        x_ms: float = self._mouse2ms(event)
-        # TODO: convert to index then do the job
-        i_old: int = self.i
-        self.setGraphKey(x_ms)
-        self.updatePosition()  # mandatory
-        if i_old != (i_new := self.i):
-            if not self.__old_ptr.visible():  # show tips on demand
-                self.__switch_tips(True)
-            self.__tip.move2x(x_ms, self.__old_ptr.x)
-            self.__rect.stretc2x(x_ms)
-            self.parentPlot().replot()
-            self._root.slot_main_ptr_moved_i(i_new)
-
-
 class SCPtr(Ptr):
     """OMP SC (Short Circuit) pointer."""
     __pr_ptr: VLine
@@ -181,7 +88,7 @@ class SCPtr(Ptr):
         self.__pr_ptr.setPen(iosc.const.OMP_PTR_PEN)
         self.__set_limits()
         self.selectionChanged.connect(self.__selection_chg)
-        self._root.signal_ptr_moved_sc.connect(self.__slot_sc_ptr_moved)
+        self._root.signal_ptr_moved_sc.connect(self.__slot_ptr_move)
 
     def __set_limits(self):
         """Set limits for moves"""
@@ -195,7 +102,7 @@ class SCPtr(Ptr):
         self._switch_cursor(selection)
         self.parentPlot().replot()  # update selection decoration
 
-    def __slot_sc_ptr_moved(self):
+    def __slot_ptr_move(self):
         if not self.selected():  # check is not myself
             self.setGraphKey(self._root.sc_ptr_x)
         self.__pr_ptr.move2x(self._root.i2x(self._root.sc_ptr_i - self._root.omp_width * self._root.tpp))
@@ -234,5 +141,103 @@ class SCPtr(Ptr):
         if ok and new_omp_width != self._root.omp_width:
             self._root.omp_width = new_omp_width
 
+
+class PtrTip(QCPItemText):
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+        self.setColor(Qt.black)  # text
+        self.setPen(Qt.red)
+        self.setBrush(QBrush(QColor(255, 170, 0)))  # rect
+        self.setTextAlignment(Qt.AlignCenter)
+        self.setFont(QFont('mono', 8))
+        self.setPadding(QMargins(2, 2, 2, 2))
+
+    def move2x(self, x: float, x_old: float):
+        dx = x - x_old
+        self.setPositionAlignment((Qt.AlignLeft if dx > 0 else Qt.AlignRight) | Qt.AlignBottom)
+        self.position.setCoords(x, 0)
+        self.setText("%.2f" % dx)
+
+
+class PtrRect(QCPItemRect):
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+        self.setPen(QColor(255, 170, 0, 128))
+        self.setBrush(QColor(255, 170, 0, 128))
+
+    def set2x(self, x: float):
+        """Set starting point"""
+        yaxis = self.parentPlot().yAxis
+        self.topLeft.setCoords(x, yaxis.pixelToCoord(0) - yaxis.pixelToCoord(iosc.const.PTR_RECT_HEIGHT))
+
+    def stretc2x(self, x: float):
+        self.bottomRight.setCoords(x, 0)
+
+
+class MainPtr(Ptr):
+    __old_pos: VLine
+    __rect: PtrRect
+    __tip: PtrTip
+
+    def __init__(self, cp: QCustomPlot, root: QWidget):
+        super().__init__(cp, root)
+        self.setPen(iosc.const.MAIN_PTR_PEN)
+        self.__old_pos = VLine(cp)
+        self.__old_pos.setPen(iosc.const.OLD_PTR_PEN)
+        self.__rect = PtrRect(cp)
+        self.__tip = PtrTip(cp)
+        self.__switch_tips(False)
+        self.selectionChanged.connect(self.__selection_chg)
+        self._root.signal_ptr_moved_main.connect(self.__slot_ptr_move)
+
+    def __switch_tips(self, todo: bool):
+        # print(("Off", "On")[int(todo)])
+        self.__old_pos.setVisible(todo)
+        self.__tip.setVisible(todo)
+        self.__rect.setVisible(todo)
+
+    def __selection_chg(self, selection: bool):
+        self._switch_cursor(selection)
+        if selection:
+            x = self.x
+            self.__old_pos.move2x(x)
+            self.__rect.set2x(x)
+        else:
+            self.__switch_tips(False)
+        self.parentPlot().replot()  # selection update
+
+    def __slot_ptr_move(self):
+        if not self.selected():  # check is not myself
+            self.setGraphKey(self._root.main_ptr_x)
+            self.parentPlot().replot()
+
+    def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
+        """
+        :param event:
+        :param pos: Where mouse was pressed (looks like fixed)
+        :note: self.mouseMoveEvent() unusable because points to click position
+        """
+        if not self.selected():  # protection against something
+            event.ignore()
+            return
+        event.accept()
+        x_ms: float = self._mouse2ms(event)
+        # TODO: convert to index then do the job
+        i_old: int = self.i
+        self.setGraphKey(x_ms)
+        self.updatePosition()  # mandatory
+        if i_old != (i_new := self.i):
+            if not self.__old_pos.visible():  # show tips on demand
+                self.__switch_tips(True)
+            self.__tip.move2x(x_ms, self.__old_pos.x)
+            self.__rect.stretc2x(x_ms)
+            self.parentPlot().replot()
+            self._root.slot_main_ptr_moved_i(i_new)
+
+
 class TmpPtr(Ptr):
-    ...
+    def __init__(self, cp: QCustomPlot, root: QWidget):
+        super().__init__(cp, root)
+
+    def ptr_move(self):
+        ...

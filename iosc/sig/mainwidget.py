@@ -38,7 +38,7 @@ class ComtradeWidget(QWidget):
     # inner vars
     __main_ptr_i: int  # current Main Ptr index in source arrays
     __sc_ptr_i: int  # current OMP SC Ptr index in source arrays
-    __tmp_ptr_i: list[int]  # current Tmp Ptr indexes in source arrays
+    __tmp_ptr_i: dict[int, int]  # current Tmp Ptr indexes in source arrays: ptr_uid => idx
     __omp_width: int  # distance from OMP PR and SC pointers, periods
     __shifted: bool  # original/shifted selector
     __chart_width: Optional[int]  # width (px) of nested QCP charts
@@ -84,6 +84,8 @@ class ComtradeWidget(QWidget):
     signal_xscale = pyqtSignal(int, int)  # set signal chart widths
     signal_ptr_moved_main = pyqtSignal()  # refresh Signal(Ctrl/Chart)View on MainPtr moved
     signal_ptr_moved_sc = pyqtSignal()  # refresh SignalChartWidget on OMP SC Ptr moved
+    signal_ptr_add_tmp = pyqtSignal(int)  # add new TmpPtr in each SignalChartWidget
+    signal_ptr_del_tmp = pyqtSignal(int)  # rm TmpPtr from each SignalChartWidget
     signal_ptr_moved_tmp = pyqtSignal(int)  # refresh SignalChartWidget on Tmp Ptr moved
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
@@ -92,7 +94,7 @@ class ComtradeWidget(QWidget):
         self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
         self.__main_ptr_i = self.x2i(0)  # default: Z
         self.__sc_ptr_i = self.__main_ptr_i + 2 * self.__tpp  # TODO: chk limit
-        self.__tmp_ptr_i = list()
+        self.__tmp_ptr_i = dict()
         self.__omp_width = 3
         self.__shifted = False
         self.__chart_width = None  # wait for line_up
@@ -461,7 +463,13 @@ class ComtradeWidget(QWidget):
         self.signal_recalc_achannels.emit()
 
     def __do_ptr_add_tmp(self):
-        print("Add tmp ptr")
+        ptr_id = max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1  # generate new uid
+        self.__tmp_ptr_i[ptr_id] = self.__main_ptr_i  # store it
+        self.signal_ptr_add_tmp.emit(ptr_id)  # create them
+
+    def __do_ptr_del_tmp(self, ptr_id: int):
+        del self.__tmp_ptr_i[ptr_id]
+        self.signal_ptr_del_tmp.emit(ptr_id)
 
     def __sync_hresize(self, l_index: int, old_size: int, new_size: int):
         """

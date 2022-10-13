@@ -27,3 +27,19 @@ Same as MainPtr but:
 
 - other color
 - not set by mouse click
+- right click (del, change)
+
+Behavior:
+
+- Add:
+  + root: mk new idx
+  + &forall; chart: mk new TmpPtr
+- Move:
+  + as MainPtr
+- Del:
+  + root: rm idx from list
+  + &forall; chart: rm TmpPtr
+
+## Hot:
+- Ptr.slot_ptr_move(int)
+- Ptr.signal_ptr_moved => root.slot_...
