@@ -45,16 +45,16 @@ class StatusBarWidget(QCustomPlot):
 
     def __set_style(self):
         # zero
-        self.__zero_ptr_label.setColor(iosc.const.Z_LABEL_COLOR)  # text
+        self.__zero_ptr_label.setColor(iosc.const.COLOR_LABEL_Z)  # text
         self.__zero_ptr_label.setTextAlignment(Qt.AlignCenter)
-        self.__zero_ptr_label.setFont(iosc.const.X_FONT)
+        self.__zero_ptr_label.setFont(iosc.const.FONT_X)
         self.__zero_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__zero_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
         # main_ptr_i
-        self.__main_ptr_label.setColor(iosc.const.X_LABEL_COLOR)  # text
-        self.__main_ptr_label.setBrush(iosc.const.X_LABEL_BRUSH)  # rect
+        self.__main_ptr_label.setColor(iosc.const.COLOR_LABEL_X)  # text
+        self.__main_ptr_label.setBrush(iosc.const.BRUSH_PTR_MAIN)  # rect
         self.__main_ptr_label.setTextAlignment(Qt.AlignCenter)
-        self.__main_ptr_label.setFont(iosc.const.X_FONT)
+        self.__main_ptr_label.setFont(iosc.const.FONT_X)
         self.__main_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
 

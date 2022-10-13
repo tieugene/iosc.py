@@ -102,9 +102,9 @@ class SignalChartWidget(QCustomPlot):
 
     def __decorate(self):
         # self.yAxis.grid().setPen(QPen(QColor(255, 255, 255, 0)))
-        self.yAxis.setBasePen(iosc.const.NO_PEN)  # hack
-        self.yAxis.grid().setZeroLinePen(iosc.const.ZERO_PEN)
-        self.xAxis.grid().setZeroLinePen(iosc.const.ZERO_PEN)
+        self.yAxis.setBasePen(iosc.const.PEN_NONE)  # hack
+        self.yAxis.grid().setZeroLinePen(iosc.const.PEN_ZERO)
+        self.xAxis.grid().setZeroLinePen(iosc.const.PEN_ZERO)
 
     def _set_style(self):
         ...  # stub
@@ -150,7 +150,7 @@ class StatusSignalChartWidget(SignalChartWidget):
         self.yAxis.setRange(iosc.const.SIG_D_YMIN, iosc.const.SIG_D_YMAX)
 
     def _set_style(self):
-        brush = QBrush(iosc.const.D_BRUSH)
+        brush = QBrush(iosc.const.BRUSH_D)
         brush.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setBrush(brush)
 

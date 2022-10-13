@@ -69,7 +69,7 @@ class Ptr(QCPItemTracer):
     def _switch_cursor(self, selected: bool):
         if selected:
             self.__cursor = self._root.cursor()
-            cur = iosc.const.PTR_CURSOR
+            cur = iosc.const.CURSOR_PTR
         else:
             cur = self.__cursor
         self._root.setCursor(cur)
@@ -86,9 +86,9 @@ class SCPtr(Ptr):
 
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp, root)
-        self.setPen(iosc.const.OMP_PTR_PEN)
+        self.setPen(iosc.const.PEN_PTR_OMP)
         self.__pr_ptr = VLine(cp)
-        self.__pr_ptr.setPen(iosc.const.OMP_PTR_PEN)
+        self.__pr_ptr.setPen(iosc.const.PEN_PTR_OMP)
         self.__set_limits()
         self.selectionChanged.connect(self.__selection_chg)
         self.signal_ptr_moved.connect(self._root.slot_ptr_moved_sc)
@@ -172,7 +172,7 @@ class _PowerPtr(Ptr):
         def set2x(self, x: float):
             """Set starting point"""
             yaxis = self.parentPlot().yAxis
-            self.topLeft.setCoords(x, yaxis.pixelToCoord(0) - yaxis.pixelToCoord(iosc.const.PTR_RECT_HEIGHT))
+            self.topLeft.setCoords(x, yaxis.pixelToCoord(0) - yaxis.pixelToCoord(iosc.const.RECT_PTR_HEIGHT))
 
         def stretc2x(self, x: float):
             self.bottomRight.setCoords(x, 0)
@@ -184,7 +184,7 @@ class _PowerPtr(Ptr):
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp, root)
         self.__old_pos = VLine(cp)
-        self.__old_pos.setPen(iosc.const.OLD_PTR_PEN)
+        self.__old_pos.setPen(iosc.const.PEN_PTR_OLD)
         self.__rect = self._Rect(cp)
         self.__tip = self._Tip(cp)
         self.__switch_tips(False)
@@ -228,7 +228,7 @@ class _PowerPtr(Ptr):
 class MainPtr(_PowerPtr):
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp, root)
-        self.setPen(iosc.const.MAIN_PTR_PEN)
+        self.setPen(iosc.const.PEN_PTR_MAIN)
         self.signal_ptr_moved.connect(self._root.slot_ptr_moved_main)
         self._root.signal_ptr_moved_main.connect(self.__slot_ptr_move)
 
@@ -254,7 +254,7 @@ class TmpPtr(_PowerPtr):
     def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
         super().__init__(cp, root)
         self._uid = uid
-        self.setPen(iosc.const.TMP_PTR_PEN)
+        self.setPen(iosc.const.PEN_PTR_TMP)
         self.signal_ptr_moved_tmp.connect(self._root.slot_ptr_moved_tmp)
         self._root.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
 

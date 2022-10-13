@@ -16,9 +16,9 @@ class PtrLabelMain(QCPItemText):
         self.setTextAlignment(Qt.AlignCenter)
         self.setPadding(QMargins(2, 2, 2, 2))
         self.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
-        self.setFont(iosc.const.X_FONT)
-        self.setColor(iosc.const.X_LABEL_COLOR)  # text
-        self.setBrush(iosc.const.X_LABEL_BRUSH)  # rect
+        self.setFont(iosc.const.FONT_X)
+        self.setColor(iosc.const.COLOR_LABEL_X)  # text
+        self.setBrush(iosc.const.BRUSH_PTR_MAIN)  # rect
         self.__root.signal_ptr_moved_main.connect(self.slot_ptr_move)
 
     def slot_ptr_move(self, i: int):
@@ -60,7 +60,7 @@ class TimeAxisWidget(QCustomPlot):
 
     def __set_style(self):
         # TODO: setLabelFormat("%d")
-        self.xAxis.setTickLabelFont(iosc.const.X_FONT)
+        self.xAxis.setTickLabelFont(iosc.const.FONT_X)
 
     def _slot_chg_width(self, _: int, w_new: int):  # dafault: 1117
         self.setFixedWidth(w_new)
