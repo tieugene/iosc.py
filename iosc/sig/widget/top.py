@@ -33,7 +33,7 @@ class PtrLabelMain(PtrLabel):
         x = self._root.i2x(i)
         self.setText("%.2f" % x)
         self.position.setCoords(x, 0)
-        self.parent().replot()
+        self.parentPlot().replot()
 
 
 class PtrLabelTmp(PtrLabel):

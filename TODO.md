@@ -42,7 +42,8 @@ Behavior:
 
 - [ ] Add, move
   - [x] Chart
-  - [ ] Top
+  - [x] Top
   - [ ] Bottom
+- [ ] Context menu
 - [ ] Del
 - [ ] Edit (value, name)
