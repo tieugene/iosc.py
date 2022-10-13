@@ -8,7 +8,7 @@ from QCustomPlot2 import QCustomPlot
 
 import iosc.const
 from iosc.core import mycomtrade, sigfunc
-from iosc.sig.prop import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
+from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
 
 
 class ZoomButton(QPushButton):

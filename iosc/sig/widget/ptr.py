@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QWidget, QInputDialog, QMenu
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
 import iosc.const
+from iosc.sig.widget.dialog import get_new_omp_width
 
 
 class VLine(QCPItemStraightLine):
@@ -143,15 +144,7 @@ class SCPtr(Ptr):
 
     def mouseDoubleClickEvent(self, event: QMouseEvent, _):
         event.accept()
-        new_omp_width, ok = QInputDialog.getInt(
-            self._root,
-            "Distance between PR and SC",
-            "Main frequency periods number",
-            self._root.omp_width,
-            1,
-            10
-        )
-        if ok and new_omp_width != self._root.omp_width:
+        if new_omp_width := get_new_omp_width(self._root, self._root.omp_width):
             self._root.omp_width = new_omp_width
 
 

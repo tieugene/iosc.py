@@ -1,8 +1,11 @@
 """Edit dialogs"""
+from typing import Optional
+
 # 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QPushButton, QColorDialog, QLineEdit
+from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QPushButton, QColorDialog, QLineEdit, \
+    QInputDialog, QWidget
 # 3. local
 from iosc.core import mycomtrade
 
@@ -101,3 +104,16 @@ class StatusSignalPropertiesDialog(SignalPropertiesDialog):
             self._signal.rgb = (self._color.red(), self._color.green(), self._color.blue())
             return True
         return False
+
+
+def get_new_omp_width(parent: QWidget, old_value: int) -> Optional[int]:
+    new_value, ok = QInputDialog.getInt(
+            parent,
+            "Distance between PR and SC",
+            "Main frequency periods number",
+            old_value,
+            1,
+            10
+        )
+    if ok and new_value != old_value:
+        return new_value
