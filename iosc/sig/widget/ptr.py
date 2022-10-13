@@ -76,7 +76,7 @@ class VLine(QCPItemStraightLine):
         return self.point1.coords().x()
 
 
-class MainPtrTip(QCPItemText):
+class PtrTip(QCPItemText):
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
         self.setColor(Qt.black)  # text
@@ -93,7 +93,7 @@ class MainPtrTip(QCPItemText):
         self.setText("%.2f" % dx)
 
 
-class MainPtrRect(QCPItemRect):
+class PtrRect(QCPItemRect):
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
         self.setPen(QColor(255, 170, 0, 128))
@@ -110,16 +110,16 @@ class MainPtrRect(QCPItemRect):
 
 class MainPtr(Ptr):
     __old_ptr: VLine
-    __rect: MainPtrRect
-    __tip: MainPtrTip
+    __rect: PtrRect
+    __tip: PtrTip
 
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp, root)
         self.setPen(iosc.const.MAIN_PTR_PEN)
         self.__old_ptr = VLine(cp)
         self.__old_ptr.setPen(iosc.const.OLD_PTR_PEN)
-        self.__rect = MainPtrRect(cp)
-        self.__tip = MainPtrTip(cp)
+        self.__rect = PtrRect(cp)
+        self.__tip = PtrTip(cp)
         self.__switch_tips(False)
         self.selectionChanged.connect(self.__selection_chg)
         self._root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
