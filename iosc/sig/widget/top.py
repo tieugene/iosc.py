@@ -19,6 +19,15 @@ class PtrLabel(QCPItemText):
         self.setFont(iosc.const.FONT_X)
         self.setColor(iosc.const.COLOR_LABEL_X)  # text
 
+    def _update_ptr(self, i: int):
+        """Repaint/move main ptr value label (%.2f)
+        :fixme: draw in front of ticks
+        """
+        x = self._root.i2x(i)
+        self.setText("%.2f" % x)
+        self.position.setCoords(x, 0)
+        self.parentPlot().replot()
+
 
 class PtrLabelMain(PtrLabel):
     def __init__(self, parent: QCustomPlot, root: QWidget):
@@ -27,13 +36,7 @@ class PtrLabelMain(PtrLabel):
         self._root.signal_ptr_moved_main.connect(self.__slot_ptr_move)
 
     def __slot_ptr_move(self, i: int):
-        """Repaint/move main ptr value label (%.2f)
-        :fixme: draw in front of ticks
-        """
-        x = self._root.i2x(i)
-        self.setText("%.2f" % x)
-        self.position.setCoords(x, 0)
-        self.parentPlot().replot()
+        self._update_ptr(i)
 
 
 class PtrLabelTmp(PtrLabel):
@@ -46,14 +49,8 @@ class PtrLabelTmp(PtrLabel):
         self._root.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
 
     def __slot_ptr_move(self, uid: int, i: int):
-        """Repaint/move main ptr value label (%.2f)
-        :fixme: draw in front of ticks
-        """
         if uid == self._uid:
-            x = self._root.i2x(i)
-            self.setText("%.2f" % x)
-            self.position.setCoords(x, 0)
-            self.parent().replot()
+            self._update_ptr(i)
 
 
 class TimeAxisWidget(QCustomPlot):

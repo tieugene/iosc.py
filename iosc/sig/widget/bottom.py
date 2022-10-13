@@ -21,14 +21,7 @@ class PtrLabel(QCPItemText):
         self.setFont(iosc.const.FONT_X)
         self.setColor(iosc.const.COLOR_LABEL_X)  # text
 
-
-class PtrLabelMain(PtrLabel):
-    def __init__(self, parent: QCustomPlot, root: QWidget):
-        super().__init__(parent, root)
-        self.setBrush(iosc.const.BRUSH_PTR_MAIN)  # rect
-        self._root.signal_ptr_moved_main.connect(self.__slot_ptr_move)
-
-    def __slot_ptr_move(self, i: int):
+    def _update_ptr(self, i: int):
         """Repaint/move main ptr value label (%.2f)
         :fixme: draw in front of ticks
         """
@@ -38,12 +31,37 @@ class PtrLabelMain(PtrLabel):
         self.parentPlot().replot()
 
 
+class PtrLabelMain(PtrLabel):
+    def __init__(self, parent: QCustomPlot, root: QWidget):
+        super().__init__(parent, root)
+        self.setBrush(iosc.const.BRUSH_PTR_MAIN)  # rect
+        self._root.signal_ptr_moved_main.connect(self.__slot_ptr_move)
+
+    def __slot_ptr_move(self, i: int):
+        self._update_ptr(i)
+
+
+class PtrLabelTmp(PtrLabel):
+    _uid: int
+
+    def __init__(self, parent: QCustomPlot, root: QWidget, uid: int):
+        super().__init__(parent, root)
+        self._uid = uid
+        self.setBrush(iosc.const.BRUSH_PTR_TMP)  # rect
+        self._root.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
+
+    def __slot_ptr_move(self, uid: int, i: int):
+        if uid == self._uid:
+            self._update_ptr(i)
+
+
 class StatusBarWidget(QCustomPlot):
     """:todo: join TimeAxisWidget"""
     __root: QWidget
     zero_timestamp: datetime.datetime
     __zero_ptr_label: QCPItemText
     __main_ptr_label: PtrLabelMain
+    _tmp_ptr: dict[int, PtrLabelTmp]
 
     def __init__(self, osc: mycomtrade.MyComtrade, root: QWidget, parent: CleanScrollArea):
         super().__init__(parent)
@@ -51,12 +69,15 @@ class StatusBarWidget(QCustomPlot):
         self.zero_timestamp = osc.raw.cfg.trigger_timestamp
         self.__zero_ptr_label = QCPItemText(self)
         self.__main_ptr_label = PtrLabelMain(self, root)
+        self._tmp_ptr = dict()
         t0 = osc.raw.trigger_time
         self.xAxis.setRange((osc.raw.time[0] - t0) * 1000, (osc.raw.time[-1] - t0) * 1000)
         self.__squeeze()
         self.__set_style()
         self.__zero_ptr_label.setText(self.zero_timestamp.time().isoformat())
         self.__root.signal_xscale.connect(self._slot_chg_width)
+        self.__root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
+        self.__root.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
 
     def __squeeze(self):
         ar = self.axisRect(0)
@@ -78,8 +99,13 @@ class StatusBarWidget(QCustomPlot):
         self.__zero_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__zero_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
 
-    def __slot_main_ptr_moved(self, i: int):
-        """Repaint/move main ptr value label"""
-
     def _slot_chg_width(self, _: int, w_new: int):  # dafault: 1117
         self.setFixedWidth(w_new)
+
+    def _slot_ptr_add_tmp(self, uid: int):
+        """Add new TmpPtr"""
+        self._tmp_ptr[uid] = PtrLabelTmp(self, self.__root, uid)
+
+    def _slot_ptr_del_tmp(self, uid: int):
+        """Del TmpPtr"""
+        del self._tmp_ptr[uid]

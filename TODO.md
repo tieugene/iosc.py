@@ -40,10 +40,10 @@ Behavior:
   + root: rm idx from list
   + &forall; chart: rm TmpPtr
 
-- [ ] Add, move
+- [x] Add, move
   - [x] Chart
   - [x] Top
-  - [ ] Bottom
+  - [x] Bottom
 - [ ] Context menu
 - [ ] Del
 - [ ] Edit (value, name)
