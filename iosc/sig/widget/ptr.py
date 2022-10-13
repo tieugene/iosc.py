@@ -1,12 +1,12 @@
 from typing import Optional
 
-from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal
+from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal, QPoint
 from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor
 from PyQt5.QtWidgets import QWidget, QInputDialog, QMenu
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
 import iosc.const
-from iosc.sig.widget.dialog import get_new_omp_width
+from iosc.sig.widget.dialog import get_new_omp_width, TmpPtrDialog
 
 
 class VLine(QCPItemStraightLine):
@@ -253,6 +253,7 @@ class TmpPtr(_PowerPtr):
     _uid: int
     signal_ptr_moved_tmp = pyqtSignal(int, int)
     signal_ptr_del_tmp = pyqtSignal(int)
+    signal_ptr_edit_tmp = pyqtSignal(int)
 
     def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
         super().__init__(cp, root)
@@ -260,6 +261,7 @@ class TmpPtr(_PowerPtr):
         self.setPen(iosc.const.PEN_PTR_TMP)
         self.signal_ptr_moved_tmp.connect(self._root.slot_ptr_moved_tmp)
         self.signal_ptr_del_tmp.connect(self._root.slot_ptr_del_tmp)
+        self.signal_ptr_edit_tmp.connect(self._root.slot_ptr_edit_tmp)
         self._root.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
@@ -281,9 +283,9 @@ class TmpPtr(_PowerPtr):
         context_menu = QMenu()
         action_edit = context_menu.addAction("Edit...")
         action_del = context_menu.addAction("Delete")
-        point = self.parent().mapToGlobal(pos.toPoint())
-        chosen_action = context_menu.exec_(point)  # self.mapToGlobal(pos)
+        point = self.parentPlot().mapToGlobal(pos.toPoint())
+        chosen_action = context_menu.exec_(point)
         if chosen_action == action_edit:
-            print("Edit TmpPtr will be here")
+            self.signal_ptr_edit_tmp.emit(self._uid)
         elif chosen_action == action_del:
             self.signal_ptr_del_tmp.emit(self._uid)

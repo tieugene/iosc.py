@@ -3,9 +3,9 @@ from typing import Optional
 
 # 2. 3rd
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QDoubleValidator
 from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QPushButton, QColorDialog, QLineEdit, \
-    QInputDialog, QWidget
+    QInputDialog, QWidget, QDoubleSpinBox
 # 3. local
 from iosc.core import mycomtrade
 
@@ -117,3 +117,34 @@ def get_new_omp_width(parent: QWidget, old_value: int) -> Optional[int]:
         )
     if ok and new_value != old_value:
         return new_value
+
+
+class TmpPtrDialog(QDialog):
+    f_val: QDoubleSpinBox
+    f_name: QLineEdit
+    button_box: QDialogButtonBox
+
+    def __init__(self, data: tuple[float, float, float, float, str], parent=None):
+        super().__init__(parent)
+        # 1. store args
+        print(data)
+        # 2. set widgets
+        self.f_val = QDoubleSpinBox(self)
+        self.f_val.setRange(data[1], data[2])
+        self.f_val.setSingleStep(data[3])
+        self.f_val.setDecimals(3)
+        self.f_val.setValue(data[0])
+        self.f_name = QLineEdit(data[4], self)
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        # 3. set layout
+        layout = QFormLayout(self)
+        layout.addRow("Value", self.f_val)
+        layout.addRow("Name", self.f_name)
+        layout.addRow(self.button_box)
+        layout.setVerticalSpacing(0)
+        self.setLayout(layout)
+        # 4. set signals
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        # 5. go
+        self.setWindowTitle("Tmp ptr properties")

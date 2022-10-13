@@ -14,6 +14,7 @@ from iosc.core import mycomtrade
 from iosc.icon import svg_icon, ESvgSrc
 from iosc.core.convtrade import convert, ConvertError
 from iosc.sig.section import TimeAxisTable, SignalListTable, StatusBarTable, HScroller
+from iosc.sig.widget.dialog import TmpPtrDialog
 
 # x. const
 TICK_RANGE = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000)
@@ -91,7 +92,7 @@ class ComtradeWidget(QWidget):
         super().__init__(parent)
         self.__osc = rec
         self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
-        self.__main_ptr_i = self.x2i(0)  # default: Z
+        self.__main_ptr_i = self.x2i(0.0)  # default: Z
         self.__tmp_ptr_i = dict()
         self.__omp_width = 3
         self.__shifted = False
@@ -521,3 +522,13 @@ class ComtradeWidget(QWidget):
     def slot_ptr_del_tmp(self, uid: int):
         del self.__tmp_ptr_i[uid]
         self.signal_ptr_del_tmp.emit(uid)
+
+    def slot_ptr_edit_tmp(self, uid: int):
+        v = self.i2x(self.__tmp_ptr_i[uid])
+        v_min = self.i2x(0)
+        v_max = 1000 * (self.__osc.raw.time[-1] - self.__osc.raw.trigger_time)
+        v_step = 1000 / self.__osc.raw.cfg.sample_rates[0][0]
+        form = TmpPtrDialog((v, v_min, v_max, v_step, ''))
+        if form.exec_():
+            # print("OK:", form.f_val.value(), form.f_name.text())
+            self.signal_ptr_moved_tmp.emit(uid, self.x2i(form.f_val.value()))
