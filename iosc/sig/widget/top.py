@@ -7,20 +7,42 @@ from iosc.core import mycomtrade
 from iosc.sig.widget.common import CleanScrollArea
 
 
+class PtrLabelMain(QCPItemText):
+    __root: QWidget
+
+    def __init__(self, parent: QCustomPlot, root: QWidget):
+        super().__init__(parent)
+        self.__root = root
+        self.setTextAlignment(Qt.AlignCenter)
+        self.setPadding(QMargins(2, 2, 2, 2))
+        self.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
+        self.setFont(iosc.const.X_FONT)
+        self.setColor(iosc.const.X_LABEL_COLOR)  # text
+        self.setBrush(iosc.const.X_LABEL_BRUSH)  # rect
+        self.__root.signal_ptr_moved_main.connect(self.slot_ptr_move)
+
+    def slot_ptr_move(self, i: int):
+        """Repaint/move main ptr value label (%.2f)
+        :fixme: draw in front of ticks
+        """
+        x = self.__root.i2x(i)
+        self.setText("%.2f" % x)
+        self.position.setCoords(x, 0)
+        self.parent().replot()
+
+
 class TimeAxisWidget(QCustomPlot):
     __root: QWidget
-    __main_ptr_label: QCPItemText
+    __main_ptr_label: PtrLabelMain
 
     def __init__(self, osc: mycomtrade.MyComtrade, root: QWidget, parent: CleanScrollArea):
         super().__init__(parent)
         self.__root = root
-        self.__main_ptr_label = QCPItemText(self)
+        self.__main_ptr_label = PtrLabelMain(self, root)
         t0 = osc.raw.trigger_time
         self.xAxis.setRange((osc.raw.time[0] - t0) * 1000, (osc.raw.time[-1] - t0) * 1000)
         self.__squeeze()
         self.__set_style()
-        self.__slot_main_ptr_moved(root.main_ptr_i)
-        self.__root.signal_ptr_moved_main.connect(self.__slot_main_ptr_moved)
         self.__root.signal_xscale.connect(self._slot_chg_width)
 
     def __squeeze(self):
@@ -39,21 +61,6 @@ class TimeAxisWidget(QCustomPlot):
     def __set_style(self):
         # TODO: setLabelFormat("%d")
         self.xAxis.setTickLabelFont(iosc.const.X_FONT)
-        self.__main_ptr_label.setColor(iosc.const.X_LABEL_COLOR)  # text
-        self.__main_ptr_label.setBrush(iosc.const.X_LABEL_BRUSH)  # rect
-        self.__main_ptr_label.setTextAlignment(Qt.AlignCenter)
-        self.__main_ptr_label.setFont(iosc.const.X_FONT)
-        self.__main_ptr_label.setPadding(QMargins(2, 2, 2, 2))
-        self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
-
-    def __slot_main_ptr_moved(self, i: int):
-        """Repaint/move main ptr value label (%.2f)
-        :fixme: draw in front of ticks
-        """
-        x = self.__root.i2x(i)
-        self.__main_ptr_label.setText("%.2f" % x)
-        self.__main_ptr_label.position.setCoords(x, 0)
-        self.replot()
 
     def _slot_chg_width(self, _: int, w_new: int):  # dafault: 1117
         self.setFixedWidth(w_new)
