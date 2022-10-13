@@ -20,7 +20,7 @@ class TimeAxisWidget(QCustomPlot):
         self.__squeeze()
         self.__set_style()
         self.__slot_main_ptr_moved()
-        self.__root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
+        self.__root.signal_ptr_moved_main.connect(self.__slot_main_ptr_moved)
         self.__root.signal_xscale.connect(self._slot_chg_width)
 
     def __squeeze(self):

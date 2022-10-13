@@ -122,7 +122,7 @@ class MainPtr(Ptr):
         self.__tip = PtrTip(cp)
         self.__switch_tips(False)
         self.selectionChanged.connect(self.__selection_chg)
-        self._root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
+        self._root.signal_ptr_moved_main.connect(self.__slot_main_ptr_moved)
 
     def __switch_tips(self, todo: bool):
         # print(("Off", "On")[int(todo)])
@@ -181,7 +181,7 @@ class SCPtr(Ptr):
         self.__pr_ptr.setPen(iosc.const.OMP_PTR_PEN)
         self.__set_limits()
         self.selectionChanged.connect(self.__selection_chg)
-        self._root.signal_sc_ptr_moved.connect(self.__slot_sc_ptr_moved)
+        self._root.signal_ptr_moved_sc.connect(self.__slot_sc_ptr_moved)
 
     def __set_limits(self):
         """Set limits for moves"""
@@ -233,3 +233,6 @@ class SCPtr(Ptr):
         )
         if ok and new_omp_width != self._root.omp_width:
             self._root.omp_width = new_omp_width
+
+class TmpPtr(Ptr):
+    ...

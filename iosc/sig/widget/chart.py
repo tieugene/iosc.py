@@ -6,7 +6,7 @@ from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPPainter, QCPItemText, 
 import iosc.const
 from iosc.core import mycomtrade
 from iosc.sig.widget.ctrl import SignalCtrlWidget, AnalogSignalCtrlWidget
-from iosc.sig.widget.ptr import MainPtr, SCPtr
+from iosc.sig.widget.ptr import MainPtr, SCPtr, TmpPtr
 
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
@@ -49,6 +49,7 @@ class SignalChartWidget(QCustomPlot):
     _signal: mycomtrade.Signal
     _main_ptr: MainPtr
     _sc_ptr: SCPtr
+    _tmp_ptr: list[TmpPtr]
     _ptr_selected: bool
 
     def __init__(self, signal: mycomtrade.Signal, parent: QScrollArea, root: QWidget,
@@ -61,6 +62,7 @@ class SignalChartWidget(QCustomPlot):
         self.addGraph()
         self._main_ptr = MainPtr(self, self._root)  # after graph()
         self._sc_ptr = SCPtr(self, self._root)
+        self._tmp_ptr = list()
         self._ptr_selected = False
         self._set_data()
         self.__squeeze()

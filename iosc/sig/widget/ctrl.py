@@ -42,7 +42,7 @@ class SignalCtrlWidget(QWidget):
         self._set_style()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__slot_context_menu)
-        self._root.signal_main_ptr_moved.connect(self.slot_update_value)
+        self._root.signal_ptr_moved_main.connect(self.slot_update_value)
         self.slot_update_value()
 
     def __mk_widgets(self):

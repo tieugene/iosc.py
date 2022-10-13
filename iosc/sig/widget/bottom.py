@@ -28,7 +28,7 @@ class StatusBarWidget(QCustomPlot):
         self.__set_style()
         self.__zero_ptr_label.setText(self.__zero_timestamp.time().isoformat())
         self.__slot_main_ptr_moved()
-        self.__root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
+        self.__root.signal_ptr_moved_main.connect(self.__slot_main_ptr_moved)
         self.__root.signal_xscale.connect(self._slot_chg_width)
 
     def __squeeze(self):

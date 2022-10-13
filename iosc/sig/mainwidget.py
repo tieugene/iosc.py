@@ -38,6 +38,7 @@ class ComtradeWidget(QWidget):
     # inner vars
     __main_ptr_i: int  # current Main Ptr index in source arrays
     __sc_ptr_i: int  # current OMP SC Ptr index in source arrays
+    __tmp_ptr_i: list[int]  # current Tmp Ptr indexes in source arrays
     __omp_width: int  # distance from OMP PR and SC pointers, periods
     __shifted: bool  # original/shifted selector
     __chart_width: Optional[int]  # width (px) of nested QCP charts
@@ -67,6 +68,7 @@ class ComtradeWidget(QWidget):
     action_viewas_hrm2: QAction
     action_viewas_hrm3: QAction
     action_viewas_hrm5: QAction
+    action_ptr_add_tmp: QAction
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
@@ -80,8 +82,9 @@ class ComtradeWidget(QWidget):
     signal_recalc_achannels = pyqtSignal()  # recalc ASignalCtrlView on ...
     signal_shift_achannels = pyqtSignal()  # refresh ASignal*View on switching original/shifted
     signal_xscale = pyqtSignal(int, int)  # set signal chart widths
-    signal_main_ptr_moved = pyqtSignal()  # refresh Signal(Ctrl/Chart)View on MainPtr moved
-    signal_sc_ptr_moved = pyqtSignal()  # refresh SignalChartWidget on OMP SC Ptr moved
+    signal_ptr_moved_main = pyqtSignal()  # refresh Signal(Ctrl/Chart)View on MainPtr moved
+    signal_ptr_moved_sc = pyqtSignal()  # refresh SignalChartWidget on OMP SC Ptr moved
+    signal_ptr_moved_tmp = pyqtSignal(int)  # refresh SignalChartWidget on Tmp Ptr moved
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
@@ -89,14 +92,15 @@ class ComtradeWidget(QWidget):
         self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
         self.__main_ptr_i = self.x2i(0)  # default: Z
         self.__sc_ptr_i = self.__main_ptr_i + 2 * self.__tpp  # TODO: chk limit
+        self.__tmp_ptr_i = list()
         self.__omp_width = 3
         self.__shifted = False
         self.__chart_width = None  # wait for line_up
         self.__xzoom = 1
         self.show_sec = True
         self.viewas = 0
-        ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
-        ti = find_std_ti(ti_wanted)
+        # ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
+        # ti = find_std_ti(ti_wanted)
         # print(f"{ti_wanted} => {ti}")
         self.__mk_widgets()
         self.__mk_actions()
@@ -105,8 +109,8 @@ class ComtradeWidget(QWidget):
         self.__mk_layout()
         self.__mk_connections()
         # sync: default z-point
-        # self.signal_main_ptr_moved.emit()
-        self.signal_sc_ptr_moved.emit()
+        # self.signal_ptr_moved_main.emit()
+        self.signal_ptr_moved_sc.emit()
 
     @property
     def tpp(self) -> int:
@@ -264,6 +268,11 @@ class ComtradeWidget(QWidget):
                                           self,
                                           checkable=True,
                                           statusTip="Show harmonic #5 of signal value")
+        self.action_ptr_add_tmp = QAction(QIcon(),
+                                          "Add tmp ptr",
+                                          self,
+                                          statusTip="Add temporary pointer into current position",
+                                          triggered=self.__do_ptr_add_tmp)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
         self.action_shift.addAction(self.action_shift_yes)
@@ -307,6 +316,8 @@ class ComtradeWidget(QWidget):
         menu_view_viewas.addAction(self.action_viewas_hrm5)
         menu_channel = self.menubar.addMenu("&Channel")
         menu_channel.addAction(self.action_unhide)
+        menu_ptr = self.menubar.addMenu("&Pointers")
+        menu_ptr.addAction(self.action_ptr_add_tmp)
 
     def __mk_toolbar(self):
         # prepare
@@ -449,6 +460,9 @@ class ComtradeWidget(QWidget):
         self.viewas_toolbutton.setDefaultAction(a)
         self.signal_recalc_achannels.emit()
 
+    def __do_ptr_add_tmp(self):
+        print("Add tmp ptr")
+
     def __sync_hresize(self, l_index: int, old_size: int, new_size: int):
         """
         :param l_index: Column index
@@ -484,7 +498,7 @@ class ComtradeWidget(QWidget):
         - statusbar (x)
         """
         self.__main_ptr_i = i
-        self.signal_main_ptr_moved.emit()
+        self.signal_ptr_moved_main.emit()
 
     def slot_sc_ptr_moved_i(self, i: int):
         """
@@ -496,4 +510,4 @@ class ComtradeWidget(QWidget):
         - SignalChartWidget
         """
         self.__sc_ptr_i = i
-        self.signal_sc_ptr_moved.emit()
+        self.signal_ptr_moved_sc.emit()
