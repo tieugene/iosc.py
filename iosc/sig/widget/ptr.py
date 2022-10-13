@@ -209,9 +209,9 @@ class MainPtr(Ptr):
             self.__switch_tips(False)
         self.parentPlot().replot()  # selection update
 
-    def __slot_ptr_move(self):
+    def __slot_ptr_move(self, i: int):
         if not self.selected():  # check is not myself
-            self.setGraphKey(self._root.main_ptr_x)
+            self.setGraphKey(self._root.i2x(i))
             self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):

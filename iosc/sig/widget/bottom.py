@@ -27,7 +27,7 @@ class StatusBarWidget(QCustomPlot):
         self.__squeeze()
         self.__set_style()
         self.__zero_ptr_label.setText(self.__zero_timestamp.time().isoformat())
-        self.__slot_main_ptr_moved()
+        self.__slot_main_ptr_moved(root.main_ptr_i)
         self.__root.signal_ptr_moved_main.connect(self.__slot_main_ptr_moved)
         self.__root.signal_xscale.connect(self._slot_chg_width)
 
@@ -58,9 +58,9 @@ class StatusBarWidget(QCustomPlot):
         self.__main_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__main_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
 
-    def __slot_main_ptr_moved(self):
+    def __slot_main_ptr_moved(self, i: int):
         """Repaint/move main ptr value label"""
-        x = self.__root.main_ptr_x  # from z-point, , ms
+        x = self.__root.i2x(i)  # from z-point, ms
         self.__main_ptr_label.setText((self.__zero_timestamp + datetime.timedelta(milliseconds=x)).time().isoformat())
         self.__main_ptr_label.position.setCoords(x, 0)
         self.replot()

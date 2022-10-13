@@ -81,7 +81,7 @@ class ComtradeWidget(QWidget):
     signal_recalc_achannels = pyqtSignal()  # recalc ASignalCtrlView on ...
     signal_shift_achannels = pyqtSignal()  # refresh ASignal*View on switching original/shifted
     signal_xscale = pyqtSignal(int, int)  # set signal chart widths
-    signal_ptr_moved_main = pyqtSignal()  # refresh Signal(Ctrl/Chart)View on MainPtr moved
+    signal_ptr_moved_main = pyqtSignal(int)  # refresh Signal(Ctrl/Chart)View on MainPtr moved
     signal_ptr_moved_sc = pyqtSignal(int)  # refresh SignalChartWidget on OMP SC Ptr moved
     signal_ptr_add_tmp = pyqtSignal(int)  # add new TmpPtr in each SignalChartWidget
     signal_ptr_del_tmp = pyqtSignal(int)  # rm TmpPtr from each SignalChartWidget
@@ -504,7 +504,7 @@ class ComtradeWidget(QWidget):
         - statusbar (x)
         """
         self.__main_ptr_i = i
-        self.signal_ptr_moved_main.emit()
+        self.signal_ptr_moved_main.emit(i)
 
     def slot_ptr_moved_sc(self, i: int):
         """
