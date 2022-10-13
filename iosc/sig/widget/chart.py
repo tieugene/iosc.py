@@ -136,9 +136,7 @@ class SignalChartWidget(QCustomPlot):
 
     def _slot_ptr_add_tmp(self, ptr_id: int):
         """Add new TmpPtr"""
-        tmp_ptr = TmpPtr(self, self._root)
-        self._tmp_ptr[ptr_id] = tmp_ptr
-        tmp_ptr.ptr_move()
+        self._tmp_ptr[ptr_id] = TmpPtr(self, self._root, ptr_id)
 
     def _slot_ptr_del_tmp(self, ptr_id: int):
         """Del TmpPtr"""

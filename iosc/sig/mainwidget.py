@@ -85,7 +85,7 @@ class ComtradeWidget(QWidget):
     signal_ptr_moved_sc = pyqtSignal(int)  # refresh SignalChartWidget on OMP SC Ptr moved
     signal_ptr_add_tmp = pyqtSignal(int)  # add new TmpPtr in each SignalChartWidget
     signal_ptr_del_tmp = pyqtSignal(int)  # rm TmpPtr from each SignalChartWidget
-    signal_ptr_moved_tmp = pyqtSignal(int)  # refresh SignalChartWidget on Tmp Ptr moved
+    signal_ptr_moved_tmp = pyqtSignal(int, int)  # refresh SignalChartWidget on Tmp Ptr moved
 
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
@@ -461,9 +461,9 @@ class ComtradeWidget(QWidget):
         self.signal_recalc_achannels.emit()
 
     def __do_ptr_add_tmp(self):
-        ptr_id = max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1  # generate new uid
-        self.__tmp_ptr_i[ptr_id] = self.__main_ptr_i  # store it
-        self.signal_ptr_add_tmp.emit(ptr_id)  # create them
+        uid = max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1  # generate new uid
+        self.signal_ptr_add_tmp.emit(uid)  # create them ...
+        self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and move
 
     def __do_ptr_del_tmp(self, ptr_id: int):
         del self.__tmp_ptr_i[ptr_id]
@@ -517,3 +517,7 @@ class ComtradeWidget(QWidget):
         """
         self.__sc_ptr_i = i
         self.signal_ptr_moved_sc.emit(i)
+
+    def slot_ptr_moved_tmp(self, uid: int, i: int):
+        self.__tmp_ptr_i[uid] = i
+        self.signal_ptr_moved_tmp.emit(uid, i)
