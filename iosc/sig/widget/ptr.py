@@ -190,6 +190,7 @@ class MainPtr(Ptr):
         self.__tip = PtrTip(cp)
         self.__switch_tips(False)
         self.selectionChanged.connect(self.__selection_chg)
+        self.signal_ptr_moved.connect(self._root.slot_ptr_moved_main)
         self._root.signal_ptr_moved_main.connect(self.__slot_ptr_move)
 
     def __switch_tips(self, todo: bool):
@@ -234,7 +235,7 @@ class MainPtr(Ptr):
             self.__tip.move2x(x_ms, self.__old_pos.x)
             self.__rect.stretc2x(x_ms)
             self.parentPlot().replot()
-            self._root.slot_main_ptr_moved_i(i_new)
+            self.signal_ptr_moved.emit(i_new)
 
 
 class TmpPtr(Ptr):

@@ -493,7 +493,7 @@ class ComtradeWidget(QWidget):
         self.__chart_width = w_self + (w_main_avail - w_main_real) - iosc.const.COL0_WIDTH  # - const.MAGIC_WIDHT
         self.signal_xscale.emit(0, self.chart_width)
 
-    def slot_main_ptr_moved_i(self, i: int):
+    def slot_ptr_moved_main(self, i: int):
         """
         Dispatch all main ptrs
         :param i: New Main Ptr x-position

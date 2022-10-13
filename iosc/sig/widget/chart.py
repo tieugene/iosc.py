@@ -121,7 +121,7 @@ class SignalChartWidget(QCustomPlot):
         super().mousePressEvent(event)  # always .isAcepted() after this
         if event.button() == Qt.LeftButton and not self._ptr_selected:  # check selectable
             i_new = self._root.x2i(self.xAxis.pixelToCoord(event.x()))
-            self._root.slot_main_ptr_moved_i(i_new)  # move MainPtr here
+            self._root.slot_ptr_moved_main(i_new)  # move MainPtr here
             super().mousePressEvent(event)  # and select it
 
     def __slot_signal_restyled(self):
