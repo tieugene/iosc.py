@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt, QMargins, QPointF
+from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal
 from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor
 from PyQt5.QtWidgets import QWidget, QInputDialog
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
@@ -26,6 +26,7 @@ class VLine(QCPItemStraightLine):
 class Ptr(QCPItemTracer):
     __cursor: QCursor
     _root: QWidget
+    signal_ptr_moved = pyqtSignal(int)
 
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp)
@@ -88,6 +89,7 @@ class SCPtr(Ptr):
         self.__pr_ptr.setPen(iosc.const.OMP_PTR_PEN)
         self.__set_limits()
         self.selectionChanged.connect(self.__selection_chg)
+        self.signal_ptr_moved.connect(self._root.slot_ptr_moved_sc)
         self._root.signal_ptr_moved_sc.connect(self.__slot_ptr_move)
 
     def __set_limits(self):
@@ -102,10 +104,10 @@ class SCPtr(Ptr):
         self._switch_cursor(selection)
         self.parentPlot().replot()  # update selection decoration
 
-    def __slot_ptr_move(self):
+    def __slot_ptr_move(self, i: int):
         if not self.selected():  # check is not myself
-            self.setGraphKey(self._root.sc_ptr_x)
-        self.__pr_ptr.move2x(self._root.i2x(self._root.sc_ptr_i - self._root.omp_width * self._root.tpp))
+            self.setGraphKey(self._root.i2x(i))
+        self.__pr_ptr.move2x(self._root.i2x(i - self._root.omp_width * self._root.tpp))
         self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
@@ -126,7 +128,7 @@ class SCPtr(Ptr):
         self.setGraphKey(x_ms)
         self.updatePosition()  # mandatory
         if i_old != (i_new := self.i):
-            self._root.slot_sc_ptr_moved_i(i_new)  # replot will be after PR moving
+            self.signal_ptr_moved.emit(i_new)  # replot will be after PR moving
 
     def mouseDoubleClickEvent(self, event: QMouseEvent, _):
         event.accept()

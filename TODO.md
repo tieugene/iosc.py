@@ -41,5 +41,12 @@ Behavior:
   + &forall; chart: rm TmpPtr
 
 ## Hot:
-- Ptr.slot_ptr_move(int)
-- Ptr.signal_ptr_moved => root.slot_...
+
+For SCPtr, MainPtr:
+
+- Ptr.signal_ptr_moved(int)
+- root.slot_ptr_moved.connect(self.signal_ptr_moved)
+- Ptr.move: signal_ptr_moved(idx)
+- root.signal_ptr_move_xxx(int)
+- root.slot_ptr_moved: signal_ptr_move_xxx(int)
+- Ptr.__slot_ptr_move(int)

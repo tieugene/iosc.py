@@ -3,7 +3,6 @@ RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
 import pathlib
 from typing import Any, Optional
-
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QGuiApplication
@@ -83,7 +82,7 @@ class ComtradeWidget(QWidget):
     signal_shift_achannels = pyqtSignal()  # refresh ASignal*View on switching original/shifted
     signal_xscale = pyqtSignal(int, int)  # set signal chart widths
     signal_ptr_moved_main = pyqtSignal()  # refresh Signal(Ctrl/Chart)View on MainPtr moved
-    signal_ptr_moved_sc = pyqtSignal()  # refresh SignalChartWidget on OMP SC Ptr moved
+    signal_ptr_moved_sc = pyqtSignal(int)  # refresh SignalChartWidget on OMP SC Ptr moved
     signal_ptr_add_tmp = pyqtSignal(int)  # add new TmpPtr in each SignalChartWidget
     signal_ptr_del_tmp = pyqtSignal(int)  # rm TmpPtr from each SignalChartWidget
     signal_ptr_moved_tmp = pyqtSignal(int)  # refresh SignalChartWidget on Tmp Ptr moved
@@ -93,7 +92,6 @@ class ComtradeWidget(QWidget):
         self.__osc = rec
         self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
         self.__main_ptr_i = self.x2i(0)  # default: Z
-        self.__sc_ptr_i = self.__main_ptr_i + 2 * self.__tpp  # TODO: chk limit
         self.__tmp_ptr_i = dict()
         self.__omp_width = 3
         self.__shifted = False
@@ -112,7 +110,7 @@ class ComtradeWidget(QWidget):
         self.__mk_connections()
         # sync: default z-point
         # self.signal_ptr_moved_main.emit()
-        self.signal_ptr_moved_sc.emit()
+        self.slot_ptr_moved_sc(self.__main_ptr_i + 2 * self.__tpp)  # TODO: chk limit
 
     @property
     def tpp(self) -> int:
@@ -508,7 +506,7 @@ class ComtradeWidget(QWidget):
         self.__main_ptr_i = i
         self.signal_ptr_moved_main.emit()
 
-    def slot_sc_ptr_moved_i(self, i: int):
+    def slot_ptr_moved_sc(self, i: int):
         """
         Dispatch all OMP SC ptrs
         :param i: New SC Ptr index
@@ -518,4 +516,4 @@ class ComtradeWidget(QWidget):
         - SignalChartWidget
         """
         self.__sc_ptr_i = i
-        self.signal_ptr_moved_sc.emit()
+        self.signal_ptr_moved_sc.emit(i)
