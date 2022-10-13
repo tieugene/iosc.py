@@ -18,7 +18,7 @@ Current job: [OMP ptrs](https://github.com/michDaven/AbScan-TechReq/blob/main/as
 
 - On Item.mousePressed:
   + select item
-- On QCP.mouseMove:
+- On Item.mouseMove:
   + move selected item
 - On Item.mouseReleased:
   + deselect item

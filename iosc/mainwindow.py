@@ -1,12 +1,14 @@
 """Main GUI"""
 # 1. std
 import pathlib
+import sys
+
 # 2. 3rd
 from PyQt5.QtCore import Qt, QCoreApplication
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, QApplication
 # 3. local
-from iosc.maintabber import ComtradeTabWidget, MAIN_TAB
+from maintabber import ComtradeTabWidget, MAIN_TAB
 
 # x. const
 MAIN_MENU = True  # FIXME: False => hot keys not work
@@ -98,3 +100,14 @@ class MainWindow(QMainWindow):
         )
         if fn[0]:
             self.tabs.add_chart_tab(pathlib.Path(fn[0]))
+
+
+def main() -> int:
+    # QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
+    app = QApplication(sys.argv)
+    mw: QMainWindow = MainWindow(sys.argv)
+    available_geometry = app.desktop().availableGeometry(mw)  # 0, 0, 1280, 768 (display height - taskbar)
+    mw.resize(int(available_geometry.width() * 3 / 4), int(available_geometry.height() * 3 / 4))
+    mw.show()
+    mw.handle_cli()
+    return app.exec_()

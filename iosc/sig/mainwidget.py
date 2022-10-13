@@ -473,17 +473,17 @@ class ComtradeWidget(QWidget):
         self.__chart_width = w_self + (w_main_avail - w_main_real) - iosc.const.COL0_WIDTH  # - const.MAGIC_WIDHT
         self.signal_xscale.emit(0, self.chart_width)
 
-    def slot_main_ptr_moved_x(self, x: float):
+    def slot_main_ptr_moved_i(self, i: int):
         """
         Dispatch all main ptrs
-        :param x: New Main Ptr x-position
-        :type x: ~~QCPItemPosition~~ float
+        :param i: New Main Ptr x-position
+        :type i: ~~QCPItemPosition~~ int
         Emit slot_main_ptr_move(pos) for:
         - TimeAxisWidget (x)
         - SignalChartWidget (x) [=> SignalCtrlWidget(y)]
         - statusbar (x)
         """
-        self.__main_ptr_i = self.x2i(x)
+        self.__main_ptr_i = i
         self.signal_main_ptr_moved.emit()
 
     def slot_sc_ptr_moved_i(self, i: int):

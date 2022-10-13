@@ -6,8 +6,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QGuiApplication
 from PyQt5.QtWidgets import QTabWidget, QMainWindow, QMessageBox
 
-from iosc.core.mycomtrade import MyComtrade
-from iosc.sig.mainwidget import ComtradeWidget
+from core.mycomtrade import MyComtrade
+from sig.mainwidget import ComtradeWidget
 
 
 class ComtradeTabWidget(QTabWidget):

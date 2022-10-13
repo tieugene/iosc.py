@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt, QMargins, QPointF
-from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent
+from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor
 from PyQt5.QtWidgets import QWidget, QInputDialog
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
@@ -7,6 +7,7 @@ import iosc.const
 
 
 class Ptr(QCPItemTracer):
+    __cursor: QCursor
     _root: QWidget
 
     def __init__(self, cp: QCustomPlot, root: QWidget):
@@ -14,38 +15,68 @@ class Ptr(QCPItemTracer):
         self._root = root
         self.setGraph(cp.graph())
         self.position.setAxes(cp.xAxis, None)
-        # cp.setCursor(QCursor(Qt.CrossCursor))
+
+    def mousePressEvent(self, event: QMouseEvent, _):
+        if event.button() == Qt.LeftButton:
+            event.accept()
+            self.selection = True
+        else:
+            event.ignore()
+
+    def mouseReleaseEvent(self, event: QMouseEvent, _):
+        event.accept()
+        self.selection = False
+
+    @property
+    def selection(self) -> bool:
+        return self.selected()
+
+    @selection.setter
+    def selection(self, val: bool):
+        self.setSelected(val)
+        self.parent().ptr_selected = val
+
+    @property
+    def x(self) -> float:
+        """Current x-position (ms)"""
+        return self.position.key()
+
+    @property
+    def i(self) -> int:
+        """Index of value in current self position"""
+        return self._root.x2i(self.x)
+
+    def _switch_cursor(self, selected: bool):
+        if selected:
+            self.__cursor = self._root.cursor()
+            cur = iosc.const.PTR_CURSOR
+        else:
+            cur = self.__cursor
+        self._root.setCursor(cur)
+
+    def _mouse2ms(self, event: QMouseEvent) -> float:
+        """Get mouse position as ms"""
+        return self.parentPlot().xAxis.pixelToCoord(event.pos().x())  # ms, realative to z-point
 
 
-class MainPtr(Ptr):
-    def __init__(self, cp: QCustomPlot, root: QWidget):
-        super().__init__(cp, root)
-        self.setPen(iosc.const.MAIN_PTR_PEN)
-
-
-class OldPtr(QCPItemStraightLine):
-    __x: float
-
+class VLine(QCPItemStraightLine):
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
-        self.setPen(iosc.const.OLD_PTR_PEN)
-        self.setVisible(False)
 
     def move2x(self, x: float):
         """
         :param x:
         :note: for  QCPItemLine: s/point1/start/, s/point2/end/
         """
-        self.__x = x
         self.point1.setCoords(x, 0)
         self.point2.setCoords(x, 1)
 
     @property
     def x(self):
-        return self.__x
+        return self.point1.coords().x()
 
 
-class MainPtrTip(QCPItemText):
+class PtrTip(QCPItemText):
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
         self.setColor(Qt.black)  # text
@@ -62,7 +93,7 @@ class MainPtrTip(QCPItemText):
         self.setText("%.2f" % dx)
 
 
-class MainPtrRect(QCPItemRect):
+class PtrRect(QCPItemRect):
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
         self.setPen(QColor(255, 170, 0, 128))
@@ -77,27 +108,79 @@ class MainPtrRect(QCPItemRect):
         self.bottomRight.setCoords(x, 0)
 
 
-class _PRPtr(QCPItemStraightLine):
-    """OMP PR (previous state) pointer"""
-    def __init__(self, cp: QCustomPlot):
-        super().__init__(cp)
-        self.setPen(iosc.const.OMP_PTR_PEN)
+class MainPtr(Ptr):
+    __old_ptr: VLine
+    __rect: PtrRect
+    __tip: PtrTip
 
-    def move2x(self, x: float):
-        self.point1.setCoords(x, 0)
-        self.point2.setCoords(x, 1)
+    def __init__(self, cp: QCustomPlot, root: QWidget):
+        super().__init__(cp, root)
+        self.setPen(iosc.const.MAIN_PTR_PEN)
+        self.__old_ptr = VLine(cp)
+        self.__old_ptr.setPen(iosc.const.OLD_PTR_PEN)
+        self.__rect = PtrRect(cp)
+        self.__tip = PtrTip(cp)
+        self.__switch_tips(False)
+        self.selectionChanged.connect(self.__selection_chg)
+        self._root.signal_main_ptr_moved.connect(self.__slot_main_ptr_moved)
+
+    def __switch_tips(self, todo: bool):
+        # print(("Off", "On")[int(todo)])
+        self.__old_ptr.setVisible(todo)
+        self.__tip.setVisible(todo)
+        self.__rect.setVisible(todo)
+
+    def __selection_chg(self, selection: bool):
+        self._switch_cursor(selection)
+        if selection:
+            x = self.x
+            self.__old_ptr.move2x(x)
+            self.__rect.set2x(x)
+        else:
+            self.__switch_tips(False)
+        self.parentPlot().replot()  # selection update
+
+    def __slot_main_ptr_moved(self):
+        if not self.selected():  # check is not myself
+            self.setGraphKey(self._root.main_ptr_x)
+            self.parentPlot().replot()
+
+    def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
+        """
+        :param event:
+        :param pos: Where mouse was pressed (looks like fixed)
+        :note: self.mouseMoveEvent() unusable because points to click position
+        """
+        if not self.selected():  # protection against something
+            event.ignore()
+            return
+        event.accept()
+        x_ms: float = self._mouse2ms(event)
+        # TODO: convert to index then do the job
+        i_old: int = self.i
+        self.setGraphKey(x_ms)
+        self.updatePosition()  # mandatory
+        if i_old != (i_new := self.i):
+            if not self.__old_ptr.visible():  # show tips on demand
+                self.__switch_tips(True)
+            self.__tip.move2x(x_ms, self.__old_ptr.x)
+            self.__rect.stretc2x(x_ms)
+            self.parentPlot().replot()
+            self._root.slot_main_ptr_moved_i(i_new)
 
 
 class SCPtr(Ptr):
-    __pr_ptr: _PRPtr
+    """OMP SC (Short Circuit) pointer."""
+    __pr_ptr: VLine
     __x_limit: tuple[float, float]
 
-    """OMP SC (Short Circuit) pointer."""
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp, root)
         self.setPen(iosc.const.OMP_PTR_PEN)
-        self.__pr_ptr = _PRPtr(cp)
+        self.__pr_ptr = VLine(cp)
+        self.__pr_ptr.setPen(iosc.const.OMP_PTR_PEN)
         self.__set_limits()
+        self.selectionChanged.connect(self.__selection_chg)
         self._root.signal_sc_ptr_moved.connect(self.__slot_sc_ptr_moved)
 
     def __set_limits(self):
@@ -108,25 +191,15 @@ class SCPtr(Ptr):
             self._root.i2x(i_z + self._root.omp_width * self._root.tpp - 1)
         )
 
-    @property
-    def i(self) -> int:
-        """Index of value in current self position"""
-        return self._root.x2i(self.position.key())
+    def __selection_chg(self, selection: bool):
+        self._switch_cursor(selection)
+        self.parentPlot().replot()  # update selection decoration
 
     def __slot_sc_ptr_moved(self):
         if not self.selected():  # check is not myself
             self.setGraphKey(self._root.sc_ptr_x)
         self.__pr_ptr.move2x(self._root.i2x(self._root.sc_ptr_i - self._root.omp_width * self._root.tpp))
         self.parentPlot().replot()
-
-    def mousePressEvent(self, event: QMouseEvent, _):
-        event.accept()
-        self.setSelected(True)
-
-    def mouseReleaseEvent(self, event: QMouseEvent, pos: QPointF):
-        event.accept()
-        self.setSelected(False)
-        self.parentPlot().replot()  # update selection decoration
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
         """
@@ -138,14 +211,15 @@ class SCPtr(Ptr):
             event.ignore()
             return
         event.accept()
-        x_ms: float = self.parentPlot().xAxis.pixelToCoord(event.pos().x())  # ms, realative to z-point
+        x_ms: float = self._mouse2ms(event)  # ms, realative to z-point
+        # TODO: convert to index then do the job
         if not (self.__x_limit[0] <= x_ms <= self.__x_limit[1]):
             return
         i_old: int = self.i
         self.setGraphKey(x_ms)
         self.updatePosition()  # mandatory
         if i_old != (i_new := self.i):
-            self._root.slot_sc_ptr_moved_i(i_new)  # replot after PR moving
+            self._root.slot_sc_ptr_moved_i(i_new)  # replot will be after PR moving
 
     def mouseDoubleClickEvent(self, event: QMouseEvent, _):
         event.accept()
