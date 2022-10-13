@@ -108,4 +108,6 @@ class StatusBarWidget(QCustomPlot):
 
     def _slot_ptr_del_tmp(self, uid: int):
         """Del TmpPtr"""
+        self.removeItem(self._tmp_ptr[uid])
         del self._tmp_ptr[uid]
+        self.replot()

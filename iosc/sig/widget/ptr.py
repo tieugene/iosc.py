@@ -252,12 +252,14 @@ class MainPtr(_PowerPtr):
 class TmpPtr(_PowerPtr):
     _uid: int
     signal_ptr_moved_tmp = pyqtSignal(int, int)
+    signal_ptr_del_tmp = pyqtSignal(int)
 
     def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
         super().__init__(cp, root)
         self._uid = uid
         self.setPen(iosc.const.PEN_PTR_TMP)
         self.signal_ptr_moved_tmp.connect(self._root.slot_ptr_moved_tmp)
+        self.signal_ptr_del_tmp.connect(self._root.slot_ptr_del_tmp)
         self._root.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
@@ -282,12 +284,6 @@ class TmpPtr(_PowerPtr):
         point = self.parent().mapToGlobal(pos.toPoint())
         chosen_action = context_menu.exec_(point)  # self.mapToGlobal(pos)
         if chosen_action == action_edit:
-            self.__do_edit()
+            print("Edit TmpPtr will be here")
         elif chosen_action == action_del:
-            self.__do_del()
-
-    def __do_edit(self):
-        ...
-
-    def __do_del(self):
-        ...
+            self.signal_ptr_del_tmp.emit(self._uid)

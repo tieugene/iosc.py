@@ -138,9 +138,11 @@ class SignalChartWidget(QCustomPlot):
         """Add new TmpPtr"""
         self._tmp_ptr[ptr_id] = TmpPtr(self, self._root, ptr_id)
 
-    def _slot_ptr_del_tmp(self, ptr_id: int):
+    def _slot_ptr_del_tmp(self, uid: int):
         """Del TmpPtr"""
-        del self._tmp_ptr[ptr_id]
+        self.removeItem(self._tmp_ptr[uid])
+        del self._tmp_ptr[uid]
+        self.replot()
 
 
 class StatusSignalChartWidget(SignalChartWidget):

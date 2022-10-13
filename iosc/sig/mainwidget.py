@@ -465,10 +465,6 @@ class ComtradeWidget(QWidget):
         self.signal_ptr_add_tmp.emit(uid)  # create them ...
         self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and move
 
-    def __do_ptr_del_tmp(self, ptr_id: int):
-        del self.__tmp_ptr_i[ptr_id]
-        self.signal_ptr_del_tmp.emit(ptr_id)
-
     def __sync_hresize(self, l_index: int, old_size: int, new_size: int):
         """
         :param l_index: Column index
@@ -521,3 +517,7 @@ class ComtradeWidget(QWidget):
     def slot_ptr_moved_tmp(self, uid: int, i: int):
         self.__tmp_ptr_i[uid] = i
         self.signal_ptr_moved_tmp.emit(uid, i)
+
+    def slot_ptr_del_tmp(self, uid: int):
+        del self.__tmp_ptr_i[uid]
+        self.signal_ptr_del_tmp.emit(uid)

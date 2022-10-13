@@ -44,6 +44,6 @@ Behavior:
   - [x] Chart
   - [x] Top
   - [x] Bottom
-- [ ] Context menu
-- [ ] Del
+- [x] Context menu
+- [x] Del
 - [ ] Edit (value, name)
