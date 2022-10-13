@@ -19,13 +19,22 @@ class Ptr(QCPItemTracer):
     def mousePressEvent(self, event: QMouseEvent, _):
         if event.button() == Qt.LeftButton:
             event.accept()
-            self.setSelected(True)
+            self.selection = True
         else:
             event.ignore()
 
     def mouseReleaseEvent(self, event: QMouseEvent, _):
         event.accept()
-        self.setSelected(False)
+        self.selection = False
+
+    @property
+    def selection(self) -> bool:
+        return self.selected()
+
+    @selection.setter
+    def selection(self, val: bool):
+        self.setSelected(val)
+        self.parent().ptr_selected = val
 
     @property
     def x(self) -> float:
@@ -129,7 +138,7 @@ class MainPtr(Ptr):
             self.__rect.set2x(x)
         else:
             self.__switch_tips(False)
-            self.parentPlot().replot()
+        self.parentPlot().replot()  # selection update
 
     def __slot_main_ptr_moved(self):
         if not self.selected():  # check is not myself
@@ -184,8 +193,7 @@ class SCPtr(Ptr):
 
     def __selection_chg(self, selection: bool):
         self._switch_cursor(selection)
-        if not selection:  # released
-            self.parentPlot().replot()  # update selection decoration
+        self.parentPlot().replot()  # update selection decoration
 
     def __slot_sc_ptr_moved(self):
         if not self.selected():  # check is not myself
