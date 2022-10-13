@@ -2,7 +2,7 @@ from typing import Optional
 
 from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal
 from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor
-from PyQt5.QtWidgets import QWidget, QInputDialog
+from PyQt5.QtWidgets import QWidget, QInputDialog, QMenu
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
 import iosc.const
@@ -283,4 +283,18 @@ class TmpPtr(_PowerPtr):
             self.signal_ptr_moved_tmp.emit(self._uid, i_new)
 
     def __slot_context_menu(self, pos: QPointF):
-        print("Context menu")
+        context_menu = QMenu()
+        action_edit = context_menu.addAction("Edit...")
+        action_del = context_menu.addAction("Delete")
+        point = self.parent().mapToGlobal(pos.toPoint())
+        chosen_action = context_menu.exec_(point)  # self.mapToGlobal(pos)
+        if chosen_action == action_edit:
+            self.__do_edit()
+        elif chosen_action == action_del:
+            self.__do_del()
+
+    def __do_edit(self):
+        ...
+
+    def __do_del(self):
+        ...
