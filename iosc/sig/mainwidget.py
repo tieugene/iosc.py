@@ -14,7 +14,7 @@ from iosc.core import mycomtrade
 from iosc.icon import svg_icon, ESvgSrc
 from iosc.core.convtrade import convert, ConvertError
 from iosc.sig.section import TimeAxisTable, SignalListTable, StatusBarTable, HScroller
-from iosc.sig.widget.dialog import TmpPtrDialog
+from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
 
 # x. const
 TICK_RANGE = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000)
@@ -69,6 +69,7 @@ class ComtradeWidget(QWidget):
     action_viewas_hrm3: QAction
     action_viewas_hrm5: QAction
     action_ptr_add_tmp: QAction
+    action_ptr_add_msr: QAction
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
@@ -274,10 +275,15 @@ class ComtradeWidget(QWidget):
                                           checkable=True,
                                           statusTip="Show harmonic #5 of signal value")
         self.action_ptr_add_tmp = QAction(QIcon(),
-                                          "Add tmp ptr",
+                                          "Add temporary pointer",
                                           self,
                                           statusTip="Add temporary pointer into current position",
                                           triggered=self.__do_ptr_add_tmp)
+        self.action_ptr_add_msr = QAction(QIcon(),
+                                          "Add measure pointers",
+                                          self,
+                                          statusTip="Add measure pointers into current position",
+                                          triggered=self.__do_ptr_add_msr)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
         self.action_shift.addAction(self.action_shift_yes)
@@ -323,6 +329,7 @@ class ComtradeWidget(QWidget):
         menu_channel.addAction(self.action_unhide)
         menu_ptr = self.menubar.addMenu("&Pointers")
         menu_ptr.addAction(self.action_ptr_add_tmp)
+        menu_ptr.addAction(self.action_ptr_add_msr)
 
     def __mk_toolbar(self):
         # prepare
@@ -469,6 +476,11 @@ class ComtradeWidget(QWidget):
         uid = max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1  # generate new uid
         self.signal_ptr_add_tmp.emit(uid)  # create them ...
         self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and move
+
+    def __do_ptr_add_msr(self):
+        if sig_selected := SelectSignalsDialog(self.__osc.analog, self.__osc.status).execute():
+            # split by analog and status
+            print(sig_selected)
 
     def __sync_hresize(self, l_index: int, old_size: int, new_size: int):
         """

@@ -3,11 +3,12 @@ from typing import Optional
 
 # 2. 3rd
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QDoubleValidator
+from PyQt5.QtGui import QColor, QDoubleValidator, QBrush
 from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QPushButton, QColorDialog, QLineEdit, \
-    QInputDialog, QWidget, QDoubleSpinBox
+    QInputDialog, QWidget, QDoubleSpinBox, QListWidget, QVBoxLayout, QListWidgetItem
 # 3. local
 from iosc.core import mycomtrade
+from iosc.core.mycomtrade import AnalogSignalList, StatusSignalList
 
 
 class SignalPropertiesDialog(QDialog):
@@ -147,3 +148,71 @@ class TmpPtrDialog(QDialog):
         self.button_box.rejected.connect(self.reject)
         # 5. go
         self.setWindowTitle("Tmp ptr properties")
+
+
+class SelectSignalsDialog(QDialog):
+    f_signals: QListWidget
+    button_all: QPushButton
+    button_none: QPushButton
+    buttons_select: QDialogButtonBox
+    button_box: QDialogButtonBox
+
+    def __init__(self, a_list: AnalogSignalList, s_list: StatusSignalList, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Select signals")
+        # 1. set widgets
+        self.button_all = QPushButton("Select all", self)
+        self.button_none = QPushButton("Clean", self)
+        self.buttons_select = QDialogButtonBox()
+        self.buttons_select.addButton(self.button_all, QDialogButtonBox.AcceptRole)
+        self.buttons_select.addButton(self.button_none, QDialogButtonBox.RejectRole)
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.f_signals = QListWidget()
+        self.f_signals.setSelectionMode(self.f_signals.MultiSelection)
+        for _list in (a_list, s_list):
+            for sig in _list:
+                item = QListWidgetItem(sig.sid)
+                item.setFlags(item.flags() & (~Qt.ItemIsUserCheckable))
+                item.setCheckState(Qt.Unchecked)
+                item.setForeground(QColor(*sig.rgb))
+                self.f_signals.addItem(item)
+        # 3. set layout
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(self.buttons_select)
+        self.layout().addWidget(self.f_signals)
+        self.layout().addWidget(self.button_box)
+        # layout.setVerticalSpacing(0)
+        # 4. set signals
+        self.f_signals.itemSelectionChanged.connect(self.__slot_selection_changed)
+        self.buttons_select.accepted.connect(self.__slot_select_all)
+        self.buttons_select.rejected.connect(self.__slot_select_none)
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+
+    def __slot_selection_changed(self):
+        for i in range(self.f_signals.count()):
+            item = self.f_signals.item(i)
+            if item.isSelected():
+                if item.checkState() != Qt.Checked:
+                    item.setCheckState(Qt.Checked)
+            else:
+                if item.checkState() != Qt.Unchecked:
+                    item.setCheckState(Qt.Unchecked)
+
+    def __select(self, state: bool):
+        for i in range(self.f_signals.count()):
+            self.f_signals.item(i).setSelected(state)
+
+    def __slot_select_all(self):
+        self.__select(True)
+
+    def __slot_select_none(self):
+        self.__select(False)
+
+    def execute(self) -> list[int]:
+        retvalue = list()
+        if self.exec_():
+            for i in range(self.f_signals.count()):
+                if self.f_signals.item(i).isSelected():
+                    retvalue.append(i)
+        return retvalue

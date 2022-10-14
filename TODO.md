@@ -1,6 +1,6 @@
 # TODO
 
-Current job: [Tmp ptrs](https://github.com/michDaven/AbScan-TechReq/blob/main/asciidoc1.adoc#2351-%D0%B2%D1%80%D0%B5%D0%BC%D0%B5%D0%BD%D0%BD%D0%B0%D1%8F-%D1%83%D0%BA%D0%B0%D0%B7%D0%BA%D0%B0)
+Current job: [Msr ptrs](https://github.com/michDaven/AbScan-TechReq/blob/main/asciidoc1.adoc#2352-%D0%B7%D0%B0%D0%BC%D0%B5%D1%80%D1%8B)
 
 
 ## Ptr behaviour
@@ -47,3 +47,11 @@ Behavior:
 - [x] Context menu
 - [x] Del
 - [x] Edit (value, name)
+
+## Msr ptrs
+
+- [x] Select (QListWidget)
+- [ ] Add, move
+- [ ] Context menu
+- [ ] Del
+- [ ] Edit (value, name)
