@@ -482,7 +482,7 @@ class ComtradeWidget(QWidget):
     def __do_ptr_add_msr(self):
         if sig_selected := SelectSignalsDialog(self.__osc.analog, self.__osc.status).execute():
             # split by analog and status
-            stat_sig_i0 = len(self.__osc.analog)  # idx waht state signals starts from
+            stat_sig_i0 = len(self.__osc.analog)  # idx what state signals starts from
             for i in sig_selected:  # TODO: signals can be mixed and/or reordered
                 uid = max(self.__msr_ptr) + 1 if self.__msr_ptr else 1
                 if i < stat_sig_i0:

@@ -294,39 +294,41 @@ class TmpPtr(_PowerPtr):
 
 class _MsrPtr(Ptr):
     class _Tip(QCPItemText):
-        _uid: int
-        _name: str
-
-        def __init__(self, cp: QCustomPlot, uid: int):
+        def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
-            self._uid = uid
-            self._name = ''
             self.setFont(QFont('mono', 8))
             self.setPadding(QMargins(2, 2, 2, 2))
             self.setTextAlignment(Qt.AlignCenter)
             self.setColor(Qt.white)  # text
-            self.setBrush(QBrush(Qt.black))  # rect
             self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
+            self.setBrush(QBrush(Qt.black))  # rect
 
-        def move2x(self, x: float):
-            self.position.setCoords(x, 0)  # FIXME: y = top
-            self.setText("%s: %.2f" % (self._name if self._name else f"M{self._uid}", x))
-            self.parentPlot().replot()
-
+    _uid: int
+    _name: str
     _tip: _Tip
 
     def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
         super().__init__(cp, root)
-        self._tip = self._Tip(cp, uid)
+        self._uid = uid
+        self._name = ''
+        self._tip = self._Tip(cp)
         self.setPen(iosc.const.PEN_PTR_MSR)
-        x0 = self._root.main_ptr_x
-        self.setGraphKey(x0)
-        self._tip.move2x(x0)
-        self.selectionChanged.connect(self._selection_chg)
+        self.setGraphKey(self._root.main_ptr_x)
+        self._move_tip(self._root.main_ptr_i)
+        self.selectionChanged.connect(self.__selection_chg)
 
-    def _selection_chg(self, selection: bool):
+    def __selection_chg(self, selection: bool):
         self._switch_cursor(selection)
         self.parentPlot().replot()  # update selection decoration
+
+    def _text(self, x: float) -> str:
+        ...  # stub
+
+    def _move_tip(self, i: int):
+        x = self._root.i2x(i)
+        self._tip.setText(self._text(x))
+        self._tip.position.setCoords(x, 0)  # FIXME: y = top
+        self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, _):
         event.accept()
@@ -335,9 +337,20 @@ class _MsrPtr(Ptr):
         self.setGraphKey(x_ms)
         self.updatePosition()  # mandatory
         if i_old != (i_new := self.i):
-            self._tip.move2x(self._root.i2x(i_new))
+            self._move_tip(i_new)
 
 
 class AnalogMsrPtr(_MsrPtr):
     def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
         super().__init__(cp, root, uid)
+
+    def _text(self, x: float) -> str:
+        return "%s: %.2f" % (self._name if self._name else f"M{self._uid}", self.position.value())
+
+
+class StatusMsrPtr(_MsrPtr):
+    def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
+        super().__init__(cp, root, uid)
+
+    def _text(self, x: float) -> str:
+        return "%s: %d" % (self._name if self._name else f"M{self._uid}", int(self.position.value()))
