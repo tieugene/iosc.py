@@ -1,6 +1,8 @@
 """Signal tab widget
 RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
+import cmath
+import math
 import pathlib
 from typing import Any, Optional
 # 2. 3rd
@@ -11,6 +13,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget, QMenuBa
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
+from iosc.core.sigfunc import func_list
 from iosc.icon import svg_icon, ESvgSrc
 from iosc.core.convtrade import convert, ConvertError
 from iosc.sig.section import TimeAxisTable, SignalListTable, StatusBarTable, HScroller
@@ -169,6 +172,32 @@ class ComtradeWidget(QWidget):
     def i2x(self, i: int) -> float:
         """Recalc index in signal array int graph x-position (ms)"""
         return 1000 * (self.__osc.raw.time[i] - self.__osc.raw.trigger_time)
+
+    def sig2str(self, sig: mycomtrade.AnalogSignal, i: int, func_i: int):
+        """Return string repr of signal dependong on:
+         - signal value
+         - in index i
+         - selected function[func_i]
+         - pors (global)
+         - orig/shifted (global, indirect)"""
+        func = func_list[func_i]
+        v = func(sig.value, i, self.tpp)
+        if isinstance(v, complex):  # hrm1
+            y = abs(v)
+        else:
+            y = v
+        pors_y = y * sig.get_mult(self.show_sec)
+        uu = sig.uu_orig
+        if abs(pors_y) < 1:
+            pors_y *= 1000
+            uu = 'm' + uu
+        elif abs(pors_y) > 1000:
+            pors_y /= 1000
+            uu = 'k' + uu
+        if isinstance(v, complex):  # hrm1
+            return "%.3f %s / %.3f°" % (pors_y, uu, math.degrees(cmath.phase(v)))
+        else:
+            return"%.3f %s" % (pors_y, uu)
 
     def __mk_widgets(self):
         self.menubar = QMenuBar()

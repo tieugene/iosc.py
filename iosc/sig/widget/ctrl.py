@@ -1,5 +1,3 @@
-import cmath
-import math
 from typing import Optional
 
 from PyQt5.QtCore import QMargins, pyqtSignal, Qt, QPoint
@@ -7,7 +5,7 @@ from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QTableWidget, QVBoxLay
 from QCustomPlot2 import QCustomPlot
 
 import iosc.const
-from iosc.core import mycomtrade, sigfunc
+from iosc.core import mycomtrade
 from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
 
 
@@ -41,7 +39,7 @@ class SignalCtrlWidget(QWidget):
         self.__mk_layout()
         self._set_style()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.slot_update_value(root.main_ptr_i)
+        self.slot_update_value()
         self.customContextMenuRequested.connect(self.__slot_context_menu)
         self._root.signal_ptr_moved_main.connect(self.slot_update_value)
 
@@ -128,8 +126,8 @@ class StatusSignalCtrlWidget(SignalCtrlWidget):
             self._set_style()
             self.signal_restyled.emit()
 
-    def slot_update_value(self, i: int):
-        self._f_value.setText("%d" % self._signal.value[i])
+    def slot_update_value(self):
+        self._f_value.setText("%d" % self._signal.value[self._root.main_ptr_i])
 
 
 class AnalogSignalCtrlWidget(SignalCtrlWidget):
@@ -147,29 +145,9 @@ class AnalogSignalCtrlWidget(SignalCtrlWidget):
             self._set_style()
             self.signal_restyled.emit()
 
-    def slot_update_value(self, i: int):
-        """
-        Update ctrl widget value depending on pri/sec and value type
-        :param i: value index in data array
-        """
-        func = sigfunc.func_list[self._root.viewas]
-        v = func(self._signal.value, i, self._root.tpp)
-        if isinstance(v, complex):  # hrm1
-            y = abs(v)
-        else:
-            y = v
-        pors_y = y * self._signal.get_mult(self._root.show_sec)
-        uu = self._signal.uu_orig
-        if abs(pors_y) < 1:
-            pors_y *= 1000
-            uu = 'm' + uu
-        elif abs(pors_y) > 1000:
-            pors_y /= 1000
-            uu = 'k' + uu
-        if isinstance(v, complex):  # hrm1
-            self._f_value.setText("%.3f %s / %.3f°" % (pors_y, uu, math.degrees(cmath.phase(v))))
-        else:
-            self._f_value.setText("%.3f %s" % (pors_y, uu))
+    def slot_update_value(self):
+        """Update ctrl widget value depending on pri/sec and value type"""
+        self._f_value.setText(self._root.sig2str(self._signal, self._root.main_ptr_i, self._root.viewas))
 
     def slot_vzoom_in(self):
         if self.sibling.zoom == 1:
