@@ -144,9 +144,6 @@ class SignalChartWidget(QCustomPlot):
         del self._tmp_ptr[uid]
         self.replot()
 
-    def add_ptr_msr(self, uid: int):
-        ...  # stub
-
 
 class StatusSignalChartWidget(SignalChartWidget):
     def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
@@ -254,5 +251,5 @@ class AnalogSignalChartWidget(SignalChartWidget):
             self.replot()
 
     def add_ptr_msr(self, uid: int):
-        msr_ptr = AnalogMsrPtr(self, self._root, uid)
+        msr_ptr = AnalogMsrPtr(self, self._root, self._signal, uid)
 

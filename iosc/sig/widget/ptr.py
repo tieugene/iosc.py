@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QWidget, QInputDialog, QMenu
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
 import iosc.const
+from iosc.core import mycomtrade
 from iosc.sig.widget.dialog import get_new_omp_width, TmpPtrDialog
 
 
@@ -305,13 +306,11 @@ class _MsrPtr(Ptr):
 
     _i: int  # current signal array index
     _uid: int  # uniq id of xMsrPtr
-    _name: str  # title
     _tip: _Tip
 
     def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
         super().__init__(cp, root)
         self._uid = uid
-        self._name = ''
         self._tip = self._Tip(cp)
         self.setPen(iosc.const.PEN_PTR_MSR)
         self.setGraphKey(self._root.main_ptr_x)
@@ -342,18 +341,20 @@ class _MsrPtr(Ptr):
 
 
 class AnalogMsrPtr(_MsrPtr):
+    _signal: mycomtrade.AnalogSignal
     _func_i: int  # value mode (function) number (in sigfunc.func_list[])
     FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
 
-    def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
+    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int):
         self._func_i = root.viewas
+        self._signal = signal
         super().__init__(cp, root, uid)
+        # TODO: update on pors/shift/func change
 
     def _update_text(self):
-        s = self._name if self._name else f"M{self._uid}"
-        v = self.position.value()
+        v = self._root.sig2str(self._signal, self.i, self._func_i)  # was self.position.value()
         m = self.FUNC_ABBR[self._func_i]
-        self._tip.setText("%s: %.2f (%s)" % (s, v, m))
+        self._tip.setText("M%d: %s (%s)" % (self._uid, v, m))
 
 
 class StatusMsrPtr(_MsrPtr):
@@ -361,6 +362,4 @@ class StatusMsrPtr(_MsrPtr):
         super().__init__(cp, root, uid)
 
     def _update_text(self):
-        s = self._name if self._name else f"M{self._uid}"
-        v = int(self.position.value())
-        self._tip.setText("%s: %d" % (s, v))
+        self._tip.setText("M%d: %d" % (self._uid, int(self.position.value())))
