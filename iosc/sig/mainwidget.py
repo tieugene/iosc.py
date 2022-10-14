@@ -39,6 +39,7 @@ class ComtradeWidget(QWidget):
     __main_ptr_i: int  # current Main Ptr index in source arrays
     __sc_ptr_i: int  # current OMP SC Ptr index in source arrays
     __tmp_ptr_i: dict[int, int]  # current Tmp Ptr indexes in source arrays: ptr_uid => idx
+    __msr_ptr: set[int]  # xMsrPtr uids
     __omp_width: int  # distance from OMP PR and SC pointers, periods
     __shifted: bool  # original/shifted selector
     __chart_width: Optional[int]  # width (px) of nested QCP charts
@@ -95,6 +96,7 @@ class ComtradeWidget(QWidget):
         self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
         self.__main_ptr_i = self.x2i(0.0)  # default: Z
         self.__tmp_ptr_i = dict()
+        self.__msr_ptr = set()
         self.__omp_width = 3
         self.__shifted = False
         self.__chart_width = None  # wait for line_up
@@ -480,7 +482,14 @@ class ComtradeWidget(QWidget):
     def __do_ptr_add_msr(self):
         if sig_selected := SelectSignalsDialog(self.__osc.analog, self.__osc.status).execute():
             # split by analog and status
-            print(sig_selected)
+            stat_sig_i0 = len(self.__osc.analog)  # idx waht state signals starts from
+            for i in sig_selected:  # TODO: signals can be mixed and/or reordered
+                uid = max(self.__msr_ptr) + 1 if self.__msr_ptr else 1
+                if i < stat_sig_i0:
+                    self.analog_table.add_ptr_msr(i, uid)
+                else:
+                    self.status_table.add_ptr_msr(i - stat_sig_i0, uid)
+                self.__msr_ptr.add(uid)
 
     def __sync_hresize(self, l_index: int, old_size: int, new_size: int):
         """

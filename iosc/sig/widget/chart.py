@@ -6,7 +6,7 @@ from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPPainter, QCPItemText, 
 import iosc.const
 from iosc.core import mycomtrade
 from iosc.sig.widget.ctrl import SignalCtrlWidget, AnalogSignalCtrlWidget
-from iosc.sig.widget.ptr import MainPtr, SCPtr, TmpPtr
+from iosc.sig.widget.ptr import MainPtr, SCPtr, TmpPtr, AnalogMsrPtr
 
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
@@ -144,6 +144,9 @@ class SignalChartWidget(QCustomPlot):
         del self._tmp_ptr[uid]
         self.replot()
 
+    def add_ptr_msr(self, uid: int):
+        ...  # stub
+
 
 class StatusSignalChartWidget(SignalChartWidget):
     def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
@@ -246,3 +249,7 @@ class AnalogSignalChartWidget(SignalChartWidget):
             # </dirtyhack>
             self.__pps = pps
             self.replot()
+
+    def add_ptr_msr(self, uid: int):
+        msr_ptr = AnalogMsrPtr(self, self._root, uid)
+        print("AnalogMsrPtr")

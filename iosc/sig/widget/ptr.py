@@ -149,6 +149,7 @@ class SCPtr(Ptr):
 
 
 class _PowerPtr(Ptr):
+    """Pointer with tip and rectangle"""
     class _Tip(QCPItemText):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
@@ -289,3 +290,54 @@ class TmpPtr(_PowerPtr):
             self.signal_ptr_edit_tmp.emit(self._uid)
         elif chosen_action == action_del:
             self.signal_ptr_del_tmp.emit(self._uid)
+
+
+class _MsrPtr(Ptr):
+    class _Tip(QCPItemText):
+        _uid: int
+        _name: str
+
+        def __init__(self, cp: QCustomPlot, uid: int):
+            super().__init__(cp)
+            self._uid = uid
+            self._name = ''
+            self.setFont(QFont('mono', 8))
+            self.setPadding(QMargins(2, 2, 2, 2))
+            self.setTextAlignment(Qt.AlignCenter)
+            self.setColor(Qt.white)  # text
+            self.setBrush(QBrush(Qt.black))  # rect
+            self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
+
+        def move2x(self, x: float):
+            self.position.setCoords(x, 0)  # FIXME: y = top
+            self.setText("%s: %.2f" % (self._name if self._name else f"M{self._uid}", x))
+            self.parentPlot().replot()
+
+    _tip: _Tip
+
+    def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
+        super().__init__(cp, root)
+        self._tip = self._Tip(cp, uid)
+        self.setPen(iosc.const.PEN_PTR_MSR)
+        x0 = self._root.main_ptr_x
+        self.setGraphKey(x0)
+        self._tip.move2x(x0)
+        self.selectionChanged.connect(self._selection_chg)
+
+    def _selection_chg(self, selection: bool):
+        self._switch_cursor(selection)
+        self.parentPlot().replot()  # update selection decoration
+
+    def mouseMoveEvent(self, event: QMouseEvent, _):
+        event.accept()
+        x_ms: float = self._mouse2ms(event)
+        i_old: int = self.i
+        self.setGraphKey(x_ms)
+        self.updatePosition()  # mandatory
+        if i_old != (i_new := self.i):
+            self._tip.move2x(self._root.i2x(i_new))
+
+
+class AnalogMsrPtr(_MsrPtr):
+    def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
+        super().__init__(cp, root, uid)

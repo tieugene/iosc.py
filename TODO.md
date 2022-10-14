@@ -51,7 +51,7 @@ Behavior:
 ## Msr ptrs
 
 - [x] Select (QListWidget)
-- [ ] Add, move
+- [&hellip;] Add, move
 - [ ] Context menu
 - [ ] Del
 - [ ] Edit (value, name)
