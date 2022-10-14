@@ -1,7 +1,7 @@
 """Mainwidget widget lists"""
 # 2. 3rd
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QDropEvent, QGuiApplication
+from PyQt5.QtGui import QDropEvent, QGuiApplication, QBrush
 from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem, QScrollBar
 # 3. local
 import iosc.const
@@ -24,16 +24,22 @@ class OneRowTable(QTableWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.resizeRowsToContents()
-        self.setFixedHeight(self.rowHeight(0) + self.horizontalHeader().height() + iosc.const.XSCALE_H_PAD)
+        self.resizeRowsToContents()  # TODO: set fixed
 
 
 class TimeAxisTable(OneRowTable):
+    widget: TimeAxisWidget
+
     def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
         super().__init__(parent)
+        self.setFixedHeight(self.rowHeight(0) + self.horizontalHeader().height() + iosc.const.XSCALE_H_PAD)
+        self.setVerticalHeaderItem(0, QTableWidgetItem('↘'))
+        self.setHorizontalHeaderItem(0, QTableWidgetItem('↔'))
+        self.setHorizontalHeaderItem(1, QTableWidgetItem('↔'))
         self.setItem(0, 0, QTableWidgetItem("ms"))
         sa = CleanScrollArea(self)
-        sa.setWidget(TimeAxisWidget(osc, parent, sa))
+        self.widget = TimeAxisWidget(osc, parent, sa)
+        sa.setWidget(self.widget)
         self.setCellWidget(0, 1, sa)
         parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
@@ -41,6 +47,8 @@ class TimeAxisTable(OneRowTable):
 class StatusBarTable(OneRowTable):
     def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
         super().__init__(parent)
+        self.setFixedHeight(self.rowHeight(0) + iosc.const.XSCALE_H_PAD)
+        self.setVerticalHeaderItem(0, QTableWidgetItem('↗'))
         self.horizontalHeader().hide()
         self.setItem(0, 0, QTableWidgetItem(osc.raw.cfg.start_timestamp.date().isoformat()))
         sa = CleanScrollArea(self)
@@ -138,6 +146,7 @@ class SignalListTable(QTableWidget):
             sa.setWidget(AnalogSignalChartWidget(signal, sa, self._parent, ctrl))
             self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_A)
+        self.setVerticalHeaderItem(row, QTableWidgetItem('↕'))
         self._parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
     def slot_unhide(self):

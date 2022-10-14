@@ -8,7 +8,7 @@ from QCustomPlot2 import QCustomPlot
 
 import iosc.const
 from iosc.core import mycomtrade, sigfunc
-from iosc.sig.prop import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
+from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
 
 
 class ZoomButton(QPushButton):
@@ -41,9 +41,9 @@ class SignalCtrlWidget(QWidget):
         self.__mk_layout()
         self._set_style()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.slot_update_value(root.main_ptr_i)
         self.customContextMenuRequested.connect(self.__slot_context_menu)
-        self._root.signal_main_ptr_moved.connect(self.slot_update_value)
-        self.slot_update_value()
+        self._root.signal_ptr_moved_main.connect(self.slot_update_value)
 
     def __mk_widgets(self):
         self._f_value = QLabel()
@@ -128,8 +128,8 @@ class StatusSignalCtrlWidget(SignalCtrlWidget):
             self._set_style()
             self.signal_restyled.emit()
 
-    def slot_update_value(self):
-        self._f_value.setText("%d" % self._signal.value[self._root.main_ptr_i])
+    def slot_update_value(self, i: int):
+        self._f_value.setText("%d" % self._signal.value[i])
 
 
 class AnalogSignalCtrlWidget(SignalCtrlWidget):
@@ -147,9 +147,9 @@ class AnalogSignalCtrlWidget(SignalCtrlWidget):
             self._set_style()
             self.signal_restyled.emit()
 
-    def slot_update_value(self):
+    def slot_update_value(self, i: int):
         func = sigfunc.func_list[self._root.viewas]
-        v = func(self._signal.value, self._root.main_ptr_i, self._root.tpp)
+        v = func(self._signal.value, i, self._root.tpp)
         if isinstance(v, complex):  # hrm1
             y = abs(v)
         else:

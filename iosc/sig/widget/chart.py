@@ -6,7 +6,7 @@ from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPPainter, QCPItemText, 
 import iosc.const
 from iosc.core import mycomtrade
 from iosc.sig.widget.ctrl import SignalCtrlWidget, AnalogSignalCtrlWidget
-from iosc.sig.widget.ptr import MainPtr, SCPtr
+from iosc.sig.widget.ptr import MainPtr, SCPtr, TmpPtr
 
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
@@ -49,6 +49,7 @@ class SignalChartWidget(QCustomPlot):
     _signal: mycomtrade.Signal
     _main_ptr: MainPtr
     _sc_ptr: SCPtr
+    _tmp_ptr: dict[int, TmpPtr]
     _ptr_selected: bool
 
     def __init__(self, signal: mycomtrade.Signal, parent: QScrollArea, root: QWidget,
@@ -61,6 +62,7 @@ class SignalChartWidget(QCustomPlot):
         self.addGraph()
         self._main_ptr = MainPtr(self, self._root)  # after graph()
         self._sc_ptr = SCPtr(self, self._root)
+        self._tmp_ptr = dict()
         self._ptr_selected = False
         self._set_data()
         self.__squeeze()
@@ -73,6 +75,8 @@ class SignalChartWidget(QCustomPlot):
         # self.setFixedWidth(1000)
         self._sibling.signal_restyled.connect(self.__slot_signal_restyled)
         self._root.signal_xscale.connect(self._slot_chg_width)
+        self._root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
+        self._root.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
 
     def _set_data(self):
         z_time = self._signal.raw.trigger_time
@@ -98,9 +102,9 @@ class SignalChartWidget(QCustomPlot):
 
     def __decorate(self):
         # self.yAxis.grid().setPen(QPen(QColor(255, 255, 255, 0)))
-        self.yAxis.setBasePen(iosc.const.NO_PEN)  # hack
-        self.yAxis.grid().setZeroLinePen(iosc.const.ZERO_PEN)
-        self.xAxis.grid().setZeroLinePen(iosc.const.ZERO_PEN)
+        self.yAxis.setBasePen(iosc.const.PEN_NONE)  # hack
+        self.yAxis.grid().setZeroLinePen(iosc.const.PEN_ZERO)
+        self.xAxis.grid().setZeroLinePen(iosc.const.PEN_ZERO)
 
     def _set_style(self):
         ...  # stub
@@ -117,7 +121,7 @@ class SignalChartWidget(QCustomPlot):
         super().mousePressEvent(event)  # always .isAcepted() after this
         if event.button() == Qt.LeftButton and not self._ptr_selected:  # check selectable
             i_new = self._root.x2i(self.xAxis.pixelToCoord(event.x()))
-            self._root.slot_main_ptr_moved_i(i_new)  # move MainPtr here
+            self._root.slot_ptr_moved_main(i_new)  # move MainPtr here
             super().mousePressEvent(event)  # and select it
 
     def __slot_signal_restyled(self):
@@ -130,6 +134,16 @@ class SignalChartWidget(QCustomPlot):
         self.xAxis.ticker().setTickCount(iosc.const.TICK_COUNT * self._root.xzoom)  # QCPAxisTicker; TODO: 200ms default
         # self.replot()
 
+    def _slot_ptr_add_tmp(self, ptr_id: int):
+        """Add new TmpPtr"""
+        self._tmp_ptr[ptr_id] = TmpPtr(self, self._root, ptr_id)
+
+    def _slot_ptr_del_tmp(self, uid: int):
+        """Del TmpPtr"""
+        self.removeItem(self._tmp_ptr[uid])
+        del self._tmp_ptr[uid]
+        self.replot()
+
 
 class StatusSignalChartWidget(SignalChartWidget):
     def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
@@ -138,7 +152,7 @@ class StatusSignalChartWidget(SignalChartWidget):
         self.yAxis.setRange(iosc.const.SIG_D_YMIN, iosc.const.SIG_D_YMAX)
 
     def _set_style(self):
-        brush = QBrush(iosc.const.D_BRUSH)
+        brush = QBrush(iosc.const.BRUSH_D)
         brush.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setBrush(brush)
 
