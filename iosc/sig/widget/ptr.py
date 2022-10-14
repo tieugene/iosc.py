@@ -303,8 +303,9 @@ class _MsrPtr(Ptr):
             self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
             self.setBrush(QBrush(Qt.black))  # rect
 
-    _uid: int
-    _name: str
+    _i: int  # current signal array index
+    _uid: int  # uniq id of xMsrPtr
+    _name: str  # title
     _tip: _Tip
 
     def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
@@ -314,20 +315,20 @@ class _MsrPtr(Ptr):
         self._tip = self._Tip(cp)
         self.setPen(iosc.const.PEN_PTR_MSR)
         self.setGraphKey(self._root.main_ptr_x)
-        self._move_tip(self._root.main_ptr_i)
+        self.updatePosition()
+        self._move_tip()
         self.selectionChanged.connect(self.__selection_chg)
 
     def __selection_chg(self, selection: bool):
         self._switch_cursor(selection)
         self.parentPlot().replot()  # update selection decoration
 
-    def _text(self, x: float) -> str:
+    def _update_text(self):
         ...  # stub
 
-    def _move_tip(self, i: int):
-        x = self._root.i2x(i)
-        self._tip.setText(self._text(x))
-        self._tip.position.setCoords(x, 0)  # FIXME: y = top
+    def _move_tip(self):
+        self._tip.position.setCoords(self.x, 0)  # FIXME: y = top
+        self._update_text()
         self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, _):
@@ -336,21 +337,30 @@ class _MsrPtr(Ptr):
         i_old: int = self.i
         self.setGraphKey(x_ms)
         self.updatePosition()  # mandatory
-        if i_old != (i_new := self.i):
-            self._move_tip(i_new)
+        if i_old != self.i:
+            self._move_tip()
 
 
 class AnalogMsrPtr(_MsrPtr):
+    _func_i: int  # value mode (function) number (in sigfunc.func_list[])
+    FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
+
     def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
+        self._func_i = root.viewas
         super().__init__(cp, root, uid)
 
-    def _text(self, x: float) -> str:
-        return "%s: %.2f" % (self._name if self._name else f"M{self._uid}", self.position.value())
+    def _update_text(self):
+        s = self._name if self._name else f"M{self._uid}"
+        v = self.position.value()
+        m = self.FUNC_ABBR[self._func_i]
+        self._tip.setText("%s: %.2f (%s)" % (s, v, m))
 
 
 class StatusMsrPtr(_MsrPtr):
     def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
         super().__init__(cp, root, uid)
 
-    def _text(self, x: float) -> str:
-        return "%s: %d" % (self._name if self._name else f"M{self._uid}", int(self.position.value()))
+    def _update_text(self):
+        s = self._name if self._name else f"M{self._uid}"
+        v = int(self.position.value())
+        self._tip.setText("%s: %d" % (s, v))

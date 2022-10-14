@@ -148,6 +148,10 @@ class AnalogSignalCtrlWidget(SignalCtrlWidget):
             self.signal_restyled.emit()
 
     def slot_update_value(self, i: int):
+        """
+        Update ctrl widget value depending on pri/sec and value type
+        :param i: value index in data array
+        """
         func = sigfunc.func_list[self._root.viewas]
         v = func(self._signal.value, i, self._root.tpp)
         if isinstance(v, complex):  # hrm1

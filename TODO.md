@@ -51,7 +51,10 @@ Behavior:
 ## Msr ptrs
 
 - [x] Select (QListWidget)
-- [&hellip;] Add, move
+- [&hellip;] Add, move:
+  + [&hellip;] Analog: depends on pors, func  
+     RTFM AnalogSignalCtrlWidget.slot_update_value(int)
 - [ ] Context menu
 - [ ] Del
 - [ ] Edit (value, name)
+- [ ] AnalogMsrPtr: refresh on pri/sec
