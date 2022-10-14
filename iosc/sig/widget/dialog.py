@@ -127,7 +127,6 @@ class TmpPtrDialog(QDialog):
     def __init__(self, data: tuple[float, float, float, float, str], parent=None):
         super().__init__(parent)
         # 1. store args
-        print(data)
         # 2. set widgets
         self.f_val = QDoubleSpinBox(self)
         self.f_val.setRange(data[1], data[2])

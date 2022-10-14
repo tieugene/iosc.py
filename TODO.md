@@ -46,4 +46,4 @@ Behavior:
   - [x] Bottom
 - [x] Context menu
 - [x] Del
-- [ ] Edit (value, name)
+- [x] Edit (value, name)

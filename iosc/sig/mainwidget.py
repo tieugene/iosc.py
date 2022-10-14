@@ -118,6 +118,10 @@ class ComtradeWidget(QWidget):
         return self.__tpp
 
     @property
+    def i_max(self) -> int:
+        return len(self.__osc.raw.time) - 1
+
+    @property
     def main_ptr_i(self) -> int:
         return self.__main_ptr_i
 
@@ -526,9 +530,10 @@ class ComtradeWidget(QWidget):
     def slot_ptr_edit_tmp(self, uid: int):
         v = self.i2x(self.__tmp_ptr_i[uid])
         v_min = self.i2x(0)
-        v_max = 1000 * (self.__osc.raw.time[-1] - self.__osc.raw.trigger_time)
+        v_max = self.i2x(self.i_max)
         v_step = 1000 / self.__osc.raw.cfg.sample_rates[0][0]
-        form = TmpPtrDialog((v, v_min, v_max, v_step, ''))
+        name = self.timeaxis_table.widget.get_tmp_ptr_name(uid)
+        form = TmpPtrDialog((v, v_min, v_max, v_step, name))
         if form.exec_():
-            # print("OK:", form.f_val.value(), form.f_name.text())
+            self.timeaxis_table.widget.set_tmp_ptr_name(uid, form.f_name.text())
             self.signal_ptr_moved_tmp.emit(uid, self.x2i(form.f_val.value()))

@@ -28,6 +28,8 @@ class OneRowTable(QTableWidget):
 
 
 class TimeAxisTable(OneRowTable):
+    widget: TimeAxisWidget
+
     def __init__(self, osc: mycomtrade.MyComtrade, parent: QWidget):
         super().__init__(parent)
         self.setFixedHeight(self.rowHeight(0) + self.horizontalHeader().height() + iosc.const.XSCALE_H_PAD)
@@ -36,7 +38,8 @@ class TimeAxisTable(OneRowTable):
         self.setHorizontalHeaderItem(1, QTableWidgetItem('↔'))
         self.setItem(0, 0, QTableWidgetItem("ms"))
         sa = CleanScrollArea(self)
-        sa.setWidget(TimeAxisWidget(osc, parent, sa))
+        self.widget = TimeAxisWidget(osc, parent, sa)
+        sa.setWidget(self.widget)
         self.setCellWidget(0, 1, sa)
         parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
