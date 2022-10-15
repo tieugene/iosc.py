@@ -84,8 +84,9 @@ class ComtradeWidget(QWidget):
     statusbar_table: StatusBarTable
     hsb: HScroller  # bottom horizontal scroll bar
     # signals
-    signal_recalc_achannels = pyqtSignal()  # recalc ASignalCtrlView on ...
-    signal_shift_achannels = pyqtSignal()  # refresh ASignal*View on switching original/shifted
+    signal_chged_pors = pyqtSignal()  # recalc ASignalCtrlView on ...
+    signal_chged_shift = pyqtSignal()  # refresh ASignal*View on switching original/shifted
+    signal_chged_func = pyqtSignal()  # refresh ASignal*View on switching function
     signal_xscale = pyqtSignal(int, int)  # set signal chart widths
     signal_ptr_moved_main = pyqtSignal(int)  # refresh Signal(Ctrl/Chart)View on MainPtr moved
     signal_ptr_moved_sc = pyqtSignal(int)  # refresh SignalChartWidget on OMP SC Ptr moved
@@ -504,16 +505,16 @@ class ComtradeWidget(QWidget):
 
     def __do_shift(self, _: QAction):
         self.__osc.shifted = self.action_shift_yes.isChecked()
-        self.signal_shift_achannels.emit()
+        self.signal_chged_shift.emit()
 
     def __do_pors(self, _: QAction):
         self.show_sec = self.action_pors_sec.isChecked()
-        self.signal_recalc_achannels.emit()
+        self.signal_chged_pors.emit()
 
     def __do_viewas(self, a: QAction):
         self.viewas = a.data()
         self.viewas_toolbutton.setDefaultAction(a)
-        self.signal_recalc_achannels.emit()
+        self.signal_chged_func.emit()
 
     def __do_ptr_add_tmp(self):
         uid = max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1  # generate new uid

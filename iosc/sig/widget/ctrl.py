@@ -133,8 +133,9 @@ class StatusSignalCtrlWidget(SignalCtrlWidget):
 class AnalogSignalCtrlWidget(SignalCtrlWidget):
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QTableWidget, root: QWidget):
         super().__init__(signal, parent, root)
-        self._root.signal_recalc_achannels.connect(self.slot_update_value)
-        self._root.signal_shift_achannels.connect(self.slot_update_value)
+        self._root.signal_chged_shift.connect(self.slot_update_value)
+        self._root.signal_chged_pors.connect(self.slot_update_value)
+        self._root.signal_chged_func.connect(self.slot_update_value)
         self._b_zoom_in.clicked.connect(self.slot_vzoom_in)
         self._b_zoom_0.clicked.connect(self.slot_vzoom_0)
         self._b_zoom_out.clicked.connect(self.slot_vzoom_out)

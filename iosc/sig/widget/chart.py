@@ -190,7 +190,7 @@ class AnalogSignalChartWidget(SignalChartWidget):
         self.__vzoom = 1
         self.__pps = 0
         self.__rerange()
-        self._root.signal_shift_achannels.connect(self.__slot_shift)
+        self._root.signal_chged_shift.connect(self.__slot_shift)
         # self.__myscatter = NumScatterStyle()
 
     def _set_style(self):
