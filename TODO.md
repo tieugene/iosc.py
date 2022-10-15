@@ -57,3 +57,4 @@ Behavior:
 - [x] Del
 - [ ] Edit (value, name)
 - [ ] AnalogMsrPtr: refresh on pors/shift/func change
+- [ ] Color

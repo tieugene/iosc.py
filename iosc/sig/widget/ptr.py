@@ -7,7 +7,7 @@ from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPIte
 # 4. local
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.sig.widget.dialog import get_new_omp_width, TmpPtrDialog
+from iosc.sig.widget.dialog import get_new_omp_width, TmpPtrDialog, MsrPtrDialog
 
 
 class VLine(QCPItemStraightLine):
@@ -363,6 +363,23 @@ class MsrPtr(Ptr):
         ...  # stub
 
 
+class StatusMsrPtr(MsrPtr):
+    def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
+        super().__init__(cp, root, uid)
+
+    def _update_text(self):
+        self._tip.setText("M%d: %d" % (self._uid, int(self.position.value())))
+
+    def _edit_self(self):
+        v = self.x
+        v_min = self._root.i2x(0)
+        v_max = self._root.i2x(self._root.i_max)
+        v_step = 1  # TODO: calc
+        form = MsrPtrDialog((v, v_min, v_max, v_step))
+        if form.exec_():
+            ...
+
+
 class AnalogMsrPtr(MsrPtr):
     _signal: mycomtrade.AnalogSignal
     _func_i: int  # value mode (function) number (in sigfunc.func_list[])
@@ -379,10 +396,5 @@ class AnalogMsrPtr(MsrPtr):
         m = self.FUNC_ABBR[self._func_i]
         self._tip.setText("M%d: %s (%s)" % (self._uid, v, m))
 
-
-class StatusMsrPtr(MsrPtr):
-    def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
-        super().__init__(cp, root, uid)
-
-    def _update_text(self):
-        self._tip.setText("M%d: %d" % (self._uid, int(self.position.value())))
+    def _edit_self(self):
+        ...  # stub
