@@ -295,7 +295,6 @@ class TmpPtr(_PowerPtr):
 
 
 class MsrPtr(Ptr):
-    signal_ptr_del_msr = pyqtSignal(int)
 
     class _Tip(QCPItemText):
         def __init__(self, cp: QCustomPlot):
@@ -307,15 +306,20 @@ class MsrPtr(Ptr):
             self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
             self.setBrush(QBrush(Qt.black))  # rect
 
-    _i: int  # current signal array index
+    FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
     _uid: int  # uniq id of xMsrPtr
+    _signal: mycomtrade.AnalogSignal
+    _func_i: int  # value mode (function) number (in sigfunc.func_list[])
     _tip: _Tip
+    signal_ptr_del_msr = pyqtSignal(int)
 
-    def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
+    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int):
         super().__init__(cp, root)
         self._uid = uid
+        self._signal = signal
+        self._func_i = root.viewas
         self._tip = self._Tip(cp)
-        self.setPen(iosc.const.PEN_PTR_MSR)
+        self.setPen(iosc.const.PEN_PTR_MSR)  # FIXME:
         self.setGraphKey(self._root.main_ptr_x)
         self.updatePosition()
         self._move_tip()
@@ -327,7 +331,9 @@ class MsrPtr(Ptr):
         self.parentPlot().replot()  # update selection decoration
 
     def _update_text(self):
-        ...  # stub
+        v = self._root.sig2str(self._signal, self.i, self._func_i)  # was self.position.value()
+        m = self.FUNC_ABBR[self._func_i]
+        self._tip.setText("M%d: %s (%s)" % (self._uid, v, m))
 
     def _move_tip(self):
         self._tip.position.setCoords(self.x, 0)  # FIXME: y = top
@@ -360,17 +366,6 @@ class MsrPtr(Ptr):
         self.parentPlot().slot_ptr_del_msr(self)  # dirty hack
 
     def _edit_self(self):
-        ...  # stub
-
-
-class StatusMsrPtr(MsrPtr):
-    def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
-        super().__init__(cp, root, uid)
-
-    def _update_text(self):
-        self._tip.setText("M%d: %d" % (self._uid, int(self.position.value())))
-
-    def _edit_self(self):
         v = self.x
         v_min = self._root.i2x(0)
         v_max = self._root.i2x(self._root.i_max)
@@ -378,23 +373,3 @@ class StatusMsrPtr(MsrPtr):
         form = MsrPtrDialog((v, v_min, v_max, v_step))
         if form.exec_():
             ...
-
-
-class AnalogMsrPtr(MsrPtr):
-    _signal: mycomtrade.AnalogSignal
-    _func_i: int  # value mode (function) number (in sigfunc.func_list[])
-    FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
-
-    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int):
-        self._func_i = root.viewas
-        self._signal = signal
-        super().__init__(cp, root, uid)
-        # TODO: update on pors/shift/func change
-
-    def _update_text(self):
-        v = self._root.sig2str(self._signal, self.i, self._func_i)  # was self.position.value()
-        m = self.FUNC_ABBR[self._func_i]
-        self._tip.setText("M%d: %s (%s)" % (self._uid, v, m))
-
-    def _edit_self(self):
-        ...  # stub

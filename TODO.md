@@ -51,10 +51,9 @@ Behavior:
 ## Msr ptrs
 
 - [x] Select (QListWidget)
-- [x] Add, move:
-  + [x] Analog: depends on pors/shift/func
+- [x] Add, move (depends on pors/shift/func)
 - [x] Context menu
 - [x] Del
-- [ ] Edit (value, name)
-- [ ] AnalogMsrPtr: refresh on pors/shift/func change
+- [ ] Edit (value, func)
+- [ ] Refresh on pors/shift/func change
 - [ ] Color

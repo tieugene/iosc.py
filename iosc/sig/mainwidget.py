@@ -509,15 +509,10 @@ class ComtradeWidget(QWidget):
         self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and move
 
     def __do_ptr_add_msr(self):
-        if sig_selected := SelectSignalsDialog(self.__osc.analog, self.__osc.status).execute():
-            # split by analog and status
-            stat_sig_i0 = len(self.__osc.analog)  # idx what state signals starts from
-            for i in sig_selected:  # TODO: signals can be mixed and/or reordered
+        if sig_selected := SelectSignalsDialog(self.__osc.analog).execute():
+            for i in sig_selected:
                 uid = max(self.__msr_ptr) + 1 if self.__msr_ptr else 1
-                if i < stat_sig_i0:
-                    self.analog_table.add_ptr_msr(i, uid)
-                else:
-                    self.status_table.add_ptr_msr(i - stat_sig_i0, uid)
+                self.analog_table.add_ptr_msr(i, uid)  # FIXME: signals can be mixed and/or reordered
                 self.__msr_ptr.add(uid)
 
     def __sync_hresize(self, l_index: int, old_size: int, new_size: int):

@@ -157,7 +157,7 @@ class SelectSignalsDialog(QDialog):
     buttons_select: QDialogButtonBox
     button_box: QDialogButtonBox
 
-    def __init__(self, a_list: AnalogSignalList, s_list: StatusSignalList, parent=None):
+    def __init__(self, a_list: AnalogSignalList, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Select signals")
         # 1. set widgets
@@ -169,13 +169,12 @@ class SelectSignalsDialog(QDialog):
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.f_signals = QListWidget()
         self.f_signals.setSelectionMode(self.f_signals.MultiSelection)
-        for _list in (a_list, s_list):
-            for sig in _list:
-                item = QListWidgetItem(sig.sid)
-                item.setFlags(item.flags() & (~Qt.ItemIsUserCheckable))
-                item.setCheckState(Qt.Unchecked)
-                item.setForeground(QColor(*sig.rgb))
-                self.f_signals.addItem(item)
+        for sig in a_list:
+            item = QListWidgetItem(sig.sid)
+            item.setFlags(item.flags() & (~Qt.ItemIsUserCheckable))
+            item.setCheckState(Qt.Unchecked)
+            item.setForeground(QColor(*sig.rgb))
+            self.f_signals.addItem(item)
         # 3. set layout
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(self.buttons_select)
@@ -220,6 +219,7 @@ class SelectSignalsDialog(QDialog):
 
 class MsrPtrDialog(QDialog):
     f_val: QDoubleSpinBox
+    f_func: QComboBox
     button_box: QDialogButtonBox
 
     def __init__(self, data: tuple[float, float, float, float], parent=None):
@@ -231,10 +231,12 @@ class MsrPtrDialog(QDialog):
         self.f_val.setRange(data[1], data[2])
         self.f_val.setSingleStep(data[3])
         self.f_val.setDecimals(3)
+        self.f_func = QComboBox()
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         # 3. set layout
         layout = QFormLayout(self)
         layout.addRow("Value", self.f_val)
+        layout.addRow("Func", self.f_func)
         layout.addRow(self.button_box)
         layout.setVerticalSpacing(0)
         self.setLayout(layout)
@@ -243,12 +245,3 @@ class MsrPtrDialog(QDialog):
         self.button_box.rejected.connect(self.reject)
         # 5. go
         self.setWindowTitle("Msr ptr properties")
-
-
-class AnalogMsrPtrDialog(MsrPtrDialog):
-    f_func: QComboBox
-
-    def __init__(self, data: tuple[float, float, float, float, str], parent=None):
-        super().__init__(data, parent)
-        self.f_func = QComboBox()
-        self.layout().insertRow(1, "Func", self.f_func)
