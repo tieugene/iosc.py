@@ -293,7 +293,9 @@ class TmpPtr(_PowerPtr):
             self.signal_ptr_del_tmp.emit(self._uid)
 
 
-class _MsrPtr(Ptr):
+class MsrPtr(Ptr):
+    signal_ptr_del_msr = pyqtSignal(int)
+
     class _Tip(QCPItemText):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
@@ -317,6 +319,7 @@ class _MsrPtr(Ptr):
         self.updatePosition()
         self._move_tip()
         self.selectionChanged.connect(self.__selection_chg)
+        self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
     def __selection_chg(self, selection: bool):
         self._switch_cursor(selection)
@@ -339,8 +342,27 @@ class _MsrPtr(Ptr):
         if i_old != self.i:
             self._move_tip()
 
+    def __slot_context_menu(self, pos: QPointF):
+        context_menu = QMenu()
+        action_edit = context_menu.addAction("Edit...")
+        action_del = context_menu.addAction("Delete")
+        point = self.parentPlot().mapToGlobal(pos.toPoint())
+        chosen_action = context_menu.exec_(point)
+        if chosen_action == action_edit:
+            self._edit_self()
+        elif chosen_action == action_del:
+            self._del_self()
 
-class AnalogMsrPtr(_MsrPtr):
+    def _del_self(self):
+        self._root.slot_ptr_del_msr(self._uid)
+        self.parentPlot().removeItem(self._tip)
+        self.parentPlot().slot_ptr_del_msr(self)  # dirty hack
+
+    def _edit_self(self):
+        ...  # stub
+
+
+class AnalogMsrPtr(MsrPtr):
     _signal: mycomtrade.AnalogSignal
     _func_i: int  # value mode (function) number (in sigfunc.func_list[])
     FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
@@ -357,7 +379,7 @@ class AnalogMsrPtr(_MsrPtr):
         self._tip.setText("M%d: %s (%s)" % (self._uid, v, m))
 
 
-class StatusMsrPtr(_MsrPtr):
+class StatusMsrPtr(MsrPtr):
     def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
         super().__init__(cp, root, uid)
 

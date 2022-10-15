@@ -587,3 +587,6 @@ class ComtradeWidget(QWidget):
         if form.exec_():
             self.timeaxis_table.widget.set_tmp_ptr_name(uid, form.f_name.text())
             self.signal_ptr_moved_tmp.emit(uid, self.x2i(form.f_val.value()))
+
+    def slot_ptr_del_msr(self, uid: int):
+        self.__msr_ptr.remove(uid)

@@ -53,7 +53,7 @@ Behavior:
 - [x] Select (QListWidget)
 - [x] Add, move:
   + [x] Analog: depends on pors/shift/func
-- [ ] Context menu
-- [ ] Del
+- [x] Context menu
+- [x] Del
 - [ ] Edit (value, name)
 - [ ] AnalogMsrPtr: refresh on pors/shift/func change
