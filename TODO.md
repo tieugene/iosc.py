@@ -60,9 +60,8 @@ Behavior:
 
 ## Lvl ptrs
 - [x] Select
-- [ ] Add, move (depends on pors/shift/func)
+- [x] Add
 - [ ] Context menu
 - [ ] Del
 - [ ] Edit (value, func)
-- [ ] Refresh on pors/shift change
-- [ ] Color (+refresh)
+- [ ] Refresh on pors/shift/color change

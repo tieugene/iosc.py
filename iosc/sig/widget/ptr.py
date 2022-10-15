@@ -149,17 +149,22 @@ class SCPtr(Ptr):
             self._root.omp_width = new_omp_width
 
 
+class _TipBase(QCPItemText):
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+        self.setFont(QFont('mono', 8))
+        self.setPadding(QMargins(2, 2, 2, 2))
+        self.setTextAlignment(Qt.AlignCenter)
+
+
 class _PowerPtr(Ptr):
     """Pointer with tip and rectangle"""
-    class _Tip(QCPItemText):
+    class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
             self.setColor(Qt.black)  # text
             self.setPen(Qt.red)
             self.setBrush(QBrush(QColor(255, 170, 0)))  # rect
-            self.setTextAlignment(Qt.AlignCenter)
-            self.setFont(QFont('mono', 8))
-            self.setPadding(QMargins(2, 2, 2, 2))
 
         def move2x(self, x: float, x_old: float):
             dx = x - x_old
@@ -296,17 +301,14 @@ class TmpPtr(_PowerPtr):
 
 class MsrPtr(Ptr):
 
-    class _Tip(QCPItemText):
+    class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
-            self.setFont(QFont('mono', 8))
-            self.setPadding(QMargins(2, 2, 2, 2))
-            self.setTextAlignment(Qt.AlignCenter)
             self.setColor(Qt.white)  # text
             self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
 
     FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
-    __uid: int  # uniq id of xMsrPtr
+    __uid: int  # uniq id
     __signal: mycomtrade.AnalogSignal
     __func_i: int  # value mode (function) number (in sigfunc.func_list[])
     __tip: _Tip
@@ -386,8 +388,47 @@ class MsrPtr(Ptr):
             self.__move_tip()
 
 
-class LvlPtr:
+class LvlPtr(QCPItemStraightLine):
+
+    class _Tip(_TipBase):
+        def __init__(self, cp: QCustomPlot):
+            super().__init__(cp)
+            self.setColor(Qt.white)  # text
+    __root: QWidget
+    __signal: mycomtrade.AnalogSignal
+    __uid: int  # uniq id
+    __tip: _Tip
+
     def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int):
-        ...
-        # super().__init__(cp, root)
-        print("Lvl ptr created")
+        super().__init__(cp)
+        self.setPen(iosc.const.PEN_PTR_OMP)
+        self.__root = root
+        self.__signal = signal
+        self.__uid = uid
+        self.__tip = self._Tip(cp)
+        self.__set_color()
+        self.move(max(self.__signal.value))
+
+    @property
+    def y(self):
+        return self.point1.coords().y()
+
+    def __set_color(self):
+        pen = QPen(iosc.const.PENSTYLE_PTR_LVL)
+        color = QColor.fromRgb(*self.__signal.rgb)
+        pen.setColor(color)
+        self.setPen(pen)
+        self.__tip.setBrush(QBrush(color))  # rect
+
+    def move(self, y: float):
+        """
+        :param y:
+        :note: for  QCPItemLine: s/point1/start/, s/point2/end/
+        """
+        self.point1.setCoords(self.__root.x_min, y)
+        self.point2.setCoords(self.__root.x_max, y)
+        self.__tip.position.setCoords(0, self.y)  # FIXME: x = ?
+        y_mid = (min(self.__signal.value) + max(self.__signal.value)) / 2
+        self.__tip.setPositionAlignment(Qt.AlignLeft | (Qt.AlignTop if self.y > y_mid else Qt.AlignBottom))
+        self.__tip.setText("L%d: %.2f" % (self.__uid, self.y))
+        self.parentPlot().replot()
