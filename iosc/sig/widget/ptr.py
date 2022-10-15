@@ -7,7 +7,7 @@ from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPIte
 # 4. local
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.sig.widget.dialog import get_new_omp_width, TmpPtrDialog, MsrPtrDialog
+from iosc.sig.widget.dialog import get_new_omp_width, MsrPtrDialog, LvlPtrDialog
 
 
 class VLine(QCPItemStraightLine):
@@ -149,17 +149,22 @@ class SCPtr(Ptr):
             self._root.omp_width = new_omp_width
 
 
+class _TipBase(QCPItemText):
+    def __init__(self, cp: QCustomPlot):
+        super().__init__(cp)
+        self.setFont(QFont('mono', 8))
+        self.setPadding(QMargins(2, 2, 2, 2))
+        self.setTextAlignment(Qt.AlignCenter)
+
+
 class _PowerPtr(Ptr):
     """Pointer with tip and rectangle"""
-    class _Tip(QCPItemText):
+    class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
             self.setColor(Qt.black)  # text
             self.setPen(Qt.red)
             self.setBrush(QBrush(QColor(255, 170, 0)))  # rect
-            self.setTextAlignment(Qt.AlignCenter)
-            self.setFont(QFont('mono', 8))
-            self.setPadding(QMargins(2, 2, 2, 2))
 
         def move2x(self, x: float, x_old: float):
             dx = x - x_old
@@ -296,17 +301,14 @@ class TmpPtr(_PowerPtr):
 
 class MsrPtr(Ptr):
 
-    class _Tip(QCPItemText):
+    class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
-            self.setFont(QFont('mono', 8))
-            self.setPadding(QMargins(2, 2, 2, 2))
-            self.setTextAlignment(Qt.AlignCenter)
             self.setColor(Qt.white)  # text
             self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
 
     FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
-    __uid: int  # uniq id of xMsrPtr
+    __uid: int  # uniq id
     __signal: mycomtrade.AnalogSignal
     __func_i: int  # value mode (function) number (in sigfunc.func_list[])
     __tip: _Tip
@@ -343,7 +345,7 @@ class MsrPtr(Ptr):
         self.parentPlot().replot()  # update selection decoration
 
     def __slot_update_text(self):
-        v = self._root.sig2str(self.__signal, self.i, self.__func_i)  # was self.position.value()
+        v = self._root.sig2str_i(self.__signal, self.i, self.__func_i)  # was self.position.value()
         m = self.FUNC_ABBR[self.__func_i]
         self.__tip.setText("M%d: %s (%s)" % (self.__uid, v, m))
         self.parentPlot().replot()
@@ -384,3 +386,111 @@ class MsrPtr(Ptr):
             self.updatePosition()
             self.__func_i = form.f_func.currentIndex()
             self.__move_tip()
+
+
+class LvlPtr(QCPItemStraightLine):
+
+    class _Tip(_TipBase):
+        def __init__(self, cp: QCustomPlot):
+            super().__init__(cp)
+            self.setColor(Qt.white)  # text
+    __root: QWidget
+    __signal: mycomtrade.AnalogSignal
+    __uid: int  # uniq id
+    __tip: _Tip
+    signal_rmb_clicked = pyqtSignal(QPointF)
+
+    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int):
+        super().__init__(cp)
+        self.setPen(iosc.const.PEN_PTR_OMP)
+        self.__root = root
+        self.__signal = signal
+        self.__uid = uid
+        self.__tip = self._Tip(cp)
+        self.__set_color()
+        self.__move(max(self.__signal.value))
+        self.signal_rmb_clicked.connect(self.__slot_context_menu)
+        # self.__root.signal_chged_shift.connect(self.__slot_update_text)  # behavior undefined
+        self.__root.signal_chged_pors.connect(self.__slot_update_text)
+
+    @property
+    def y(self) -> float:
+        return self.point1.coords().y()
+
+    @property
+    def __y_min(self) -> float:
+        return min(self.__signal.value)
+
+    @property
+    def __y_max(self) -> float:
+        return max(self.__signal.value)
+
+    def __set_color(self):
+        pen = QPen(iosc.const.PENSTYLE_PTR_LVL)
+        color = QColor.fromRgb(*self.__signal.rgb)
+        pen.setColor(color)
+        self.setPen(pen)
+        self.__tip.setBrush(QBrush(color))  # rect
+
+    def __y_pors(self, y: float) -> float:
+        """
+        Reduce value accordinc go global pors mode
+        :param y: Value to redice
+        :return: porsed y
+        """
+        return y * self.__signal.get_mult(self.__root.show_sec)
+
+    def __move(self, y: float):
+        """
+        :param y:
+        :note: for  QCPItemLine: s/point1/start/, s/point2/end/
+        """
+        self.point1.setCoords(self.__root.x_min, y)
+        self.point2.setCoords(self.__root.x_max, y)
+        self.__tip.position.setCoords(0, self.y)  # FIXME: x = ?
+        y_mid = (self.__y_min + self.__y_max) / 2
+        self.__tip.setPositionAlignment(Qt.AlignLeft | (Qt.AlignTop if self.y > y_mid else Qt.AlignBottom))
+        self.__slot_update_text()
+
+    def __slot_update_text(self):
+        self.__tip.setText("L%d: %s" % (self.__uid, self.__root.sig2str(self.__signal, self.y)))
+        self.parentPlot().replot()  # TODO: don't to this on total repaint
+
+    def mousePressEvent(self, event: QMouseEvent, _):  # rmb click start
+        if event.button() == Qt.RightButton:
+            event.accept()
+        else:
+            event.ignore()
+
+    def mouseReleaseEvent(self, event: QMouseEvent, _):  # rmb click end
+        if event.button() == Qt.RightButton:
+            self.signal_rmb_clicked.emit(event.pos())
+        else:
+            event.ignore()
+
+    def __slot_context_menu(self, pos: QPointF):
+        context_menu = QMenu()
+        action_edit = context_menu.addAction("Edit...")
+        action_del = context_menu.addAction("Delete")
+        point = self.parentPlot().mapToGlobal(pos.toPoint())
+        chosen_action = context_menu.exec_(point)
+        if chosen_action == action_edit:
+            self.__edit_self()
+        elif chosen_action == action_del:
+            self.__del_self()
+
+    def __del_self(self):
+        self.__root.slot_ptr_del_lvl(self.__uid)
+        self.parentPlot().removeItem(self.__tip)
+        self.parentPlot().slot_ptr_del_lvl(self)  # dirty hack
+
+    def __edit_self(self):
+        # pors all values
+        form = LvlPtrDialog((self.__y_pors(self.y), self.__y_pors(self.__y_min), self.__y_pors(self.__y_max)))
+        if form.exec_():
+            # unpors back
+            self.__move(form.f_val.value() / self.__signal.get_mult(self.__root.show_sec))
+
+    def slot_set_color(self):
+        self.__set_color()
+        self.parentPlot().replot()

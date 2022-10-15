@@ -42,7 +42,8 @@ class ComtradeWidget(QWidget):
     __main_ptr_i: int  # current Main Ptr index in source arrays
     __sc_ptr_i: int  # current OMP SC Ptr index in source arrays
     __tmp_ptr_i: dict[int, int]  # current Tmp Ptr indexes in source arrays: ptr_uid => idx
-    __msr_ptr: set[int]  # xMsrPtr uids
+    __msr_ptr: set[int]  # MsrPtr uids
+    __lvl_ptr: set[int]  # LvlPtr uids
     __omp_width: int  # distance from OMP PR and SC pointers, periods
     __shifted: bool  # original/shifted selector
     __chart_width: Optional[int]  # width (px) of nested QCP charts
@@ -74,6 +75,7 @@ class ComtradeWidget(QWidget):
     action_viewas_hrm5: QAction
     action_ptr_add_tmp: QAction
     action_ptr_add_msr: QAction
+    action_ptr_add_lvl: QAction
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
@@ -101,6 +103,7 @@ class ComtradeWidget(QWidget):
         self.__main_ptr_i = self.x2i(0.0)  # default: Z
         self.__tmp_ptr_i = dict()
         self.__msr_ptr = set()
+        self.__lvl_ptr = set()
         self.__omp_width = 3
         self.__shifted = False
         self.__chart_width = None  # wait for line_up
@@ -186,7 +189,22 @@ class ComtradeWidget(QWidget):
         """Recalc index in signal array int graph x-position (ms)"""
         return 1000 * (self.__osc.raw.time[i] - self.__osc.raw.trigger_time)
 
-    def sig2str(self, sig: mycomtrade.AnalogSignal, i: int, func_i: int):
+    def sig2str(self, sig: mycomtrade.AnalogSignal, y: float) -> str:
+        """Return string repr of signal dependong on:
+         - signal value
+         - pors (global)
+         - orig/shifted (global, indirect)"""
+        pors_y = y * sig.get_mult(self.show_sec)
+        uu = sig.uu_orig
+        if abs(pors_y) < 1:
+            pors_y *= 1000
+            uu = 'm' + uu
+        elif abs(pors_y) > 1000:
+            pors_y /= 1000
+            uu = 'k' + uu
+        return "%.3f %s" % (pors_y, uu)
+
+    def sig2str_i(self, sig: mycomtrade.AnalogSignal, i: int, func_i: int) -> str:
         """Return string repr of signal dependong on:
          - signal value
          - in index i
@@ -199,18 +217,11 @@ class ComtradeWidget(QWidget):
             y = abs(v)
         else:
             y = v
-        pors_y = y * sig.get_mult(self.show_sec)
-        uu = sig.uu_orig
-        if abs(pors_y) < 1:
-            pors_y *= 1000
-            uu = 'm' + uu
-        elif abs(pors_y) > 1000:
-            pors_y /= 1000
-            uu = 'k' + uu
+        y_str = self.sig2str(sig, y)
         if isinstance(v, complex):  # hrm1
-            return "%.3f %s / %.3f°" % (pors_y, uu, math.degrees(cmath.phase(v)))
+            return "%s / %.3f°" % (y_str, math.degrees(cmath.phase(v)))
         else:
-            return"%.3f %s" % (pors_y, uu)
+            return y_str
 
     def __mk_widgets(self):
         self.menubar = QMenuBar()
@@ -328,6 +339,11 @@ class ComtradeWidget(QWidget):
                                           self,
                                           statusTip="Add measure pointers into current position",
                                           triggered=self.__do_ptr_add_msr)
+        self.action_ptr_add_lvl = QAction(QIcon(),
+                                          "Add level pointers",
+                                          self,
+                                          statusTip="Add level pointers into current position",
+                                          triggered=self.__do_ptr_add_lvl)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
         self.action_shift.addAction(self.action_shift_yes)
@@ -374,6 +390,7 @@ class ComtradeWidget(QWidget):
         menu_ptr = self.menubar.addMenu("&Pointers")
         menu_ptr.addAction(self.action_ptr_add_tmp)
         menu_ptr.addAction(self.action_ptr_add_msr)
+        menu_ptr.addAction(self.action_ptr_add_lvl)
 
     def __mk_toolbar(self):
         # prepare
@@ -519,7 +536,7 @@ class ComtradeWidget(QWidget):
     def __do_ptr_add_tmp(self):
         uid = max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1  # generate new uid
         self.signal_ptr_add_tmp.emit(uid)  # create them ...
-        self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and move
+        self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
 
     def __do_ptr_add_msr(self):
         if sig_selected := SelectSignalsDialog(self.__osc.analog).execute():
@@ -527,6 +544,13 @@ class ComtradeWidget(QWidget):
                 uid = max(self.__msr_ptr) + 1 if self.__msr_ptr else 1
                 self.analog_table.add_ptr_msr(i, uid)  # FIXME: signals can be mixed and/or reordered
                 self.__msr_ptr.add(uid)
+
+    def __do_ptr_add_lvl(self):
+        if sig_selected := SelectSignalsDialog(self.__osc.analog).execute():
+            for i in sig_selected:
+                uid = max(self.__lvl_ptr) + 1 if self.__msr_ptr else 1
+                self.analog_table.add_ptr_lvl(i, uid)  # FIXME: signals can be mixed and/or reordered
+                self.__lvl_ptr.add(uid)
 
     def __sync_hresize(self, l_index: int, old_size: int, new_size: int):
         """
@@ -595,3 +619,6 @@ class ComtradeWidget(QWidget):
 
     def slot_ptr_del_msr(self, uid: int):
         self.__msr_ptr.remove(uid)
+
+    def slot_ptr_del_lvl(self, uid: int):
+        self.__lvl_ptr.remove(uid)

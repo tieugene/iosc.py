@@ -246,4 +246,30 @@ class MsrPtrDialog(QDialog):
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
         # 5. go
-        self.setWindowTitle("Msr ptr properties")
+        self.setWindowTitle("Msr ptr properties")  # FIXME: += ' M1: <sid>'
+
+
+class LvlPtrDialog(QDialog):
+    f_val: QDoubleSpinBox
+    button_box: QDialogButtonBox
+
+    def __init__(self, data: tuple[float, float, float], parent=None):
+        super().__init__(parent)
+        # 1. store args
+        # 2. set widgets
+        self.f_val = QDoubleSpinBox(self)
+        self.f_val.setRange(data[1], data[2])
+        self.f_val.setDecimals(3)
+        self.f_val.setValue(data[0])
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        # 3. set layout
+        layout = QFormLayout(self)
+        layout.addRow("Value", self.f_val)
+        layout.addRow(self.button_box)
+        layout.setVerticalSpacing(0)
+        self.setLayout(layout)
+        # 4. set signals
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        # 5. go
+        self.setWindowTitle("Lvl ptr properties")  # FIXME: += ' L1: <sid>'

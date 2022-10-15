@@ -148,7 +148,7 @@ class AnalogSignalCtrlWidget(SignalCtrlWidget):
 
     def slot_update_value(self):
         """Update ctrl widget value depending on pri/sec and value type"""
-        self._f_value.setText(self._root.sig2str(self._signal, self._root.main_ptr_i, self._root.viewas))
+        self._f_value.setText(self._root.sig2str_i(self._signal, self._root.main_ptr_i, self._root.viewas))
 
     def slot_vzoom_in(self):
         if self.sibling.zoom == 1:

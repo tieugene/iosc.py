@@ -1,12 +1,12 @@
 # TODO
 
-Current job: [Msr ptrs](https://github.com/michDaven/AbScan-TechReq/blob/main/asciidoc1.adoc#2352-%D0%B7%D0%B0%D0%BC%D0%B5%D1%80%D1%8B)
+Current job: [Lvl ptrs](https://github.com/michDaven/AbScan-TechReq/blob/main/asciidoc1.adoc#2353-%D1%83%D1%80%D0%BE%D0%B2%D0%B5%D0%BD%D1%8C)
 
 
 ## Ptr behaviour
 
 - On Item.mousePressed: select
-- On Item.mouseMove: move
+- On Item.mouseMove: __move
 - On Item.mouseReleased: deselect
 
 ## OMP ptrs
@@ -40,7 +40,7 @@ Behavior:
   + root: rm idx from list
   + &forall; chart: rm TmpPtr
 
-- [x] Add, move
+- [x] Add, __move
   - [x] Chart
   - [x] Top
   - [x] Bottom
@@ -51,9 +51,21 @@ Behavior:
 ## Msr ptrs
 
 - [x] Select (QListWidget)
-- [x] Add, move (depends on pors/shift/func)
+- [x] Add, __move (depends on pors/shift/func)
 - [x] Context menu
 - [x] Del
 - [x] Edit (value, func)
 - [x] Refresh on pors/shift change
 - [x] Color (+refresh)
+
+## Lvl ptrs
+- [x] Select
+- [x] Add
+- [x] Context menu
+- [x] Del
+- [x] Edit:
+  - [x] pors
+- [x] Refresh on change:
+  + [x] color
+  + [x] pors
+  + [x] ~~shift~~ (undefined behavior)

@@ -175,6 +175,10 @@ class SignalListTable(QTableWidget):
         """Add xMsrPtr to signal #i"""
         self.cellWidget(row, 1).widget().add_ptr_msr(uid)
 
+    def add_ptr_lvl(self, row: int, uid: int):
+        """Add xMsrPtr to signal #i"""
+        self.cellWidget(row, 1).widget().add_ptr_lvl(uid)
+
 
 class HScroller(QScrollBar):
     """Bottom scrollbar.
