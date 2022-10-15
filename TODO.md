@@ -64,4 +64,7 @@ Behavior:
 - [x] Context menu
 - [x] Del
 - [x] Edit
-- [ ] Refresh on pors/shift/color change
+- [ ] Refresh on change:
+  + [x] color
+  + [ ] pors
+  + [ ] shift

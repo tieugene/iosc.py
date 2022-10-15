@@ -258,7 +258,7 @@ class AnalogSignalChartWidget(SignalChartWidget):
 
     def add_ptr_lvl(self, uid: int):
         lvl_ptr = LvlPtr(self, self._root, self._signal, uid)
-        # self._sibling.signal_restyled.connect(msr_ptr.slot_set_color)
+        self._sibling.signal_restyled.connect(lvl_ptr.slot_set_color)
 
     def slot_ptr_del_lvl(self, ptr: LvlPtr):
         """Del LvlPtr"""

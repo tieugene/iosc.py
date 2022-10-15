@@ -410,6 +410,8 @@ class LvlPtr(QCPItemStraightLine):
         self.__set_color()
         self.__move(max(self.__signal.value))
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
+        self.__root.signal_chged_shift.connect(self.__slot_update_text)
+        self.__root.signal_chged_pors.connect(self.__slot_update_text)
 
     @property
     def y(self) -> float:
@@ -429,6 +431,22 @@ class LvlPtr(QCPItemStraightLine):
         pen.setColor(color)
         self.setPen(pen)
         self.__tip.setBrush(QBrush(color))  # rect
+
+    def __move(self, y: float):
+        """
+        :param y:
+        :note: for  QCPItemLine: s/point1/start/, s/point2/end/
+        """
+        self.point1.setCoords(self.__root.x_min, y)
+        self.point2.setCoords(self.__root.x_max, y)
+        self.__tip.position.setCoords(0, self.y)  # FIXME: x = ?
+        y_mid = (self.__y_min + self.__y_max) / 2
+        self.__tip.setPositionAlignment(Qt.AlignLeft | (Qt.AlignTop if self.y > y_mid else Qt.AlignBottom))
+        self.__slot_update_text()
+
+    def __slot_update_text(self):
+        self.__tip.setText("L%d: %.3f" % (self.__uid, self.y))
+        self.parentPlot().replot()
 
     def mousePressEvent(self, event: QMouseEvent, _):  # rmb click start
         if event.button() == Qt.RightButton:
@@ -453,19 +471,6 @@ class LvlPtr(QCPItemStraightLine):
         elif chosen_action == action_del:
             self.__del_self()
 
-    def __move(self, y: float):
-        """
-        :param y:
-        :note: for  QCPItemLine: s/point1/start/, s/point2/end/
-        """
-        self.point1.setCoords(self.__root.x_min, y)
-        self.point2.setCoords(self.__root.x_max, y)
-        self.__tip.position.setCoords(0, self.y)  # FIXME: x = ?
-        y_mid = (self.__y_min + self.__y_max) / 2
-        self.__tip.setPositionAlignment(Qt.AlignLeft | (Qt.AlignTop if self.y > y_mid else Qt.AlignBottom))
-        self.__tip.setText("L%d: %.2f" % (self.__uid, self.y))
-        self.parentPlot().replot()
-
     def __del_self(self):
         self.__root.slot_ptr_del_lvl(self.__uid)
         self.parentPlot().removeItem(self.__tip)
@@ -475,3 +480,7 @@ class LvlPtr(QCPItemStraightLine):
         form = LvlPtrDialog((self.y, self.__y_min, self.__y_max))
         if form.exec_():
             self.__move(form.f_val.value())
+
+    def slot_set_color(self):
+        self.__set_color()
+        self.parentPlot().replot()
