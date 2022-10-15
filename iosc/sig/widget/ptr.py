@@ -1,7 +1,7 @@
 from typing import Optional
 
 from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal, QPoint
-from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor
+from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor, QPen
 from PyQt5.QtWidgets import QWidget, QInputDialog, QMenu
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
@@ -304,7 +304,6 @@ class MsrPtr(Ptr):
             self.setTextAlignment(Qt.AlignCenter)
             self.setColor(Qt.white)  # text
             self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
-            self.setBrush(QBrush(Qt.black))  # rect
 
     FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
     __uid: int  # uniq id of xMsrPtr
@@ -319,16 +318,20 @@ class MsrPtr(Ptr):
         self.__signal = signal
         self.__func_i = root.viewas
         self.__tip = self._Tip(cp)
-        self.setPen(iosc.const.PEN_PTR_MSR)  # FIXME:
         self.setGraphKey(self._root.main_ptr_x)
         self.updatePosition()
+        self.__slot_set_color()
         self.__move_tip()
-        self.selectionChanged.connect(self.__selection_chg)
-        self.signal_rmb_clicked.connect(self.__slot_context_menu)
+        self.selectionChanged.connect(self.__slot_selection_chg)
         self._root.signal_chged_shift.connect(self.__slot_update_text)
         self._root.signal_chged_pors.connect(self.__slot_update_text)
+        self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
-    def __selection_chg(self, selection: bool):
+    def __move_tip(self):
+        self.__tip.position.setCoords(self.x, 0)  # FIXME: y = top
+        self.__slot_update_text()
+
+    def __slot_selection_chg(self, selection: bool):
         self._switch_cursor(selection)
         self.parentPlot().replot()  # update selection decoration
 
@@ -338,9 +341,12 @@ class MsrPtr(Ptr):
         self.__tip.setText("M%d: %s (%s)" % (self.__uid, v, m))
         self.parentPlot().replot()
 
-    def __move_tip(self):
-        self.__tip.position.setCoords(self.x, 0)  # FIXME: y = top
-        self.__slot_update_text()
+    def __slot_set_color(self):
+        pen = QPen(iosc.const.PENSTYLE_PTR_MSR)
+        color = QColor.fromRgb(*self.__signal.rgb)
+        pen.setColor(color)
+        self.setPen(pen)
+        self.__tip.setBrush(QBrush(color))  # rect
 
     def mouseMoveEvent(self, event: QMouseEvent, _):
         event.accept()
