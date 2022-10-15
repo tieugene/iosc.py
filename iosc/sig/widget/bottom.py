@@ -22,7 +22,7 @@ class PtrLabel(QCPItemText):
         self.setColor(iosc.const.COLOR_LABEL_X)  # text
 
     def _update_ptr(self, i: int):
-        """Repaint/move main ptr value label (%.2f)
+        """Repaint/__move main ptr value label (%.2f)
         :fixme: draw in front of ticks
         """
         x = self._root.i2x(i)  # from z-point, ms

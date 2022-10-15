@@ -121,7 +121,7 @@ class SignalChartWidget(QCustomPlot):
         super().mousePressEvent(event)  # always .isAcepted() after this
         if event.button() == Qt.LeftButton and not self._ptr_selected:  # check selectable
             i_new = self._root.x2i(self.xAxis.pixelToCoord(event.x()))
-            self._root.slot_ptr_moved_main(i_new)  # move MainPtr here
+            self._root.slot_ptr_moved_main(i_new)  # __move MainPtr here
             super().mousePressEvent(event)  # and select it
 
     def __slot_signal_restyled(self):
@@ -259,3 +259,8 @@ class AnalogSignalChartWidget(SignalChartWidget):
     def add_ptr_lvl(self, uid: int):
         lvl_ptr = LvlPtr(self, self._root, self._signal, uid)
         # self._sibling.signal_restyled.connect(msr_ptr.slot_set_color)
+
+    def slot_ptr_del_lvl(self, ptr: LvlPtr):
+        """Del LvlPtr"""
+        self.removeItem(ptr)
+        self.replot()

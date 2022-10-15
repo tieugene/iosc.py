@@ -528,7 +528,7 @@ class ComtradeWidget(QWidget):
     def __do_ptr_add_tmp(self):
         uid = max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1  # generate new uid
         self.signal_ptr_add_tmp.emit(uid)  # create them ...
-        self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and move
+        self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
 
     def __do_ptr_add_msr(self):
         if sig_selected := SelectSignalsDialog(self.__osc.analog).execute():
@@ -611,3 +611,6 @@ class ComtradeWidget(QWidget):
 
     def slot_ptr_del_msr(self, uid: int):
         self.__msr_ptr.remove(uid)
+
+    def slot_ptr_del_lvl(self, uid: int):
+        self.__lvl_ptr.remove(uid)

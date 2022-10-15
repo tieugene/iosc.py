@@ -7,7 +7,7 @@ from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPIte
 # 4. local
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.sig.widget.dialog import get_new_omp_width, TmpPtrDialog, MsrPtrDialog
+from iosc.sig.widget.dialog import get_new_omp_width, MsrPtrDialog, LvlPtrDialog
 
 
 class VLine(QCPItemStraightLine):
@@ -398,6 +398,7 @@ class LvlPtr(QCPItemStraightLine):
     __signal: mycomtrade.AnalogSignal
     __uid: int  # uniq id
     __tip: _Tip
+    signal_rmb_clicked = pyqtSignal(QPointF)
 
     def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int):
         super().__init__(cp)
@@ -407,11 +408,20 @@ class LvlPtr(QCPItemStraightLine):
         self.__uid = uid
         self.__tip = self._Tip(cp)
         self.__set_color()
-        self.move(max(self.__signal.value))
+        self.__move(max(self.__signal.value))
+        self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
     @property
-    def y(self):
+    def y(self) -> float:
         return self.point1.coords().y()
+
+    @property
+    def __y_min(self) -> float:
+        return min(self.__signal.value)
+
+    @property
+    def __y_max(self) -> float:
+        return max(self.__signal.value)
 
     def __set_color(self):
         pen = QPen(iosc.const.PENSTYLE_PTR_LVL)
@@ -420,7 +430,30 @@ class LvlPtr(QCPItemStraightLine):
         self.setPen(pen)
         self.__tip.setBrush(QBrush(color))  # rect
 
-    def move(self, y: float):
+    def mousePressEvent(self, event: QMouseEvent, _):  # rmb click start
+        if event.button() == Qt.RightButton:
+            event.accept()
+        else:
+            event.ignore()
+
+    def mouseReleaseEvent(self, event: QMouseEvent, _):  # rmb click end
+        if event.button() == Qt.RightButton:
+            self.signal_rmb_clicked.emit(event.pos())
+        else:
+            event.ignore()
+
+    def __slot_context_menu(self, pos: QPointF):
+        context_menu = QMenu()
+        action_edit = context_menu.addAction("Edit...")
+        action_del = context_menu.addAction("Delete")
+        point = self.parentPlot().mapToGlobal(pos.toPoint())
+        chosen_action = context_menu.exec_(point)
+        if chosen_action == action_edit:
+            self.__edit_self()
+        elif chosen_action == action_del:
+            self.__del_self()
+
+    def __move(self, y: float):
         """
         :param y:
         :note: for  QCPItemLine: s/point1/start/, s/point2/end/
@@ -428,7 +461,17 @@ class LvlPtr(QCPItemStraightLine):
         self.point1.setCoords(self.__root.x_min, y)
         self.point2.setCoords(self.__root.x_max, y)
         self.__tip.position.setCoords(0, self.y)  # FIXME: x = ?
-        y_mid = (min(self.__signal.value) + max(self.__signal.value)) / 2
+        y_mid = (self.__y_min + self.__y_max) / 2
         self.__tip.setPositionAlignment(Qt.AlignLeft | (Qt.AlignTop if self.y > y_mid else Qt.AlignBottom))
         self.__tip.setText("L%d: %.2f" % (self.__uid, self.y))
         self.parentPlot().replot()
+
+    def __del_self(self):
+        self.__root.slot_ptr_del_lvl(self.__uid)
+        self.parentPlot().removeItem(self.__tip)
+        self.parentPlot().slot_ptr_del_lvl(self)  # dirty hack
+
+    def __edit_self(self):
+        form = LvlPtrDialog((self.y, self.__y_min, self.__y_max))
+        if form.exec_():
+            self.__move(form.f_val.value())

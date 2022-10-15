@@ -6,7 +6,7 @@ Current job: [Lvl ptrs](https://github.com/michDaven/AbScan-TechReq/blob/main/as
 ## Ptr behaviour
 
 - On Item.mousePressed: select
-- On Item.mouseMove: move
+- On Item.mouseMove: __move
 - On Item.mouseReleased: deselect
 
 ## OMP ptrs
@@ -40,7 +40,7 @@ Behavior:
   + root: rm idx from list
   + &forall; chart: rm TmpPtr
 
-- [x] Add, move
+- [x] Add, __move
   - [x] Chart
   - [x] Top
   - [x] Bottom
@@ -51,7 +51,7 @@ Behavior:
 ## Msr ptrs
 
 - [x] Select (QListWidget)
-- [x] Add, move (depends on pors/shift/func)
+- [x] Add, __move (depends on pors/shift/func)
 - [x] Context menu
 - [x] Del
 - [x] Edit (value, func)
@@ -61,7 +61,7 @@ Behavior:
 ## Lvl ptrs
 - [x] Select
 - [x] Add
-- [ ] Context menu
-- [ ] Del
-- [ ] Edit (value, func)
+- [x] Context menu
+- [x] Del
+- [x] Edit
 - [ ] Refresh on pors/shift/color change
