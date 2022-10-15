@@ -55,5 +55,5 @@ Behavior:
 - [x] Context menu
 - [x] Del
 - [x] Edit (value, func)
-- [ ] Refresh on pors/shift change
+- [x] Refresh on pors/shift change
 - [ ] Color (+refresh)

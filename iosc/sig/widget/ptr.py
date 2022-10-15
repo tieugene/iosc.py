@@ -325,20 +325,22 @@ class MsrPtr(Ptr):
         self.__move_tip()
         self.selectionChanged.connect(self.__selection_chg)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
+        self._root.signal_chged_shift.connect(self.__slot_update_text)
+        self._root.signal_chged_pors.connect(self.__slot_update_text)
 
     def __selection_chg(self, selection: bool):
         self._switch_cursor(selection)
         self.parentPlot().replot()  # update selection decoration
 
-    def __update_text(self):
+    def __slot_update_text(self):
         v = self._root.sig2str(self.__signal, self.i, self.__func_i)  # was self.position.value()
         m = self.FUNC_ABBR[self.__func_i]
         self.__tip.setText("M%d: %s (%s)" % (self.__uid, v, m))
+        self.parentPlot().replot()
 
     def __move_tip(self):
         self.__tip.position.setCoords(self.x, 0)  # FIXME: y = top
-        self.__update_text()
-        self.parentPlot().replot()
+        self.__slot_update_text()
 
     def mouseMoveEvent(self, event: QMouseEvent, _):
         event.accept()
