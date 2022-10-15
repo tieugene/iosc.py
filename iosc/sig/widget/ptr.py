@@ -291,7 +291,7 @@ class TmpPtr(_PowerPtr):
             self.signal_ptr_edit_tmp.emit(self._uid)
         elif chosen_action == action_del:
             self._root.slot_ptr_del_tmp(self._uid)
-            # self.signal_ptr_del_tmp.emit(self._uid)
+            # self.signal_ptr_del_tmp.emit(self.__uid)
 
 
 class MsrPtr(Ptr):
@@ -307,22 +307,22 @@ class MsrPtr(Ptr):
             self.setBrush(QBrush(Qt.black))  # rect
 
     FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
-    _uid: int  # uniq id of xMsrPtr
-    _signal: mycomtrade.AnalogSignal
-    _func_i: int  # value mode (function) number (in sigfunc.func_list[])
-    _tip: _Tip
+    __uid: int  # uniq id of xMsrPtr
+    __signal: mycomtrade.AnalogSignal
+    __func_i: int  # value mode (function) number (in sigfunc.func_list[])
+    __tip: _Tip
     signal_ptr_del_msr = pyqtSignal(int)
 
     def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int):
         super().__init__(cp, root)
-        self._uid = uid
-        self._signal = signal
-        self._func_i = root.viewas
-        self._tip = self._Tip(cp)
+        self.__uid = uid
+        self.__signal = signal
+        self.__func_i = root.viewas
+        self.__tip = self._Tip(cp)
         self.setPen(iosc.const.PEN_PTR_MSR)  # FIXME:
         self.setGraphKey(self._root.main_ptr_x)
         self.updatePosition()
-        self._move_tip()
+        self.__move_tip()
         self.selectionChanged.connect(self.__selection_chg)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
@@ -330,14 +330,14 @@ class MsrPtr(Ptr):
         self._switch_cursor(selection)
         self.parentPlot().replot()  # update selection decoration
 
-    def _update_text(self):
-        v = self._root.sig2str(self._signal, self.i, self._func_i)  # was self.position.value()
-        m = self.FUNC_ABBR[self._func_i]
-        self._tip.setText("M%d: %s (%s)" % (self._uid, v, m))
+    def __update_text(self):
+        v = self._root.sig2str(self.__signal, self.i, self.__func_i)  # was self.position.value()
+        m = self.FUNC_ABBR[self.__func_i]
+        self.__tip.setText("M%d: %s (%s)" % (self.__uid, v, m))
 
-    def _move_tip(self):
-        self._tip.position.setCoords(self.x, 0)  # FIXME: y = top
-        self._update_text()
+    def __move_tip(self):
+        self.__tip.position.setCoords(self.x, 0)  # FIXME: y = top
+        self.__update_text()
         self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, _):
@@ -347,7 +347,7 @@ class MsrPtr(Ptr):
         self.setGraphKey(x_ms)
         self.updatePosition()  # mandatory
         if i_old != self.i:
-            self._move_tip()
+            self.__move_tip()
 
     def __slot_context_menu(self, pos: QPointF):
         context_menu = QMenu()
@@ -356,20 +356,19 @@ class MsrPtr(Ptr):
         point = self.parentPlot().mapToGlobal(pos.toPoint())
         chosen_action = context_menu.exec_(point)
         if chosen_action == action_edit:
-            self._edit_self()
+            self.__edit_self()
         elif chosen_action == action_del:
-            self._del_self()
+            self.__del_self()
 
-    def _del_self(self):
-        self._root.slot_ptr_del_msr(self._uid)
-        self.parentPlot().removeItem(self._tip)
+    def __del_self(self):
+        self._root.slot_ptr_del_msr(self.__uid)
+        self.parentPlot().removeItem(self.__tip)
         self.parentPlot().slot_ptr_del_msr(self)  # dirty hack
 
-    def _edit_self(self):
-        v = self.x
-        v_min = self._root.i2x(0)
-        v_max = self._root.i2x(self._root.i_max)
-        v_step = 1  # TODO: calc
-        form = MsrPtrDialog((v, v_min, v_max, v_step))
-        if form.exec_():
-            ...
+    def __edit_self(self):
+        form = MsrPtrDialog((self.x, self._root.x_min, self._root.x_max, self._root.x_step, self.__func_i))
+        if form.exec_():  # TODO: optimize
+            self.setGraphKey(form.f_val.value())
+            self.updatePosition()
+            self.__func_i = form.f_func.currentIndex()
+            self.__move_tip()

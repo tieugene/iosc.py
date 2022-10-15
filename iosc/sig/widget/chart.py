@@ -247,10 +247,10 @@ class AnalogSignalChartWidget(SignalChartWidget):
             self.__pps = pps
             self.replot()
 
+    def add_ptr_msr(self, uid: int):
+        msr_ptr = MsrPtr(self, self._root, self._signal, uid)
+
     def slot_ptr_del_msr(self, ptr: MsrPtr):
         """Del MsrPtr"""
         self.removeItem(ptr)
         self.replot()
-
-    def add_ptr_msr(self, uid: int):
-        msr_ptr = MsrPtr(self, self._root, self._signal, uid)

@@ -54,6 +54,6 @@ Behavior:
 - [x] Add, move (depends on pors/shift/func)
 - [x] Context menu
 - [x] Del
-- [ ] Edit (value, func)
+- [x] Edit (value, func)
 - [ ] Refresh on pors/shift/func change
 - [ ] Color
