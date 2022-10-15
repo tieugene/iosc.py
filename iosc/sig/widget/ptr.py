@@ -320,12 +320,19 @@ class MsrPtr(Ptr):
         self.__tip = self._Tip(cp)
         self.setGraphKey(self._root.main_ptr_x)
         self.updatePosition()
-        self.__slot_set_color()
+        self.__set_color()
         self.__move_tip()
         self.selectionChanged.connect(self.__slot_selection_chg)
         self._root.signal_chged_shift.connect(self.__slot_update_text)
         self._root.signal_chged_pors.connect(self.__slot_update_text)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
+
+    def __set_color(self):
+        pen = QPen(iosc.const.PENSTYLE_PTR_MSR)
+        color = QColor.fromRgb(*self.__signal.rgb)
+        pen.setColor(color)
+        self.setPen(pen)
+        self.__tip.setBrush(QBrush(color))  # rect
 
     def __move_tip(self):
         self.__tip.position.setCoords(self.x, 0)  # FIXME: y = top
@@ -341,12 +348,9 @@ class MsrPtr(Ptr):
         self.__tip.setText("M%d: %s (%s)" % (self.__uid, v, m))
         self.parentPlot().replot()
 
-    def __slot_set_color(self):
-        pen = QPen(iosc.const.PENSTYLE_PTR_MSR)
-        color = QColor.fromRgb(*self.__signal.rgb)
-        pen.setColor(color)
-        self.setPen(pen)
-        self.__tip.setBrush(QBrush(color))  # rect
+    def slot_set_color(self):
+        self.__set_color()
+        self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, _):
         event.accept()

@@ -249,6 +249,7 @@ class AnalogSignalChartWidget(SignalChartWidget):
 
     def add_ptr_msr(self, uid: int):
         msr_ptr = MsrPtr(self, self._root, self._signal, uid)
+        self._sibling.signal_restyled.connect(msr_ptr.slot_set_color)
 
     def slot_ptr_del_msr(self, ptr: MsrPtr):
         """Del MsrPtr"""

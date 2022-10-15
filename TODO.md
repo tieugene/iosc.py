@@ -56,4 +56,4 @@ Behavior:
 - [x] Del
 - [x] Edit (value, func)
 - [x] Refresh on pors/shift change
-- [ ] Color (+refresh)
+- [x] Color (+refresh)
