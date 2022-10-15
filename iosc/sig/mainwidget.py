@@ -189,7 +189,22 @@ class ComtradeWidget(QWidget):
         """Recalc index in signal array int graph x-position (ms)"""
         return 1000 * (self.__osc.raw.time[i] - self.__osc.raw.trigger_time)
 
-    def sig2str(self, sig: mycomtrade.AnalogSignal, i: int, func_i: int):
+    def sig2str(self, sig: mycomtrade.AnalogSignal, y: float) -> str:
+        """Return string repr of signal dependong on:
+         - signal value
+         - pors (global)
+         - orig/shifted (global, indirect)"""
+        pors_y = y * sig.get_mult(self.show_sec)
+        uu = sig.uu_orig
+        if abs(pors_y) < 1:
+            pors_y *= 1000
+            uu = 'm' + uu
+        elif abs(pors_y) > 1000:
+            pors_y /= 1000
+            uu = 'k' + uu
+        return "%.3f %s" % (pors_y, uu)
+
+    def sig2str_i(self, sig: mycomtrade.AnalogSignal, i: int, func_i: int) -> str:
         """Return string repr of signal dependong on:
          - signal value
          - in index i
@@ -202,18 +217,11 @@ class ComtradeWidget(QWidget):
             y = abs(v)
         else:
             y = v
-        pors_y = y * sig.get_mult(self.show_sec)
-        uu = sig.uu_orig
-        if abs(pors_y) < 1:
-            pors_y *= 1000
-            uu = 'm' + uu
-        elif abs(pors_y) > 1000:
-            pors_y /= 1000
-            uu = 'k' + uu
+        y_str = self.sig2str(sig, y)
         if isinstance(v, complex):  # hrm1
-            return "%.3f %s / %.3f°" % (pors_y, uu, math.degrees(cmath.phase(v)))
+            return "%s / %.3f°" % (y_str, math.degrees(cmath.phase(v)))
         else:
-            return"%.3f %s" % (pors_y, uu)
+            return y_str
 
     def __mk_widgets(self):
         self.menubar = QMenuBar()

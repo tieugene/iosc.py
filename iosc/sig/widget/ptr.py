@@ -345,7 +345,7 @@ class MsrPtr(Ptr):
         self.parentPlot().replot()  # update selection decoration
 
     def __slot_update_text(self):
-        v = self._root.sig2str(self.__signal, self.i, self.__func_i)  # was self.position.value()
+        v = self._root.sig2str_i(self.__signal, self.i, self.__func_i)  # was self.position.value()
         m = self.FUNC_ABBR[self.__func_i]
         self.__tip.setText("M%d: %s (%s)" % (self.__uid, v, m))
         self.parentPlot().replot()
@@ -445,7 +445,7 @@ class LvlPtr(QCPItemStraightLine):
         self.__slot_update_text()
 
     def __slot_update_text(self):
-        self.__tip.setText("L%d: %.3f" % (self.__uid, self.y))
+        self.__tip.setText("L%d: %s" % (self.__uid, self.__root.sig2str(self.__signal, self.y)))
         self.parentPlot().replot()
 
     def mousePressEvent(self, event: QMouseEvent, _):  # rmb click start
