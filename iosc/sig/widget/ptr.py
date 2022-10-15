@@ -384,3 +384,10 @@ class MsrPtr(Ptr):
             self.updatePosition()
             self.__func_i = form.f_func.currentIndex()
             self.__move_tip()
+
+
+class LvlPtr:
+    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int):
+        ...
+        # super().__init__(cp, root)
+        print("Lvl ptr created")

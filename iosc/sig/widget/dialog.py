@@ -246,4 +246,4 @@ class MsrPtrDialog(QDialog):
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
         # 5. go
-        self.setWindowTitle("Msr ptr properties")
+        self.setWindowTitle("Msr ptr properties")  # FIXME: += ' M1: <sid>'

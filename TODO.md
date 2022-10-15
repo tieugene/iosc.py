@@ -1,6 +1,6 @@
 # TODO
 
-Current job: [Msr ptrs](https://github.com/michDaven/AbScan-TechReq/blob/main/asciidoc1.adoc#2352-%D0%B7%D0%B0%D0%BC%D0%B5%D1%80%D1%8B)
+Current job: [Lvl ptrs](https://github.com/michDaven/AbScan-TechReq/blob/main/asciidoc1.adoc#2353-%D1%83%D1%80%D0%BE%D0%B2%D0%B5%D0%BD%D1%8C)
 
 
 ## Ptr behaviour
@@ -57,3 +57,12 @@ Behavior:
 - [x] Edit (value, func)
 - [x] Refresh on pors/shift change
 - [x] Color (+refresh)
+
+## Lvl ptrs
+- [x] Select
+- [ ] Add, move (depends on pors/shift/func)
+- [ ] Context menu
+- [ ] Del
+- [ ] Edit (value, func)
+- [ ] Refresh on pors/shift change
+- [ ] Color (+refresh)
