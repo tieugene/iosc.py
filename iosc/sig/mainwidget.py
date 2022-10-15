@@ -1,6 +1,8 @@
 """Signal tab widget
 RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
+import cmath
+import math
 import pathlib
 from typing import Any, Optional
 # 2. 3rd
@@ -11,10 +13,11 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QTabWidget, QMenuBa
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
+from iosc.core.sigfunc import func_list
 from iosc.icon import svg_icon, ESvgSrc
 from iosc.core.convtrade import convert, ConvertError
 from iosc.sig.section import TimeAxisTable, SignalListTable, StatusBarTable, HScroller
-from iosc.sig.widget.dialog import TmpPtrDialog
+from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
 
 # x. const
 TICK_RANGE = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000)
@@ -39,6 +42,7 @@ class ComtradeWidget(QWidget):
     __main_ptr_i: int  # current Main Ptr index in source arrays
     __sc_ptr_i: int  # current OMP SC Ptr index in source arrays
     __tmp_ptr_i: dict[int, int]  # current Tmp Ptr indexes in source arrays: ptr_uid => idx
+    __msr_ptr: set[int]  # xMsrPtr uids
     __omp_width: int  # distance from OMP PR and SC pointers, periods
     __shifted: bool  # original/shifted selector
     __chart_width: Optional[int]  # width (px) of nested QCP charts
@@ -69,6 +73,7 @@ class ComtradeWidget(QWidget):
     action_viewas_hrm3: QAction
     action_viewas_hrm5: QAction
     action_ptr_add_tmp: QAction
+    action_ptr_add_msr: QAction
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
@@ -79,8 +84,9 @@ class ComtradeWidget(QWidget):
     statusbar_table: StatusBarTable
     hsb: HScroller  # bottom horizontal scroll bar
     # signals
-    signal_recalc_achannels = pyqtSignal()  # recalc ASignalCtrlView on ...
-    signal_shift_achannels = pyqtSignal()  # refresh ASignal*View on switching original/shifted
+    signal_chged_pors = pyqtSignal()  # recalc ASignalCtrlView on ...
+    signal_chged_shift = pyqtSignal()  # refresh ASignal*View on switching original/shifted
+    signal_chged_func = pyqtSignal()  # refresh ASignal*View on switching function
     signal_xscale = pyqtSignal(int, int)  # set signal chart widths
     signal_ptr_moved_main = pyqtSignal(int)  # refresh Signal(Ctrl/Chart)View on MainPtr moved
     signal_ptr_moved_sc = pyqtSignal(int)  # refresh SignalChartWidget on OMP SC Ptr moved
@@ -94,6 +100,7 @@ class ComtradeWidget(QWidget):
         self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
         self.__main_ptr_i = self.x2i(0.0)  # default: Z
         self.__tmp_ptr_i = dict()
+        self.__msr_ptr = set()
         self.__omp_width = 3
         self.__shifted = False
         self.__chart_width = None  # wait for line_up
@@ -120,6 +127,18 @@ class ComtradeWidget(QWidget):
     @property
     def i_max(self) -> int:
         return len(self.__osc.raw.time) - 1
+
+    @property
+    def x_min(self) -> float:
+        return self.i2x(0)
+
+    @property
+    def x_max(self) -> float:
+        return self.i2x(-1)
+
+    @property
+    def x_step(self) -> float:
+        return 1000 / self.__osc.raw.cfg.sample_rates[0][0]
 
     @property
     def main_ptr_i(self) -> int:
@@ -166,6 +185,32 @@ class ComtradeWidget(QWidget):
     def i2x(self, i: int) -> float:
         """Recalc index in signal array int graph x-position (ms)"""
         return 1000 * (self.__osc.raw.time[i] - self.__osc.raw.trigger_time)
+
+    def sig2str(self, sig: mycomtrade.AnalogSignal, i: int, func_i: int):
+        """Return string repr of signal dependong on:
+         - signal value
+         - in index i
+         - selected function[func_i]
+         - pors (global)
+         - orig/shifted (global, indirect)"""
+        func = func_list[func_i]
+        v = func(sig.value, i, self.tpp)
+        if isinstance(v, complex):  # hrm1
+            y = abs(v)
+        else:
+            y = v
+        pors_y = y * sig.get_mult(self.show_sec)
+        uu = sig.uu_orig
+        if abs(pors_y) < 1:
+            pors_y *= 1000
+            uu = 'm' + uu
+        elif abs(pors_y) > 1000:
+            pors_y /= 1000
+            uu = 'k' + uu
+        if isinstance(v, complex):  # hrm1
+            return "%.3f %s / %.3f°" % (pors_y, uu, math.degrees(cmath.phase(v)))
+        else:
+            return"%.3f %s" % (pors_y, uu)
 
     def __mk_widgets(self):
         self.menubar = QMenuBar()
@@ -274,10 +319,15 @@ class ComtradeWidget(QWidget):
                                           checkable=True,
                                           statusTip="Show harmonic #5 of signal value")
         self.action_ptr_add_tmp = QAction(QIcon(),
-                                          "Add tmp ptr",
+                                          "Add temporary pointer",
                                           self,
                                           statusTip="Add temporary pointer into current position",
                                           triggered=self.__do_ptr_add_tmp)
+        self.action_ptr_add_msr = QAction(QIcon(),
+                                          "Add measure pointers",
+                                          self,
+                                          statusTip="Add measure pointers into current position",
+                                          triggered=self.__do_ptr_add_msr)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
         self.action_shift.addAction(self.action_shift_yes)
@@ -323,6 +373,7 @@ class ComtradeWidget(QWidget):
         menu_channel.addAction(self.action_unhide)
         menu_ptr = self.menubar.addMenu("&Pointers")
         menu_ptr.addAction(self.action_ptr_add_tmp)
+        menu_ptr.addAction(self.action_ptr_add_msr)
 
     def __mk_toolbar(self):
         # prepare
@@ -454,21 +505,28 @@ class ComtradeWidget(QWidget):
 
     def __do_shift(self, _: QAction):
         self.__osc.shifted = self.action_shift_yes.isChecked()
-        self.signal_shift_achannels.emit()
+        self.signal_chged_shift.emit()
 
     def __do_pors(self, _: QAction):
         self.show_sec = self.action_pors_sec.isChecked()
-        self.signal_recalc_achannels.emit()
+        self.signal_chged_pors.emit()
 
     def __do_viewas(self, a: QAction):
         self.viewas = a.data()
         self.viewas_toolbutton.setDefaultAction(a)
-        self.signal_recalc_achannels.emit()
+        self.signal_chged_func.emit()
 
     def __do_ptr_add_tmp(self):
         uid = max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1  # generate new uid
         self.signal_ptr_add_tmp.emit(uid)  # create them ...
         self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and move
+
+    def __do_ptr_add_msr(self):
+        if sig_selected := SelectSignalsDialog(self.__osc.analog).execute():
+            for i in sig_selected:
+                uid = max(self.__msr_ptr) + 1 if self.__msr_ptr else 1
+                self.analog_table.add_ptr_msr(i, uid)  # FIXME: signals can be mixed and/or reordered
+                self.__msr_ptr.add(uid)
 
     def __sync_hresize(self, l_index: int, old_size: int, new_size: int):
         """
@@ -529,11 +587,11 @@ class ComtradeWidget(QWidget):
 
     def slot_ptr_edit_tmp(self, uid: int):
         v = self.i2x(self.__tmp_ptr_i[uid])
-        v_min = self.i2x(0)
-        v_max = self.i2x(self.i_max)
-        v_step = 1000 / self.__osc.raw.cfg.sample_rates[0][0]
         name = self.timeaxis_table.widget.get_tmp_ptr_name(uid)
-        form = TmpPtrDialog((v, v_min, v_max, v_step, name))
+        form = TmpPtrDialog((v, self.x_min, self.x_max, self.x_step, name))
         if form.exec_():
             self.timeaxis_table.widget.set_tmp_ptr_name(uid, form.f_name.text())
             self.signal_ptr_moved_tmp.emit(uid, self.x2i(form.f_val.value()))
+
+    def slot_ptr_del_msr(self, uid: int):
+        self.__msr_ptr.remove(uid)

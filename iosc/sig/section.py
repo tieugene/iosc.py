@@ -134,6 +134,7 @@ class SignalListTable(QTableWidget):
         event.ignore()  # warning: don't accept()!
 
     def __apply_row(self, row: int, i: int):
+        # TODO: add id to signal
         signal = self._slist[i]
         sa = SignalScrollArea(self)
         if signal.is_bool:
@@ -169,6 +170,10 @@ class SignalListTable(QTableWidget):
         for row in range(self.rowCount()):
             if not self.cellWidget(row, 0).signal.is_bool:
                 self.setRowHeight(row, int(self.rowHeight(row) / 1.2))
+
+    def add_ptr_msr(self, row: int, uid: int):
+        """Add xMsrPtr to signal #i"""
+        self.cellWidget(row, 1).widget().add_ptr_msr(uid)
 
 
 class HScroller(QScrollBar):

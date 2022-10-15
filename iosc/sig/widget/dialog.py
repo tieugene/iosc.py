@@ -3,11 +3,12 @@ from typing import Optional
 
 # 2. 3rd
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QDoubleValidator
+from PyQt5.QtGui import QColor, QDoubleValidator, QBrush
 from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QPushButton, QColorDialog, QLineEdit, \
-    QInputDialog, QWidget, QDoubleSpinBox
+    QInputDialog, QWidget, QDoubleSpinBox, QListWidget, QVBoxLayout, QListWidgetItem
 # 3. local
 from iosc.core import mycomtrade
+from iosc.core.mycomtrade import AnalogSignalList, StatusSignalList
 
 
 class SignalPropertiesDialog(QDialog):
@@ -132,7 +133,7 @@ class TmpPtrDialog(QDialog):
         self.f_val.setRange(data[1], data[2])
         self.f_val.setSingleStep(data[3])
         self.f_val.setDecimals(3)
-        self.f_val.setValue(data[0])
+        self.f_val.setValue(data[0])  # Note: after all
         self.f_name = QLineEdit(data[4], self)
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         # 3. set layout
@@ -147,3 +148,102 @@ class TmpPtrDialog(QDialog):
         self.button_box.rejected.connect(self.reject)
         # 5. go
         self.setWindowTitle("Tmp ptr properties")
+
+
+class SelectSignalsDialog(QDialog):
+    f_signals: QListWidget
+    button_all: QPushButton
+    button_none: QPushButton
+    buttons_select: QDialogButtonBox
+    button_box: QDialogButtonBox
+
+    def __init__(self, a_list: AnalogSignalList, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Select signals")
+        # 1. set widgets
+        self.button_all = QPushButton("Select all", self)
+        self.button_none = QPushButton("Clean", self)
+        self.buttons_select = QDialogButtonBox()
+        self.buttons_select.addButton(self.button_all, QDialogButtonBox.AcceptRole)
+        self.buttons_select.addButton(self.button_none, QDialogButtonBox.RejectRole)
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.f_signals = QListWidget()
+        self.f_signals.setSelectionMode(self.f_signals.MultiSelection)
+        for sig in a_list:
+            item = QListWidgetItem(sig.sid)
+            item.setFlags(item.flags() & (~Qt.ItemIsUserCheckable))
+            item.setCheckState(Qt.Unchecked)
+            item.setForeground(QColor(*sig.rgb))
+            self.f_signals.addItem(item)
+        # 3. set layout
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(self.buttons_select)
+        self.layout().addWidget(self.f_signals)
+        self.layout().addWidget(self.button_box)
+        # layout.setVerticalSpacing(0)
+        # 4. set signals
+        self.f_signals.itemSelectionChanged.connect(self.__slot_selection_changed)
+        self.buttons_select.accepted.connect(self.__slot_select_all)
+        self.buttons_select.rejected.connect(self.__slot_select_none)
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+
+    def __slot_selection_changed(self):
+        for i in range(self.f_signals.count()):
+            item = self.f_signals.item(i)
+            if item.isSelected():
+                if item.checkState() != Qt.Checked:
+                    item.setCheckState(Qt.Checked)
+            else:
+                if item.checkState() != Qt.Unchecked:
+                    item.setCheckState(Qt.Unchecked)
+
+    def __select(self, state: bool):
+        for i in range(self.f_signals.count()):
+            self.f_signals.item(i).setSelected(state)
+
+    def __slot_select_all(self):
+        self.__select(True)
+
+    def __slot_select_none(self):
+        self.__select(False)
+
+    def execute(self) -> list[int]:
+        retvalue = list()
+        if self.exec_():
+            for i in range(self.f_signals.count()):
+                if self.f_signals.item(i).isSelected():
+                    retvalue.append(i)
+        return retvalue
+
+
+class MsrPtrDialog(QDialog):
+    f_val: QDoubleSpinBox
+    f_func: QComboBox
+    button_box: QDialogButtonBox
+
+    def __init__(self, data: tuple[float, float, float, float, int], parent=None):
+        super().__init__(parent)
+        # 1. store args
+        # 2. set widgets
+        self.f_val = QDoubleSpinBox(self)
+        self.f_val.setRange(data[1], data[2])
+        self.f_val.setSingleStep(data[3])
+        self.f_val.setDecimals(3)
+        self.f_val.setValue(data[0])
+        self.f_func = QComboBox()
+        self.f_func.addItems(("As is", "Mid", "Effective", "H1", "H2", "H3", "H5"))
+        self.f_func.setCurrentIndex(data[4])
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        # 3. set layout
+        layout = QFormLayout(self)
+        layout.addRow("Value", self.f_val)
+        layout.addRow("Func", self.f_func)
+        layout.addRow(self.button_box)
+        layout.setVerticalSpacing(0)
+        self.setLayout(layout)
+        # 4. set signals
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        # 5. go
+        self.setWindowTitle("Msr ptr properties")

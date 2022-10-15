@@ -26,6 +26,7 @@ PEN_PTR_OLD = QPen(QBrush(Qt.black), 1, Qt.DashLine)  # Main/TmpPtr old position
 PEN_PTR_OMP = QPen(QBrush(Qt.magenta), 1)  # OMP SCPtr pen
 PEN_PTR_MAIN = QPen(BRUSH_PTR_MAIN, 1)  # MainPtr pen
 PEN_PTR_TMP = QPen(BRUSH_PTR_TMP, 1, Qt.DashLine)  # TmpPtr pen
+PENSTYLE_PTR_MSR = Qt.DashLine  # MsrPtr pen style
 RECT_PTR_HEIGHT = 20
 TICK_COUNT = 20
 Y_PAD = 0.1  # upper and lower Y-padding; 0.1 == 10%

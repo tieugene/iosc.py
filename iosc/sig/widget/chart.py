@@ -6,7 +6,7 @@ from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPPainter, QCPItemText, 
 import iosc.const
 from iosc.core import mycomtrade
 from iosc.sig.widget.ctrl import SignalCtrlWidget, AnalogSignalCtrlWidget
-from iosc.sig.widget.ptr import MainPtr, SCPtr, TmpPtr
+from iosc.sig.widget.ptr import MainPtr, SCPtr, TmpPtr, MsrPtr
 
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
@@ -190,7 +190,7 @@ class AnalogSignalChartWidget(SignalChartWidget):
         self.__vzoom = 1
         self.__pps = 0
         self.__rerange()
-        self._root.signal_shift_achannels.connect(self.__slot_shift)
+        self._root.signal_chged_shift.connect(self.__slot_shift)
         # self.__myscatter = NumScatterStyle()
 
     def _set_style(self):
@@ -246,3 +246,12 @@ class AnalogSignalChartWidget(SignalChartWidget):
             # </dirtyhack>
             self.__pps = pps
             self.replot()
+
+    def add_ptr_msr(self, uid: int):
+        msr_ptr = MsrPtr(self, self._root, self._signal, uid)
+        self._sibling.signal_restyled.connect(msr_ptr.slot_set_color)
+
+    def slot_ptr_del_msr(self, ptr: MsrPtr):
+        """Del MsrPtr"""
+        self.removeItem(ptr)
+        self.replot()

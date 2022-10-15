@@ -1,12 +1,13 @@
 from typing import Optional
 
 from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal, QPoint
-from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor
+from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor, QPen
 from PyQt5.QtWidgets import QWidget, QInputDialog, QMenu
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
 import iosc.const
-from iosc.sig.widget.dialog import get_new_omp_width, TmpPtrDialog
+from iosc.core import mycomtrade
+from iosc.sig.widget.dialog import get_new_omp_width, TmpPtrDialog, MsrPtrDialog
 
 
 class VLine(QCPItemStraightLine):
@@ -149,6 +150,7 @@ class SCPtr(Ptr):
 
 
 class _PowerPtr(Ptr):
+    """Pointer with tip and rectangle"""
     class _Tip(QCPItemText):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
@@ -252,7 +254,7 @@ class MainPtr(_PowerPtr):
 class TmpPtr(_PowerPtr):
     _uid: int
     signal_ptr_moved_tmp = pyqtSignal(int, int)
-    signal_ptr_del_tmp = pyqtSignal(int)
+    # signal_ptr_del_tmp = pyqtSignal(int)
     signal_ptr_edit_tmp = pyqtSignal(int)
 
     def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
@@ -260,7 +262,7 @@ class TmpPtr(_PowerPtr):
         self._uid = uid
         self.setPen(iosc.const.PEN_PTR_TMP)
         self.signal_ptr_moved_tmp.connect(self._root.slot_ptr_moved_tmp)
-        self.signal_ptr_del_tmp.connect(self._root.slot_ptr_del_tmp)
+        # self.signal_ptr_del_tmp.connect(self._root.slot_ptr_del_tmp)
         self.signal_ptr_edit_tmp.connect(self._root.slot_ptr_edit_tmp)
         self._root.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
@@ -288,4 +290,97 @@ class TmpPtr(_PowerPtr):
         if chosen_action == action_edit:
             self.signal_ptr_edit_tmp.emit(self._uid)
         elif chosen_action == action_del:
-            self.signal_ptr_del_tmp.emit(self._uid)
+            self._root.slot_ptr_del_tmp(self._uid)
+            # self.signal_ptr_del_tmp.emit(self.__uid)
+
+
+class MsrPtr(Ptr):
+
+    class _Tip(QCPItemText):
+        def __init__(self, cp: QCustomPlot):
+            super().__init__(cp)
+            self.setFont(QFont('mono', 8))
+            self.setPadding(QMargins(2, 2, 2, 2))
+            self.setTextAlignment(Qt.AlignCenter)
+            self.setColor(Qt.white)  # text
+            self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
+
+    FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
+    __uid: int  # uniq id of xMsrPtr
+    __signal: mycomtrade.AnalogSignal
+    __func_i: int  # value mode (function) number (in sigfunc.func_list[])
+    __tip: _Tip
+    signal_ptr_del_msr = pyqtSignal(int)
+
+    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int):
+        super().__init__(cp, root)
+        self.__uid = uid
+        self.__signal = signal
+        self.__func_i = root.viewas
+        self.__tip = self._Tip(cp)
+        self.setGraphKey(self._root.main_ptr_x)
+        self.updatePosition()
+        self.__set_color()
+        self.__move_tip()
+        self.selectionChanged.connect(self.__slot_selection_chg)
+        self._root.signal_chged_shift.connect(self.__slot_update_text)
+        self._root.signal_chged_pors.connect(self.__slot_update_text)
+        self.signal_rmb_clicked.connect(self.__slot_context_menu)
+
+    def __set_color(self):
+        pen = QPen(iosc.const.PENSTYLE_PTR_MSR)
+        color = QColor.fromRgb(*self.__signal.rgb)
+        pen.setColor(color)
+        self.setPen(pen)
+        self.__tip.setBrush(QBrush(color))  # rect
+
+    def __move_tip(self):
+        self.__tip.position.setCoords(self.x, 0)  # FIXME: y = top
+        self.__slot_update_text()
+
+    def __slot_selection_chg(self, selection: bool):
+        self._switch_cursor(selection)
+        self.parentPlot().replot()  # update selection decoration
+
+    def __slot_update_text(self):
+        v = self._root.sig2str(self.__signal, self.i, self.__func_i)  # was self.position.value()
+        m = self.FUNC_ABBR[self.__func_i]
+        self.__tip.setText("M%d: %s (%s)" % (self.__uid, v, m))
+        self.parentPlot().replot()
+
+    def slot_set_color(self):
+        self.__set_color()
+        self.parentPlot().replot()
+
+    def mouseMoveEvent(self, event: QMouseEvent, _):
+        event.accept()
+        x_ms: float = self._mouse2ms(event)
+        i_old: int = self.i
+        self.setGraphKey(x_ms)
+        self.updatePosition()  # mandatory
+        if i_old != self.i:
+            self.__move_tip()
+
+    def __slot_context_menu(self, pos: QPointF):
+        context_menu = QMenu()
+        action_edit = context_menu.addAction("Edit...")
+        action_del = context_menu.addAction("Delete")
+        point = self.parentPlot().mapToGlobal(pos.toPoint())
+        chosen_action = context_menu.exec_(point)
+        if chosen_action == action_edit:
+            self.__edit_self()
+        elif chosen_action == action_del:
+            self.__del_self()
+
+    def __del_self(self):
+        self._root.slot_ptr_del_msr(self.__uid)
+        self.parentPlot().removeItem(self.__tip)
+        self.parentPlot().slot_ptr_del_msr(self)  # dirty hack
+
+    def __edit_self(self):
+        form = MsrPtrDialog((self.x, self._root.x_min, self._root.x_max, self._root.x_step, self.__func_i))
+        if form.exec_():  # TODO: optimize
+            self.setGraphKey(form.f_val.value())
+            self.updatePosition()
+            self.__func_i = form.f_func.currentIndex()
+            self.__move_tip()
