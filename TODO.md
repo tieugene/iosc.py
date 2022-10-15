@@ -63,7 +63,8 @@ Behavior:
 - [x] Add
 - [x] Context menu
 - [x] Del
-- [ ] Edit
+- [x] Edit:
+  - [x] pors
 - [x] Refresh on change:
   + [x] color
   + [x] pors
