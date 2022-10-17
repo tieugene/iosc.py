@@ -48,6 +48,7 @@ class ComtradeWidget(QWidget):
     __shifted: bool  # original/shifted selector
     __chart_width: Optional[int]  # width (px) of nested QCP charts
     __xzoom: int
+    sig_no2widget: list  # Translate signal no to chart widget
     show_sec: bool  # pri/sec selector
     viewas: int  # TODO: enum
     # actions
@@ -108,6 +109,7 @@ class ComtradeWidget(QWidget):
         self.__shifted = False
         self.__chart_width = None  # wait for line_up
         self.__xzoom = 1
+        self.sig_no2widget = list()
         self.show_sec = True
         self.viewas = 0
         # ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
@@ -542,14 +544,14 @@ class ComtradeWidget(QWidget):
         if sig_selected := SelectSignalsDialog(self.__osc.analog).execute():
             for i in sig_selected:
                 uid = max(self.__msr_ptr) + 1 if self.__msr_ptr else 1
-                self.analog_table.add_ptr_msr(i, uid)  # FIXME: signals can be mixed and/or reordered
+                self.sig_no2widget[i].add_ptr_msr(uid)
                 self.__msr_ptr.add(uid)
 
     def __do_ptr_add_lvl(self):
         if sig_selected := SelectSignalsDialog(self.__osc.analog).execute():
             for i in sig_selected:
-                uid = max(self.__lvl_ptr) + 1 if self.__msr_ptr else 1
-                self.analog_table.add_ptr_lvl(i, uid)  # FIXME: signals can be mixed and/or reordered
+                uid = max(self.__lvl_ptr) + 1 if self.__lvl_ptr else 1
+                self.sig_no2widget[i].add_ptr_lvl(uid)
                 self.__lvl_ptr.add(uid)
 
     def __sync_hresize(self, l_index: int, old_size: int, new_size: int):

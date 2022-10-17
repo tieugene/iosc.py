@@ -139,14 +139,17 @@ class SignalListTable(QTableWidget):
         sa = SignalScrollArea(self)
         if signal.is_bool:
             self.setCellWidget(row, 0, ctrl := StatusSignalCtrlWidget(signal, self, self._parent))
-            sa.setWidget(StatusSignalChartWidget(signal, sa, self._parent, ctrl))
+            sw = StatusSignalChartWidget(signal, sa, self._parent, ctrl)
+            sa.setWidget(sw)
             self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_D)
         else:
             self.setCellWidget(row, 0, ctrl := AnalogSignalCtrlWidget(signal, self, self._parent))
-            sa.setWidget(AnalogSignalChartWidget(signal, sa, self._parent, ctrl))
+            sw = AnalogSignalChartWidget(signal, sa, self._parent, ctrl)
+            sa.setWidget(sw)
             self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_A)
+        self.parent().sig_no2widget.append(sw)
         self.setVerticalHeaderItem(row, QTableWidgetItem('↕'))
         self._parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
@@ -170,14 +173,6 @@ class SignalListTable(QTableWidget):
         for row in range(self.rowCount()):
             if not self.cellWidget(row, 0).signal.is_bool:
                 self.setRowHeight(row, int(self.rowHeight(row) / 1.2))
-
-    def add_ptr_msr(self, row: int, uid: int):
-        """Add xMsrPtr to signal #i"""
-        self.cellWidget(row, 1).widget().add_ptr_msr(uid)
-
-    def add_ptr_lvl(self, row: int, uid: int):
-        """Add xMsrPtr to signal #i"""
-        self.cellWidget(row, 1).widget().add_ptr_lvl(uid)
 
 
 class HScroller(QScrollBar):
