@@ -1,8 +1,29 @@
 # TODO
 
-Current job: [tmp](https://github.com/michDaven/AbScan-TechReq/blob/main/asciidoc1.adoc#23217-%D0%BF%D0%B5%D1%80%D0%B5%D0%BC%D0%B5%D1%89%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BE%D0%BA%D0%BD%D0%B0-%D0%BE%D1%82%D0%BE%D0%B1%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F-%D1%81%D0%B8%D0%B3%D0%BD%D0%B0%D0%BB%D0%B0-%D1%86%D0%B5%D0%BB%D0%B8%D0%BA%D0%BE%D0%BC)
+Current job: x-DnD
 
-## Привязка:
+## DnD:
+
+SignalListTable.dndDrop() finish:
+self/cross &times; None/ignore/accept = 9.
+
+s | x | s | x
+---|---|---|---
+ n | n | + | segfault
+ i | n | + | segfault
+ i | i | + | segfault
+ i | a | + | segfault
+ 
+Idea: неправильно ты бутерброд ешь, дядя Федор:
+- get proposed (event.proposedAction() == `copy`)
+- check available (event.possibleActions() == `copy`|`move`)
+- set requried (event.setProposedAction(move))
+- event.accept()
+
+Seems moving widget between rows doing _after_ old row deleted.
+And on x-Move widget is deleting
+ 
+## Associations:
 
 - row == csp
 - sig = graph
@@ -16,3 +37,4 @@ Current job: [tmp](https://github.com/michDaven/AbScan-TechReq/blob/main/asciido
 
 ### Misc:
 - V-scale: &hellip;
+

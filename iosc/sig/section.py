@@ -1,6 +1,6 @@
 """Mainwidget widget lists"""
 # 2. 3rd
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPoint, QModelIndex
 from PyQt5.QtGui import QDropEvent, QGuiApplication, QBrush
 from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem, QScrollBar
 # 3. local
@@ -82,23 +82,33 @@ class SignalListTable(QTableWidget):
         # self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         # self.verticalHeader().setSectionsMovable(True)
         # self.verticalHeader().hide()
+        self.setSelectionMode(self.SingleSelection)
+        self.setSelectionBehavior(self.SelectRows)
         # DnD
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
         self.viewport().setAcceptDrops(True)
         self.setDragDropOverwriteMode(False)
         self.setDropIndicatorShown(True)
-        self.setSelectionMode(self.SingleSelection)
-        self.setSelectionBehavior(self.SelectRows)
-        self.setDragDropMode(self.InternalMove)
+        self.setDragDropMode(self.DragDrop)  # was self.InternalMove
         for row in range(len(slist)):
-            # self.insertRow(row)
             self.__apply_row(row, row)
 
     def dropEvent(self, event: QDropEvent):
-        def _drop_on(__evt) -> int:
-            # TODO: detect to put over or insert B4
-            def _is_below(__pos, __idx) -> bool:
+        def _drop_on(__evt: QDropEvent) -> int:
+            """
+            ... where drop to
+            :param __evt: Drop event
+            :return: Row number dropped before
+            :todo: detect to put over or insert B4
+            """
+            def _is_below(__pos: QPoint, __idx: QModelIndex) -> bool:
+                """
+                Check whether drop below given row
+                :param __pos: Position of dropping
+                :param __idx: Index of row to check
+                :return: True if below
+                """
                 __rect = self.visualRect(__idx)
                 margin = 2
                 if __pos.y() - __rect.top() < margin:
@@ -114,24 +124,37 @@ class SignalListTable(QTableWidget):
                 return self.rowCount()
             return __index.row() + 1 if _is_below(__evt.pos(), __index) else __index.row()
 
-        if event.isAccepted() or event.source() is not self:
+        if event.isAccepted():
             super().dropEvent(event)
+            print("Already accepted")
             return
-        # FIXME: event.accept() and return if before self (like 2=>3)
-        dst_row_num = _drop_on(event)
-        src_row_num = self.selectedIndexes()[0].row()
+        event.setDropAction(Qt.MoveAction)
+        event.accept()
+        # FIXME: event.drop() and return if before[/after?] self (like 2=>3)
+        src_table: QTableWidget = event.source()
+        src_row_num: int = src_table.selectedIndexes()[0].row()
+        dst_row_num: int = _drop_on(event)
         # 1. add
         self.insertRow(dst_row_num)
-        if src_row_num > dst_row_num:
+        if (src_table == self) and (src_row_num > dst_row_num):  # move a) inside one table b) up
             src_row_num += 1
         # 2. copy
-        self.setCellWidget(dst_row_num, 0, self.cellWidget(src_row_num, 0))
-        self.setCellWidget(dst_row_num, 1, self.cellWidget(src_row_num, 1))
-        self.setRowHeight(dst_row_num, self.rowHeight(src_row_num))
+        ctrl = src_table.cellWidget(src_row_num, 0)
+        self.setCellWidget(dst_row_num, 0, ctrl)
+        # src_table.removeCellWidget(dst_row_num, 0)
+        chart = src_table.cellWidget(src_row_num, 1)
+        self.setCellWidget(dst_row_num, 1, chart)
+        # src_table.removeCellWidget(dst_row_num, 1)
+        self.setRowHeight(dst_row_num, src_table.rowHeight(src_row_num))
+        # FIXME: vheader
         # 3. rm
-        self.removeRow(src_row_num)
+        # src_table.removeRow(src_row_num)
         # x. that's all
-        event.ignore()  # warning: don't accept()!
+        return
+        if src_table == self:
+            event.ignore()  # warning: don't accept()!
+        else:
+            event.accept()
 
     def __apply_row(self, row: int, i: int):
         # TODO: add id to signal
@@ -150,7 +173,7 @@ class SignalListTable(QTableWidget):
             self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_A)
         self.parent().sig_no2widget.append(sw)
-        self.setVerticalHeaderItem(row, QTableWidgetItem('↕'))
+        # self.setVerticalHeaderItem(row, QTableWidgetItem('↕'))
         self._parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
     def slot_unhide(self):
