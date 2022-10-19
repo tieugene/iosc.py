@@ -270,16 +270,18 @@ class TmpPtr(_PowerPtr):
         super().__init__(cp, root)
         self._uid = uid
         self.setPen(iosc.const.PEN_PTR_TMP)
+        self.__slot_ptr_move(uid, self._root.tmp_ptr_i[uid], False)
         self.signal_ptr_moved_tmp.connect(self._root.slot_ptr_moved_tmp)
         # self.signal_ptr_del_tmp.connect(self._root.slot_ptr_del_tmp)
         self.signal_ptr_edit_tmp.connect(self._root.slot_ptr_edit_tmp)
         self._root.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
-    def __slot_ptr_move(self, uid: int, i: int):
+    def __slot_ptr_move(self, uid: int, i: int, replot: bool = True):
         if not self.selected() and uid == self._uid:  # check is not myself and myself
             self.setGraphKey(self._root.i2x(i))
-            self.parentPlot().replot()
+            if replot:
+                self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
         """

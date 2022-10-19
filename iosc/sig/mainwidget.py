@@ -4,7 +4,7 @@ RTFM context menu: examples/webenginewidgets/tabbedbrowser
 import cmath
 import math
 import pathlib
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QGuiApplication
@@ -161,6 +161,10 @@ class ComtradeWidget(QWidget):
     @property
     def sc_ptr_x(self) -> float:
         return self.i2x(self.__sc_ptr_i)
+
+    @property
+    def tmp_ptr_i(self) -> Dict[int, int]:
+        return self.__tmp_ptr_i
 
     @property
     def omp_width(self) -> int:
@@ -541,8 +545,9 @@ class ComtradeWidget(QWidget):
 
     def __do_ptr_add_tmp(self):
         uid = max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1  # generate new uid
+        self.__tmp_ptr_i[uid] = self.__main_ptr_i
         self.signal_ptr_add_tmp.emit(uid)  # create them ...
-        self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
+        # self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
 
     def __do_ptr_add_msr(self):
         if sig_selected := SelectSignalsDialog(self.__osc.analog).execute():

@@ -149,10 +149,12 @@ class SignalChartWidget(QCustomPlot):
         - [x] x-position (global)
         - [x] MainPtr (global, auto)
         - [x] SCPtr (global, auto)
-        - [ ] TmpPtr[]
+        - [x] TmpPtr[]
         """
         self._slot_chg_width(0, self._root.chart_width)  # x-width[+x-zoom]
         self.parent().parent().horizontalScrollBar().setValue(self._root.hsb.value())  # x-pos; WARNING: 2 x parent()
+        for uid in self._root.tmp_ptr_i.keys():  # TmpPtr[]
+            self._slot_ptr_add_tmp(uid)
         self.replot()
 
 

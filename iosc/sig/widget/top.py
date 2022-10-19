@@ -36,6 +36,7 @@ class PtrLabelMain(PtrLabel):
     def __init__(self, parent: QCustomPlot, root: QWidget):
         super().__init__(parent, root)
         self.setBrush(iosc.const.BRUSH_PTR_MAIN)  # rect
+        self.__slot_ptr_move(root.main_ptr_i)
         self._root.signal_ptr_moved_main.connect(self.__slot_ptr_move)
 
     def __slot_ptr_move(self, i: int):
@@ -51,6 +52,7 @@ class PtrLabelTmp(PtrLabel):
         self._uid = uid
         self._name = ''
         self.setBrush(iosc.const.BRUSH_PTR_TMP)  # rect
+        self.__slot_ptr_move(uid, root.tmp_ptr_i[uid])
         self._root.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
 
     def _mk_text(self, x: float):
