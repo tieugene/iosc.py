@@ -52,8 +52,7 @@ class SignalChartWidget(QCustomPlot):
     _tmp_ptr: dict[int, TmpPtr]
     _ptr_selected: bool
 
-    def __init__(self, signal: mycomtrade.Signal, parent: QScrollArea, root: QWidget,
-                 sibling: SignalCtrlWidget):
+    def __init__(self, signal: mycomtrade.Signal, parent: QScrollArea, root: QWidget, sibling: SignalCtrlWidget):
         super().__init__(parent)
         self._root = root
         self._sibling = sibling
@@ -144,10 +143,21 @@ class SignalChartWidget(QCustomPlot):
         del self._tmp_ptr[uid]
         self.replot()
 
+    def restore(self):
+        """Restore signal state:
+        - [x] x-width[, x-zoom] (global)
+        - [x] x-position (global)
+        - [x] MainPtr (global, auto)
+        - [x] SCPtr (global, auto)
+        - [ ] TmpPtr[]
+        """
+        self._slot_chg_width(0, self._root.chart_width)  # x-width[+x-zoom]
+        self.parent().parent().horizontalScrollBar().setValue(self._root.hsb.value())  # x-pos; WARNING: 2 x parent()
+        self.replot()
+
 
 class StatusSignalChartWidget(SignalChartWidget):
-    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
-                 sibling: SignalCtrlWidget):
+    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget, sibling: SignalCtrlWidget):
         super().__init__(signal, parent, root, sibling)
         self.yAxis.setRange(iosc.const.SIG_D_YMIN, iosc.const.SIG_D_YMAX)
 
@@ -264,3 +274,11 @@ class AnalogSignalChartWidget(SignalChartWidget):
         """Del LvlPtr"""
         self.removeItem(ptr)
         self.replot()
+
+    def restore(self):
+        """Restore signal state:
+        - MsrPtr[]
+        - LvlPtr[]
+        - v-zoom(self)
+        """
+        super().restore()

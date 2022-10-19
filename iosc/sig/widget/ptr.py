@@ -101,6 +101,7 @@ class SCPtr(Ptr):
         self.__pr_ptr = VLine(cp)
         self.__pr_ptr.setPen(iosc.const.PEN_PTR_OMP)
         self.__set_limits()
+        self.__slot_ptr_move(self._root.sc_ptr_i, False)
         self.selectionChanged.connect(self.__selection_chg)
         self.signal_ptr_moved.connect(self._root.slot_ptr_moved_sc)
         self._root.signal_ptr_moved_sc.connect(self.__slot_ptr_move)
@@ -117,11 +118,12 @@ class SCPtr(Ptr):
         self._switch_cursor(selection)
         self.parentPlot().replot()  # update selection decoration
 
-    def __slot_ptr_move(self, i: int):
+    def __slot_ptr_move(self, i: int, replot: bool = True):
         if not self.selected():  # check is not myself
             self.setGraphKey(self._root.i2x(i))
         self.__pr_ptr.move2x(self._root.i2x(i - self._root.omp_width * self._root.tpp))
-        self.parentPlot().replot()
+        if replot:
+            self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
         """
@@ -238,13 +240,15 @@ class MainPtr(_PowerPtr):
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp, root)
         self.setPen(iosc.const.PEN_PTR_MAIN)
+        self.slot_ptr_move(self._root.main_ptr_i, False)
         self.signal_ptr_moved.connect(self._root.slot_ptr_moved_main)
-        self._root.signal_ptr_moved_main.connect(self.__slot_ptr_move)
+        self._root.signal_ptr_moved_main.connect(self.slot_ptr_move)
 
-    def __slot_ptr_move(self, i: int):
+    def slot_ptr_move(self, i: int, replot: bool = True):
         if not self.selected():  # check is not myself
             self.setGraphKey(self._root.i2x(i))
-            self.parentPlot().replot()
+            if replot:
+                self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
         """

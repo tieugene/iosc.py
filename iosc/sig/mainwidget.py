@@ -100,8 +100,9 @@ class ComtradeWidget(QWidget):
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
         self.__osc = rec
-        self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
+        self.__tpp = int(round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency))
         self.__main_ptr_i = self.x2i(0.0)  # default: Z
+        self.__sc_ptr_i = self.__main_ptr_i + 2 * self.__tpp
         self.__tmp_ptr_i = dict()
         self.__msr_ptr = set()
         self.__lvl_ptr = set()
@@ -109,7 +110,7 @@ class ComtradeWidget(QWidget):
         self.__shifted = False
         self.__chart_width = None  # wait for line_up
         self.__xzoom = 1
-        self.sig_no2widget = list()
+        self.sig_no2widget = [None] * len(self.__osc.analog)
         self.show_sec = True
         self.viewas = 0
         # ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
@@ -123,7 +124,7 @@ class ComtradeWidget(QWidget):
         self.__mk_connections()
         # sync: default z-point
         # self.signal_ptr_moved_main.emit()
-        self.slot_ptr_moved_sc(self.__main_ptr_i + 2 * self.__tpp)  # TODO: chk limit
+        # self.slot_ptr_moved_sc()  # TODO: chk limit
 
     @property
     def tpp(self) -> int:
@@ -234,6 +235,9 @@ class ComtradeWidget(QWidget):
         self.analog_table = SignalListTable(self.__osc.analog, self)
         self.status_table = SignalListTable(self.__osc.status, self)
         self.statusbar_table = StatusBarTable(self.__osc, self)
+        # debug
+        self.analog_table.s_id = 'analog'
+        self.status_table.s_id = 'status'
 
     def __mk_actions(self):
         self.action_close = QAction(QIcon.fromTheme("window-close"),
