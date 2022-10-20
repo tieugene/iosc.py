@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtGui import QResizeEvent, QMouseEvent, QBrush, QColor, QFont, QPen
@@ -288,8 +289,10 @@ class AnalogSignalChartWidget(SignalChartWidget):
         self.removeItem(ptr)
         self.replot()
 
-    def add_ptr_lvl(self, uid: int):
-        lvl_ptr = LvlPtr(self, self._root, self._signal, uid)
+    def add_ptr_lvl(self, uid: int, y: Optional[float] = None):
+        if y is None:
+            y = max(self._signal.value)
+        lvl_ptr = LvlPtr(self, self._root, self._signal, uid, y)
         self._sibling.signal_restyled.connect(lvl_ptr.slot_set_color)
 
     def slot_ptr_del_lvl(self, ptr: LvlPtr):
@@ -317,11 +320,13 @@ class AnalogSignalChartWidget(SignalChartWidget):
 
     def restore(self, state: State):
         """Restore signal state:
-        - v-zoom(self)
-        - v-position
-        - MsrPtr[]
-        - LvlPtr[]
+        - [ ] v-zoom(self)
+        - [ ] v-position
+        - [x] MsrPtr[]
+        - [x] LvlPtr[]
         """
         super().restore(state)
         for s in state.msr_ptr:
             self.add_ptr_msr(s.uid, s.i)
+        for s in state.lvl_ptr:
+            self.add_ptr_lvl(s.uid, s.y)

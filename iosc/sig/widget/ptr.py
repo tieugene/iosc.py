@@ -427,7 +427,7 @@ class LvlPtr(QCPItemStraightLine):
     __tip: _Tip
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int):
+    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, y: float):
         super().__init__(cp)
         self.setPen(iosc.const.PEN_PTR_OMP)
         self.__root = root
@@ -435,7 +435,7 @@ class LvlPtr(QCPItemStraightLine):
         self.__uid = uid
         self.__tip = self._Tip(cp)
         self.__set_color()
-        self.__move(max(self.__signal.value))
+        self.__move(y)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
         # self.__root.signal_chged_shift.connect(self.__slot_update_text)  # behavior undefined
         self.__root.signal_chged_pors.connect(self.__slot_update_text)
