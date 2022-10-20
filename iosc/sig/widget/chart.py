@@ -313,7 +313,7 @@ class AnalogSignalChartWidget(SignalChartWidget):
         return self.State(
             signal=self._signal,
             v_zoom=self.__vzoom,
-            v_pos=self.parent().parent().verticalScrollBar,
+            v_pos=self.parent().parent().verticalScrollBar().value(),
             msr_ptr=msr_ptr,
             lvl_ptr=lvl_ptr
         )
@@ -330,3 +330,7 @@ class AnalogSignalChartWidget(SignalChartWidget):
             self.add_ptr_msr(s.uid, s.i)
         for s in state.lvl_ptr:
             self.add_ptr_lvl(s.uid, s.y)
+        if state.v_zoom > 1:
+            self.zoom = state.v_zoom
+            self.parent().parent().verticalScrollBar().setValue(state.v_pos)
+            self._sibling.vzoom_sync()
