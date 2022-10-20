@@ -150,21 +150,20 @@ class AnalogSignalCtrlWidget(SignalCtrlWidget):
         """Update ctrl widget value depending on pri/sec and value type"""
         self._f_value.setText(self._root.sig2str_i(self._signal, self._root.main_ptr_i, self._root.viewas))
 
+    def vzoom_sync(self):
+        self._b_zoom_0.setEnabled(self.sibling.zoom > 1)
+        self._b_zoom_out.setEnabled(self.sibling.zoom > 1)
+
     def slot_vzoom_in(self):
-        if self.sibling.zoom == 1:
-            self._b_zoom_0.setEnabled(True)
-            self._b_zoom_out.setEnabled(True)
         self.sibling.zoom += 1
+        self.vzoom_sync()
 
     def slot_vzoom_0(self):
         if self.sibling.zoom > 1:
             self.sibling.zoom = 1
-            self._b_zoom_0.setEnabled(False)
-            self._b_zoom_out.setEnabled(False)
+            self.vzoom_sync()
 
     def slot_vzoom_out(self):
         if self.sibling.zoom > 1:
             self.sibling.zoom -= 1
-            if self.sibling.zoom == 1:
-                self._b_zoom_0.setEnabled(False)
-                self._b_zoom_out.setEnabled(False)
+            self.vzoom_sync()

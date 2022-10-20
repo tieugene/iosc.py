@@ -1,7 +1,9 @@
 """Mainwidget widget lists"""
+from typing import Union
+
 # 2. 3rd
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QDropEvent, QGuiApplication, QBrush
+from PyQt5.QtCore import Qt, QPoint, QModelIndex, pyqtSignal
+from PyQt5.QtGui import QDropEvent, QGuiApplication
 from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem, QScrollBar
 # 3. local
 import iosc.const
@@ -58,10 +60,12 @@ class StatusBarTable(OneRowTable):
 
 
 class SignalListTable(QTableWidget):
-    _slist: mycomtrade.SignalList
+    s_id: str  # for debug
+    _slist: Union[mycomtrade.StatusSignalList, mycomtrade.AnalogSignalList]
     _parent: QWidget
+    signal_rmrow = pyqtSignal(int)
 
-    def __init__(self, slist: mycomtrade.SignalList, parent):
+    def __init__(self, slist: Union[mycomtrade.StatusSignalList, mycomtrade.AnalogSignalList], parent):
         super().__init__(parent)
         self._slist = slist
         self._parent = parent
@@ -71,7 +75,8 @@ class SignalListTable(QTableWidget):
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # not helps
         self.verticalHeader().setMinimumSectionSize(iosc.const.SIG_HEIGHT_MIN)
-        self.verticalHeader().setMaximumSectionSize(int(QGuiApplication.screens()[0].availableGeometry().height()*2/3))
+        self.verticalHeader().setMaximumSectionSize(
+            int(QGuiApplication.screens()[0].availableGeometry().height() * 2 / 3))
         # self.setAutoScroll(False)
         self.setColumnWidth(0, iosc.const.COL0_WIDTH)
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)
@@ -82,23 +87,36 @@ class SignalListTable(QTableWidget):
         # self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         # self.verticalHeader().setSectionsMovable(True)
         # self.verticalHeader().hide()
+        self.setSelectionMode(self.SingleSelection)
+        self.setSelectionBehavior(self.SelectRows)
         # DnD
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
         self.viewport().setAcceptDrops(True)
         self.setDragDropOverwriteMode(False)
         self.setDropIndicatorShown(True)
-        self.setSelectionMode(self.SingleSelection)
-        self.setSelectionBehavior(self.SelectRows)
-        self.setDragDropMode(self.InternalMove)
+        self.setDragDropMode(self.DragDrop)  # was self.InternalMove
         for row in range(len(slist)):
-            # self.insertRow(row)
-            self.__apply_row(row, row)
+            self.__apply_row(row, self._slist[row])
+        self.signal_rmrow.connect(self.removeRow)
+        self.s_id = 'base'
 
     def dropEvent(self, event: QDropEvent):
-        def _drop_on(__evt) -> int:
-            # TODO: detect to put over or insert B4
-            def _is_below(__pos, __idx) -> bool:
+        def _drop_on(__evt: QDropEvent) -> int:
+            """
+            ... where drop to
+            :param __evt: Drop event
+            :return: Row number dropped before
+            :todo: detect to put over or insert B4
+            """
+
+            def _is_below(__pos: QPoint, __idx: QModelIndex) -> bool:
+                """
+                Check whether drop below given row
+                :param __pos: Position of dropping
+                :param __idx: Index of row to check
+                :return: True if below
+                """
                 __rect = self.visualRect(__idx)
                 margin = 2
                 if __pos.y() - __rect.top() < margin:
@@ -114,33 +132,46 @@ class SignalListTable(QTableWidget):
                 return self.rowCount()
             return __index.row() + 1 if _is_below(__evt.pos(), __index) else __index.row()
 
-        if event.isAccepted() or event.source() is not self:
+        def _i_move(__src_row_num: int):
+            # copy widgets
+            self.setCellWidget(dst_row_num, 0, src_table.cellWidget(__src_row_num, 0))
+            self.setCellWidget(dst_row_num, 1, src_table.cellWidget(__src_row_num, 1))
+            self.setVerticalHeaderItem(dst_row_num, QTableWidgetItem('↕'))
+
+        def _x_move(__src_row_num: int):
+            state = src_table.cellWidget(__src_row_num, 1).widget().state  # save old
+            src_table.removeRow(__src_row_num)  # remove old
+            self.__apply_row(dst_row_num, state.signal)  # mk new
+            self.cellWidget(dst_row_num, 1).widget().restore(state)  # restore new
+
+        if event.isAccepted():
             super().dropEvent(event)
             return
-        # FIXME: event.accept() and return if before self (like 2=>3)
-        dst_row_num = _drop_on(event)
-        src_row_num = self.selectedIndexes()[0].row()
+        # FIXME: event.drop() and return if before[/after?] self (like 2=>3)
+        event.setDropAction(Qt.MoveAction)
+        event.accept()
+        src_table: QTableWidget = event.source()
+        src_row_num: int = src_table.selectedIndexes()[0].row()
+        dst_row_num: int = _drop_on(event)
         # 1. add
         self.insertRow(dst_row_num)
-        if src_row_num > dst_row_num:
-            src_row_num += 1
-        # 2. copy
-        self.setCellWidget(dst_row_num, 0, self.cellWidget(src_row_num, 0))
-        self.setCellWidget(dst_row_num, 1, self.cellWidget(src_row_num, 1))
-        self.setRowHeight(dst_row_num, self.rowHeight(src_row_num))
-        # 3. rm
-        self.removeRow(src_row_num)
-        # x. that's all
-        event.ignore()  # warning: don't accept()!
+        if src_table == self:
+            _i_move(src_row_num + 1 if src_row_num > dst_row_num else src_row_num)
+        else:
+            _x_move(src_row_num)
+        self.setRowHeight(dst_row_num, src_table.rowHeight(src_row_num))
 
-    def __apply_row(self, row: int, i: int):
-        # TODO: add id to signal
-        signal = self._slist[i]
+    def __apply_row(self, row: int, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]):
+        """
+
+        :param row: Row number of this table
+        :param signal: signal number in
+        :return:
+        """
         sa = SignalScrollArea(self)
         if signal.is_bool:
             self.setCellWidget(row, 0, ctrl := StatusSignalCtrlWidget(signal, self, self._parent))
-            sw = StatusSignalChartWidget(signal, sa, self._parent, ctrl)
-            sa.setWidget(sw)
+            sa.setWidget(StatusSignalChartWidget(signal, sa, self._parent, ctrl))
             self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_D)
         else:
@@ -149,7 +180,7 @@ class SignalListTable(QTableWidget):
             sa.setWidget(sw)
             self.setCellWidget(row, 1, sa)
             self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_A)
-        self.parent().sig_no2widget.append(sw)
+            self._parent.sig_no2widget[signal.i] = sw  # TODO: now 1 row == 1 signal
         self.setVerticalHeaderItem(row, QTableWidgetItem('↕'))
         self._parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
@@ -182,6 +213,7 @@ class HScroller(QScrollBar):
     - StatuBarTable.__init__()
     - SignalListTable.__init__()
     """
+
     def __init__(self, parent: QWidget):
         """
         :param parent:

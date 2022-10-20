@@ -12,6 +12,9 @@ from maintabber import ComtradeTabWidget, MAIN_TAB
 
 # x. const
 MAIN_MENU = True  # FIXME: False => hot keys not work
+ABOUT_STR = '''Qt powered comtrade viewer/analyzer.<br/>
+Developed for <a href="https://ntkpribor.ru/">&laquo;NTK Priborenergo&raquo;, Ltd.</a><br/>
+<sub>&copy; <a href="https://www.eap.su">TI_Eugene</a></sub>'''
 
 
 class MainWindow(QMainWindow):
@@ -33,7 +36,7 @@ class MainWindow(QMainWindow):
     def create_widgets(self):
         self.tabs = ComtradeTabWidget(self)
         self.setCentralWidget(self.tabs)
-        self.act_bar = QToolBar(self)
+        # self.act_bar = QToolBar(self)
 
     def create_actions(self):
         self.actExit = QAction(QIcon.fromTheme("application-exit"),
@@ -58,17 +61,19 @@ class MainWindow(QMainWindow):
         menu_file = self.menuBar().addMenu("&File")
         menu_file.addAction(self.actFileOpen)
         menu_file.addAction(self.actExit)
+        menu_help = self.menuBar().addMenu("&Help")
+        menu_help.addAction(self.actAbout)
         self.menuBar().setVisible(MAIN_MENU)
-        self.act_bar.addAction(self.actFileOpen)
-        self.act_bar.addAction(self.actAbout)
-        self.act_bar.addAction(self.actExit)
-        self.act_bar.setOrientation(Qt.Vertical)
-        self.act_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        # self.act_bar.addAction(self.actFileOpen)
+        # self.act_bar.addAction(self.actAbout)
+        # self.act_bar.addAction(self.actExit)
+        # self.act_bar.setOrientation(Qt.Vertical)
+        # self.act_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
     def __mk_layout(self):
         main_tab = QWidget()
         main_tab.setLayout(QHBoxLayout())
-        main_tab.layout().addWidget(self.act_bar)
+        # main_tab.layout().addWidget(self.act_bar)
         main_tab.layout().addWidget(QWidget())
         if MAIN_TAB:
             self.tabs.addTab(main_tab, "File")
@@ -89,7 +94,10 @@ class MainWindow(QMainWindow):
 
     # actions
     def do_about(self):
-        QMessageBox.about(self, "About iOsc.py", "Qt powered comtrade viewer/analyzer.")
+        # QMessageBox.about(self, "About iOsc.py", ABOUT_STR)
+        dialog = QMessageBox(QMessageBox.Information, "About iOsc.py", ABOUT_STR, QMessageBox.Ok, self)
+        dialog.setTextFormat(Qt.RichText)
+        dialog.exec_()
 
     def do_file_open(self):
         fn = QFileDialog.getOpenFileName(

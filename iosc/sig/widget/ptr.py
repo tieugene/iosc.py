@@ -1,8 +1,9 @@
+from dataclasses import dataclass
 from typing import Optional
 
-from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal, QPoint
+from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal
 from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor, QPen
-from PyQt5.QtWidgets import QWidget, QInputDialog, QMenu
+from PyQt5.QtWidgets import QWidget, QMenu
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
 import iosc.const
@@ -101,6 +102,7 @@ class SCPtr(Ptr):
         self.__pr_ptr = VLine(cp)
         self.__pr_ptr.setPen(iosc.const.PEN_PTR_OMP)
         self.__set_limits()
+        self.__slot_ptr_move(self._root.sc_ptr_i, False)
         self.selectionChanged.connect(self.__selection_chg)
         self.signal_ptr_moved.connect(self._root.slot_ptr_moved_sc)
         self._root.signal_ptr_moved_sc.connect(self.__slot_ptr_move)
@@ -117,11 +119,12 @@ class SCPtr(Ptr):
         self._switch_cursor(selection)
         self.parentPlot().replot()  # update selection decoration
 
-    def __slot_ptr_move(self, i: int):
+    def __slot_ptr_move(self, i: int, replot: bool = True):
         if not self.selected():  # check is not myself
             self.setGraphKey(self._root.i2x(i))
         self.__pr_ptr.move2x(self._root.i2x(i - self._root.omp_width * self._root.tpp))
-        self.parentPlot().replot()
+        if replot:
+            self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
         """
@@ -238,13 +241,15 @@ class MainPtr(_PowerPtr):
     def __init__(self, cp: QCustomPlot, root: QWidget):
         super().__init__(cp, root)
         self.setPen(iosc.const.PEN_PTR_MAIN)
+        self.slot_ptr_move(self._root.main_ptr_i, False)
         self.signal_ptr_moved.connect(self._root.slot_ptr_moved_main)
-        self._root.signal_ptr_moved_main.connect(self.__slot_ptr_move)
+        self._root.signal_ptr_moved_main.connect(self.slot_ptr_move)
 
-    def __slot_ptr_move(self, i: int):
+    def slot_ptr_move(self, i: int, replot: bool = True):
         if not self.selected():  # check is not myself
             self.setGraphKey(self._root.i2x(i))
-            self.parentPlot().replot()
+            if replot:
+                self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
         """
@@ -266,16 +271,18 @@ class TmpPtr(_PowerPtr):
         super().__init__(cp, root)
         self._uid = uid
         self.setPen(iosc.const.PEN_PTR_TMP)
+        self.__slot_ptr_move(uid, self._root.tmp_ptr_i[uid], False)
         self.signal_ptr_moved_tmp.connect(self._root.slot_ptr_moved_tmp)
         # self.signal_ptr_del_tmp.connect(self._root.slot_ptr_del_tmp)
         self.signal_ptr_edit_tmp.connect(self._root.slot_ptr_edit_tmp)
         self._root.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
-    def __slot_ptr_move(self, uid: int, i: int):
+    def __slot_ptr_move(self, uid: int, i: int, replot: bool = True):
         if not self.selected() and uid == self._uid:  # check is not myself and myself
             self.setGraphKey(self._root.i2x(i))
-            self.parentPlot().replot()
+            if replot:
+                self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
         """
@@ -300,6 +307,10 @@ class TmpPtr(_PowerPtr):
 
 
 class MsrPtr(Ptr):
+    @dataclass
+    class State:
+        uid: int
+        i: int
 
     class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
@@ -314,13 +325,13 @@ class MsrPtr(Ptr):
     __tip: _Tip
     signal_ptr_del_msr = pyqtSignal(int)
 
-    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int):
+    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, i: int):
         super().__init__(cp, root)
         self.__uid = uid
         self.__signal = signal
         self.__func_i = root.viewas
         self.__tip = self._Tip(cp)
-        self.setGraphKey(self._root.main_ptr_x)
+        self.setGraphKey(root.i2x(i))
         self.updatePosition()
         self.__set_color()
         self.__move_tip()
@@ -328,6 +339,10 @@ class MsrPtr(Ptr):
         self._root.signal_chged_shift.connect(self.__slot_update_text)
         self._root.signal_chged_pors.connect(self.__slot_update_text)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
+
+    @property
+    def uid(self) -> int:
+        return self.__uid
 
     def __set_color(self):
         pen = QPen(iosc.const.PENSTYLE_PTR_MSR)
@@ -387,20 +402,32 @@ class MsrPtr(Ptr):
             self.__func_i = form.f_func.currentIndex()
             self.__move_tip()
 
+    @property
+    def state(self) -> State:
+        return self.State(
+            uid=self.__uid,
+            i=self.i
+        )
+
 
 class LvlPtr(QCPItemStraightLine):
+    @dataclass
+    class State:
+        uid: int
+        y: float
 
     class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
             self.setColor(Qt.white)  # text
+
     __root: QWidget
     __signal: mycomtrade.AnalogSignal
     __uid: int  # uniq id
     __tip: _Tip
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int):
+    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, y: float):
         super().__init__(cp)
         self.setPen(iosc.const.PEN_PTR_OMP)
         self.__root = root
@@ -408,10 +435,14 @@ class LvlPtr(QCPItemStraightLine):
         self.__uid = uid
         self.__tip = self._Tip(cp)
         self.__set_color()
-        self.__move(max(self.__signal.value))
+        self.__move(y)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
         # self.__root.signal_chged_shift.connect(self.__slot_update_text)  # behavior undefined
         self.__root.signal_chged_pors.connect(self.__slot_update_text)
+
+    @property
+    def uid(self) -> int:
+        return self.__uid
 
     @property
     def y(self) -> float:
@@ -494,3 +525,10 @@ class LvlPtr(QCPItemStraightLine):
     def slot_set_color(self):
         self.__set_color()
         self.parentPlot().replot()
+
+    @property
+    def state(self) -> State:
+        return self.State(
+            uid=self.__uid,
+            y=self.y
+        )

@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from typing import Optional, Union
+
 from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtGui import QResizeEvent, QMouseEvent, QBrush, QColor, QFont, QPen
 from PyQt5.QtWidgets import QScrollArea, QLabel, QWidget, QTableWidget
@@ -44,16 +47,20 @@ class SignalScrollArea(QScrollArea):
 
 
 class SignalChartWidget(QCustomPlot):
+    @dataclass
+    class State:
+        signal: mycomtrade.Signal
+
     _root: QWidget
     _sibling: SignalCtrlWidget
-    _signal: mycomtrade.Signal
+    _signal: Union[mycomtrade.AnalogSignal, mycomtrade.StatusSignal]
     _main_ptr: MainPtr
     _sc_ptr: SCPtr
     _tmp_ptr: dict[int, TmpPtr]
     _ptr_selected: bool
 
-    def __init__(self, signal: mycomtrade.Signal, parent: QScrollArea, root: QWidget,
-                 sibling: SignalCtrlWidget):
+    def __init__(self, signal: Union[mycomtrade.AnalogSignal, mycomtrade.StatusSignal], parent: QScrollArea,
+                 root: QWidget, sibling: SignalCtrlWidget):
         super().__init__(parent)
         self._root = root
         self._sibling = sibling
@@ -144,10 +151,29 @@ class SignalChartWidget(QCustomPlot):
         del self._tmp_ptr[uid]
         self.replot()
 
+    @property
+    def state(self) -> State:
+        return self.State(
+            signal=self._signal
+        )
+
+    def restore(self, state: State):
+        """Restore signal state:
+        - [x] x-width[, x-zoom] (global)
+        - [x] x-position (global)
+        - [x] MainPtr (global, auto)
+        - [x] SCPtr (global, auto)
+        - [x] TmpPtr[]
+        """
+        self._slot_chg_width(0, self._root.chart_width)  # x-width[+x-zoom]
+        self.parent().parent().horizontalScrollBar().setValue(self._root.hsb.value())  # x-pos; WARNING: 2 x parent()
+        for uid in self._root.tmp_ptr_i.keys():  # TmpPtr[]
+            self._slot_ptr_add_tmp(uid)
+        self.replot()
+
 
 class StatusSignalChartWidget(SignalChartWidget):
-    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
-                 sibling: SignalCtrlWidget):
+    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget, sibling: SignalCtrlWidget):
         super().__init__(signal, parent, root, sibling)
         self.yAxis.setRange(iosc.const.SIG_D_YMIN, iosc.const.SIG_D_YMAX)
 
@@ -181,6 +207,14 @@ class ScatterLabel(QCPItemText):
 
 
 class AnalogSignalChartWidget(SignalChartWidget):
+    @dataclass
+    class State(SignalChartWidget.State):
+        v_zoom: int
+        v_pos: int
+        msr_ptr: list[MsrPtr.State]  # uid, x_idx
+        lvl_ptr: list[LvlPtr.State]  # uid, y
+
+    _signal: mycomtrade.AnalogSignal
     __vzoom: int
     __pps: int  # px/sample
     # __myscatter: NumScatterStyle
@@ -247,8 +281,8 @@ class AnalogSignalChartWidget(SignalChartWidget):
             self.__pps = pps
             self.replot()
 
-    def add_ptr_msr(self, uid: int):
-        msr_ptr = MsrPtr(self, self._root, self._signal, uid)
+    def add_ptr_msr(self, uid: int, i: int):
+        msr_ptr = MsrPtr(self, self._root, self._signal, uid, i)
         self._sibling.signal_restyled.connect(msr_ptr.slot_set_color)
 
     def slot_ptr_del_msr(self, ptr: MsrPtr):
@@ -256,11 +290,48 @@ class AnalogSignalChartWidget(SignalChartWidget):
         self.removeItem(ptr)
         self.replot()
 
-    def add_ptr_lvl(self, uid: int):
-        lvl_ptr = LvlPtr(self, self._root, self._signal, uid)
+    def add_ptr_lvl(self, uid: int, y: Optional[float] = None):
+        if y is None:
+            y = max(self._signal.value)
+        lvl_ptr = LvlPtr(self, self._root, self._signal, uid, y)
         self._sibling.signal_restyled.connect(lvl_ptr.slot_set_color)
 
     def slot_ptr_del_lvl(self, ptr: LvlPtr):
         """Del LvlPtr"""
         self.removeItem(ptr)
         self.replot()
+
+    @property
+    def state(self) -> State:
+        msr_ptr = []
+        lvl_ptr = []
+        for i in range(self.itemCount()):
+            item = self.item(i)
+            if isinstance(item, MsrPtr):
+                msr_ptr.append(item.state)
+            elif isinstance(item, LvlPtr):
+                lvl_ptr.append(item.state)
+        return self.State(
+            signal=self._signal,
+            v_zoom=self.__vzoom,
+            v_pos=self.parent().parent().verticalScrollBar().value(),
+            msr_ptr=msr_ptr,
+            lvl_ptr=lvl_ptr
+        )
+
+    def restore(self, state: State):
+        """Restore signal state:
+        - [x] v-zoom(self)
+        - [x] v-position
+        - [x] MsrPtr[]
+        - [x] LvlPtr[]
+        """
+        super().restore(state)
+        for s in state.msr_ptr:
+            self.add_ptr_msr(s.uid, s.i)
+        for s in state.lvl_ptr:
+            self.add_ptr_lvl(s.uid, s.y)
+        if state.v_zoom > 1:
+            self.zoom = state.v_zoom
+            self.parent().parent().verticalScrollBar().setValue(state.v_pos)
+            self._sibling.vzoom_sync()
