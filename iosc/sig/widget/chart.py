@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union
 
 from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtGui import QResizeEvent, QMouseEvent, QBrush, QColor, QFont, QPen
@@ -53,13 +53,14 @@ class SignalChartWidget(QCustomPlot):
 
     _root: QWidget
     _sibling: SignalCtrlWidget
-    _signal: mycomtrade.Signal
+    _signal: Union[mycomtrade.AnalogSignal, mycomtrade.StatusSignal]
     _main_ptr: MainPtr
     _sc_ptr: SCPtr
     _tmp_ptr: dict[int, TmpPtr]
     _ptr_selected: bool
 
-    def __init__(self, signal: mycomtrade.Signal, parent: QScrollArea, root: QWidget, sibling: SignalCtrlWidget):
+    def __init__(self, signal: Union[mycomtrade.AnalogSignal, mycomtrade.StatusSignal], parent: QScrollArea,
+                 root: QWidget, sibling: SignalCtrlWidget):
         super().__init__(parent)
         self._root = root
         self._sibling = sibling
@@ -320,8 +321,8 @@ class AnalogSignalChartWidget(SignalChartWidget):
 
     def restore(self, state: State):
         """Restore signal state:
-        - [ ] v-zoom(self)
-        - [ ] v-position
+        - [x] v-zoom(self)
+        - [x] v-position
         - [x] MsrPtr[]
         - [x] LvlPtr[]
         """

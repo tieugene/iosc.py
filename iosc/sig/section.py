@@ -75,7 +75,8 @@ class SignalListTable(QTableWidget):
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # not helps
         self.verticalHeader().setMinimumSectionSize(iosc.const.SIG_HEIGHT_MIN)
-        self.verticalHeader().setMaximumSectionSize(int(QGuiApplication.screens()[0].availableGeometry().height()*2/3))
+        self.verticalHeader().setMaximumSectionSize(
+            int(QGuiApplication.screens()[0].availableGeometry().height() * 2 / 3))
         # self.setAutoScroll(False)
         self.setColumnWidth(0, iosc.const.COL0_WIDTH)
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)
@@ -108,6 +109,7 @@ class SignalListTable(QTableWidget):
             :return: Row number dropped before
             :todo: detect to put over or insert B4
             """
+
             def _is_below(__pos: QPoint, __idx: QModelIndex) -> bool:
                 """
                 Check whether drop below given row
@@ -211,6 +213,7 @@ class HScroller(QScrollBar):
     - StatuBarTable.__init__()
     - SignalListTable.__init__()
     """
+
     def __init__(self, parent: QWidget):
         """
         :param parent:
