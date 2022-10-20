@@ -41,7 +41,7 @@ class ComtradeWidget(QWidget):
     # inner vars
     __main_ptr_i: int  # current Main Ptr index in source arrays
     __sc_ptr_i: int  # current OMP SC Ptr index in source arrays
-    __tmp_ptr_i: dict[int, int]  # current Tmp Ptr indexes in source arrays: ptr_uid => idx
+    __tmp_ptr_i: dict[int, int]  # current Tmp Ptr indexes in source arrays: ptr_uid => x_idx
     __msr_ptr: set[int]  # MsrPtr uids
     __lvl_ptr: set[int]  # LvlPtr uids
     __omp_width: int  # distance from OMP PR and SC pointers, periods

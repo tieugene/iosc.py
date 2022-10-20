@@ -1,8 +1,8 @@
 from typing import Optional
 
-from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal, QPoint
+from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal
 from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor, QPen
-from PyQt5.QtWidgets import QWidget, QInputDialog, QMenu
+from PyQt5.QtWidgets import QWidget, QMenu
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
 # 4. local
 import iosc.const
@@ -335,6 +335,10 @@ class MsrPtr(Ptr):
         self._root.signal_chged_pors.connect(self.__slot_update_text)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
+    @property
+    def uid(self) -> int:
+        return self.__uid
+
     def __set_color(self):
         pen = QPen(iosc.const.PENSTYLE_PTR_MSR)
         color = QColor.fromRgb(*self.__signal.rgb)
@@ -418,6 +422,10 @@ class LvlPtr(QCPItemStraightLine):
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
         # self.__root.signal_chged_shift.connect(self.__slot_update_text)  # behavior undefined
         self.__root.signal_chged_pors.connect(self.__slot_update_text)
+
+    @property
+    def uid(self) -> int:
+        return self.__uid
 
     @property
     def y(self) -> float:

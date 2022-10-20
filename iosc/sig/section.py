@@ -1,10 +1,9 @@
 """Mainwidget widget lists"""
-import copy
 from typing import Union
 
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QModelIndex, pyqtSignal
-from PyQt5.QtGui import QDropEvent, QGuiApplication, QBrush
+from PyQt5.QtGui import QDropEvent, QGuiApplication
 from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem, QScrollBar
 # 3. local
 import iosc.const
@@ -138,10 +137,10 @@ class SignalListTable(QTableWidget):
             self.setVerticalHeaderItem(dst_row_num, QTableWidgetItem('↕'))
 
         def _x_move(__src_row_num: int):
-            signal = src_table.cellWidget(__src_row_num, 0).signal  # save old
+            state = src_table.cellWidget(__src_row_num, 1).widget().state  # save old
             src_table.removeRow(__src_row_num)  # remove old
-            self.__apply_row(dst_row_num, signal)  # mk new
-            self.cellWidget(dst_row_num, 1).widget().restore()  # restore new
+            self.__apply_row(dst_row_num, state.signal)  # mk new
+            self.cellWidget(dst_row_num, 1).widget().restore(state)  # restore new
 
         if event.isAccepted():
             super().dropEvent(event)

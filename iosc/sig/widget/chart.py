@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtGui import QResizeEvent, QMouseEvent, QBrush, QColor, QFont, QPen
 from PyQt5.QtWidgets import QScrollArea, QLabel, QWidget, QTableWidget
@@ -44,6 +46,10 @@ class SignalScrollArea(QScrollArea):
 
 
 class SignalChartWidget(QCustomPlot):
+    @dataclass
+    class State:
+        signal: mycomtrade.Signal
+
     _root: QWidget
     _sibling: SignalCtrlWidget
     _signal: mycomtrade.Signal
@@ -143,7 +149,13 @@ class SignalChartWidget(QCustomPlot):
         del self._tmp_ptr[uid]
         self.replot()
 
-    def restore(self):
+    @property
+    def state(self) -> State:
+        return self.State(
+            signal=self._signal
+        )
+
+    def restore(self, state: State):
         """Restore signal state:
         - [x] x-width[, x-zoom] (global)
         - [x] x-position (global)
@@ -193,6 +205,13 @@ class ScatterLabel(QCPItemText):
 
 
 class AnalogSignalChartWidget(SignalChartWidget):
+    @dataclass
+    class State(SignalChartWidget.State):
+        v_zoom: int
+        v_pos: int
+        msr_ptr: list[tuple[int, int]]  # uid, x_idx
+        lvl_ptr: list[tuple[int, float]]  # uid, y
+
     __vzoom: int
     __pps: int  # px/sample
     # __myscatter: NumScatterStyle
@@ -277,10 +296,29 @@ class AnalogSignalChartWidget(SignalChartWidget):
         self.removeItem(ptr)
         self.replot()
 
-    def restore(self):
+    @property
+    def state(self) -> State:
+        msr_ptr = []
+        lvl_ptr = []
+        for i in range(self.itemCount()):
+            item = self.item(i)
+            if isinstance(item, MsrPtr):
+                msr_ptr.append((item.uid, item.i))
+            elif isinstance(item, LvlPtr):
+                lvl_ptr.append((item.uid, item.y))
+        return self.State(
+            signal=self._signal,
+            v_zoom=self.__vzoom,
+            v_pos=self.parent().parent().verticalScrollBar,
+            msr_ptr=msr_ptr,
+            lvl_ptr=lvl_ptr
+        )
+
+    def restore(self, state: State):
         """Restore signal state:
+        - v-zoom(self)
+        - v-position
         - MsrPtr[]
         - LvlPtr[]
-        - v-zoom(self)
         """
-        super().restore()
+        super().restore(state)
