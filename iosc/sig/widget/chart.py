@@ -212,6 +212,7 @@ class AnalogSignalChartWidget(SignalChartWidget):
         msr_ptr: list[MsrPtr.State]  # uid, x_idx
         lvl_ptr: list[LvlPtr.State]  # uid, y
 
+    _signal: mycomtrade.AnalogSignal
     __vzoom: int
     __pps: int  # px/sample
     # __myscatter: NumScatterStyle
@@ -278,8 +279,8 @@ class AnalogSignalChartWidget(SignalChartWidget):
             self.__pps = pps
             self.replot()
 
-    def add_ptr_msr(self, uid: int):
-        msr_ptr = MsrPtr(self, self._root, self._signal, uid)
+    def add_ptr_msr(self, uid: int, i: int):
+        msr_ptr = MsrPtr(self, self._root, self._signal, uid, i)
         self._sibling.signal_restyled.connect(msr_ptr.slot_set_color)
 
     def slot_ptr_del_msr(self, ptr: MsrPtr):
@@ -322,3 +323,5 @@ class AnalogSignalChartWidget(SignalChartWidget):
         - LvlPtr[]
         """
         super().restore(state)
+        for s in state.msr_ptr:
+            self.add_ptr_msr(s.uid, s.i)

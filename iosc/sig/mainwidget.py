@@ -553,7 +553,7 @@ class ComtradeWidget(QWidget):
         if sig_selected := SelectSignalsDialog(self.__osc.analog).execute():
             for i in sig_selected:
                 uid = max(self.__msr_ptr) + 1 if self.__msr_ptr else 1
-                self.sig_no2widget[i].add_ptr_msr(uid)
+                self.sig_no2widget[i].add_ptr_msr(uid, self.main_ptr_i)
                 self.__msr_ptr.add(uid)
 
     def __do_ptr_add_lvl(self):

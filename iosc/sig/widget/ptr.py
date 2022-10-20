@@ -325,13 +325,13 @@ class MsrPtr(Ptr):
     __tip: _Tip
     signal_ptr_del_msr = pyqtSignal(int)
 
-    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int):
+    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, i: int):
         super().__init__(cp, root)
         self.__uid = uid
         self.__signal = signal
         self.__func_i = root.viewas
         self.__tip = self._Tip(cp)
-        self.setGraphKey(self._root.main_ptr_x)
+        self.setGraphKey(root.i2x(i))
         self.updatePosition()
         self.__set_color()
         self.__move_tip()
@@ -420,6 +420,7 @@ class LvlPtr(QCPItemStraightLine):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
             self.setColor(Qt.white)  # text
+
     __root: QWidget
     __signal: mycomtrade.AnalogSignal
     __uid: int  # uniq id
