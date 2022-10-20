@@ -209,8 +209,8 @@ class AnalogSignalChartWidget(SignalChartWidget):
     class State(SignalChartWidget.State):
         v_zoom: int
         v_pos: int
-        msr_ptr: list[tuple[int, int]]  # uid, x_idx
-        lvl_ptr: list[tuple[int, float]]  # uid, y
+        msr_ptr: list[MsrPtr.State]  # uid, x_idx
+        lvl_ptr: list[LvlPtr.State]  # uid, y
 
     __vzoom: int
     __pps: int  # px/sample
@@ -303,9 +303,9 @@ class AnalogSignalChartWidget(SignalChartWidget):
         for i in range(self.itemCount()):
             item = self.item(i)
             if isinstance(item, MsrPtr):
-                msr_ptr.append((item.uid, item.i))
+                msr_ptr.append(item.state)
             elif isinstance(item, LvlPtr):
-                lvl_ptr.append((item.uid, item.y))
+                lvl_ptr.append(item.state)
         return self.State(
             signal=self._signal,
             v_zoom=self.__vzoom,

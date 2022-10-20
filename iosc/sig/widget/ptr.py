@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Optional
 
 from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal
@@ -306,6 +307,10 @@ class TmpPtr(_PowerPtr):
 
 
 class MsrPtr(Ptr):
+    @dataclass
+    class State:
+        uid: int
+        i: int
 
     class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
@@ -397,8 +402,19 @@ class MsrPtr(Ptr):
             self.__func_i = form.f_func.currentIndex()
             self.__move_tip()
 
+    @property
+    def state(self) -> State:
+        return self.State(
+            uid=self.__uid,
+            i=self.i
+        )
+
 
 class LvlPtr(QCPItemStraightLine):
+    @dataclass
+    class State:
+        uid: int
+        y: float
 
     class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
@@ -508,3 +524,10 @@ class LvlPtr(QCPItemStraightLine):
     def slot_set_color(self):
         self.__set_color()
         self.parentPlot().replot()
+
+    @property
+    def state(self) -> State:
+        return self.State(
+            uid=self.__uid,
+            y=self.y
+        )
