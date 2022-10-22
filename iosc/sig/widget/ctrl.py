@@ -20,14 +20,48 @@ class ZoomButton(QPushButton):
         # TODO: squeeze
 
 
+class ZoomButtonBox(QWidget):
+    _b_zoom_in: ZoomButton
+    _b_zoom_0: ZoomButton
+    _b_zoom_out: ZoomButton
+    signal_zoom = pyqtSignal(int)
+
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
+        self._b_zoom_in = ZoomButton("+", self)
+        self._b_zoom_0 = ZoomButton("=", self)
+        self._b_zoom_out = ZoomButton("-", self)
+        self.setLayout(QVBoxLayout())
+        self.layout().setSpacing(0)
+        self.layout().setContentsMargins(QMargins())
+        self.layout().addWidget(self._b_zoom_in)
+        self.layout().addWidget(self._b_zoom_0)
+        self.layout().addWidget(self._b_zoom_out)
+        self._b_zoom_0.setEnabled(False)
+        self._b_zoom_out.setEnabled(False)
+        self._b_zoom_in.clicked.connect(self.__slot_vzoom_in)
+        self._b_zoom_0.clicked.connect(self.__slot_vzoom_0)
+        self._b_zoom_out.clicked.connect(self.__slot_vzoom_out)
+
+    def __slot_vzoom_in(self):
+        self.signal_zoom.emit(1)
+
+    def __slot_vzoom_out(self):
+        self.signal_zoom.emit(-1)
+
+    def __slot_vzoom_0(self):
+        self.signal_zoom.emit(0)
+
+    def set_enabled(self, z: int):
+        self._b_zoom_0.setEnabled(z > 1)
+        self._b_zoom_out.setEnabled(z > 1)
+
+
 class SignalCtrlWidget(QWidget):
     _root: QWidget
     _signal: mycomtrade.Signal
     _t_side: QListWidget
-    _b_side: QWidget
-    _b_zoom_in: ZoomButton
-    _b_zoom_0: ZoomButton
-    _b_zoom_out: ZoomButton
+    _b_side: ZoomButtonBox
     sibling: Optional[QCustomPlot]
     signal_restyled = pyqtSignal()
 
@@ -41,30 +75,17 @@ class SignalCtrlWidget(QWidget):
         self._set_style()
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.slot_update_value()
-        self.customContextMenuRequested.connect(self.__slot_context_menu)
+        self.customContextMenuRequested.connect(self.__slot_context_menu)  # FIXME: for single signal only
         self._root.signal_ptr_moved_main.connect(self.slot_update_value)
 
     def __mk_widgets(self):
         self._t_side = QListWidget(self)
+        self._t_side.setSelectionMode(self._t_side.NoSelection)  # FIXME: table row selection not works
         self._t_side.addItem(QListWidgetItem())
-        self._b_side = QWidget(self)
-        self._b_zoom_in = ZoomButton("+")
-        self._b_zoom_0 = ZoomButton("=")
-        self._b_zoom_out = ZoomButton("-")
-        # initial state
-        self._b_zoom_0.setEnabled(False)
-        self._b_zoom_out.setEnabled(False)
+        self._b_side = ZoomButtonBox(self)
 
     def __mk_layout(self):
         self.setContentsMargins(QMargins())
-        # right side
-        self._b_side.setLayout(QVBoxLayout())
-        self._b_side.layout().setSpacing(0)
-        self._b_side.layout().setContentsMargins(QMargins())
-        self._b_side.layout().addWidget(self._b_zoom_in)
-        self._b_side.layout().addWidget(self._b_zoom_0)
-        self._b_side.layout().addWidget(self._b_zoom_out)
-        # altogether
         self.setLayout(QHBoxLayout(self))
         self.layout().setSpacing(0)
         self.layout().setContentsMargins(QMargins())
@@ -130,9 +151,7 @@ class AnalogSignalCtrlWidget(SignalCtrlWidget):
         self._root.signal_chged_shift.connect(self.slot_update_value)
         self._root.signal_chged_pors.connect(self.slot_update_value)
         self._root.signal_chged_func.connect(self.slot_update_value)
-        self._b_zoom_in.clicked.connect(self.slot_vzoom_in)
-        self._b_zoom_0.clicked.connect(self.slot_vzoom_0)
-        self._b_zoom_out.clicked.connect(self.slot_vzoom_out)
+        self._b_side.signal_zoom.connect(self.slot_vzoom)
 
     def _do_sig_property(self):
         """Show/set signal properties"""
@@ -149,19 +168,11 @@ class AnalogSignalCtrlWidget(SignalCtrlWidget):
         self._t_side.item(0).setText(text)
 
     def vzoom_sync(self):
-        self._b_zoom_0.setEnabled(self.sibling.zoom > 1)
-        self._b_zoom_out.setEnabled(self.sibling.zoom > 1)
+        self._b_side.set_enabled(self.sibling.zoom)
 
-    def slot_vzoom_in(self):
-        self.sibling.zoom += 1
-        self.vzoom_sync()
-
-    def slot_vzoom_0(self):
-        if self.sibling.zoom > 1:
+    def slot_vzoom(self, z: int):
+        if z:
+            self.sibling.zoom += z
+        else:
             self.sibling.zoom = 1
-            self.vzoom_sync()
-
-    def slot_vzoom_out(self):
-        if self.sibling.zoom > 1:
-            self.sibling.zoom -= 1
-            self.vzoom_sync()
+        self.vzoom_sync()
