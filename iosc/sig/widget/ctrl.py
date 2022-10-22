@@ -1,7 +1,9 @@
 from typing import Optional
 
 from PyQt5.QtCore import QMargins, pyqtSignal, Qt, QPoint
-from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QTableWidget, QVBoxLayout, QHBoxLayout, QMenu
+from PyQt5.QtGui import QBrush, QColor
+from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QTableWidget, QVBoxLayout, QHBoxLayout, QMenu, QListWidget, \
+    QListWidgetItem
 from QCustomPlot2 import QCustomPlot
 
 import iosc.const
@@ -21,7 +23,7 @@ class ZoomButton(QPushButton):
 class SignalCtrlWidget(QWidget):
     _root: QWidget
     _signal: mycomtrade.Signal
-    _f_value: QLabel
+    _t_side: QListWidget
     _b_side: QWidget
     _b_zoom_in: ZoomButton
     _b_zoom_0: ZoomButton
@@ -43,7 +45,8 @@ class SignalCtrlWidget(QWidget):
         self._root.signal_ptr_moved_main.connect(self.slot_update_value)
 
     def __mk_widgets(self):
-        self._f_value = QLabel()
+        self._t_side = QListWidget(self)
+        self._t_side.addItem(QListWidgetItem())
         self._b_side = QWidget(self)
         self._b_zoom_in = ZoomButton("+")
         self._b_zoom_0 = ZoomButton("=")
@@ -54,30 +57,24 @@ class SignalCtrlWidget(QWidget):
 
     def __mk_layout(self):
         self.setContentsMargins(QMargins())
-        # left side
-        text_side = QWidget(self)
-        text_side.setLayout(QVBoxLayout())
-        text_side.layout().addWidget(self._f_value)
-        text_side.layout().setSpacing(0)
-        # text_side.layout().setContentsMargins(QMargins())
         # right side
         self._b_side.setLayout(QVBoxLayout())
+        self._b_side.layout().setSpacing(0)
+        self._b_side.layout().setContentsMargins(QMargins())
         self._b_side.layout().addWidget(self._b_zoom_in)
         self._b_side.layout().addWidget(self._b_zoom_0)
         self._b_side.layout().addWidget(self._b_zoom_out)
-        self._b_side.layout().setSpacing(0)
-        self._b_side.layout().setContentsMargins(QMargins())
         # altogether
         self.setLayout(QHBoxLayout(self))
         self.layout().setSpacing(0)
         self.layout().setContentsMargins(QMargins())
-        self.layout().addWidget(text_side)
+        self.layout().addWidget(self._t_side)
         self.layout().addWidget(self._b_side)
         self.layout().setStretch(0, 1)
         self.layout().setStretch(1, 0)
 
     def _set_style(self):
-        self.setStyleSheet("QLabel { color : rgb(%d,%d,%d); }" % self._signal.rgb)
+        self._t_side.item(0).setForeground(QBrush(QColor(*self._signal.rgb)))
 
     def __slot_context_menu(self, point: QPoint):
         context_menu = QMenu()
@@ -123,7 +120,8 @@ class StatusSignalCtrlWidget(SignalCtrlWidget):
             self.signal_restyled.emit()
 
     def slot_update_value(self):
-        self._f_value.setText("%s\n%d" % (self._signal.sid, self._signal.value[self._root.main_ptr_i]))
+        text = "%s\n%d" % (self._signal.sid, self._signal.value[self._root.main_ptr_i])
+        self._t_side.item(0).setText(text)
 
 
 class AnalogSignalCtrlWidget(SignalCtrlWidget):
@@ -144,10 +142,11 @@ class AnalogSignalCtrlWidget(SignalCtrlWidget):
 
     def slot_update_value(self):
         """Update ctrl widget value depending on pri/sec and value type"""
-        self._f_value.setText("%s\n%s" % (
+        text = "%s\n%s" % (
             self._signal.sid,
             self._root.sig2str_i(self._signal, self._root.main_ptr_i, self._root.viewas)
-        ))
+        )
+        self._t_side.item(0).setText(text)
 
     def vzoom_sync(self):
         self._b_zoom_0.setEnabled(self.sibling.zoom > 1)
