@@ -21,7 +21,6 @@ class ZoomButton(QPushButton):
 class SignalCtrlWidget(QWidget):
     _root: QWidget
     _signal: mycomtrade.Signal
-    _f_name: QLabel
     _f_value: QLabel
     _b_side: QWidget
     _b_zoom_in: ZoomButton
@@ -45,8 +44,6 @@ class SignalCtrlWidget(QWidget):
 
     def __mk_widgets(self):
         self._f_value = QLabel()
-        self._f_name = QLabel()
-        self._f_name.setText(self._signal.sid)
         self._b_side = QWidget(self)
         self._b_zoom_in = ZoomButton("+")
         self._b_zoom_0 = ZoomButton("=")
@@ -61,7 +58,6 @@ class SignalCtrlWidget(QWidget):
         text_side = QWidget(self)
         text_side.setLayout(QVBoxLayout())
         text_side.layout().addWidget(self._f_value)
-        text_side.layout().addWidget(self._f_name)
         text_side.layout().setSpacing(0)
         # text_side.layout().setContentsMargins(QMargins())
         # right side
@@ -127,7 +123,7 @@ class StatusSignalCtrlWidget(SignalCtrlWidget):
             self.signal_restyled.emit()
 
     def slot_update_value(self):
-        self._f_value.setText("%d" % self._signal.value[self._root.main_ptr_i])
+        self._f_value.setText("%s\n%d" % (self._signal.sid, self._signal.value[self._root.main_ptr_i]))
 
 
 class AnalogSignalCtrlWidget(SignalCtrlWidget):
@@ -148,7 +144,10 @@ class AnalogSignalCtrlWidget(SignalCtrlWidget):
 
     def slot_update_value(self):
         """Update ctrl widget value depending on pri/sec and value type"""
-        self._f_value.setText(self._root.sig2str_i(self._signal, self._root.main_ptr_i, self._root.viewas))
+        self._f_value.setText("%s\n%s" % (
+            self._signal.sid,
+            self._root.sig2str_i(self._signal, self._root.main_ptr_i, self._root.viewas)
+        ))
 
     def vzoom_sync(self):
         self._b_zoom_0.setEnabled(self.sibling.zoom > 1)
