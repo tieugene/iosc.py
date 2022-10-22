@@ -89,6 +89,7 @@ class SignalCtrlWidget(QWidget):
         self.setLayout(QHBoxLayout(self))
         self.layout().setSpacing(0)
         self.layout().setContentsMargins(QMargins())
+        self.layout().addWidget(QLabel('↕'))  # TODO: Drug anchor (tmp hack)
         self.layout().addWidget(self._t_side)
         self.layout().addWidget(self._b_side)
         self.layout().setStretch(0, 1)
