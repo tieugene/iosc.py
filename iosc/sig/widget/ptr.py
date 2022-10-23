@@ -4,7 +4,7 @@ from typing import Optional
 from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal
 from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor, QPen
 from PyQt5.QtWidgets import QWidget, QMenu
-from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect
+from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect, QCPGraph
 # 4. local
 import iosc.const
 from iosc.core import mycomtrade
@@ -34,11 +34,11 @@ class Ptr(QCPItemTracer):
     signal_ptr_moved = pyqtSignal(int)
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, cp: QCustomPlot, root: QWidget):
-        super().__init__(cp)
+    def __init__(self, graph: QCPGraph, root: QWidget):
+        super().__init__(graph.parentPlot())
         self._root = root
-        self.setGraph(cp.graph())
-        self.position.setAxes(cp.xAxis, None)
+        self.setGraph(graph)
+        self.position.setAxes(graph.parentPlot().xAxis, None)
 
     def mousePressEvent(self, event: QMouseEvent, _):
         if event.button() == Qt.LeftButton:
@@ -66,7 +66,7 @@ class Ptr(QCPItemTracer):
     @selection.setter
     def selection(self, val: bool):
         self.setSelected(val)
-        self.parent().ptr_selected = val
+        self.parentPlot().ptr_selected = val
 
     @property
     def x(self) -> float:
@@ -96,10 +96,10 @@ class SCPtr(Ptr):
     __pr_ptr: VLine
     __x_limit: tuple[float, float]
 
-    def __init__(self, cp: QCustomPlot, root: QWidget):
-        super().__init__(cp, root)
+    def __init__(self, graph: QCPGraph, root: QWidget):
+        super().__init__(graph, root)
         self.setPen(iosc.const.PEN_PTR_OMP)
-        self.__pr_ptr = VLine(cp)
+        self.__pr_ptr = VLine(graph.parentPlot())
         self.__pr_ptr.setPen(iosc.const.PEN_PTR_OMP)
         self.__set_limits()
         self.__slot_ptr_move(self._root.sc_ptr_i, False)
@@ -193,12 +193,12 @@ class _PowerPtr(Ptr):
     __rect: _Rect
     __tip: _Tip
 
-    def __init__(self, cp: QCustomPlot, root: QWidget):
-        super().__init__(cp, root)
-        self.__old_pos = VLine(cp)
+    def __init__(self, graph: QCPGraph, root: QWidget):
+        super().__init__(graph, root)
+        self.__old_pos = VLine(graph.parentPlot())
         self.__old_pos.setPen(iosc.const.PEN_PTR_OLD)
-        self.__rect = self._Rect(cp)
-        self.__tip = self._Tip(cp)
+        self.__rect = self._Rect(graph.parentPlot())
+        self.__tip = self._Tip(graph.parentPlot())
         self.__switch_tips(False)
         self.selectionChanged.connect(self.__selection_chg)
 
@@ -238,8 +238,8 @@ class _PowerPtr(Ptr):
 
 
 class MainPtr(_PowerPtr):
-    def __init__(self, cp: QCustomPlot, root: QWidget):
-        super().__init__(cp, root)
+    def __init__(self, graph: QCPGraph, root: QWidget):
+        super().__init__(graph, root)
         self.setPen(iosc.const.PEN_PTR_MAIN)
         self.slot_ptr_move(self._root.main_ptr_i, False)
         self.signal_ptr_moved.connect(self._root.slot_ptr_moved_main)
@@ -267,8 +267,8 @@ class TmpPtr(_PowerPtr):
     # signal_ptr_del_tmp = pyqtSignal(int)
     signal_ptr_edit_tmp = pyqtSignal(int)
 
-    def __init__(self, cp: QCustomPlot, root: QWidget, uid: int):
-        super().__init__(cp, root)
+    def __init__(self, graph: QCPGraph, root: QWidget, uid: int):
+        super().__init__(graph, root)
         self._uid = uid
         self.setPen(iosc.const.PEN_PTR_TMP)
         self.__slot_ptr_move(uid, self._root.tmp_ptr_i[uid], False)
@@ -325,12 +325,12 @@ class MsrPtr(Ptr):
     __tip: _Tip
     signal_ptr_del_msr = pyqtSignal(int)
 
-    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, i: int):
-        super().__init__(cp, root)
+    def __init__(self, graph: QCPGraph, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, i: int):
+        super().__init__(graph, root)
         self.__uid = uid
         self.__signal = signal
         self.__func_i = root.viewas
-        self.__tip = self._Tip(cp)
+        self.__tip = self._Tip(graph.parentPlot())
         self.setGraphKey(root.i2x(i))
         self.updatePosition()
         self.__set_color()
@@ -427,13 +427,13 @@ class LvlPtr(QCPItemStraightLine):
     __tip: _Tip
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, y: float):
-        super().__init__(cp)
+    def __init__(self, graph: QCPGraph, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, y: float):
+        super().__init__(graph)
         self.setPen(iosc.const.PEN_PTR_OMP)
         self.__root = root
         self.__signal = signal
         self.__uid = uid
-        self.__tip = self._Tip(cp)
+        self.__tip = self._Tip(graph.parentPlot())
         self.__set_color()
         self.__move(y)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)

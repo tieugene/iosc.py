@@ -196,13 +196,13 @@ class SignalListTable(QTableWidget):
 
     def slot_vzoom_in(self):
         for row in range(self.rowCount()):
-            if not self.cellWidget(row, 0).signal.is_bool:
-                self.setRowHeight(row, int(self.rowHeight(row) * 1.2))
+            # if not self.cellWidget(row, 0).signal.is_bool:  FIXME:
+            self.setRowHeight(row, int(self.rowHeight(row) * 1.2))
 
     def slot_vzoom_out(self):
         for row in range(self.rowCount()):
-            if not self.cellWidget(row, 0).signal.is_bool:
-                self.setRowHeight(row, int(self.rowHeight(row) / 1.2))
+            # if not self.cellWidget(row, 0).signal.is_bool:  # FIXME:
+            self.setRowHeight(row, int(self.rowHeight(row) / 1.2))
 
 
 class HScroller(QScrollBar):

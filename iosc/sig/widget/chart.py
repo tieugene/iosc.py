@@ -67,8 +67,8 @@ class SignalChartWidget(QCustomPlot):
         self._sibling.sibling = self
         self._signal = signal
         self.addGraph()
-        self._main_ptr = MainPtr(self, self._root)  # after graph()
-        self._sc_ptr = SCPtr(self, self._root)
+        self._main_ptr = MainPtr(self.graph(), self._root)  # after graph()
+        self._sc_ptr = SCPtr(self.graph(), self._root)
         self._tmp_ptr = dict()
         self._ptr_selected = False
         self._set_data()
@@ -142,7 +142,7 @@ class SignalChartWidget(QCustomPlot):
 
     def _slot_ptr_add_tmp(self, ptr_id: int):
         """Add new TmpPtr"""
-        self._tmp_ptr[ptr_id] = TmpPtr(self, self._root, ptr_id)
+        self._tmp_ptr[ptr_id] = TmpPtr(self.graph(), self._root, ptr_id)
 
     def _slot_ptr_del_tmp(self, uid: int):
         """Del TmpPtr"""
@@ -292,7 +292,7 @@ class AnalogSignalChartWidget(SignalChartWidget):
             self.replot()
 
     def add_ptr_msr(self, uid: int, i: int):
-        MsrPtr(self, self._root, self._signal, uid, i)
+        MsrPtr(self.graph(), self._root, self._signal, uid, i)  # FIXME: signal graph
 
     def slot_ptr_del_msr(self, ptr: MsrPtr):
         """Del MsrPtr"""
@@ -302,7 +302,7 @@ class AnalogSignalChartWidget(SignalChartWidget):
     def add_ptr_lvl(self, uid: int, y: Optional[float] = None):
         if y is None:
             y = max(self._signal.value)
-        LvlPtr(self, self._root, self._signal, uid, y)
+        LvlPtr(self.graph(), self._root, self._signal, uid, y)
 
     def slot_ptr_del_lvl(self, ptr: LvlPtr):
         """Del LvlPtr"""

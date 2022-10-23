@@ -21,3 +21,26 @@ Current job: [x-DnD](https://github.com/michDaven/AbScan-TechReq/blob/main/ascii
 - Msr: sig
 - Lvl: sig
 
+## QCP demo:
+
+- `interactions` - 4 x Graph
+- `scrollbar-axis-range-control`: 2 x Graph
+- `plots`:
+  + 1: setupSimpleDemo: 2x, simple
+  + 3: 17x
+  + 5: 5x
+  + 6: 5x
+  + 7: 2x
+  + 17: setupAdvancedAxesDemo: 2x, mixed yAxis
+
+## MultiChart:
+
+- QCP axis: unified:
+  + Max: -1.1…1.1
+  + Min: -0.1…0.1
+- Graphs:
+  + 0: MainPtr, SCPtr, TmpPtr[]
+  + 1+: a graph per signal
+- Signal ranges:
+  + Status: 0…0.(6)  (0.6*1.1)
+  + Analog: -1..1 (max)
