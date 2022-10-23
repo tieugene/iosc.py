@@ -3,7 +3,7 @@ from typing import Optional, Union
 from PyQt5.QtCore import QMargins, pyqtSignal, Qt, QPoint
 from PyQt5.QtGui import QBrush, QColor
 from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QTableWidget, QVBoxLayout, QHBoxLayout, QMenu, QListWidget, \
-    QListWidgetItem, QDialog
+    QListWidgetItem
 from QCustomPlot2 import QCustomPlot
 
 import iosc.const
@@ -64,7 +64,8 @@ class SignalLabel(QListWidgetItem):
     sibling: Optional[QCustomPlot]
     # signal_restyled = pyqtSignal()  # N/A
 
-    def __init__(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal], root: QWidget, parent: QWidget = None):
+    def __init__(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal], root: QWidget,
+                 parent: QWidget = None):
         super().__init__(parent)
         self._signal = signal
         self._root = root
@@ -183,14 +184,15 @@ class SignalCtrlWidget(QWidget):
 
     def __mk_layout(self):
         self.setContentsMargins(QMargins())
-        self.setLayout(QHBoxLayout(self))
-        self.layout().setSpacing(0)
-        self.layout().setContentsMargins(QMargins())
-        self.layout().addWidget(QLabel('↕'))  # TODO: Drag anchor (tmp hack)
-        self.layout().addWidget(self._t_side)
-        self.layout().addWidget(self._b_side)
-        self.layout().setStretch(0, 1)
-        self.layout().setStretch(1, 0)
+        layout = QHBoxLayout(self)
+        layout.setSpacing(0)
+        layout.setContentsMargins(QMargins())
+        layout.addWidget(QLabel('↕'))  # TODO: Drag anchor (tmp hack)
+        layout.addWidget(self._t_side)
+        layout.addWidget(self._b_side)
+        layout.setStretch(0, 1)
+        layout.setStretch(1, 0)
+        self.setLayout(layout)
 
     def __chk_zoom_buttons(self):
         """Hide/Show zoom buttons depending on signals"""
@@ -199,7 +201,8 @@ class SignalCtrlWidget(QWidget):
             show |= not self._t_side.item(i).signal.is_bool
         self._b_side.setVisible(show)
 
-    def add_signal(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]) -> Union[StatusSignalLabel, AnalogSignalLabel]:
+    def add_signal(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal])\
+            -> Union[StatusSignalLabel, AnalogSignalLabel]:
         lbl = StatusSignalLabel(signal, self._root) if signal.is_bool else AnalogSignalLabel(signal, self._root)
         self._t_side.addItem(lbl)
         self.__chk_zoom_buttons()

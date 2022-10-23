@@ -80,7 +80,6 @@ class SignalChartWidget(QCustomPlot):
         # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
         # self.yAxis.setRange(ymin - ypad, ymax + ypad)  # #76, not helps
         # self.setFixedWidth(1000)
-        #self._sibling.signal_restyled.connect(self.slot_signal_restyled)  # FIXME: tmp disabled
         self._root.signal_xscale.connect(self._slot_chg_width)
         self._root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
         self._root.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
@@ -173,7 +172,8 @@ class SignalChartWidget(QCustomPlot):
 
 
 class StatusSignalChartWidget(SignalChartWidget):
-    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget, sibling: StatusSignalLabel):
+    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
+                 sibling: StatusSignalLabel):
         super().__init__(signal, parent, root, sibling)
         self.yAxis.setRange(iosc.const.SIG_D_YMIN, iosc.const.SIG_D_YMAX)
 
@@ -254,6 +254,16 @@ class AnalogSignalChartWidget(SignalChartWidget):
             self.slot_vresize()
             self.parent().parent().slot_set_zoom_factor(z)  # WTF? x2 parents
 
+    def slot_signal_restyled(self):
+        self._set_style()
+        for i in range(self.itemCount()):
+            item = self.item(i)
+            if isinstance(item, MsrPtr):
+                item.slot_set_color()
+            elif isinstance(item, LvlPtr):
+                item.slot_set_color()
+        self.replot()
+
     def slot_vresize(self):
         h_vscroller = self.parent().height()
         if self.height() != (new_height := h_vscroller * self.__vzoom):
@@ -282,9 +292,7 @@ class AnalogSignalChartWidget(SignalChartWidget):
             self.replot()
 
     def add_ptr_msr(self, uid: int, i: int):
-        msr_ptr = MsrPtr(self, self._root, self._signal, uid, i)
-        # self._sibling.signal_restyled.connect(msr_ptr.slot_set_color)
-        # FIXME: slot_signal_restyled
+        MsrPtr(self, self._root, self._signal, uid, i)
 
     def slot_ptr_del_msr(self, ptr: MsrPtr):
         """Del MsrPtr"""
@@ -294,9 +302,7 @@ class AnalogSignalChartWidget(SignalChartWidget):
     def add_ptr_lvl(self, uid: int, y: Optional[float] = None):
         if y is None:
             y = max(self._signal.value)
-        lvl_ptr = LvlPtr(self, self._root, self._signal, uid, y)
-        # self._sibling.signal_restyled.connect(lvl_ptr.slot_set_color)
-        # FIXME: slot_signal_restyled
+        LvlPtr(self, self._root, self._signal, uid, y)
 
     def slot_ptr_del_lvl(self, ptr: LvlPtr):
         """Del LvlPtr"""
