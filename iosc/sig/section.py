@@ -11,7 +11,7 @@ from iosc.core import mycomtrade
 from iosc.sig.widget.common import CleanScrollArea
 from iosc.sig.widget.bottom import StatusBarWidget
 from iosc.sig.widget.top import TimeAxisWidget
-from iosc.sig.widget.ctrl import StatusSignalCtrlWidget, AnalogSignalCtrlWidget
+from iosc.sig.widget.ctrl import SignalCtrlWidget
 from iosc.sig.widget.chart import SignalScrollArea, StatusSignalChartWidget, AnalogSignalChartWidget
 
 
@@ -168,20 +168,19 @@ class SignalListTable(QTableWidget):
         :param signal: signal number in
         :return:
         """
+        self.setVerticalHeaderItem(row, QTableWidgetItem('↕'))
+        self.setCellWidget(row, 0, ctrl := SignalCtrlWidget(self._parent, self))
+        lbl = ctrl.add_signal(signal)
         sa = SignalScrollArea(self)
+        self.setCellWidget(row, 1, sa)
         if signal.is_bool:
-            self.setCellWidget(row, 0, ctrl := StatusSignalCtrlWidget(signal, self, self._parent))
-            sa.setWidget(StatusSignalChartWidget(signal, sa, self._parent, ctrl))
-            self.setCellWidget(row, 1, sa)
+            sw = StatusSignalChartWidget(signal, sa, self._parent, lbl)
             self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_D)
         else:
-            self.setCellWidget(row, 0, ctrl := AnalogSignalCtrlWidget(signal, self, self._parent))
-            sw = AnalogSignalChartWidget(signal, sa, self._parent, ctrl)
-            sa.setWidget(sw)
-            self.setCellWidget(row, 1, sa)
-            self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_A)
+            sw = AnalogSignalChartWidget(signal, sa, self._parent, lbl)
             self._parent.sig_no2widget[signal.i] = sw  # TODO: now 1 row == 1 signal
-        self.setVerticalHeaderItem(row, QTableWidgetItem('↕'))
+            self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_A)
+        sa.setWidget(sw)
         self._parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
     def slot_unhide(self):
@@ -193,7 +192,7 @@ class SignalListTable(QTableWidget):
         :param row: Row to ask
         :return: Signal No in correspondent signal list
         """
-        return self.cellWidget(row, 0).whoami()
+        return self.cellWidget(row, 0).whoami
 
     def slot_vzoom_in(self):
         for row in range(self.rowCount()):

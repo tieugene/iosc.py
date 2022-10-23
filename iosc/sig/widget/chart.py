@@ -8,7 +8,7 @@ from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPPainter, QCPItemText, 
 
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.sig.widget.ctrl import SignalCtrlWidget, AnalogSignalCtrlWidget
+from iosc.sig.widget.ctrl import StatusSignalLabel, AnalogSignalLabel
 from iosc.sig.widget.ptr import MainPtr, SCPtr, TmpPtr, MsrPtr, LvlPtr
 
 PEN_STYLE = {
@@ -52,7 +52,7 @@ class SignalChartWidget(QCustomPlot):
         signal: mycomtrade.Signal
 
     _root: QWidget
-    _sibling: SignalCtrlWidget
+    _sibling: Union[StatusSignalLabel, AnalogSignalLabel]
     _signal: Union[mycomtrade.AnalogSignal, mycomtrade.StatusSignal]
     _main_ptr: MainPtr
     _sc_ptr: SCPtr
@@ -60,7 +60,7 @@ class SignalChartWidget(QCustomPlot):
     _ptr_selected: bool
 
     def __init__(self, signal: Union[mycomtrade.AnalogSignal, mycomtrade.StatusSignal], parent: QScrollArea,
-                 root: QWidget, sibling: SignalCtrlWidget):
+                 root: QWidget, sibling: Union[StatusSignalLabel, AnalogSignalLabel]):
         super().__init__(parent)
         self._root = root
         self._sibling = sibling
@@ -80,7 +80,7 @@ class SignalChartWidget(QCustomPlot):
         # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
         # self.yAxis.setRange(ymin - ypad, ymax + ypad)  # #76, not helps
         # self.setFixedWidth(1000)
-        self._sibling.signal_restyled.connect(self.__slot_signal_restyled)
+        #self._sibling.signal_restyled.connect(self.slot_signal_restyled)  # FIXME: tmp disabled
         self._root.signal_xscale.connect(self._slot_chg_width)
         self._root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
         self._root.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
@@ -131,7 +131,7 @@ class SignalChartWidget(QCustomPlot):
             self._root.slot_ptr_moved_main(i_new)  # __move MainPtr here
             super().mousePressEvent(event)  # and select it
 
-    def __slot_signal_restyled(self):
+    def slot_signal_restyled(self):
         self._set_style()
         self.replot()
 
@@ -173,7 +173,7 @@ class SignalChartWidget(QCustomPlot):
 
 
 class StatusSignalChartWidget(SignalChartWidget):
-    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget, sibling: SignalCtrlWidget):
+    def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget, sibling: StatusSignalLabel):
         super().__init__(signal, parent, root, sibling)
         self.yAxis.setRange(iosc.const.SIG_D_YMIN, iosc.const.SIG_D_YMAX)
 
@@ -219,7 +219,7 @@ class AnalogSignalChartWidget(SignalChartWidget):
     __pps: int  # px/sample
     # __myscatter: NumScatterStyle
 
-    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root, sibling: AnalogSignalCtrlWidget):
+    def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root, sibling: AnalogSignalLabel):
         super().__init__(signal, parent, root, sibling)
         self.__vzoom = 1
         self.__pps = 0
@@ -283,7 +283,8 @@ class AnalogSignalChartWidget(SignalChartWidget):
 
     def add_ptr_msr(self, uid: int, i: int):
         msr_ptr = MsrPtr(self, self._root, self._signal, uid, i)
-        self._sibling.signal_restyled.connect(msr_ptr.slot_set_color)
+        # self._sibling.signal_restyled.connect(msr_ptr.slot_set_color)
+        # FIXME: slot_signal_restyled
 
     def slot_ptr_del_msr(self, ptr: MsrPtr):
         """Del MsrPtr"""
@@ -294,7 +295,8 @@ class AnalogSignalChartWidget(SignalChartWidget):
         if y is None:
             y = max(self._signal.value)
         lvl_ptr = LvlPtr(self, self._root, self._signal, uid, y)
-        self._sibling.signal_restyled.connect(lvl_ptr.slot_set_color)
+        # self._sibling.signal_restyled.connect(lvl_ptr.slot_set_color)
+        # FIXME: slot_signal_restyled
 
     def slot_ptr_del_lvl(self, ptr: LvlPtr):
         """Del LvlPtr"""
@@ -334,4 +336,4 @@ class AnalogSignalChartWidget(SignalChartWidget):
         if state.v_zoom > 1:
             self.zoom = state.v_zoom
             self.parent().parent().verticalScrollBar().setValue(state.v_pos)
-            self._sibling.vzoom_sync()
+            # self._sibling.vzoom_sync() FIXME:
