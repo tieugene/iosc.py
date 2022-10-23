@@ -4,7 +4,7 @@ from typing import Optional, Union
 from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtGui import QResizeEvent, QMouseEvent, QBrush, QColor, QFont, QPen
 from PyQt5.QtWidgets import QScrollArea, QLabel, QWidget, QTableWidget
-from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPPainter, QCPItemText, QCPGraphData
+from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPPainter, QCPItemText, QCPGraphData, QCPGraph
 
 import iosc.const
 from iosc.core import mycomtrade
@@ -46,7 +46,7 @@ class SignalScrollArea(QScrollArea):
             self.__vzoom_factor.setVisible(False)
 
 
-class SignalChartWidget(QCustomPlot):
+class SignalChartWidget(QCustomPlot):  # FIXME: rename to SignalPlot
     @dataclass
     class State:
         signal: mycomtrade.Signal
@@ -71,26 +71,35 @@ class SignalChartWidget(QCustomPlot):
         self._sc_ptr = SCPtr(self.graph(), self._root)
         self._tmp_ptr = dict()
         self._ptr_selected = False
-        self._set_data()
         self.__squeeze()
         self.__decorate()
+        self._set_data()
         self._set_style()
-        # ymin = min(self._signal.value)
-        # ymax = max(self._signal.value)
-        # ypad = (ymax - ymin) * Y_PAD  # == self._signal.value.ptp()
-        # self.yAxis.setRange(ymin - ypad, ymax + ypad)  # #76, not helps
-        # self.setFixedWidth(1000)
         self._root.signal_xscale.connect(self._slot_chg_width)
         self._root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
         self._root.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
 
     def _set_data(self):
         z_time = self._signal.raw.trigger_time
-        self.graph().setData([1000 * (t - z_time) for t in self._signal.time], self._signal.value, True)
+        x_data = [1000 * (t - z_time) for t in self._signal.time]
+        if self._signal.is_bool:
+            y_data = self._signal.value
+        else:  # normalize analog signals to -1..1
+            divider = max(abs(min(self._signal.value)), abs(max(self._signal.value)))
+            y_data = [v / divider for v in self._signal.value]
+        self.graph().setData(x_data, y_data, True)
         self.xAxis.setRange(
             1000 * (self._signal.time[0] - z_time),
             1000 * (self._signal.time[-1] - z_time)
         )
+        if self._signal.is_bool:
+            self.yAxis.setRange(iosc.const.SIG_D_YMIN, iosc.const.SIG_D_YMAX)
+        else:
+            y_range = self.graph().data().valueRange()[0]
+            self.yAxis.setRange(
+                min(round(y_range.lower), 0) - iosc.const.SIG_A_YPAD,
+                max(round(y_range.upper), 0) + iosc.const.SIG_A_YPAD
+            )
 
     def __squeeze(self):
         ar = self.axisRect(0)  # QCPAxisRect
@@ -171,11 +180,10 @@ class SignalChartWidget(QCustomPlot):
         self.replot()
 
 
-class StatusSignalChartWidget(SignalChartWidget):
+class StatusSignalChartWidget(SignalChartWidget):  # FIXME: (QCPGraph)
     def __init__(self, signal: mycomtrade.StatusSignal, parent: QTableWidget, root: QWidget,
                  sibling: StatusSignalLabel):
         super().__init__(signal, parent, root, sibling)
-        self.yAxis.setRange(iosc.const.SIG_D_YMIN, iosc.const.SIG_D_YMAX)
 
     def _set_style(self):
         brush = QBrush(iosc.const.BRUSH_D)
@@ -188,15 +196,6 @@ class StatusSignalChartWidget(SignalChartWidget):
             self.setFixedHeight(new_height)
 
 
-class NumScatterStyle(QCPScatterStyle):
-    def __init__(self):
-        super().__init__(QCPScatterStyle.ssPlus)
-        print("My scatter")
-
-    def drawShape(self, painter: QCPPainter, *__args):
-        print("Bingo")
-
-
 class ScatterLabel(QCPItemText):
     def __init__(self, num: int, point: QCPGraphData, parent: SignalChartWidget):
         super().__init__(parent)
@@ -206,7 +205,7 @@ class ScatterLabel(QCPItemText):
         self.position.setCoords(point.key, point.value)
 
 
-class AnalogSignalChartWidget(SignalChartWidget):
+class AnalogSignalChartWidget(SignalChartWidget):  # FIXME: (QCPGraph)
     @dataclass
     class State(SignalChartWidget.State):
         v_zoom: int
@@ -217,30 +216,20 @@ class AnalogSignalChartWidget(SignalChartWidget):
     _signal: mycomtrade.AnalogSignal
     __vzoom: int
     __pps: int  # px/sample
-    # __myscatter: NumScatterStyle
 
     def __init__(self, signal: mycomtrade.AnalogSignal, parent: QScrollArea, root, sibling: AnalogSignalLabel):
         super().__init__(signal, parent, root, sibling)
         self.__vzoom = 1
         self.__pps = 0
-        self.__rerange()
         self._root.signal_chged_shift.connect(self.__slot_shift)
-        # self.__myscatter = NumScatterStyle()
 
     def _set_style(self):
         pen = QPen(PEN_STYLE[self._signal.line_type])
         pen.setColor(QColor.fromRgb(*self._signal.rgb))
         self.graph().setPen(pen)
 
-    def __rerange(self):
-        ymin = min(min(self._signal.value), 0)
-        ymax = max(max(self._signal.value), 0)
-        ypad = (ymax - ymin) * iosc.const.SIG_A_YPAD
-        self.yAxis.setRange(ymin - ypad, ymax + ypad)
-
     def __slot_shift(self):
         self._set_data()
-        self.__rerange()
         self.replot()
 
     @property
@@ -343,3 +332,15 @@ class AnalogSignalChartWidget(SignalChartWidget):
             self.zoom = state.v_zoom
             self.parent().parent().verticalScrollBar().setValue(state.v_pos)
             # self._sibling.vzoom_sync() FIXME:
+
+
+class SignalGraph(QCPGraph):
+    ...
+
+
+class StatusSignalGraph(SignalGraph):
+    ...
+
+
+class AnalogSignalGraph(SignalGraph):
+    ...

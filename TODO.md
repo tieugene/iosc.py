@@ -44,3 +44,4 @@ Current job: [x-DnD](https://github.com/michDaven/AbScan-TechReq/blob/main/ascii
 - Signal ranges:
   + Status: 0…0.(6)  (0.6*1.1)
   + Analog: -1..1 (max)
+- v-zoom: ?
