@@ -9,7 +9,7 @@ from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPItemText, QCPGraphData
 
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.sig.widget.ctrl import StatusSignalLabel, AnalogSignalLabel, SignalLabel
+from iosc.sig.widget.ctrl import StatusSignalLabel, AnalogSignalLabel, SignalLabel, SignalCtrlWidget
 from iosc.sig.widget.ptr import MainPtr, SCPtr, TmpPtr, MsrPtr, LvlPtr
 
 PEN_STYLE = {
@@ -60,6 +60,7 @@ class SignalChartWidget(QCustomPlot):  # FIXME: rename to SignalPlot
         v_pos: int
 
     _osc: mycomtrade.Comtrade
+    _sibling: SignalCtrlWidget
     _root: QWidget
     _sigraph: set  # [Union[StatusSignalGraph, AnalogSignalGraph]]
     _main_ptr: MainPtr
@@ -69,9 +70,11 @@ class SignalChartWidget(QCustomPlot):  # FIXME: rename to SignalPlot
     __vzoom: int
     __scat_style: EScatter  # px/sample
 
-    def __init__(self, osc: mycomtrade.Comtrade, root: QWidget, parent: QScrollArea):
+    def __init__(self, osc: mycomtrade.Comtrade, sibling: SignalCtrlWidget, root: QWidget, parent: QScrollArea):
         super().__init__(parent)
         self._osc = osc
+        self._sibling = sibling
+        sibling.sibling = self
         self._root = root
         self._ptr_selected = False
         self.__vzoom = 1
@@ -191,7 +194,7 @@ class SignalChartWidget(QCustomPlot):  # FIXME: rename to SignalPlot
 
     @zoom.setter
     def zoom(self, z: int):
-        if z != self._vzoom:
+        if z != self.__vzoom:
             self.__vzoom = z
             self.slot_vresize()
             self.parent().parent().slot_set_zoom_factor(z)  # WTF? x2 parents

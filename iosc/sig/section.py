@@ -172,7 +172,7 @@ class SignalListTable(QTableWidget):
         self.setCellWidget(row, 0, ctrl := SignalCtrlWidget(self._parent, self))
         lbl = ctrl.add_signal(signal)
         sa = SignalScrollArea(self)
-        sw = SignalChartWidget(signal.raw, self._parent, sa)
+        sw = SignalChartWidget(signal.raw, ctrl, self._parent, sa)
         sw.add_signal(signal, lbl)
         sa.setWidget(sw)
         self.setCellWidget(row, 1, sa)
