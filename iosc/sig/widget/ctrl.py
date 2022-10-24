@@ -187,7 +187,7 @@ class SignalCtrlWidget(QWidget):
         layout = QHBoxLayout(self)
         layout.setSpacing(0)
         layout.setContentsMargins(QMargins())
-        layout.addWidget(QLabel('↕'))  # TODO: Drag anchor (tmp hack)
+        layout.addWidget(QLabel(iosc.const.C0_TEXT))  # TODO: Drag anchor (tmp hack)
         layout.addWidget(self._t_side)
         layout.addWidget(self._b_side)
         layout.setStretch(0, 1)

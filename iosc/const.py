@@ -35,3 +35,5 @@ X_SCATTER_MARK = 20  # lowest px/sample to show samples as '+'
 X_SCATTER_NUM = 50  # lowest px/sample to show samples as No
 X_SCATTER_MAX = 100  # highest px/sample, don't expand further
 X_CENTERED = True  # center view on x-scaling (glitches on True)
+CH_TEXT = '↑\n↓'  # label for SignalTableWidget left header
+C0_TEXT = '↕'  # label for SignalTableWidget left header

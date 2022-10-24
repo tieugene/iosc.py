@@ -1,17 +1,18 @@
+# 1. std
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Optional, Union
-
+from typing import Optional
+# 2. 3rd
 from PyQt5.QtCore import Qt, QMargins, QObject
 from PyQt5.QtGui import QResizeEvent, QMouseEvent, QBrush, QColor, QFont, QPen
 from PyQt5.QtWidgets import QScrollArea, QLabel, QWidget
 from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPItemText, QCPGraphData, QCPGraph, QCPRange
-
+# 3. local
 import iosc.const
 from iosc.core import mycomtrade
 from iosc.sig.widget.ctrl import StatusSignalLabel, AnalogSignalLabel, SignalLabel, SignalCtrlWidget
 from iosc.sig.widget.ptr import MainPtr, SCPtr, TmpPtr, MsrPtr, LvlPtr
-
+# x. const
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
     mycomtrade.ELineType.Dot: Qt.DotLine,
@@ -86,6 +87,8 @@ class SignalChartWidget(QCustomPlot):  # FIXME: rename to SignalPlot
         self._main_ptr = MainPtr(self.graph(0), self._root)  # after graph()
         self._sc_ptr = SCPtr(self.graph(0), self._root)
         self._tmp_ptr = dict()
+        for uid in self._root.tmp_ptr_i.keys():  # TmpPtr[]
+            self._slot_ptr_add_tmp(uid)
         self._root.signal_chged_shift.connect(self.__slot_shift)
         self._root.signal_xscale.connect(self._slot_chg_width)
         self._root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
@@ -133,7 +136,7 @@ class SignalChartWidget(QCustomPlot):  # FIXME: rename to SignalPlot
         self.yAxis.setRange(mi - iosc.const.SIG_A_YPAD, ma + iosc.const.SIG_A_YPAD)
 
     def add_signal(self, signal: mycomtrade.Signal, sibling: SignalLabel):  # -> SignalGraph
-        gr: QCPGraph = self.addGraph()
+        gr = self.addGraph()
         if signal.is_bool:
             sigraph = StatusSignalGraph(gr, signal, sibling, self._root, self)
         else:
@@ -198,7 +201,6 @@ class SignalChartWidget(QCustomPlot):  # FIXME: rename to SignalPlot
             self.__vzoom = z
             self.slot_vresize()
             self.parent().parent().slot_set_zoom_factor(z)  # WTF? x2 parents
-            # FIXME: loop over children
 
     def slot_vresize(self):
         h_vscroller = self.parent().height()
@@ -224,22 +226,28 @@ class SignalChartWidget(QCustomPlot):  # FIXME: rename to SignalPlot
 
     def restore(self, state: State):
         """Restore signal state:
-        - [x] x-width[, x-zoom] (global)
-        - [x] x-position (global)
         - [x] MainPtr (global, auto)
         - [x] SCPtr (global, auto)
-        - [x] TmpPtr[]
+        - [x] TmpPtr[] (global, auto)
+        - [x] x-width[, x-zoom] (global)
+        - [x] x-position (global)
+        - [?] v-zoom(self)
+        - [?] v-position
         :todo: signals included
         """
         self._slot_chg_width(0, self._root.chart_width)  # x-width[+x-zoom]
         self.parent().parent().horizontalScrollBar().setValue(self._root.hsb.value())  # x-pos; WARNING: 2 x parent()
-        for uid in self._root.tmp_ptr_i.keys():  # TmpPtr[]
-            self._slot_ptr_add_tmp(uid)
+        self.__vzoom = state.v_zoom
+        self.parent().parent().verticalScrollBar().setValue(state.v_pos)
         self.replot()
 
 
 class SignalGraph(QObject):
     """QCPGraph wrapper to represent one signal"""
+    @dataclass
+    class State:
+        signal: mycomtrade.Signal
+
     _graph: QCPGraph
     _signal: mycomtrade.Signal
     _sibling: SignalLabel
@@ -279,6 +287,12 @@ class SignalGraph(QObject):
         self._set_style()
         self._graph.parentPlot().replot()
 
+    @property
+    def state(self) -> State:
+        return self.State(
+            signal=self._signal
+        )
+
 
 class StatusSignalGraph(SignalGraph):
     _signal: mycomtrade.StatusSignal
@@ -304,7 +318,7 @@ class StatusSignalGraph(SignalGraph):
 
 class AnalogSignalGraph(SignalGraph):
     @dataclass
-    class State(SignalChartWidget.State):
+    class State(SignalGraph.State):
         msr_ptr: list[MsrPtr.State]  # uid, x_idx
         lvl_ptr: list[LvlPtr.State]  # uid, y
 
@@ -395,35 +409,18 @@ class AnalogSignalGraph(SignalGraph):
 
     @property
     def state(self) -> State:
-        msr_ptr = []
-        lvl_ptr = []
-        for i in range(self.itemCount()):
-            item = self.item(i)
-            if isinstance(item, MsrPtr):
-                msr_ptr.append(item.state)
-            elif isinstance(item, LvlPtr):
-                lvl_ptr.append(item.state)
         return self.State(
             signal=self._signal,
-            v_zoom=self.__vzoom,
-            v_pos=self.parent().parent().verticalScrollBar().value(),
-            msr_ptr=msr_ptr,
-            lvl_ptr=lvl_ptr
+            msr_ptr=[ptr.state for ptr in self.__msr_ptr],
+            lvl_ptr=[ptr.state for ptr in self.__lvl_ptr]
         )
 
     def restore(self, state: State):
         """Restore signal state:
-        - [x] v-zoom(self)
-        - [x] v-position
         - [x] MsrPtr[]
         - [x] LvlPtr[]
         """
-        super().restore(state)
         for s in state.msr_ptr:
             self.add_ptr_msr(s.uid, s.i)
         for s in state.lvl_ptr:
             self.add_ptr_lvl(s.uid, s.y)
-        if state.v_zoom > 1:
-            self.zoom = state.v_zoom
-            self.parent().parent().verticalScrollBar().setValue(state.v_pos)
-            # self._sibling.vzoom_sync() FIXME:

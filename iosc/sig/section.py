@@ -136,7 +136,7 @@ class SignalListTable(QTableWidget):
             # copy widgets
             self.setCellWidget(dst_row_num, 0, src_table.cellWidget(__src_row_num, 0))
             self.setCellWidget(dst_row_num, 1, src_table.cellWidget(__src_row_num, 1))
-            self.setVerticalHeaderItem(dst_row_num, QTableWidgetItem('↕'))
+            self.setVerticalHeaderItem(dst_row_num, QTableWidgetItem(iosc.const.CH_TEXT))
 
         def _x_move(__src_row_num: int):
             state = src_table.cellWidget(__src_row_num, 1).widget().state  # save old
@@ -168,7 +168,7 @@ class SignalListTable(QTableWidget):
         :param signal: signal number in
         :return:
         """
-        self.setVerticalHeaderItem(row, QTableWidgetItem('↕'))
+        self.setVerticalHeaderItem(row, QTableWidgetItem(iosc.const.CH_TEXT))
         self.setCellWidget(row, 0, ctrl := SignalCtrlWidget(self._parent, self))
         lbl = ctrl.add_signal(signal)
         sa = SignalScrollArea(self)
