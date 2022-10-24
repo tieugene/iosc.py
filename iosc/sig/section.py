@@ -12,7 +12,7 @@ from iosc.sig.widget.common import CleanScrollArea
 from iosc.sig.widget.bottom import StatusBarWidget
 from iosc.sig.widget.top import TimeAxisWidget
 from iosc.sig.widget.ctrl import SignalCtrlWidget
-from iosc.sig.widget.chart import SignalScrollArea, StatusSignalChartWidget, AnalogSignalChartWidget
+from iosc.sig.widget.chart import SignalScrollArea, SignalChartWidget
 
 
 class OneRowTable(QTableWidget):
@@ -124,8 +124,8 @@ class SignalListTable(QTableWidget):
                 elif __rect.bottom() - __pos.y() < margin:
                     return True
                 return __rect.contains(__pos, True) \
-                       and not (int(self.model().flags(__idx)) & Qt.ItemIsDropEnabled) \
-                       and __pos.y() >= __rect.center().y()
+                        and not (int(self.model().flags(__idx)) & Qt.ItemIsDropEnabled) \
+                        and __pos.y() >= __rect.center().y()
 
             __index = self.indexAt(__evt.pos())
             if not __index.isValid():  # below last
@@ -172,15 +172,15 @@ class SignalListTable(QTableWidget):
         self.setCellWidget(row, 0, ctrl := SignalCtrlWidget(self._parent, self))
         lbl = ctrl.add_signal(signal)
         sa = SignalScrollArea(self)
+        sw = SignalChartWidget(signal.raw, self._parent, sa)
+        sw.add_signal(signal, lbl)
+        sa.setWidget(sw)
         self.setCellWidget(row, 1, sa)
         if signal.is_bool:
-            sw = StatusSignalChartWidget(signal, sa, self._parent, lbl)
             self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_D)
         else:
-            sw = AnalogSignalChartWidget(signal, sa, self._parent, lbl)
-            self._parent.sig_no2widget[signal.i] = sw  # TODO: now 1 row == 1 signal
             self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_A)
-        sa.setWidget(sw)
+            self._parent.sig_no2widget[signal.i] = sw  # TODO: now 1 row == 1 signal
         self._parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
     def slot_unhide(self):
