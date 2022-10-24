@@ -1,5 +1,5 @@
 """Mainwidget widget lists"""
-from typing import Union
+from typing import Union, Optional
 
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QModelIndex, pyqtSignal
@@ -12,7 +12,7 @@ from iosc.sig.widget.common import CleanScrollArea
 from iosc.sig.widget.bottom import StatusBarWidget
 from iosc.sig.widget.top import TimeAxisWidget
 from iosc.sig.widget.ctrl import SignalCtrlWidget
-from iosc.sig.widget.chart import SignalScrollArea, SignalChartWidget
+from iosc.sig.widget.chart import SignalScrollArea, SignalChartWidget, AnalogSignalGraph
 
 
 class OneRowTable(QTableWidget):
@@ -97,7 +97,9 @@ class SignalListTable(QTableWidget):
         self.setDropIndicatorShown(True)
         self.setDragDropMode(self.DragDrop)  # was self.InternalMove
         for row in range(len(slist)):
-            self.__apply_row(row, self._slist[row])
+            self.__apply_row(row, self._slist[row].raw)
+            self.__row_add_signal(row, self._slist[row])
+            self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_D if self._slist[row].is_bool else iosc.const.SIG_HEIGHT_DEFAULT_A)
         self.signal_rmrow.connect(self.removeRow)
         self.s_id = 'base'
 
@@ -133,16 +135,29 @@ class SignalListTable(QTableWidget):
             return __index.row() + 1 if _is_below(__evt.pos(), __index) else __index.row()
 
         def _i_move(__src_row_num: int):
+            """In-table row movement"""
             # copy widgets
             self.setCellWidget(dst_row_num, 0, src_table.cellWidget(__src_row_num, 0))
             self.setCellWidget(dst_row_num, 1, src_table.cellWidget(__src_row_num, 1))
             self.setVerticalHeaderItem(dst_row_num, QTableWidgetItem(iosc.const.CH_TEXT))
 
         def _x_move(__src_row_num: int):
-            state = src_table.cellWidget(__src_row_num, 1).widget().state  # save old
+            """Cross-table row movement"""
+            # 1. store
+            chart: SignalChartWidget = src_table.cellWidget(__src_row_num, 1).widget()
+            state = chart.state
+            sig_state = []
+            for sig in chart.sigraph:
+                sig_state.append(sig.state)
+            # 2. del
             src_table.removeRow(__src_row_num)  # remove old
-            self.__apply_row(dst_row_num, state.signal)  # mk new
-            self.cellWidget(dst_row_num, 1).widget().restore(state)  # restore new
+            # 3. restore
+            self.__apply_row(dst_row_num, sig_state[0].signal.raw)  # hack
+            chart = self.cellWidget(dst_row_num, 1).widget()
+            chart.restore(state)
+            for state in sig_state:
+                if sg := self.__row_add_signal(dst_row_num, state.signal):
+                    sg.restore(state)
 
         if event.isAccepted():
             super().dropEvent(event)
@@ -161,27 +176,26 @@ class SignalListTable(QTableWidget):
             _x_move(src_row_num)
         self.setRowHeight(dst_row_num, src_table.rowHeight(src_row_num))
 
-    def __apply_row(self, row: int, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]):
+    def __apply_row(self, row: int, osc: mycomtrade.Comtrade):
         """
 
         :param row: Row number of this table
-        :param signal: signal number in
+        :param osc: Comtrade
         :return:
         """
         self.setVerticalHeaderItem(row, QTableWidgetItem(iosc.const.CH_TEXT))
         self.setCellWidget(row, 0, ctrl := SignalCtrlWidget(self._parent, self))
-        lbl = ctrl.add_signal(signal)
-        sa = SignalScrollArea(self)
-        sw = SignalChartWidget(signal.raw, ctrl, self._parent, sa)
-        sw.add_signal(signal, lbl)
-        sa.setWidget(sw)
-        self.setCellWidget(row, 1, sa)
-        if signal.is_bool:
-            self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_D)
-        else:
-            self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_A)
-            self._parent.sig_no2widget[signal.i] = sw  # TODO: now 1 row == 1 signal
+        self.setCellWidget(row, 1, sa := SignalScrollArea(self))
+        sa.setWidget(sw := SignalChartWidget(osc, ctrl, self._parent, sa))
         self._parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
+
+    def __row_add_signal(self, row: int, signal: mycomtrade.Signal) -> Optional[AnalogSignalGraph]:
+        ctrl: SignalCtrlWidget = self.cellWidget(row, 0)
+        chart: SignalChartWidget = self.cellWidget(row, 1).widget()
+        sg = chart.add_signal(signal, ctrl.add_signal(signal))
+        if not signal.is_bool:
+            self._parent.sig_no2widget[signal.i] = sg
+            return sg
 
     def slot_unhide(self):
         for row in range(self.rowCount()):

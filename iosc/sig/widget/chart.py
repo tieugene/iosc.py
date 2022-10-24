@@ -39,7 +39,7 @@ class SignalScrollArea(QScrollArea):
 
     def resizeEvent(self, event: QResizeEvent):
         event.accept()
-        if event.size().height() != event.oldSize().height():
+        if self.widget() and event.size().height() != event.oldSize().height():
             self.widget().slot_vresize()
 
     def slot_set_zoom_factor(self, z: int):
@@ -75,7 +75,7 @@ class SignalChartWidget(QCustomPlot):  # FIXME: rename to SignalPlot
         super().__init__(parent)
         self._osc = osc
         self._sibling = sibling
-        sibling.sibling = self
+        self._sibling.sibling = self
         self._root = root
         self._ptr_selected = False
         self.__vzoom = 1
@@ -93,6 +93,10 @@ class SignalChartWidget(QCustomPlot):  # FIXME: rename to SignalPlot
         self._root.signal_xscale.connect(self._slot_chg_width)
         self._root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
         self._root.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
+
+    @property
+    def sigraph(self):
+        return self._sigraph
 
     def __squeeze(self):
         ar = self.axisRect(0)  # QCPAxisRect

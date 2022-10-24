@@ -201,8 +201,7 @@ class SignalCtrlWidget(QWidget):
             show |= not self._t_side.item(i).signal.is_bool
         self._b_side.setVisible(show)
 
-    def add_signal(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal])\
-            -> Union[StatusSignalLabel, AnalogSignalLabel]:
+    def add_signal(self, signal: mycomtrade.Signal) -> Union[StatusSignalLabel, AnalogSignalLabel]:
         lbl = StatusSignalLabel(signal, self._root) if signal.is_bool else AnalogSignalLabel(signal, self._root)
         self._t_side.addItem(lbl)
         self.__chk_zoom_buttons()
