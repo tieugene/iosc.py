@@ -4,6 +4,7 @@ Current job: [x-DnD](https://github.com/michDaven/AbScan-TechReq/blob/main/ascii
 
 - [x] state/restore
 - [x] x-move row
+- [x] LvlPtr (-1..1)
 - [ ] x-move signal
 - [ ] move sig2row
 - [ ] hide/restore

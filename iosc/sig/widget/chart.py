@@ -402,8 +402,8 @@ class AnalogSignalGraph(SignalGraph):
 
     def add_ptr_lvl(self, uid: int, y: Optional[float] = None):
         if y is None:
-            y = max(self._signal.value)
-        self.__lvl_ptr.add(LvlPtr(self._graph, self._root, self._signal, uid, y))
+            y = self.range_y.upper
+        self.__lvl_ptr.add(LvlPtr(self._graph.parentPlot(), self._root, self._signal, uid, y))
 
     def slot_ptr_del_lvl(self, ptr: LvlPtr):
         """Del LvlPtr"""

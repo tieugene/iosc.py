@@ -425,17 +425,20 @@ class LvlPtr(QCPItemStraightLine):
     __signal: mycomtrade.AnalogSignal
     __uid: int  # uniq id
     __tip: _Tip
+    __mult: float  # multiplier reduced<>real
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, graph: QCPGraph, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, y: float):
-        super().__init__(graph)
+    def __init__(self, cp: QCustomPlot, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, y: float):
+        super().__init__(cp)
         self.setPen(iosc.const.PEN_PTR_OMP)
         self.__root = root
         self.__signal = signal
         self.__uid = uid
-        self.__tip = self._Tip(graph.parentPlot())
+        self.__tip = self._Tip(cp)
         self.__set_color()
-        self.__move(y)
+        self.y_reduced = y
+        self.__mult = max(max(max(signal.value), 0), abs(min(0, min(signal.value))))  # multiplier rediced<>real
+        self.__slot_update_text()
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
         # self.__root.signal_chged_shift.connect(self.__slot_update_text)  # behavior undefined
         self.__root.signal_chged_pors.connect(self.__slot_update_text)
@@ -445,16 +448,27 @@ class LvlPtr(QCPItemStraightLine):
         return self.__uid
 
     @property
-    def y(self) -> float:
+    def y_reduced(self) -> float:
         return self.point1.coords().y()
 
-    @property
-    def __y_min(self) -> float:
-        return min(self.__signal.value)
+    @y_reduced.setter
+    def y_reduced(self, y: float):
+        """
+        :param y:
+        :note: for  QCPItemLine: s/point1/start/, s/point2/end/
+        """
+        self.point1.setCoords(self.__root.x_min, y)
+        self.point2.setCoords(self.__root.x_max, y)
+        self.__tip.position.setCoords(0, self.y_reduced)  # FIXME: x = ?
+        self.__tip.setPositionAlignment(Qt.AlignLeft | (Qt.AlignTop if self.y_reduced > 0 else Qt.AlignBottom))
 
     @property
-    def __y_max(self) -> float:
-        return max(self.__signal.value)
+    def y_real(self) -> float:
+        return self.y_reduced * self.__mult
+
+    @y_real.setter
+    def y_real(self, y: float):
+        self.y_reduced = y / self.__mult
 
     def __set_color(self):
         pen = QPen(iosc.const.PENSTYLE_PTR_LVL)
@@ -465,26 +479,14 @@ class LvlPtr(QCPItemStraightLine):
 
     def __y_pors(self, y: float) -> float:
         """
-        Reduce value accordinc go global pors mode
+        Reduce value according go global pors mode
         :param y: Value to redice
         :return: porsed y
         """
         return y * self.__signal.get_mult(self.__root.show_sec)
 
-    def __move(self, y: float):
-        """
-        :param y:
-        :note: for  QCPItemLine: s/point1/start/, s/point2/end/
-        """
-        self.point1.setCoords(self.__root.x_min, y)
-        self.point2.setCoords(self.__root.x_max, y)
-        self.__tip.position.setCoords(0, self.y)  # FIXME: x = ?
-        y_mid = (self.__y_min + self.__y_max) / 2
-        self.__tip.setPositionAlignment(Qt.AlignLeft | (Qt.AlignTop if self.y > y_mid else Qt.AlignBottom))
-        self.__slot_update_text()
-
     def __slot_update_text(self):
-        self.__tip.setText("L%d: %s" % (self.__uid, self.__root.sig2str(self.__signal, self.y)))
+        self.__tip.setText("L%d: %s" % (self.__uid, self.__root.sig2str(self.__signal, self.y_real)))
         self.parentPlot().replot()  # TODO: don't to this on total repaint
 
     def mousePressEvent(self, event: QMouseEvent, _):  # rmb click start
@@ -517,10 +519,15 @@ class LvlPtr(QCPItemStraightLine):
 
     def __edit_self(self):
         # pors all values
-        form = LvlPtrDialog((self.__y_pors(self.y), self.__y_pors(self.__y_min), self.__y_pors(self.__y_max)))
+        form = LvlPtrDialog((
+            self.__y_pors(self.y_real),
+            self.__y_pors(min(self.__signal.value)),
+            self.__y_pors(max(self.__signal.value))
+        ))
         if form.exec_():
             # unpors back
-            self.__move(form.f_val.value() / self.__signal.get_mult(self.__root.show_sec))
+            self.y_real = form.f_val.value() / self.__signal.get_mult(self.__root.show_sec)
+            self.__slot_update_text()
 
     def slot_set_color(self):
         self.__set_color()
@@ -530,5 +537,5 @@ class LvlPtr(QCPItemStraightLine):
     def state(self) -> State:
         return self.State(
             uid=self.__uid,
-            y=self.y
+            y=self.y_reduced
         )
