@@ -134,7 +134,7 @@ class SignalListTable(QTableWidget):
             self.setCellWidget(__dst_row_num, 1, self.cellWidget(__src_row_num, 1))
             self.setVerticalHeaderItem(__dst_row_num, QTableWidgetItem(iosc.const.CH_TEXT))
 
-        def _t_b2n_x(__src_table: QTableWidget, __src_row_num: int, __dst_row_num: int):
+        def _t_b2n_x(__src_table: SignalListTable, __src_row_num: int, __dst_row_num: int):
             """Cross-table row move"""
             self.insertRow(__dst_row_num)
             self.setRowHeight(__dst_row_num, __src_table.rowHeight(__src_row_num))
@@ -152,6 +152,23 @@ class SignalListTable(QTableWidget):
                 if sg := self.__row_add_signal(__dst_row_num, __state.signal):  # analogplot
                     sg.restore(__state)
 
+        def _s_ovr(__src_list: SignalLabelList, __src_row_num: int, __dst_row_num: int):
+            """Move signal from one row to another"""
+            # store | rm | add | restore
+            # 1. store
+            # todo: get SignalGraph by its no (root.sig_no2widget)
+            # __chart: SignalChartWidget = __src_table.cellWidget(__src_row_num, 1).widget()
+            # __state = __chart.state
+            # __sig_state = [s.state for s in __chart.sigraph]
+
+        def _s_b2n(__src_list: SignalLabelList, __src_row_num: int, __dst_row_num: int):
+            """Extract signal to separate row"""
+            # self.insertRow(__dst_row_num)
+            # self.__apply_row()
+            # self.setRowHeight(__dst_row_num, __src_table.rowHeight(__src_row_num))
+            # sig store | rm | add | restore
+            ...
+
         if event.isAccepted():
             super().dropEvent(event)
             return
@@ -162,35 +179,32 @@ class SignalListTable(QTableWidget):
             return
         over = bool(dst_row_num & 1)
         dst_row_num >>= 1
-        src_table = event.source()  # SignalListTable/SignalLabelList
-        if isinstance(src_table, SignalListTable):  # tbl.
+        src_object = event.source()  # SignalListTable/SignalLabelList
+        event.setDropAction(Qt.IgnoreAction)
+        if isinstance(src_object, SignalListTable):  # tbl.
             if over:  # tbl.Ovr
                 print("tbl.Ovr %d (1) not supported" % dst_row_num)
-                event.setDropAction(Qt.IgnoreAction)
             else:  # tbl.B2n
-                src_row_num: int = src_table.selectedIndexes()[0].row()
-                if src_table == self:
+                src_row_num: int = src_object.selectedIndexes()[0].row()
+                if src_object == self:
                     if (dst_row_num - src_row_num) in {0, 1}:
                         print("Moving near has no sense")
-                        event.setDropAction(Qt.IgnoreAction)
                     else:
                         print("tbl.B2n.i (2)")
                         _t_b2n_i(src_row_num, dst_row_num)
                         event.setDropAction(Qt.MoveAction)
                 else:
                     print("tbl.B2n.x (3)")
-                    _t_b2n_x(src_table, src_row_num, dst_row_num)
+                    _t_b2n_x(src_object, src_row_num, dst_row_num)
                     event.setDropAction(Qt.MoveAction)
-        elif isinstance(src_table, SignalLabelList):  # sig.
+        elif isinstance(src_object, SignalLabelList):  # sig.
             if over:  # sig.B2n
                 print("sig.Ovr %d (4)" % dst_row_num)
-                event.setDropAction(Qt.IgnoreAction)
+                _s_ovr(src_object, src_row_num, dst_row_num)
             else:
                 print("sig.B2n (5)")
-                event.setDropAction(Qt.IgnoreAction)
         else:
-            print("Unknown src object (y):", src_table.metaObject().className())
-            event.setDropAction(Qt.IgnoreAction)
+            print("Unknown src object (y):", src_object.metaObject().className())
 
     def __apply_row(self, row: int, osc: mycomtrade.Comtrade):
         """
