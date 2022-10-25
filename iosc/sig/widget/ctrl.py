@@ -139,7 +139,8 @@ class AnalogSignalLabel(SignalLabel):
 class SignalLabelList(QListWidget):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
-        self.setSelectionMode(self.NoSelection)  # FIXME: table row selection not works
+        self.setSelectionMode(self.SingleSelection)  # FIXME: table row selection not works
+        self.setDragEnabled(True)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__slot_context_menu)
 

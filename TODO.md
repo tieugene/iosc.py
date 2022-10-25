@@ -8,6 +8,7 @@ Current job: [x-DnD](https://github.com/michDaven/AbScan-TechReq/blob/main/ascii
 - [ ] x-move signal
 - [ ] move sig2row
 - [ ] hide/restore
+- [ ] semi-transparent draging row
 - [ ] sig_table: deselect on mouse_up
 - [ ] sig_label: deselect on mouse_up
 - [ ] ? centralized row/sig storage (linked to `Ctrl`s/`Chart`s)
@@ -18,29 +19,6 @@ Current job: [x-DnD](https://github.com/michDaven/AbScan-TechReq/blob/main/ascii
 
 [rtfm](https://stackoverflow.com/questions/26227885/drag-and-drop-rows-within-qtablewidget)
 
-## Associations:
-
-- row == csp
-- sig = graph
-
-### Ptr:
-- Main: row
-- OMP: row
-- Tmp: row
-- Msr: sig
-- Lvl: sig
-
-## QCP demo:
-
-- `interactions` - 4 x Graph
-- `scrollbar-axis-range-control`: 2 x Graph
-- `plots`:
-  + 1: setupSimpleDemo: 2x, simple
-  + 3: 17x
-  + 5: 5x
-  + 6: 5x
-  + 7: 2x
-  + 17: setupAdvancedAxesDemo: 2x, mixed yAxis
 
 ## MultiChart:
 
@@ -54,3 +32,26 @@ Current job: [x-DnD](https://github.com/michDaven/AbScan-TechReq/blob/main/ascii
   + Status: 0…0.(6)  (0.6*1.1)
   + Analog: -1..1 (max)
 - v-zoom: ?
+
+## Drop:
+
+no| src | dst |tbl| action
+--|-----|-----|---|-------
+0 | tbl | B2n | i | ins > cp widgets (!sn++, 2>2..3=x)
+1 | tbl | B2n | x | ins > (sv[] > rm > ld[])
+4 | tbl | Ovr | i | ~~cp[]~~
+5 | tbl | Ovr | x | ~~cp[]~~
+2 | sig | B2N | i | ins > cp (sn++, 2>2..3=x)
+3 | sig | B2N | x | ins > cp
+6 | sig | Ovr | i | cp
+7 | sig | Ovr | x | cp
+
+- All adrop actions: mv (or ignore on err)
+- On B2n: ins+__apply_row
+
+Stage &numero;2:
+- [x] ~~tbl.Ovr~~
+- [x] tbl.B2n.i
+- [x] tbl.B2n.x
+- [ ] sig.Ovr{.i/x}
+- [ ] sig.B2n{.i/x}
