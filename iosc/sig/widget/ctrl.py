@@ -179,6 +179,19 @@ class SignalCtrlWidget(QWidget):
         self._b_side.hide()
         self._b_side.signal_zoom.connect(self.slot_vzoom)
 
+    @property
+    def table(self) -> QTableWidget:
+        """Return parent table"""
+        return self.parent().parent()
+
+    @property
+    def row(self) -> int:
+        """Get row of parent table"""
+        parent_table = self.table
+        for i in range(parent_table.rowCount()):
+            if parent_table.cellWidget(i, 0) == self:
+                return i
+
     def __mk_widgets(self):
         self._t_side = SignalLabelList(self)
         self._b_side = ZoomButtonBox(self)
@@ -207,6 +220,14 @@ class SignalCtrlWidget(QWidget):
         self._t_side.addItem(lbl)
         self.__chk_zoom_buttons()
         return lbl
+
+    def del_siglabel(self, label: SignalLabel):
+        todel = self._t_side.takeItem(self._t_side.row(label))
+        del todel
+
+    @property
+    def sig_count(self) -> int:
+        return self._t_side.count()
 
     def vzoom_sync(self):
         self._b_side.set_enabled(self.sibling.zoom)

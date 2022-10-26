@@ -160,12 +160,20 @@ class SignalListTable(QTableWidget):
             __src_graph = __src_label.sibling  # SignalGrpah
             __state = __src_graph.state
             # 2. rm old
-            __src_list.takeItem(__src_row_num)
-            __src_graph.graph.parentPlot().del_sigraph(__src_graph)
+            __row_ctrl_widget = __src_list.parent()  # ?
+            __row_ctrl_widget.del_siglabel(__src_label)
+            # if __row_ctrl_widget.sig_count() == 0:
+            __row_chart_widget = __src_graph.graph.parentPlot()
+            __row_chart_widget.del_sigraph(__src_graph)
+            if __row_ctrl_widget.sig_count != __row_chart_widget.sig_count:
+                print("Something bad with counters")
             # 3. add
             __sg = self.__row_add_signal(__dst_row_num, __state.signal)
             # 4. restore
             __sg.restore(__state)
+            # x. rm old row if required
+            if __row_ctrl_widget.sig_count == 0:
+                __row_ctrl_widget.table.removeRow(__row_ctrl_widget.row)
 
         def _s_b2n(__src_list: SignalLabelList, __src_row_num: int, __dst_row_num: int):
             """Extract signal to separate row"""

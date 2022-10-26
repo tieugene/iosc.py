@@ -7,8 +7,9 @@ Idea: QListWidget.setItemWidget()
 - [x] state/restore
 - [x] x-move row
 - [x] LvlPtr (-1..1)
-- [ ] x-move signal
-- [ ] move sig2row
+- [x] sig join
+- [ ] sig move
+- [ ] sig unjoin
 - [ ] hide/restore
 - [ ] semi-transparent draging row
 - [ ] sig_table: deselect on mouse_up

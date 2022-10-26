@@ -156,6 +156,11 @@ class SignalChartWidget(QCustomPlot):  # FIXME: rename to SignalPlot
         self.removeGraph(sigraph.graph)
         self._sigraph.remove(sigraph)
         self.__re_range_y()
+        self.replot()
+
+    @property
+    def sig_count(self) -> int:
+        return len(self._sigraph)
 
     def __slot_shift(self):
         for sg in self._sigraph:
@@ -430,9 +435,9 @@ class AnalogSignalGraph(SignalGraph):
     def clean(self):
         """Clean up before deleting"""
         super().clean()
-        for ptr in self.__msr_ptr:
+        for ptr in reversed(tuple(self.__msr_ptr)):
             self.del_ptr_msr(ptr)
-        for ptr in self.__lvl_ptr:
+        for ptr in reversed(tuple(self.__lvl_ptr)):
             self.del_ptr_lvl(ptr)
 
     @property
