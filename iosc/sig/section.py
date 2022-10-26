@@ -216,7 +216,8 @@ class SignalListTable(QTableWidget):
             if over:  # sig.B2n
                 print("sig.Ovr %d (4)" % dst_row_num)
                 _s_ovr(src_object, src_row_num, dst_row_num)
-                event.setDropAction(Qt.MoveAction)
+                # MoveAction clears all of listwidget on sig move
+                # event.setDropAction(Qt.MoveAction)
             else:
                 if src_object.count() == 1:
                     print("Extracting the only signal has no sense")

@@ -8,7 +8,7 @@ Idea: QListWidget.setItemWidget()
 - [x] x-move row
 - [x] LvlPtr (-1..1)
 - [x] sig join
-- [ ] sig move
+- [x] sig move
 - [ ] sig unjoin
 - [ ] hide/restore
 - [ ] semi-transparent draging row
