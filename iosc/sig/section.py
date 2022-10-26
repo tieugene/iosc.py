@@ -169,6 +169,11 @@ class SignalListTable(QTableWidget):
                 print("Something bad with counters")
             # 3. add
             __sg = self.__row_add_signal(__dst_row_num, __state.signal)
+            if __row_ctrl_widget.sig_count == 1:  # newly created
+                self.setRowHeight(
+                    __dst_row_num,
+                    iosc.const.SIG_HEIGHT_DEFAULT_D if __state.signal.is_bool else iosc.const.SIG_HEIGHT_DEFAULT_A
+                )
             # 4. restore
             __sg.restore(__state)
             # x. rm old row if required
@@ -177,11 +182,9 @@ class SignalListTable(QTableWidget):
 
         def _s_b2n(__src_list: SignalLabelList, __src_row_num: int, __dst_row_num: int):
             """Extract signal to separate row"""
-            # self.insertRow(__dst_row_num)
-            # self.__apply_row()
-            # self.setRowHeight(__dst_row_num, __src_table.rowHeight(__src_row_num))
-            # sig store | rm | add | restore
-            ...
+            self.insertRow(__dst_row_num)
+            self.__apply_row(__dst_row_num, __src_list.item(__src_row_num).signal.raw)
+            _s_ovr(__src_list, __src_row_num, __dst_row_num)
 
         if event.isAccepted():
             super().dropEvent(event)
@@ -223,6 +226,7 @@ class SignalListTable(QTableWidget):
                     print("Extracting the only signal has no sense")
                 else:
                     print("sig.B2n (5)")
+                    _s_b2n(src_object, src_row_num, dst_row_num)
         else:
             print("Unknown src object (y):", src_object.metaObject().className())
 
