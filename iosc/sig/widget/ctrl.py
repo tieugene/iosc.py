@@ -143,6 +143,13 @@ class SignalLabelList(QListWidget):
         self.setDragEnabled(True)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__slot_context_menu)
+        self.itemClicked.connect(self.__slot_item_clicked)
+
+    @staticmethod
+    def __slot_item_clicked(item: SignalLabel):
+        """Deselect item on mouse up"""
+        if item.isSelected():
+            item.setSelected(False)
 
     def __slot_context_menu(self, point: QPoint):
         if not (item := self.itemAt(point)):
