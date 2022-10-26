@@ -150,8 +150,11 @@ class SignalChartWidget(QCustomPlot):  # FIXME: rename to SignalPlot
         self.__re_range_y()
         return sigraph
 
-    def del_signal(self, signal: mycomtrade.Signal):
-        ...  # TODO:
+    def del_sigraph(self, sigraph: QObject):
+        ...  # TODO: rm graph
+        sigraph.clean()
+        self.removeGraph(sigraph.graph)
+        self._sigraph.remove(sigraph)
         self.__re_range_y()
 
     def __slot_shift(self):
@@ -265,6 +268,7 @@ class SignalGraph(QObject):
         self._sibling = sibling
         sibling.sibling = self
         self._root = root
+        self._root.sig_no2widget[int(self._signal.is_bool)][self._signal.i] = self
         self._set_data()
         self._set_style()
 
@@ -294,6 +298,10 @@ class SignalGraph(QObject):
     def slot_signal_restyled(self):
         self._set_style()
         self._graph.parentPlot().replot()
+
+    def clean(self):
+        """Clean up before deleting"""
+        self._root.sig_no2widget[int(self._signal.is_bool)][self._signal.i] = None
 
     @property
     def state(self) -> State:
@@ -418,6 +426,14 @@ class AnalogSignalGraph(SignalGraph):
         self.__lvl_ptr.remove(ptr)
         self._graph.parentPlot().removeItem(ptr)
         self._graph.parentPlot().replot()
+
+    def clean(self):
+        """Clean up before deleting"""
+        super().clean()
+        for ptr in self.__msr_ptr:
+            self.del_ptr_msr(ptr)
+        for ptr in self.__lvl_ptr:
+            self.del_ptr_lvl(ptr)
 
     @property
     def state(self) -> State:

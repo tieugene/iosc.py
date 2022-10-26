@@ -11,7 +11,7 @@ from iosc.core import mycomtrade
 from iosc.sig.widget.common import CleanScrollArea
 from iosc.sig.widget.bottom import StatusBarWidget
 from iosc.sig.widget.top import TimeAxisWidget
-from iosc.sig.widget.ctrl import SignalCtrlWidget, SignalLabelList
+from iosc.sig.widget.ctrl import SignalCtrlWidget, SignalLabelList, SignalLabel
 from iosc.sig.widget.chart import SignalScrollArea, SignalChartWidget, AnalogSignalGraph
 
 
@@ -156,16 +156,12 @@ class SignalListTable(QTableWidget):
             """Move signal from one row to another"""
             # store | rm | add | restore
             # 1. store
-            # __chart: SignalChartWidget = __src_table.cellWidget(__src_row_num, 1).widget()
-            # __state = __chart.state
-            # __sig_state = [s.state for s in __chart.sigraph]
-            # 1. store
-            __src_label = __src_list.item(__src_row_num)
-            __src_graph = __src_label.sibling
+            __src_label = __src_list.item(__src_row_num)  # SignalLabel
+            __src_graph = __src_label.sibling  # SignalGrpah
             __state = __src_graph.state
             # 2. rm old
-            __src_item = __src_list.takeItem(__src_row_num)
-            # todo: and chart
+            __src_list.takeItem(__src_row_num)
+            __src_graph.graph.parentPlot().del_sigraph(__src_graph)
             # 3. add
             __sg = self.__row_add_signal(__dst_row_num, __state.signal)
             # 4. restore
@@ -212,6 +208,7 @@ class SignalListTable(QTableWidget):
             if over:  # sig.B2n
                 print("sig.Ovr %d (4)" % dst_row_num)
                 _s_ovr(src_object, src_row_num, dst_row_num)
+                event.setDropAction(Qt.MoveAction)
             else:
                 if src_object.count() == 1:
                     print("Extracting the only signal has no sense")
@@ -235,9 +232,7 @@ class SignalListTable(QTableWidget):
     def __row_add_signal(self, row: int, signal: mycomtrade.Signal) -> Optional[AnalogSignalGraph]:
         ctrl: SignalCtrlWidget = self.cellWidget(row, 0)
         chart: SignalChartWidget = self.cellWidget(row, 1).widget()
-        sg = chart.add_signal(signal, ctrl.add_signal(signal))
-        self._parent.sig_no2widget[int(signal.is_bool)][signal.i] = sg
-        return sg
+        return chart.add_signal(signal, ctrl.add_signal(signal))
 
     def slot_unhide(self):
         for row in range(self.rowCount()):

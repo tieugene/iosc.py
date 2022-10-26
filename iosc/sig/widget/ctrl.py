@@ -1,6 +1,6 @@
 from typing import Optional, Union
 
-from PyQt5.QtCore import QMargins, pyqtSignal, Qt, QPoint
+from PyQt5.QtCore import QMargins, pyqtSignal, Qt, QPoint, QObject
 from PyQt5.QtGui import QBrush, QColor
 from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QTableWidget, QVBoxLayout, QHBoxLayout, QMenu, QListWidget, \
     QListWidgetItem
@@ -61,7 +61,7 @@ class SignalLabel(QListWidgetItem):
     _prop_dlg_cls: SignalPropertiesDialog
     _signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]
     _root: QWidget
-    sibling: Optional[QCustomPlot]
+    sibling: Optional[QObject]  # SignalGraph
     # signal_restyled = pyqtSignal()  # N/A
 
     def __init__(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal], root: QWidget,
@@ -169,7 +169,7 @@ class SignalCtrlWidget(QWidget):
     _root: QWidget
     _t_side: SignalLabelList
     _b_side: ZoomButtonBox
-    sibling: Optional[QCustomPlot]
+    sibling: Optional[QCustomPlot]  # SignalChartWidget
 
     def __init__(self, root: QWidget, parent: QTableWidget):
         super().__init__(parent)
