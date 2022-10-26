@@ -4,7 +4,7 @@ RTFM context menu: examples/webenginewidgets/tabbedbrowser
 import cmath
 import math
 import pathlib
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QGuiApplication
@@ -41,14 +41,14 @@ class ComtradeWidget(QWidget):
     # inner vars
     __main_ptr_i: int  # current Main Ptr index in source arrays
     __sc_ptr_i: int  # current OMP SC Ptr index in source arrays
-    __tmp_ptr_i: dict[int, int]  # current Tmp Ptr indexes in source arrays: ptr_uid => idx
-    __msr_ptr: set[int]  # MsrPtr uids
-    __lvl_ptr: set[int]  # LvlPtr uids
+    __tmp_ptr_i: dict[int, int]  # current Tmp Ptr indexes in source arrays: ptr_uid => x_idx
+    msr_ptr_uids: set[int]  # MsrPtr uids
+    lvl_ptr_uids: set[int]  # LvlPtr uids
     __omp_width: int  # distance from OMP PR and SC pointers, periods
     __shifted: bool  # original/shifted selector
     __chart_width: Optional[int]  # width (px) of nested QCP charts
     __xzoom: int
-    sig_no2widget: list  # Translate signal no to chart widget
+    sig_no2widget: tuple[list, list]  # Translate signal no to chart widget
     show_sec: bool  # pri/sec selector
     viewas: int  # TODO: enum
     # actions
@@ -100,16 +100,17 @@ class ComtradeWidget(QWidget):
     def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
         super().__init__(parent)
         self.__osc = rec
-        self.__tpp = round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency)
+        self.__tpp = int(round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency))
         self.__main_ptr_i = self.x2i(0.0)  # default: Z
+        self.__sc_ptr_i = self.__main_ptr_i + 2 * self.__tpp
         self.__tmp_ptr_i = dict()
-        self.__msr_ptr = set()
-        self.__lvl_ptr = set()
+        self.msr_ptr_uids = set()
+        self.lvl_ptr_uids = set()
         self.__omp_width = 3
         self.__shifted = False
         self.__chart_width = None  # wait for line_up
         self.__xzoom = 1
-        self.sig_no2widget = list()
+        self.sig_no2widget = ([None] * len(self.__osc.analog), [None] * len(self.__osc.status))
         self.show_sec = True
         self.viewas = 0
         # ti_wanted = int(self.__osc.raw.total_samples * (1000 / self.__osc.rate[0][0]) / TICS_PER_CHART)  # ms
@@ -123,7 +124,7 @@ class ComtradeWidget(QWidget):
         self.__mk_connections()
         # sync: default z-point
         # self.signal_ptr_moved_main.emit()
-        self.slot_ptr_moved_sc(self.__main_ptr_i + 2 * self.__tpp)  # TODO: chk limit
+        # self.slot_ptr_moved_sc()  # TODO: chk limit
 
     @property
     def tpp(self) -> int:
@@ -160,6 +161,10 @@ class ComtradeWidget(QWidget):
     @property
     def sc_ptr_x(self) -> float:
         return self.i2x(self.__sc_ptr_i)
+
+    @property
+    def tmp_ptr_i(self) -> Dict[int, int]:
+        return self.__tmp_ptr_i
 
     @property
     def omp_width(self) -> int:
@@ -234,6 +239,9 @@ class ComtradeWidget(QWidget):
         self.analog_table = SignalListTable(self.__osc.analog, self)
         self.status_table = SignalListTable(self.__osc.status, self)
         self.statusbar_table = StatusBarTable(self.__osc, self)
+        # debug
+        self.analog_table.s_id = 'analog'
+        self.status_table.s_id = 'status'
 
     def __mk_actions(self):
         self.action_close = QAction(QIcon.fromTheme("window-close"),
@@ -537,22 +545,21 @@ class ComtradeWidget(QWidget):
 
     def __do_ptr_add_tmp(self):
         uid = max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1  # generate new uid
+        self.__tmp_ptr_i[uid] = self.__main_ptr_i
         self.signal_ptr_add_tmp.emit(uid)  # create them ...
-        self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
+        # self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
 
     def __do_ptr_add_msr(self):
         if sig_selected := SelectSignalsDialog(self.__osc.analog).execute():
             for i in sig_selected:
-                uid = max(self.__msr_ptr) + 1 if self.__msr_ptr else 1
-                self.sig_no2widget[i].add_ptr_msr(uid)
-                self.__msr_ptr.add(uid)
+                uid = max(self.msr_ptr_uids) + 1 if self.msr_ptr_uids else 1
+                self.sig_no2widget[0][i].add_ptr_msr(uid, self.main_ptr_i)
 
     def __do_ptr_add_lvl(self):
         if sig_selected := SelectSignalsDialog(self.__osc.analog).execute():
             for i in sig_selected:
-                uid = max(self.__lvl_ptr) + 1 if self.__lvl_ptr else 1
-                self.sig_no2widget[i].add_ptr_lvl(uid)
-                self.__lvl_ptr.add(uid)
+                uid = max(self.lvl_ptr_uids) + 1 if self.lvl_ptr_uids else 1
+                self.sig_no2widget[0][i].add_ptr_lvl(uid)
 
     def __sync_hresize(self, l_index: int, old_size: int, new_size: int):
         """
@@ -618,9 +625,3 @@ class ComtradeWidget(QWidget):
         if form.exec_():
             self.timeaxis_table.widget.set_tmp_ptr_name(uid, form.f_name.text())
             self.signal_ptr_moved_tmp.emit(uid, self.x2i(form.f_val.value()))
-
-    def slot_ptr_del_msr(self, uid: int):
-        self.__msr_ptr.remove(uid)
-
-    def slot_ptr_del_lvl(self, uid: int):
-        self.__lvl_ptr.remove(uid)
