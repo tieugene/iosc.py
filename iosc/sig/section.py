@@ -139,27 +139,37 @@ class SignalListTable(QTableWidget):
             self.insertRow(__dst_row_num)
             self.setRowHeight(__dst_row_num, __src_table.rowHeight(__src_row_num))
             # 1. store
-            __chart: SignalChartWidget = __src_table.cellWidget(__src_row_num, 1).widget()
-            __state = __chart.state
-            __sig_state = [s.state for s in __chart.sigraph]
+            __src_chart: SignalChartWidget = __src_table.cellWidget(__src_row_num, 1).widget()
+            __state = __src_chart.state
+            __sig_state = [s.state for s in __src_chart.sigraph]
             # 2. del
             __src_table.removeRow(__src_row_num)  # remove old
             # 3. restore
             self.__apply_row(__dst_row_num, __sig_state[0].signal.raw)  # hack
-            __chart = self.cellWidget(__dst_row_num, 1).widget()
-            __chart.restore(__state)
+            __dst_chart = self.cellWidget(__dst_row_num, 1).widget()
+            __dst_chart.restore(__state)
             for __state in __sig_state:
-                if sg := self.__row_add_signal(__dst_row_num, __state.signal):  # analogplot
-                    sg.restore(__state)
+                __sg = self.__row_add_signal(__dst_row_num, __state.signal)
+                __sg.restore(__state)
 
         def _s_ovr(__src_list: SignalLabelList, __src_row_num: int, __dst_row_num: int):
             """Move signal from one row to another"""
             # store | rm | add | restore
             # 1. store
-            # todo: get SignalGraph by its no (root.sig_no2widget)
             # __chart: SignalChartWidget = __src_table.cellWidget(__src_row_num, 1).widget()
             # __state = __chart.state
             # __sig_state = [s.state for s in __chart.sigraph]
+            # 1. store
+            __src_label = __src_list.item(__src_row_num)
+            __src_graph = __src_label.sibling
+            __state = __src_graph.state
+            # 2. rm old
+            __src_item = __src_list.takeItem(__src_row_num)
+            # todo: and chart
+            # 3. add
+            __sg = self.__row_add_signal(__dst_row_num, __state.signal)
+            # 4. restore
+            __sg.restore(__state)
 
         def _s_b2n(__src_list: SignalLabelList, __src_row_num: int, __dst_row_num: int):
             """Extract signal to separate row"""
@@ -198,11 +208,15 @@ class SignalListTable(QTableWidget):
                     _t_b2n_x(src_object, src_row_num, dst_row_num)
                     event.setDropAction(Qt.MoveAction)
         elif isinstance(src_object, SignalLabelList):  # sig.
+            src_row_num: int = src_object.selectedIndexes()[0].row()
             if over:  # sig.B2n
                 print("sig.Ovr %d (4)" % dst_row_num)
                 _s_ovr(src_object, src_row_num, dst_row_num)
             else:
-                print("sig.B2n (5)")
+                if src_object.count() == 1:
+                    print("Extracting the only signal has no sense")
+                else:
+                    print("sig.B2n (5)")
         else:
             print("Unknown src object (y):", src_object.metaObject().className())
 
@@ -222,9 +236,8 @@ class SignalListTable(QTableWidget):
         ctrl: SignalCtrlWidget = self.cellWidget(row, 0)
         chart: SignalChartWidget = self.cellWidget(row, 1).widget()
         sg = chart.add_signal(signal, ctrl.add_signal(signal))
-        if not signal.is_bool:
-            self._parent.sig_no2widget[signal.i] = sg
-            return sg
+        self._parent.sig_no2widget[int(signal.is_bool)][signal.i] = sg
+        return sg
 
     def slot_unhide(self):
         for row in range(self.rowCount()):

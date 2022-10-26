@@ -269,6 +269,10 @@ class SignalGraph(QObject):
         self._set_style()
 
     @property
+    def graph(self) -> QCPGraph:
+        return self._graph
+
+    @property
     def signal(self) -> mycomtrade.Signal:
         return self._signal
 
@@ -296,6 +300,9 @@ class SignalGraph(QObject):
         return self.State(
             signal=self._signal
         )
+
+    def restore(self, _: State):
+        ...  # stub
 
 
 class StatusSignalGraph(SignalGraph):
@@ -392,23 +399,24 @@ class AnalogSignalGraph(SignalGraph):
             return True
 
     def add_ptr_msr(self, uid: int, i: int):
-        self.__msr_ptr.add(MsrPtr(self._graph, self._root, self._signal, uid, i))
+        """Add new MsrPtr"""
+        self.__msr_ptr.add(MsrPtr(self, self._root, self._signal, uid, i))
 
-    def slot_ptr_del_msr(self, ptr: MsrPtr):
+    def del_ptr_msr(self, ptr: MsrPtr):
         """Del MsrPtr"""
-        self._graph.parentPlot().removeItem(ptr)
+        ptr.clean()
         self.__msr_ptr.remove(ptr)
+        self._graph.parentPlot().removeItem(ptr)
         self._graph.parentPlot().replot()
 
     def add_ptr_lvl(self, uid: int, y: Optional[float] = None):
-        if y is None:
-            y = self.range_y.upper
-        self.__lvl_ptr.add(LvlPtr(self._graph.parentPlot(), self._root, self._signal, uid, y))
+        self.__lvl_ptr.add(LvlPtr(self, self._root, self._signal, uid, y or self.range_y.upper))
 
-    def slot_ptr_del_lvl(self, ptr: LvlPtr):
+    def del_ptr_lvl(self, ptr: LvlPtr):
         """Del LvlPtr"""
-        self._graph.parentPlot().removeItem(ptr)
+        ptr.clean()
         self.__lvl_ptr.remove(ptr)
+        self._graph.parentPlot().removeItem(ptr)
         self._graph.parentPlot().replot()
 
     @property
