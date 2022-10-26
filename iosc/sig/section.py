@@ -4,7 +4,7 @@ from typing import Union, Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, QPoint, QModelIndex, pyqtSignal, qDebug
 from PyQt5.QtGui import QDropEvent, QGuiApplication
-from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem, QScrollBar
+from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem, QScrollBar, QListWidgetItem
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
@@ -152,39 +152,43 @@ class SignalListTable(QTableWidget):
                 __sg = self.__row_add_signal(__dst_row_num, __state.signal)
                 __sg.restore(__state)
 
-        def _s_ovr(__src_list: SignalLabelList, __src_row_num: int, __dst_row_num: int):
+        def _s_ovr(__src_list: SignalLabelList, __src_row_num: int, __dst_row_num: int, b2n: bool = False):
             """Move signal from one row to another"""
             # store | rm | add | restore
             # 1. store
             __src_label = __src_list.item(__src_row_num)  # SignalLabel
             __src_graph = __src_label.sibling  # SignalGrpah
-            __state = __src_graph.state
+            __src_chart = __src_graph.graph.parentPlot()
+            __sig_state = __src_graph.state
+            __chart_state = __src_chart.state
             # 2. rm old
-            __row_ctrl_widget = __src_list.parent()  # ?
-            __row_ctrl_widget.del_siglabel(__src_label)
+            __src_ctrl = __src_list.parent()  # ?
+            __src_ctrl.del_siglabel(__src_label)
             # if __row_ctrl_widget.sig_count() == 0:
-            __row_chart_widget = __src_graph.graph.parentPlot()
-            __row_chart_widget.del_sigraph(__src_graph)
-            if __row_ctrl_widget.sig_count != __row_chart_widget.sig_count:
+            __src_chart.del_sigraph(__src_graph)
+            if __src_ctrl.sig_count != __src_chart.sig_count:
                 print("Something bad with counters")
-            # 3. add
-            __sg = self.__row_add_signal(__dst_row_num, __state.signal)
-            if __row_ctrl_widget.sig_count == 1:  # newly created
+            # y. unjoin
+            if b2n:  # newly created
                 self.setRowHeight(
                     __dst_row_num,
-                    iosc.const.SIG_HEIGHT_DEFAULT_D if __state.signal.is_bool else iosc.const.SIG_HEIGHT_DEFAULT_A
+                    iosc.const.SIG_HEIGHT_DEFAULT_D if __sig_state.signal.is_bool else iosc.const.SIG_HEIGHT_DEFAULT_A
                 )
+                __dst_chart = self.cellWidget(__dst_row_num, 1).widget()
+                __dst_chart.restore(__chart_state)
+            # 3. add
+            __sg = self.__row_add_signal(__dst_row_num, __sig_state.signal)
             # 4. restore
-            __sg.restore(__state)
-            # x. rm old row if required
-            if __row_ctrl_widget.sig_count == 0:
-                __row_ctrl_widget.table.removeRow(__row_ctrl_widget.row)
+            __sg.restore(__sig_state)
+            # x. join (rm old row if required)
+            if __src_ctrl.sig_count == 0:
+                __src_ctrl.table.removeRow(__src_ctrl.row)
 
         def _s_b2n(__src_list: SignalLabelList, __src_row_num: int, __dst_row_num: int):
             """Extract signal to separate row"""
             self.insertRow(__dst_row_num)
             self.__apply_row(__dst_row_num, __src_list.item(__src_row_num).signal.raw)
-            _s_ovr(__src_list, __src_row_num, __dst_row_num)
+            _s_ovr(__src_list, __src_row_num, __dst_row_num, True)
 
         if event.isAccepted():
             super().dropEvent(event)

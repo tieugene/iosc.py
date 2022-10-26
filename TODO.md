@@ -4,9 +4,8 @@ Current job: [x-DnD](https://github.com/michDaven/AbScan-TechReq/blob/main/ascii
 
 Idea: QListWidget.setItemWidget()
 
-- […] sig unjoin
-- [ ] sig_table: deselect on mouse_up
 - [ ] semi-transparent draging row
+- [ ] sig_table: deselect on mouse_up
 - [ ] *centralized row/sig storage*
 - [ ] Bug: v-scale scrollbar absent
 - [x] v-zoom
@@ -16,6 +15,7 @@ Idea: QListWidget.setItemWidget()
 - [x] sig join
 - [x] sig move
 - [x] sig_label: deselect on mouse_up
+- [x] sig unjoin
 
 ## DnD:
 
