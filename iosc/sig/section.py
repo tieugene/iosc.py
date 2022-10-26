@@ -1,18 +1,18 @@
 """Mainwidget widget lists"""
-from typing import Union
+from typing import Union, Optional
 
 # 2. 3rd
-from PyQt5.QtCore import Qt, QPoint, QModelIndex, pyqtSignal
+from PyQt5.QtCore import Qt, QPoint, QModelIndex, pyqtSignal, qDebug
 from PyQt5.QtGui import QDropEvent, QGuiApplication
-from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem, QScrollBar
+from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem, QScrollBar, QListWidgetItem
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
 from iosc.sig.widget.common import CleanScrollArea
 from iosc.sig.widget.bottom import StatusBarWidget
 from iosc.sig.widget.top import TimeAxisWidget
-from iosc.sig.widget.ctrl import StatusSignalCtrlWidget, AnalogSignalCtrlWidget
-from iosc.sig.widget.chart import SignalScrollArea, StatusSignalChartWidget, AnalogSignalChartWidget
+from iosc.sig.widget.ctrl import SignalCtrlWidget, SignalLabelList, SignalLabel
+from iosc.sig.widget.chart import SignalScrollArea, SignalChartWidget, AnalogSignalGraph
 
 
 class OneRowTable(QTableWidget):
@@ -97,92 +97,159 @@ class SignalListTable(QTableWidget):
         self.setDropIndicatorShown(True)
         self.setDragDropMode(self.DragDrop)  # was self.InternalMove
         for row in range(len(slist)):
-            self.__apply_row(row, self._slist[row])
+            self.__apply_row(row, self._slist[row].raw)
+            self.__row_add_signal(row, self._slist[row])
+            self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_D if self._slist[row].is_bool else iosc.const.SIG_HEIGHT_DEFAULT_A)
         self.signal_rmrow.connect(self.removeRow)
         self.s_id = 'base'
 
     def dropEvent(self, event: QDropEvent):
         def _drop_on(__evt: QDropEvent) -> int:
             """
-            ... where drop to
+            Detect where droped to
             :param __evt: Drop event
-            :return: Row number dropped before
-            :todo: detect to put over or insert B4
+            :return: Pseudo-row number dropped on: 0 = B4 0th, 3 = over 1st, 6 = after 2nd
             """
-
-            def _is_below(__pos: QPoint, __idx: QModelIndex) -> bool:
-                """
-                Check whether drop below given row
-                :param __pos: Position of dropping
-                :param __idx: Index of row to check
-                :return: True if below
-                """
-                __rect = self.visualRect(__idx)
-                margin = 2
-                if __pos.y() - __rect.top() < margin:
-                    return False
-                elif __rect.bottom() - __pos.y() < margin:
-                    return True
-                return __rect.contains(__pos, True) \
-                       and not (int(self.model().flags(__idx)) & Qt.ItemIsDropEnabled) \
-                       and __pos.y() >= __rect.center().y()
-
-            __index = self.indexAt(__evt.pos())
+            __pos = __evt.pos()
+            __index = self.indexAt(__pos)
             if not __index.isValid():  # below last
-                return self.rowCount()
-            return __index.row() + 1 if _is_below(__evt.pos(), __index) else __index.row()
+                return self.rowCount() << 1
+            __rect = self.visualRect(__index)
+            __margin = 2  # FIXME: too strict; find tolerance
+            if __pos.y() - __rect.top() < __margin:  # above
+                return __index.row() << 1
+            elif __rect.bottom() - __pos.y() < __margin:  # below
+                return (__index.row() + 1) << 1
+            if __rect.contains(__pos, True):  # over
+                return (__index.row() << 1) + 1
 
-        def _i_move(__src_row_num: int):
+        def _t_b2n_i(__src_row_num: int, __dst_row_num: int):
+            """In-table row move"""
+            self.insertRow(__dst_row_num)
+            self.setRowHeight(__dst_row_num, self.rowHeight(__src_row_num))
+            if __src_row_num > __dst_row_num:
+                __src_row_num += 1
             # copy widgets
-            self.setCellWidget(dst_row_num, 0, src_table.cellWidget(__src_row_num, 0))
-            self.setCellWidget(dst_row_num, 1, src_table.cellWidget(__src_row_num, 1))
-            self.setVerticalHeaderItem(dst_row_num, QTableWidgetItem('↕'))
+            self.setCellWidget(__dst_row_num, 0, self.cellWidget(__src_row_num, 0))
+            self.setCellWidget(__dst_row_num, 1, self.cellWidget(__src_row_num, 1))
+            self.setVerticalHeaderItem(__dst_row_num, QTableWidgetItem(iosc.const.CH_TEXT))
 
-        def _x_move(__src_row_num: int):
-            state = src_table.cellWidget(__src_row_num, 1).widget().state  # save old
-            src_table.removeRow(__src_row_num)  # remove old
-            self.__apply_row(dst_row_num, state.signal)  # mk new
-            self.cellWidget(dst_row_num, 1).widget().restore(state)  # restore new
+        def _t_b2n_x(__src_table: SignalListTable, __src_row_num: int, __dst_row_num: int):
+            """Cross-table row move"""
+            self.insertRow(__dst_row_num)
+            self.setRowHeight(__dst_row_num, __src_table.rowHeight(__src_row_num))
+            # 1. store
+            __src_chart: SignalChartWidget = __src_table.cellWidget(__src_row_num, 1).widget()
+            __state = __src_chart.state
+            __sig_state = [s.state for s in __src_chart.sigraph]
+            # 2. del
+            __src_table.removeRow(__src_row_num)  # remove old
+            # 3. restore
+            self.__apply_row(__dst_row_num, __sig_state[0].signal.raw)  # hack
+            __dst_chart = self.cellWidget(__dst_row_num, 1).widget()
+            __dst_chart.restore(__state)
+            for __state in __sig_state:
+                __sg = self.__row_add_signal(__dst_row_num, __state.signal)
+                __sg.restore(__state)
+
+        def _s_ovr(__src_list: SignalLabelList, __src_row_num: int, __dst_row_num: int, b2n: bool = False):
+            """Move signal from one row to another"""
+            # store | rm | add | restore
+            # 1. store
+            __src_label = __src_list.item(__src_row_num)  # SignalLabel
+            __src_graph = __src_label.sibling  # SignalGrpah
+            __src_chart = __src_graph.graph.parentPlot()
+            __sig_state = __src_graph.state
+            __chart_state = __src_chart.state
+            # 2. rm old
+            __src_ctrl = __src_list.parent()  # ?
+            __src_ctrl.del_siglabel(__src_label)
+            # if __row_ctrl_widget.sig_count() == 0:
+            __src_chart.del_sigraph(__src_graph)
+            if __src_ctrl.sig_count != __src_chart.sig_count:
+                print("Something bad with counters")
+            # y. unjoin
+            if b2n:  # newly created
+                self.setRowHeight(
+                    __dst_row_num,
+                    iosc.const.SIG_HEIGHT_DEFAULT_D if __sig_state.signal.is_bool else iosc.const.SIG_HEIGHT_DEFAULT_A
+                )
+                __dst_chart = self.cellWidget(__dst_row_num, 1).widget()
+                __dst_chart.restore(__chart_state)
+            # 3. add
+            __sg = self.__row_add_signal(__dst_row_num, __sig_state.signal)
+            # 4. restore
+            __sg.restore(__sig_state)
+            # x. join (rm old row if required)
+            if __src_ctrl.sig_count == 0:
+                __src_ctrl.table.removeRow(__src_ctrl.row)
+
+        def _s_b2n(__src_list: SignalLabelList, __src_row_num: int, __dst_row_num: int):
+            """Extract signal to separate row"""
+            self.insertRow(__dst_row_num)
+            self.__apply_row(__dst_row_num, __src_list.item(__src_row_num).signal.raw)
+            _s_ovr(__src_list, __src_row_num, __dst_row_num, True)
 
         if event.isAccepted():
             super().dropEvent(event)
             return
-        # FIXME: event.drop() and return if before[/after?] self (like 2=>3)
-        event.setDropAction(Qt.MoveAction)
         event.accept()
-        src_table: QTableWidget = event.source()
-        src_row_num: int = src_table.selectedIndexes()[0].row()
-        dst_row_num: int = _drop_on(event)
-        # 1. add
-        self.insertRow(dst_row_num)
-        if src_table == self:
-            _i_move(src_row_num + 1 if src_row_num > dst_row_num else src_row_num)
+        if (dst_row_num := _drop_on(event)) is None:
+            print("Something wrong (x)")
+            event.setDropAction(Qt.IgnoreAction)
+            return
+        over = bool(dst_row_num & 1)
+        dst_row_num >>= 1
+        src_object = event.source()  # SignalListTable/SignalLabelList
+        event.setDropAction(Qt.IgnoreAction)
+        if isinstance(src_object, SignalListTable):  # tbl.
+            if over:  # tbl.Ovr
+                print("tbl.Ovr %d (1) not supported" % dst_row_num)
+            else:  # tbl.B2n
+                src_row_num: int = src_object.selectedIndexes()[0].row()
+                if src_object == self:
+                    if (dst_row_num - src_row_num) in {0, 1}:
+                        print("Moving near has no sense")
+                    else:
+                        print("tbl.B2n.i (2)")
+                        _t_b2n_i(src_row_num, dst_row_num)
+                        event.setDropAction(Qt.MoveAction)
+                else:
+                    print("tbl.B2n.x (3)")
+                    _t_b2n_x(src_object, src_row_num, dst_row_num)
+                    event.setDropAction(Qt.MoveAction)
+        elif isinstance(src_object, SignalLabelList):  # sig.
+            src_row_num: int = src_object.selectedIndexes()[0].row()
+            if over:  # sig.B2n
+                print("sig.Ovr %d (4)" % dst_row_num)
+                _s_ovr(src_object, src_row_num, dst_row_num)
+                # MoveAction clears all of listwidget on sig move
+                # event.setDropAction(Qt.MoveAction)
+            else:
+                if src_object.count() == 1:
+                    print("Extracting the only signal has no sense")
+                else:
+                    print("sig.B2n (5)")
+                    _s_b2n(src_object, src_row_num, dst_row_num)
         else:
-            _x_move(src_row_num)
-        self.setRowHeight(dst_row_num, src_table.rowHeight(src_row_num))
+            print("Unknown src object (y):", src_object.metaObject().className())
 
-    def __apply_row(self, row: int, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]):
+    def __apply_row(self, row: int, osc: mycomtrade.Comtrade):
         """
-
+        Prepare newly created table row to fill out with signals.
         :param row: Row number of this table
-        :param signal: signal number in
-        :return:
+        :param osc: Comtrade
         """
-        sa = SignalScrollArea(self)
-        if signal.is_bool:
-            self.setCellWidget(row, 0, ctrl := StatusSignalCtrlWidget(signal, self, self._parent))
-            sa.setWidget(StatusSignalChartWidget(signal, sa, self._parent, ctrl))
-            self.setCellWidget(row, 1, sa)
-            self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_D)
-        else:
-            self.setCellWidget(row, 0, ctrl := AnalogSignalCtrlWidget(signal, self, self._parent))
-            sw = AnalogSignalChartWidget(signal, sa, self._parent, ctrl)
-            sa.setWidget(sw)
-            self.setCellWidget(row, 1, sa)
-            self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_A)
-            self._parent.sig_no2widget[signal.i] = sw  # TODO: now 1 row == 1 signal
-        self.setVerticalHeaderItem(row, QTableWidgetItem('↕'))
+        self.setVerticalHeaderItem(row, QTableWidgetItem(iosc.const.CH_TEXT))
+        self.setCellWidget(row, 0, ctrl := SignalCtrlWidget(self._parent, self))
+        self.setCellWidget(row, 1, sa := SignalScrollArea(self))
+        sa.setWidget(sw := SignalChartWidget(osc, ctrl, self._parent, sa))
         self._parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
+
+    def __row_add_signal(self, row: int, signal: mycomtrade.Signal) -> Optional[AnalogSignalGraph]:
+        ctrl: SignalCtrlWidget = self.cellWidget(row, 0)
+        chart: SignalChartWidget = self.cellWidget(row, 1).widget()
+        return chart.add_signal(signal, ctrl.add_signal(signal))
 
     def slot_unhide(self):
         for row in range(self.rowCount()):
@@ -193,17 +260,17 @@ class SignalListTable(QTableWidget):
         :param row: Row to ask
         :return: Signal No in correspondent signal list
         """
-        return self.cellWidget(row, 0).whoami()
+        return self.cellWidget(row, 0).whoami
 
     def slot_vzoom_in(self):
         for row in range(self.rowCount()):
-            if not self.cellWidget(row, 0).signal.is_bool:
-                self.setRowHeight(row, int(self.rowHeight(row) * 1.2))
+            # if not self.cellWidget(row, 0).signal.is_bool:  FIXME:
+            self.setRowHeight(row, int(self.rowHeight(row) * 1.2))
 
     def slot_vzoom_out(self):
         for row in range(self.rowCount()):
-            if not self.cellWidget(row, 0).signal.is_bool:
-                self.setRowHeight(row, int(self.rowHeight(row) / 1.2))
+            # if not self.cellWidget(row, 0).signal.is_bool:  # FIXME:
+            self.setRowHeight(row, int(self.rowHeight(row) / 1.2))
 
 
 class HScroller(QScrollBar):
