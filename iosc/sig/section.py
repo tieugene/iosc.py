@@ -1,4 +1,5 @@
 """Mainwidget widget lists"""
+import sys
 from typing import Union, Optional
 
 # 2. 3rd
@@ -166,7 +167,7 @@ class SignalListTable(QTableWidget):
             # if __row_ctrl_widget.sig_count() == 0:
             __src_chart.del_sigraph(__src_graph)
             if __src_ctrl.sig_count != __src_chart.sig_count:
-                print("Something bad with counters")
+                print("Something bad with counters", file=sys.stderr)
             # y. unjoin
             if b2n:  # newly created
                 self.setRowHeight(
@@ -195,43 +196,46 @@ class SignalListTable(QTableWidget):
         event.accept()
         event.setDropAction(Qt.IgnoreAction)
         if (dst_row_num := _drop_on(event)) is None:
-            print("Something wrong (x)")
+            print("Drop dst undefined", file=sys.stderr)
             return
         over = bool(dst_row_num & 1)
         dst_row_num >>= 1
         src_object = event.source()  # SignalListTable/SignalLabelList
         if isinstance(src_object, SignalListTable):  # tbl.
             if over:  # tbl.Ovr
-                print("tbl.Ovr %d not supported" % dst_row_num)
+                print("tbl.Ovr %d not supported" % dst_row_num, file=sys.stderr)
             else:  # tbl.B2n
                 src_row_num: int = src_object.selectedIndexes()[0].row()
                 if src_object == self:
                     if (dst_row_num - src_row_num) in {0, 1}:
-                        print("Moving near has no sense")
+                        print("Moving near has no sense", file=sys.stderr)
                     else:
-                        print("tbl.B2n.i")
+                        # print("tbl.B2n.i")
                         _t_b2n_i(src_row_num, dst_row_num)
                         event.setDropAction(Qt.MoveAction)
                 else:
-                    print("tbl.B2n.x")
+                    # print("tbl.B2n.x")
                     _t_b2n_x(src_object, src_row_num, dst_row_num)
                     event.setDropAction(Qt.MoveAction)
         elif isinstance(src_object, SignalLabelList):  # sig.
             # Note: MoveAction clears all of listwidget on sig move
             src_row_num: int = src_object.selectedIndexes()[0].row()
             if over:  # sig.B2n
-                print("sig.Ovr %d" % dst_row_num)
-                _s_ovr(src_object, src_row_num, dst_row_num)
-                # event.setDropAction(Qt.MoveAction)
+                # print("sig.Ovr %d" % dst_row_num)
+                if src_object.parent().parent().parent() == self:  # FIXME: dirty hack
+                    print("Droping signal on itself has no sense", file=sys.stderr)
+                else:
+                    _s_ovr(src_object, src_row_num, dst_row_num)
+                    # event.setDropAction(Qt.MoveAction)
             else:
                 if src_object.count() == 1:
-                    print("Extracting the only signal has no sense")
+                    print("Extracting the only signal has no sense", file=sys.stderr)
                 else:
-                    print("sig.B2n")
+                    # print("sig.B2n")
                     _s_b2n(src_object, src_row_num, dst_row_num)
                     # event.setDropAction(Qt.MoveAction)
         else:
-            print("Unknown src object:", src_object.metaObject().className())
+            print("Unknown src object: %s" % src_object.metaObject().className(), file=sys.stderr)
 
     def __apply_row(self, row: int, osc: mycomtrade.Comtrade):
         """
