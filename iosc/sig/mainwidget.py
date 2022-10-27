@@ -37,6 +37,7 @@ class ComtradeWidget(QWidget):
     """
     # inner cons
     __osc: mycomtrade.MyComtrade
+    __path: pathlib.Path
     __tpp: int  # tics (samples) per signal period
     # inner vars
     __main_ptr_i: int  # current Main Ptr index in source arrays
@@ -97,9 +98,10 @@ class ComtradeWidget(QWidget):
     signal_ptr_del_tmp = pyqtSignal(int)  # rm TmpPtr from each SignalChartWidget
     signal_ptr_moved_tmp = pyqtSignal(int, int)  # refresh SignalChartWidget on Tmp Ptr moved
 
-    def __init__(self, rec: mycomtrade.MyComtrade, parent: QTabWidget):
+    def __init__(self, rec: mycomtrade.MyComtrade, path: pathlib.Path, parent: QTabWidget):
         super().__init__(parent)
         self.__osc = rec
+        self.__path = path
         self.__tpp = int(round(self.__osc.raw.cfg.sample_rates[0][0] / self.__osc.raw.cfg.frequency))
         self.__main_ptr_i = self.x2i(0.0)  # default: Z
         self.__sc_ptr_i = self.__main_ptr_i + 2 * self.__tpp
@@ -465,7 +467,7 @@ class ComtradeWidget(QWidget):
         # msg.setDetailedText(self.__osc.cfg_summary())
         # plan B
         txt = "<html><body><table><tbody>"
-        txt += tr("File", self.__osc.raw.cfg.filepath)
+        txt += tr("File", self.__path)  # was self.__osc.raw.cfg.filepath
         txt += tr("Station name", self.__osc.raw.station_name)
         txt += tr("Station id", self.__osc.raw.rec_dev_id)
         txt += tr("Comtrade ver.", self.__osc.raw.rev_year)
