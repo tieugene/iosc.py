@@ -73,6 +73,7 @@ class SignalListTable(QTableWidget):
         self.setRowCount(len(slist))
         self.setEditTriggers(self.NoEditTriggers)
         self.setVerticalScrollMode(self.ScrollPerPixel)
+        # self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)  # then topbar, bottom bar
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # not helps
         self.verticalHeader().setMinimumSectionSize(iosc.const.SIG_HEIGHT_MIN)
         self.verticalHeader().setMaximumSectionSize(
