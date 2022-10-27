@@ -141,6 +141,7 @@ class SignalLabelList(QListWidget):
         super().__init__(parent)
         self.setSelectionMode(self.SingleSelection)  # FIXME: table row selection not works
         self.setDragEnabled(True)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__slot_context_menu)
         self.itemClicked.connect(self.__slot_item_clicked)
