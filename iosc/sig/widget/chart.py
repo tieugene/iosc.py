@@ -370,11 +370,16 @@ class AnalogSignalGraph(SignalGraph):
     @property
     def _data_y(self) -> list:
         divider = max(abs(min(self._signal.value)), abs(max(self._signal.value)))
+        if divider == 0.0:
+            divider = 1.0
         return [v / divider for v in self._signal.value]
 
     @property
     def range_y(self) -> QCPRange:
-        return self._graph.data().valueRange()[0]
+        retvalue = self._graph.data().valueRange()[0]
+        if retvalue.lower == retvalue.upper == 0.0:
+            retvalue = QCPRange(-1.0, 1.0)
+        return retvalue
 
     def refresh_data(self):
         self._set_data()
