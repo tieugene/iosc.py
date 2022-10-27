@@ -110,17 +110,15 @@ class SignalListTable(QTableWidget):
             :param __evt: Drop event
             :return: Pseudo-row number dropped on: 0 = B4 0th, 3 = over 1st, 6 = after 2nd
             """
-            __pos = __evt.pos()
-            __index = self.indexAt(__pos)
-            if not __index.isValid():  # below last
+            __dip = self.dropIndicatorPosition()
+            __index = self.indexAt(__evt.pos())
+            if not __index.isValid():  # below last; TODO: self.OnViewport?
                 return self.rowCount() << 1
-            __rect = self.visualRect(__index)
-            __margin = 2  # FIXME: too strict; find tolerance
-            if __pos.y() - __rect.top() < __margin:  # above
+            if __dip == self.AboveItem:
                 return __index.row() << 1
-            elif __rect.bottom() - __pos.y() < __margin:  # below
+            elif __dip == self.BelowItem:
                 return (__index.row() + 1) << 1
-            if __rect.contains(__pos, True):  # over
+            elif __dip == self.OnItem:
                 return (__index.row() << 1) + 1
 
         def _t_b2n_i(__src_row_num: int, __dst_row_num: int):
@@ -194,45 +192,45 @@ class SignalListTable(QTableWidget):
             super().dropEvent(event)
             return
         event.accept()
+        event.setDropAction(Qt.IgnoreAction)
         if (dst_row_num := _drop_on(event)) is None:
             print("Something wrong (x)")
-            event.setDropAction(Qt.IgnoreAction)
             return
         over = bool(dst_row_num & 1)
         dst_row_num >>= 1
         src_object = event.source()  # SignalListTable/SignalLabelList
-        event.setDropAction(Qt.IgnoreAction)
         if isinstance(src_object, SignalListTable):  # tbl.
             if over:  # tbl.Ovr
-                print("tbl.Ovr %d (1) not supported" % dst_row_num)
+                print("tbl.Ovr %d not supported" % dst_row_num)
             else:  # tbl.B2n
                 src_row_num: int = src_object.selectedIndexes()[0].row()
                 if src_object == self:
                     if (dst_row_num - src_row_num) in {0, 1}:
                         print("Moving near has no sense")
                     else:
-                        print("tbl.B2n.i (2)")
+                        print("tbl.B2n.i")
                         _t_b2n_i(src_row_num, dst_row_num)
                         event.setDropAction(Qt.MoveAction)
                 else:
-                    print("tbl.B2n.x (3)")
+                    print("tbl.B2n.x")
                     _t_b2n_x(src_object, src_row_num, dst_row_num)
                     event.setDropAction(Qt.MoveAction)
         elif isinstance(src_object, SignalLabelList):  # sig.
+            # Note: MoveAction clears all of listwidget on sig move
             src_row_num: int = src_object.selectedIndexes()[0].row()
             if over:  # sig.B2n
-                print("sig.Ovr %d (4)" % dst_row_num)
+                print("sig.Ovr %d" % dst_row_num)
                 _s_ovr(src_object, src_row_num, dst_row_num)
-                # MoveAction clears all of listwidget on sig move
                 # event.setDropAction(Qt.MoveAction)
             else:
                 if src_object.count() == 1:
                     print("Extracting the only signal has no sense")
                 else:
-                    print("sig.B2n (5)")
+                    print("sig.B2n")
                     _s_b2n(src_object, src_row_num, dst_row_num)
+                    # event.setDropAction(Qt.MoveAction)
         else:
-            print("Unknown src object (y):", src_object.metaObject().className())
+            print("Unknown src object:", src_object.metaObject().className())
 
     def __apply_row(self, row: int, osc: mycomtrade.Comtrade):
         """
