@@ -1,4 +1,5 @@
 """Main GUI"""
+__version__ = '0.1.1'
 # 1. std
 import pathlib
 import sys
@@ -13,6 +14,7 @@ from maintabber import ComtradeTabWidget, MAIN_TAB
 # x. const
 MAIN_MENU = True  # FIXME: False => hot keys not work
 ABOUT_STR = '''Qt powered comtrade viewer/analyzer.<br/>
+Version: %s<br/>
 Developed for <a href="https://ntkpribor.ru/">&laquo;NTK Priborenergo&raquo;, Ltd.</a><br/>
 <sub>&copy; <a href="https://www.eap.su">TI_Eugene</a></sub>'''
 
@@ -95,7 +97,7 @@ class MainWindow(QMainWindow):
     # actions
     def do_about(self):
         # QMessageBox.about(self, "About iOsc.py", ABOUT_STR)
-        dialog = QMessageBox(QMessageBox.Information, "About iOsc.py", ABOUT_STR, QMessageBox.Ok, self)
+        dialog = QMessageBox(QMessageBox.Information, "About iOsc.py", ABOUT_STR % __version__, QMessageBox.Ok, self)
         dialog.setTextFormat(Qt.RichText)
         dialog.exec_()
 
@@ -113,6 +115,7 @@ class MainWindow(QMainWindow):
 def main() -> int:
     # QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
+    app.setApplicationVersion(__version__)
     mw: QMainWindow = MainWindow(sys.argv)
     available_geometry = app.desktop().availableGeometry(mw)  # 0, 0, 1280, 768 (display height - taskbar)
     mw.resize(int(available_geometry.width() * 3 / 4), int(available_geometry.height() * 3 / 4))
