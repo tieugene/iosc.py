@@ -6,7 +6,7 @@ from typing import Optional
 from PyQt5.QtCore import Qt, QMargins, QObject
 from PyQt5.QtGui import QResizeEvent, QMouseEvent, QBrush, QColor, QFont, QPen
 from PyQt5.QtWidgets import QScrollArea, QLabel, QWidget
-from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPItemText, QCPGraphData, QCPGraph, QCPRange
+from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPItemText, QCPGraphData, QCPGraph, QCPRange, QCPPainter
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
@@ -354,6 +354,13 @@ class AnalogSignalGraph(SignalGraph):
             self.setText(str(num))
             self.position.setCoords(point.key, point.value)
 
+    class DigitScatterStyle(QCPScatterStyle):
+        def __init__(self):
+            super().__init__(QCPScatterStyle.ssCircle)
+        # def drawShape(self, painter: QCPPainter, *__args):  # not works
+        #     print(len(__args))
+        #     super().drawShape(painter, *__args)
+
     _signal: mycomtrade.AnalogSignal
     _sibling: AnalogSignalLabel
     __scat_style: EScatter
@@ -398,10 +405,12 @@ class AnalogSignalGraph(SignalGraph):
         if self.__scat_style != scat_style:
             if scat_style < EScatter.P:
                 shape = QCPScatterStyle(QCPScatterStyle.ssNone)
-            else:
+            elif scat_style < EScatter.D:
                 shape = QCPScatterStyle(QCPScatterStyle.ssPlus)
-            self._graph.setScatterStyle(QCPScatterStyle(shape))
-            # <dirtyhack>  # TODO:
+            else:
+                shape = self.DigitScatterStyle()
+            self._graph.setScatterStyle(shape)
+            # <dirtyhack>
             '''
             if self.__pps < iosc.const.X_SCATTER_NUM <= pps:
                 # self.graph().setScatterStyle(self.__myscatter)
