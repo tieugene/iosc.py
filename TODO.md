@@ -5,7 +5,6 @@ Current job: [x-DnD](https://github.com/michDaven/AbScan-TechReq/blob/main/ascii
 Idea: QListWidget.setItemWidget()
 
 - [ ] #170 semi-transparent draging row
-- [ ] #168 strict drop margins
 - [ ] sig drop: disable drop to itself
 - [ ] sig_table: deselect on mouse_up
 - [ ] *centralized row/sig storage*
@@ -18,11 +17,11 @@ Idea: QListWidget.setItemWidget()
 - [x] sig move
 - [x] sig_label: deselect on mouse_up
 - [x] sig unjoin
+- [x] #168 strict drop margins:
 
 ## DnD:
 
 [rtfm](https://stackoverflow.com/questions/26227885/drag-and-drop-rows-within-qtablewidget)
-
 
 ## MultiChart:
 
@@ -59,3 +58,8 @@ Stage &numero;2:
 - [x] tbl.B2n.x
 - [x] sig.Ovr{.i/x}
 - [x] sig.B2n{.i/x}
+
+## RTFM:
+- dragEnterEvent(QDragEnterEvent)
+- dragLeaveEvent(QDragLeaveEvent)
+- dragMoveEvent(QDragMoveEvent)
