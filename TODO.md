@@ -4,8 +4,8 @@ Current job: [x-DnD](https://github.com/michDaven/AbScan-TechReq/blob/main/ascii
 
 Idea: QListWidget.setItemWidget()
 
-- [ ] semi-transparent draging row
-- [ ] strict drop margins
+- [ ] #170 semi-transparent draging row
+- [ ] #168 strict drop margins
 - [ ] sig drop: disable drop to itself
 - [ ] sig_table: deselect on mouse_up
 - [ ] *centralized row/sig storage*
@@ -57,5 +57,5 @@ Stage &numero;2:
 - [x] ~~tbl.Ovr~~
 - [x] tbl.B2n.i
 - [x] tbl.B2n.x
-- [ ] sig.Ovr{.i/x}
-- [ ] sig.B2n{.i/x}
+- [x] sig.Ovr{.i/x}
+- [x] sig.B2n{.i/x}
