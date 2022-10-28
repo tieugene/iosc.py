@@ -222,11 +222,11 @@ class SignalListTable(QTableWidget):
             src_row_num: int = src_object.selectedIndexes()[0].row()
             if over:  # sig.B2n
                 # print("sig.Ovr %d" % dst_row_num)
-                if src_object.parent().parent().parent() == self:  # FIXME: dirty hack
-                    print("Droping signal on itself has no sense", file=sys.stderr)
-                else:
-                    _s_ovr(src_object, src_row_num, dst_row_num)
-                    # event.setDropAction(Qt.MoveAction)
+                # if src_object.parent().parent().parent() == self:  # FIXME: dirty hack
+                #     print("Droping signal on itself has no sense", file=sys.stderr)
+                # else:
+                _s_ovr(src_object, src_row_num, dst_row_num)
+                # event.setDropAction(Qt.MoveAction)
             else:
                 if src_object.count() == 1:
                     print("Extracting the only signal has no sense", file=sys.stderr)
