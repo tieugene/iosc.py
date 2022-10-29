@@ -3,20 +3,18 @@
 Current job: [row/sig join/move/unjoin](https://github.com/tieugene/iosc.py/milestone/11)
 
 - [ ] 0.3.0 demo
-- [ ] ~~#166: Hide/Show~~
-  + Requires centralized signal control
-- [ ] ~~#167 Digit scatters~~
-  + Requires C++ sample => ?
-- [ ] ~~#174: Row shift~~
-  + Table: fix vscroller + decrease table [column] width
-  + List: ?
+- [ ] ~~#167 Digit scatters~~: Requires C++ sample => ?
+- [ ] ~~#166: Hide/Show~~: Requires centralized signal control
 
 ## Hot:
-- RTFM QHeaderView (resize by margin)
-- QTableWidget + Line as cell
-- QListWidget + Line as cell
-- QGridLayout + Line
-- QGraphicalGridLayout + Line
+- [x] **QTableWidget + Line as cell**
+- [ ] QGridLayout + Line
+- [ ] QGraphicalGridLayout + Line
+- [ ] QRubberBand (band)
+- [ ] QSizeGrip (grip == catch (band)
+- [ ] RTFM QHeaderView (resize by margin: mouseXEvent())
+- [x] QSplitters: parent widget not v-resizable
+- [x] QListWidget + Line as cell: rows not v-resizable
 
 ## 0.3.0:
 
@@ -42,18 +40,20 @@ What 2 do:
 
 ### Variants:
 
-- QTableWidget:
+- [x] QTableWidget:
   + &ominus; not resizable by cells
   + &ominus; cell independent
-- QTableWidget + Lines in cells
-- QTableWidget + Lines as cells
-- QListWidget:
+- [ ] QTableWidget + Lines as cells
+  + &oplus; Drop over only
+- [ ] QTableWidget + Lines in cells
+- [x] QListWidget:
   + not resizable rows
   + not resizable col (?)
-- QAbstractItemView + (QAbstractItemDelegate | model):
+- [ ] QAbstractItemView + (QAbstractItemDelegate | model):
   + ...
-- QGridLayout + Lines
-- QSplitter x 2:
+- [ ] QGridLayout + Lines
+- [x] QSplitter x 2:
+  + &ominus; not v-resize parent widget
   + &ominus; DnD
   + &ominus; not scrollable
 - QGraphics*:

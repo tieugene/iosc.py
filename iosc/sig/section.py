@@ -3,16 +3,16 @@ import sys
 from typing import Union, Optional
 
 # 2. 3rd
-from PyQt5.QtCore import Qt, QPoint, QModelIndex, pyqtSignal, qDebug
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QDropEvent, QGuiApplication
-from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem, QScrollBar, QListWidgetItem
+from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QTableWidgetItem, QScrollBar, QCommonStyle
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
 from iosc.sig.widget.common import CleanScrollArea
 from iosc.sig.widget.bottom import StatusBarWidget
 from iosc.sig.widget.top import TimeAxisWidget
-from iosc.sig.widget.ctrl import SignalCtrlWidget, SignalLabelList, SignalLabel
+from iosc.sig.widget.ctrl import SignalCtrlWidget, SignalLabelList
 from iosc.sig.widget.chart import SignalScrollArea, SignalChartWidget, AnalogSignalGraph
 
 
@@ -25,7 +25,8 @@ class OneRowTable(QTableWidget):
         self.setSelectionMode(self.NoSelection)
         self.setColumnWidth(0, iosc.const.COL0_WIDTH)
         self.horizontalHeader().setStretchLastSection(True)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)  # to align on signal tables
+        self.verticalScrollBar().setStyle(QCommonStyle())  # ...and mask it
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.resizeRowsToContents()  # TODO: set fixed
 
@@ -74,7 +75,7 @@ class SignalListTable(QTableWidget):
         self.setRowCount(len(slist))
         self.setEditTriggers(self.NoEditTriggers)
         self.setVerticalScrollMode(self.ScrollPerPixel)
-        # self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)  # then topbar, bottom bar
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # not helps
         self.verticalHeader().setMinimumSectionSize(iosc.const.SIG_HEIGHT_MIN)
         self.verticalHeader().setMaximumSectionSize(
@@ -101,7 +102,10 @@ class SignalListTable(QTableWidget):
         for row in range(len(slist)):
             self.__apply_row(row, self._slist[row].raw)
             self.__row_add_signal(row, self._slist[row])
-            self.setRowHeight(row, iosc.const.SIG_HEIGHT_DEFAULT_D if self._slist[row].is_bool else iosc.const.SIG_HEIGHT_DEFAULT_A)
+            self.setRowHeight(
+                row,
+                iosc.const.SIG_HEIGHT_DEFAULT_D if self._slist[row].is_bool else iosc.const.SIG_HEIGHT_DEFAULT_A
+            )
         self.signal_rmrow.connect(self.removeRow)
         self.s_id = 'base'
 
@@ -246,7 +250,7 @@ class SignalListTable(QTableWidget):
         self.setVerticalHeaderItem(row, QTableWidgetItem(iosc.const.CH_TEXT))
         self.setCellWidget(row, 0, ctrl := SignalCtrlWidget(self._parent, self))
         self.setCellWidget(row, 1, sa := SignalScrollArea(self))
-        sa.setWidget(sw := SignalChartWidget(osc, ctrl, self._parent, sa))
+        sa.setWidget(SignalChartWidget(osc, ctrl, self._parent, sa))
         self._parent.hsb.valueChanged.connect(sa.horizontalScrollBar().setValue)
 
     def __row_add_signal(self, row: int, signal: mycomtrade.Signal) -> Optional[AnalogSignalGraph]:
