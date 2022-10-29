@@ -43,8 +43,9 @@ What 2 do:
 - [x] QTableWidget:
   + &ominus; not resizable by cells
   + &ominus; cell independent
-- [ ] QTableWidget + Lines in cells
 - [ ] QTableWidget + Lines as cells
+  + &oplus; Drop over only
+- [ ] QTableWidget + Lines in cells
 - [x] QListWidget:
   + not resizable rows
   + not resizable col (?)
