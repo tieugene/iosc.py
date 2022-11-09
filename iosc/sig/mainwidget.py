@@ -26,8 +26,6 @@ class ComtradeWidget(QWidget):
     # inner cons
     osc: mycomtrade.MyComtrade
     col_ctrl_width: int
-    __path: pathlib.Path
-    __tpp: int  # tics (samples) per signal period
     # inner vars
     __main_ptr_i: int  # current Main Ptr index in source arrays
     __sc_ptr_i: int  # current OMP SC Ptr index in source arrays
@@ -36,11 +34,10 @@ class ComtradeWidget(QWidget):
     lvl_ptr_uids: set[int]  # LvlPtr uids
     __omp_width: int  # distance from OMP PR and SC pointers, periods
     __shifted: bool  # original/shifted selector
-    __chart_width: Optional[int]  # width (px) of nested QCP charts
     x_zoom: int
-    sig_no2widget: tuple[list, list]  # Translate signal no to chart widget
     show_sec: bool  # pri/sec selector
     viewas: int  # TODO: enum
+    sig_no2widget: tuple[list, list]  # Translate signal no to chart widget
     # actions
     action_close: QAction
     action_info: QAction
@@ -88,25 +85,22 @@ class ComtradeWidget(QWidget):
     signal_ptr_add_tmp = pyqtSignal(int)  # add new TmpPtr in each SignalChartWidget
     signal_ptr_del_tmp = pyqtSignal(int)  # rm TmpPtr from each SignalChartWidget
     signal_ptr_moved_tmp = pyqtSignal(int, int)  # refresh SignalChartWidget on Tmp Ptr moved
-    signal_xscale = pyqtSignal(int, int)  # set signal chart widths
 
-    def __init__(self, osc: mycomtrade.MyComtrade, path: pathlib.Path, parent: 'ComtradeTabWidget'):
+    def __init__(self, osc: mycomtrade.MyComtrade, parent: 'ComtradeTabWidget'):
         super().__init__(parent)
         self.osc = osc
         self.col_ctrl_width = iosc.const.COL0_WIDTH_INIT
-        self.__path = path
-        self.__tpp = int(round(self.osc.raw.cfg.sample_rates[0][0] / self.osc.raw.cfg.frequency))
         self.__main_ptr_i = self.x2i(0.0)  # default: Z
-        self.__sc_ptr_i = self.__main_ptr_i + 2 * self.__tpp
+        self.__sc_ptr_i = self.__main_ptr_i + 2 * self.osc.spp
         self.__tmp_ptr_i = dict()
         self.msr_ptr_uids = set()
         self.lvl_ptr_uids = set()
         self.__omp_width = 3
-        # ?self.__chart_width = None  # wait for line_up
-        self.x_zoom = len(iosc.const.X_PX_WIDTH_uS) - 1  # initial: max
         self.__shifted = False
+        self.x_zoom = len(iosc.const.X_PX_WIDTH_uS) - 1  # initial: max
         self.show_sec = True
         self.viewas = 0
+        # self.sig_no2widget = list()
         self.__mk_widgets()
         self.__mk_layout()
         self.__mk_actions()
@@ -116,38 +110,14 @@ class ComtradeWidget(QWidget):
         self.__update_xzoom_actions()
         self.__mk_connections()
 
-    @property
-    def i_max(self) -> int:
-        return len(self.osc.x) - 1
-
-    # property
-    def x_min(self) -> float:
-        return self.osc.x[0]
-
-    # property
-    def x_max(self) -> float:
-        return self.osc.x[-1]
-
-    # property
-    def x_step(self) -> float:
-        return 1000 / self.osc.raw.cfg.sample_rates[0][0]
-
-    # property
-    def x_width_ms(self) -> float:
-        return self.x_max() - self.x_min()
-
     # property
     def x_width_px(self) -> int:
-        return round(self.x_width_ms() * 1000 / iosc.const.X_PX_WIDTH_uS[self.x_zoom])
+        return round(self.osc.x_size * 1000 / iosc.const.X_PX_WIDTH_uS[self.x_zoom])
 
     # property
     def x_sample_width_px(self) -> int:
         """Current width of samples interval in px"""
-        return round(self.x_width_px() / self.osc.raw.cfg.sample_rates[0][0])
-
-    @property
-    def tpp(self) -> int:
-        return self.__tpp
+        return round(self.x_width_px() / self.osc.rate / 1000)
 
     @property
     def main_ptr_i(self) -> int:
@@ -183,17 +153,13 @@ class ComtradeWidget(QWidget):
     def shifted(self):
         return self.osc.shifted
 
-    @property
-    def chart_width(self):
-        return self.__chart_width * self.x_zoom if self.__chart_width is not None else None
-
     def x2i(self, x: float) -> int:
         """Recalc graph x-position (ms) into index in signal array"""
-        return int(round((self.osc.raw.trigger_time + x / 1000) * self.osc.rate[0][0]))
+        return int(round((x - self.osc.x_min) / self.osc.rate / 1000))
 
     def i2x(self, i: int) -> float:
         """Recalc index in signal array int graph x-position (ms)"""
-        return 1000 * (self.osc.raw.time[i] - self.osc.raw.trigger_time)
+        return self.osc.x[i]
 
     def sig2str(self, sig: mycomtrade.AnalogSignal, y: float) -> str:
         """Return string repr of signal dependong on:
@@ -218,7 +184,7 @@ class ComtradeWidget(QWidget):
          - pors (global)
          - orig/shifted (global, indirect)"""
         func = func_list[func_i]
-        v = func(sig.value, i, self.tpp)
+        v = func(sig.value, i, self.osc.spp)
         if isinstance(v, complex):  # hrm1
             y = abs(v)
         else:
@@ -281,22 +247,22 @@ class ComtradeWidget(QWidget):
                                       shortcut="Ctrl+S",
                                       triggered=self.__do_file_convert)
         self.action_resize_y_in = QAction(svg_icon(ESvgSrc.VZoomIn),
-                                       "Y-Zoom &in",
+                                          "Y-Zoom &in",
                                           self,
                                           statusTip="Vertical zoom in all",
                                           triggered=self.__do_ysize_all_in)
         self.action_resize_y_out = QAction(svg_icon(ESvgSrc.VZoomOut),
-                                        "Y-Zoom &out",
+                                           "Y-Zoom &out",
                                            self,
                                            statusTip="Vertical zoom out all",
                                            triggered=self.__do_ysize_all_out)
         self.action_zoom_x_in = QAction(svg_icon(ESvgSrc.HZoomIn),
-                                       "X-Zoom in",
+                                        "X-Zoom in",
                                         self,
                                         statusTip="Horizontal zoom in all",
                                         triggered=self.__do_xzoom_in)
         self.action_zoom_x_out = QAction(svg_icon(ESvgSrc.HZoomOut),
-                                        "X-Zoom out",
+                                         "X-Zoom out",
                                          self,
                                          statusTip="Horizontal zoom out all",
                                          triggered=self.__do_xzoom_out)
@@ -470,21 +436,19 @@ class ComtradeWidget(QWidget):
         # msg.setDetailedText(self.osc.cfg_summary())
         # plan B
         txt = "<html><body><table><tbody>"
-        txt += tr("File", self.__path)  # was self.osc.raw.cfg.filepath
+        txt += tr("File", self.osc.path)  # was self.osc.raw.cfg.filepath
         txt += tr("Station name", self.osc.raw.station_name)
         txt += tr("Station id", self.osc.raw.rec_dev_id)
         txt += tr("Comtrade ver.", self.osc.raw.rev_year)
         txt += tr("File format", self.osc.raw.ft)
         txt += tr("Analog chs.", self.osc.raw.analog_count)
         txt += tr("Status chs.", self.osc.raw.status_count)
-        txt += tr("Line freq, Hz", self.osc.raw.frequency)
         txt += tr("Time", f"{self.osc.raw.start_timestamp}&hellip;{self.osc.raw.trigger_timestamp}"
                           f" with &times; {self.osc.raw.cfg.timemult}")
         txt += tr("Time base", self.osc.raw.time_base)
+        txt += tr("Line freq, Hz", self.osc.raw.frequency)
         txt += tr("Samples", self.osc.raw.total_samples)
-        for i in range(len(self.osc.rate)):
-            rate, points = self.osc.rate[i]
-            txt += tr(f"Sample #{i + 1}", f"{points} points at {rate} Hz")
+        txt += tr(f"Sample rate:", f"{self.osc.rate} Hz")
         txt += "<tbody></table></body><html>"
         msg.setText(txt)
         msg.setTextFormat(Qt.RichText)
@@ -600,7 +564,7 @@ class ComtradeWidget(QWidget):
     def slot_ptr_edit_tmp(self, uid: int):
         v = self.i2x(self.__tmp_ptr_i[uid])
         name = self.timeaxis_bar.widget.get_tmp_ptr_name(uid)
-        form = TmpPtrDialog((v, self.x_min(), self.x_max(), self.x_step(), name))
+        form = TmpPtrDialog((v, self.osc.x_min, self.osc.x_max, 1000 / self.osc.rate, name))
         if form.exec_():
             self.timeaxis_bar.widget.set_tmp_ptr_name(uid, form.f_name.text())
             self.signal_ptr_moved_tmp.emit(uid, self.x2i(form.f_val.value()))

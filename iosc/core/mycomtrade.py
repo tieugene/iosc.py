@@ -201,6 +201,7 @@ class RateList(Wrapper):
 
 
 class MyComtrade(Wrapper):
+    path: pathlib.Path
     x: list[float]
     y: list[Signal]
     __rate: RateList  # TODO: __rate: SampleRateList
@@ -209,25 +210,26 @@ class MyComtrade(Wrapper):
 
     def __init__(self, path: pathlib.Path):
         super().__init__(Comtrade())
-        self.__load(path)
+        self.path = path
+        self.__load()
         self.__sanity_check()
         self.__setup()
         self._raw.x_shifted = False  # FIXME: hacking xtra-var injection
 
-    def __load(self, path: pathlib.Path):
+    def __load(self):
         encoding = None
-        if path.suffix.lower() == '.cfg':
-            with open(path, 'rb') as infile:
+        if self.path.suffix.lower() == '.cfg':
+            with open(self.path, 'rb') as infile:
                 if (enc := chardet.detect(infile.read())['encoding']) not in {'ascii', 'utf-8'}:
                     encoding = enc
         if encoding:
-            self._raw.load(str(path), encoding=encoding)
+            self._raw.load(str(self.path), encoding=encoding)
         else:
-            self._raw.load(str(path))
+            self._raw.load(str(self.path))
 
     def __sanity_check(self):
         """
-        - rates
+        - rates (1, raw.total_samples, ?frequency)
         - null values
         :return:
         """
@@ -235,7 +237,7 @@ class MyComtrade(Wrapper):
 
     def __setup(self):
         """Translate loaded data into app usable"""
-        self.x = [1000 * (t - self._raw.trigger_time) for t in self._raw.time]  # TODO: fill
+        self.x = [1000 * (t - self._raw.trigger_time) for t in self._raw.time]
         self.y = list()
         for i in range(self._raw.analog_count):
             self.y.append(AnalogSignal(self._raw, i))
@@ -254,8 +256,25 @@ class MyComtrade(Wrapper):
     #     return self.__status
 
     @property
-    def rate(self) -> RateList:
-        return self.__rate
+    def x_min(self) -> float:
+        return self.x[0]
+
+    @property
+    def x_max(self) -> float:
+        return self.x[-1]
+
+    @property
+    def x_size(self) -> float:
+        return self.x[-1] - self.x[0]
+
+    @property
+    def rate(self) -> float:
+        return self._raw.cfg.sample_rates[0][0]
+
+    @property
+    def spp(self) -> int:
+        """Samples per period"""
+        return int(round(self.rate / self._raw.frequency))
 
     @property
     def shifted(self):

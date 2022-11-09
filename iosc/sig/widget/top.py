@@ -106,7 +106,7 @@ class TimeAxisPlot(QCustomPlot):
 
     def slot_rerange(self):
         x_coords = self.__oscwin.osc.x
-        x_width = self.__oscwin.x_width_ms()
+        x_width = self.__oscwin.osc.x_size
         self.xAxis.setRange(
             x_coords[0] + self.__oscwin.xscroll_bar.norm_min * x_width,
             x_coords[0] + self.__oscwin.xscroll_bar.norm_max * x_width,

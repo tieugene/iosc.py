@@ -393,7 +393,7 @@ class MsrPtr(Ptr):
             self.__sigraph.del_ptr_msr(self)
 
     def __edit_self(self):
-        form = MsrPtrDialog((self.x, self._root.x_min, self._root.x_max, self._root.x_step, self.__func_i))
+        form = MsrPtrDialog((self.x, self._root.x_min, self._root.x_max, 1000 / self._root.osc.rate, self.__func_i))
         if form.exec_():  # TODO: optimize
             self.setGraphKey(form.f_val.value())
             self.updatePosition()
