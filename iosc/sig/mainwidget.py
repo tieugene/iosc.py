@@ -108,10 +108,10 @@ class ComtradeWidget(QWidget):
         self.show_sec = True
         self.viewas = 0
         self.__mk_widgets()
+        self.__mk_layout()
         self.__mk_actions()
         self.__mk_menu()
         self.__mk_toolbar()
-        self.__mk_layout()
         self.__set_data()
         self.__update_xzoom_actions()
         self.__mk_connections()
@@ -236,8 +236,33 @@ class ComtradeWidget(QWidget):
         self.timeaxis_bar = TimeAxisBar(self)
         self.analog_table = SignalBarTable(self)
         self.status_table = SignalBarTable(self)
-        # self.timestamps_bar = TimeStampsBar(self)
+        self.timestamps_bar = TimeStampsBar(self)
         self.xscroll_bar = XScroller(self)
+
+    def __mk_layout(self):
+        self.setLayout(QVBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.layout().setSpacing(0)
+        # 1. top
+        topbar = QWidget()
+        topbar.setLayout(QHBoxLayout())
+        topbar.layout().setContentsMargins(0, 0, 0, 0)
+        topbar.layout().setSpacing(0)
+        topbar.layout().addWidget(self.menubar)
+        topbar.layout().addWidget(self.toolbar)
+        self.layout().addWidget(topbar)
+        # 2. timeline
+        self.layout().addWidget(self.timeaxis_bar)
+        # 3. 2 x signal tables
+        splitter = QSplitter(Qt.Vertical, self)
+        splitter.setStyleSheet("QSplitter::handle{background: grey;}")
+        splitter.addWidget(self.analog_table)
+        splitter.addWidget(self.status_table)
+        self.layout().addWidget(splitter)
+        # 4. bottom status bar
+        self.layout().addWidget(self.timestamps_bar)
+        # 5. bottom scrollbar
+        self.layout().addWidget(self.xscroll_bar)
 
     def __mk_actions(self):
         self.action_close = QAction(QIcon.fromTheme("window-close"),
@@ -416,31 +441,6 @@ class ComtradeWidget(QWidget):
         self.toolbar.addAction(self.action_pors_sec)
         self.toolbar.addWidget(self.viewas_toolbutton)
         self.toolbar.addAction(self.action_info)
-
-    def __mk_layout(self):
-        self.setLayout(QVBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
-        self.layout().setSpacing(0)
-        # 1. top
-        topbar = QWidget()
-        topbar.setLayout(QHBoxLayout())
-        topbar.layout().setContentsMargins(0, 0, 0, 0)
-        topbar.layout().setSpacing(0)
-        topbar.layout().addWidget(self.menubar)
-        topbar.layout().addWidget(self.toolbar)
-        self.layout().addWidget(topbar)
-        # 2. timeline
-        self.layout().addWidget(self.timeaxis_bar)
-        # 3. 2 x signal tables
-        splitter = QSplitter(Qt.Vertical, self)
-        splitter.setStyleSheet("QSplitter::handle{background: grey;}")
-        splitter.addWidget(self.analog_table)
-        splitter.addWidget(self.status_table)
-        self.layout().addWidget(splitter)
-        # 4. bottom status bar
-        # self.layout().addWidget(self.timestamps_bar)
-        # 5. bottom scrollbar
-        self.layout().addWidget(self.xscroll_bar)
 
     def __mk_connections(self):
         self.action_shift.triggered.connect(self.__do_shift)

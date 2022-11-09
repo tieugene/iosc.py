@@ -58,25 +58,25 @@ class PtrLabelTmp(PtrLabel):
 
 class TimeStampsPlot(QCustomPlot):
     """:todo: join TimeAxisPlot"""
-    __root: QWidget
-    zero_timestamp: datetime.datetime
-    __zero_ptr_label: QCPItemText
-    __main_ptr_label: PtrLabelMain
-    _tmp_ptr: dict[int, PtrLabelTmp]
+    # __root: QWidget
+    # zero_timestamp: datetime.datetime
+    # __zero_ptr_label: QCPItemText
+    # __main_ptr_label: PtrLabelMain
+    # _tmp_ptr: dict[int, PtrLabelTmp]
 
     def __init__(self, parent: 'TimeStampsBar'):
         super().__init__(parent)
-        self.__zero_ptr_label = QCPItemText(self)
-        self.__main_ptr_label = PtrLabelMain(self, root)
-        self._tmp_ptr = dict()
-        t0 = osc.raw.trigger_time
-        self.xAxis.setRange((osc.raw.time[0] - t0) * 1000, (osc.raw.time[-1] - t0) * 1000)
+        # self.__zero_ptr_label = QCPItemText(self)
+        # self.__main_ptr_label = PtrLabelMain(self, root)
+        # self._tmp_ptr = dict()
+        x_coords = self.__oscwin.osc.x
+        self.xAxis.setRange(x_coords[0], x_coords[-1])
         self.__squeeze()
-        self.__set_style()
-        self.__zero_ptr_label.setText(self.zero_timestamp.time().isoformat())
-        self.__root.signal_xscale.connect(self._slot_chg_width)
-        self.__root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
-        self.__root.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
+        # self.__set_style()
+        # self.__zero_ptr_label.setText(self.zero_timestamp.time().isoformat())
+        # self.__root.signal_xscale.connect(self._slot_chg_width)
+        # self.__root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
+        # self.__root.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
 
     @property
     def __oscwin(self) -> 'ComtradeWidget':
@@ -92,7 +92,7 @@ class TimeStampsPlot(QCustomPlot):
         self.xAxis.setTicks(False)
         self.xAxis.grid().setVisible(False)
         self.xAxis.setPadding(0)
-        self.setFixedHeight(iosc.const.XSCALE_HEIGHT)
+        self.setFixedHeight(24)
 
     def __set_style(self):
         # zero
@@ -101,6 +101,14 @@ class TimeStampsPlot(QCustomPlot):
         self.__zero_ptr_label.setFont(iosc.const.FONT_TOPBAR)
         self.__zero_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__zero_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
+
+    def slot_rerange(self):
+        x_coords = self.__oscwin.osc.x
+        x_width = self.__oscwin.x_width_ms()
+        self.xAxis.setRange(
+            x_coords[0] + self.__oscwin.xscroll_bar.norm_min * x_width,
+            x_coords[0] + self.__oscwin.xscroll_bar.norm_max * x_width,
+        )
 
     def _slot_chg_width(self, _: int, w_new: int):  # dafault: 1117
         self.setFixedWidth(w_new)
