@@ -413,7 +413,9 @@ class ComtradeWidget(QWidget):
         self.action_pors.triggered.connect(self.__do_pors)
         self.action_viewas.triggered.connect(self.__do_viewas)
         self.xscroll_bar.valueChanged.connect(self.timeaxis_bar.plot.slot_rerange_force)
+        self.xscroll_bar.valueChanged.connect(self.timestamps_bar.plot.slot_rerange_force)
         self.xscroll_bar.signal_update_plots.connect(self.timeaxis_bar.plot.slot_rerange)
+        self.xscroll_bar.signal_update_plots.connect(self.timestamps_bar.plot.slot_rerange)
 
     def __set_data(self):
         for sig in self.osc.y:

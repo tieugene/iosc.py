@@ -4,9 +4,10 @@ TODO: StatusSignalSuit, AnalogSignalSuit.
 from typing import Optional, Union
 
 # 2. 3rd
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, QMargins
 from PyQt5.QtGui import QPen
-from QCustomPlot2 import QCPGraph, QCPScatterStyle
+from PyQt5.QtWidgets import QWidget
+from QCustomPlot2 import QCPGraph, QCPScatterStyle, QCustomPlot
 
 import iosc.const
 from iosc.core import mycomtrade
@@ -148,3 +149,35 @@ class SignalBar(QObject):
         elif self.zoom_y > 1:
             self.zoom_y = 1
             self.signal_zoom_y_changed.emit()
+
+
+class OneBarPlot(QCustomPlot):
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
+        ar = self.axisRect(0)
+        ar.setMinimumMargins(QMargins())  # the best
+        ar.removeAxis(self.yAxis)
+        ar.removeAxis(self.xAxis2)
+        ar.removeAxis(self.yAxis2)
+        self.xAxis.grid().setVisible(False)
+        # self.xAxis.setTickLabels(True)  # default
+        # self.xAxis.setTicks(True)  # default
+        self.xAxis.setPadding(0)
+        self.setFixedHeight(24)
+        # self.xAxis.setRange(self._oscwin.osc.x_min, self._oscwin.osc.x_max)
+
+    @property
+    def _oscwin(self) -> 'ComtradeWidget':
+        return self.parent().parent()
+
+    def slot_rerange(self):
+        x_coords = self._oscwin.osc.x
+        x_width = self._oscwin.osc.x_size
+        self.xAxis.setRange(
+            x_coords[0] + self._oscwin.xscroll_bar.norm_min * x_width,
+            x_coords[0] + self._oscwin.xscroll_bar.norm_max * x_width,
+        )
+
+    def slot_rerange_force(self):
+        self.slot_rerange()
+        self.replot()

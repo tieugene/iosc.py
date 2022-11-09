@@ -204,9 +204,6 @@ class MyComtrade(Wrapper):
     path: pathlib.Path
     x: list[float]
     y: list[Signal]
-    __rate: RateList  # TODO: __rate: SampleRateList
-    # __analog: AnalogSignalList
-    # __status: StatusSignalList
 
     def __init__(self, path: pathlib.Path):
         super().__init__(Comtrade())
@@ -245,7 +242,6 @@ class MyComtrade(Wrapper):
             self.y.append(StatusSignal(self._raw, i))
         # self.__analog = AnalogSignalList(self._raw)
         # self.__status = StatusSignalList(self._raw)
-        self.__rate = RateList(self._raw)
 
     # @property
     # def analog(self) -> AnalogSignalList:

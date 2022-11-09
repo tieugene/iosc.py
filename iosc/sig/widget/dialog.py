@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, Q
     QInputDialog, QWidget, QDoubleSpinBox, QListWidget, QVBoxLayout, QListWidgetItem
 # 3. local
 from iosc.core import mycomtrade
-from iosc.core.mycomtrade import AnalogSignalList, StatusSignalList
 
 
 class SignalPropertiesDialog(QDialog):

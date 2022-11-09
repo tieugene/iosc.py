@@ -5,6 +5,7 @@ from QCustomPlot2 import QCustomPlot, QCPItemText, QCPAxis, QCPAxisTickerFixed
 
 import iosc.const
 from iosc.core import mycomtrade
+from iosc.sig.widget.common import OneBarPlot
 
 
 class PtrLabel(QCPItemText):
@@ -71,51 +72,24 @@ class PtrLabelTmp(PtrLabel):
             self._update_ptr(i)
 
 
-class TimeAxisPlot(QCustomPlot):
+class TimeAxisPlot(OneBarPlot):
     signal_width_changed = pyqtSignal(int)
 
     def __init__(self, parent: 'TopBar'):
         super().__init__(parent)
-        ar = self.axisRect(0)  # QCPAxisRect
-        ar.setMinimumMargins(QMargins())  # the best
-        ar.removeAxis(self.yAxis)
-        ar.removeAxis(self.xAxis2)
-        ar.removeAxis(self.yAxis2)
-        self.xAxis.setTickLabelSide(QCPAxis.lsInside)
-        self.xAxis.grid().setVisible(False)
-        self.xAxis.setTicker(QCPAxisTickerFixed())
         # self.xAxis.setTickLabels(True)  # default
         # self.xAxis.setTicks(True)  # default
-        self.xAxis.setPadding(0)
+        self.xAxis.setTickLabelSide(QCPAxis.lsInside)
+        self.xAxis.setTicker(QCPAxisTickerFixed())
         self.xAxis.setTickLabelFont(iosc.const.FONT_TOPBAR)
-        self.setFixedHeight(24)
-        # data
-        x_coords = self.__oscwin.osc.x
-        self.xAxis.setRange(x_coords[0], x_coords[-1])
         self.__slot_retick()
-        self.__oscwin.signal_x_zoom.connect(self.__slot_retick)
-
-    @property
-    def __oscwin(self) -> 'ComtradeWidget':
-        return self.parent().parent()
+        self._oscwin.signal_x_zoom.connect(self.__slot_retick)
 
     def resizeEvent(self, event: QResizeEvent):
         super().resizeEvent(event)
         if event.oldSize().width() != (w := event.size().width()):
             self.signal_width_changed.emit(w)
 
-    def slot_rerange(self):
-        x_coords = self.__oscwin.osc.x
-        x_width = self.__oscwin.osc.x_size
-        self.xAxis.setRange(
-            x_coords[0] + self.__oscwin.xscroll_bar.norm_min * x_width,
-            x_coords[0] + self.__oscwin.xscroll_bar.norm_max * x_width,
-        )
-
-    def slot_rerange_force(self):
-        self.slot_rerange()
-        self.replot()
-
     def __slot_retick(self):
-        self.xAxis.ticker().setTickStep(iosc.const.X_PX_WIDTH_uS[self.__oscwin.x_zoom] / 10)
+        self.xAxis.ticker().setTickStep(iosc.const.X_PX_WIDTH_uS[self._oscwin.x_zoom] / 10)
         self.replot()
