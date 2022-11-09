@@ -6,7 +6,6 @@ from QCustomPlot2 import QCustomPlot, QCPItemText
 # 4. local
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.sig.widget.common import CleanScrollArea
 
 
 class PtrLabel(QCPItemText):
@@ -18,7 +17,7 @@ class PtrLabel(QCPItemText):
         self.setTextAlignment(Qt.AlignCenter)
         self.setPadding(QMargins(2, 2, 2, 2))
         self.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
-        self.setFont(iosc.const.FONT_X)
+        self.setFont(iosc.const.FONT_TOPBAR)
         self.setColor(iosc.const.COLOR_LABEL_X)  # text
 
     def _update_ptr(self, i: int):
@@ -57,18 +56,16 @@ class PtrLabelTmp(PtrLabel):
             self._update_ptr(i)
 
 
-class StatusBarWidget(QCustomPlot):
-    """:todo: join TimeAxisWidget"""
+class TimeStampsPlot(QCustomPlot):
+    """:todo: join TimeAxisPlot"""
     __root: QWidget
     zero_timestamp: datetime.datetime
     __zero_ptr_label: QCPItemText
     __main_ptr_label: PtrLabelMain
     _tmp_ptr: dict[int, PtrLabelTmp]
 
-    def __init__(self, osc: mycomtrade.MyComtrade, root: QWidget, parent: CleanScrollArea):
+    def __init__(self, parent: 'TimeStampsBar'):
         super().__init__(parent)
-        self.__root = root
-        self.zero_timestamp = osc.raw.cfg.trigger_timestamp
         self.__zero_ptr_label = QCPItemText(self)
         self.__main_ptr_label = PtrLabelMain(self, root)
         self._tmp_ptr = dict()
@@ -80,6 +77,10 @@ class StatusBarWidget(QCustomPlot):
         self.__root.signal_xscale.connect(self._slot_chg_width)
         self.__root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
         self.__root.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
+
+    @property
+    def __oscwin(self) -> 'ComtradeWidget':
+        return self.parent().parent()
 
     def __squeeze(self):
         ar = self.axisRect(0)
@@ -97,7 +98,7 @@ class StatusBarWidget(QCustomPlot):
         # zero
         self.__zero_ptr_label.setColor(iosc.const.COLOR_LABEL_Z)  # text
         self.__zero_ptr_label.setTextAlignment(Qt.AlignCenter)
-        self.__zero_ptr_label.setFont(iosc.const.FONT_X)
+        self.__zero_ptr_label.setFont(iosc.const.FONT_TOPBAR)
         self.__zero_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__zero_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
 

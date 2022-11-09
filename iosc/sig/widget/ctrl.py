@@ -1,77 +1,28 @@
-from typing import Optional, Union
+from typing import Union
 
-from PyQt5.QtCore import QMargins, pyqtSignal, Qt, QPoint, QObject
-from PyQt5.QtGui import QBrush, QColor
-from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QTableWidget, QVBoxLayout, QHBoxLayout, QMenu, QListWidget, \
-    QListWidgetItem
-from QCustomPlot2 import QCustomPlot
+from PyQt5.QtCore import QMargins, pyqtSignal, Qt, QPoint, QRect, QMimeData
+from PyQt5.QtGui import QBrush, QColor, QMouseEvent, QPixmap, QFontMetrics, QPainter, QPen, QDrag
+from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QVBoxLayout, QMenu, QListWidget, \
+    QListWidgetItem, QFrame, QGridLayout
 
 import iosc.const
 from iosc.core import mycomtrade
+from iosc.sig.widget.hline import HLine
 from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog, SignalPropertiesDialog
-
-
-class ZoomButton(QPushButton):
-    def __init__(self, txt: str, parent: QWidget = None):
-        super().__init__(txt, parent)
-        self.setContentsMargins(QMargins())  # not helps
-        self.setFixedWidth(iosc.const.SIG_ZOOM_BTN_WIDTH)
-        # self.setFlat(True)
-        # TODO: squeeze
-
-
-class ZoomButtonBox(QWidget):
-    _b_zoom_in: ZoomButton
-    _b_zoom_0: ZoomButton
-    _b_zoom_out: ZoomButton
-    signal_zoom = pyqtSignal(int)
-
-    def __init__(self, parent: QWidget):
-        super().__init__(parent)
-        self._b_zoom_in = ZoomButton("+", self)
-        self._b_zoom_0 = ZoomButton("=", self)
-        self._b_zoom_out = ZoomButton("-", self)
-        self.setLayout(QVBoxLayout())
-        self.layout().setSpacing(0)
-        self.layout().setContentsMargins(QMargins())
-        self.layout().addWidget(self._b_zoom_in)
-        self.layout().addWidget(self._b_zoom_0)
-        self.layout().addWidget(self._b_zoom_out)
-        self._b_zoom_0.setEnabled(False)
-        self._b_zoom_out.setEnabled(False)
-        self._b_zoom_in.clicked.connect(self.__slot_vzoom_in)
-        self._b_zoom_0.clicked.connect(self.__slot_vzoom_0)
-        self._b_zoom_out.clicked.connect(self.__slot_vzoom_out)
-
-    def __slot_vzoom_in(self):
-        self.signal_zoom.emit(1)
-
-    def __slot_vzoom_out(self):
-        self.signal_zoom.emit(-1)
-
-    def __slot_vzoom_0(self):
-        self.signal_zoom.emit(0)
-
-    def set_enabled(self, z: int):
-        self._b_zoom_0.setEnabled(z > 1)
-        self._b_zoom_out.setEnabled(z > 1)
 
 
 class SignalLabel(QListWidgetItem):
     _prop_dlg_cls: SignalPropertiesDialog
-    _signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]
-    _root: QWidget
-    sibling: Optional[QObject]  # SignalGraph
+    ss: 'SignalSuit'
+    # sibling: Optional[QObject]  # SignalGraph
     # signal_restyled = pyqtSignal()  # N/A
 
-    def __init__(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal], root: QWidget,
-                 parent: QWidget = None):
+    def __init__(self, ss: 'SignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
         super().__init__(parent)
-        self._signal = signal
-        self._root = root
+        self.ss = ss
         self._set_style()
         self.slot_update_value()
-        self._root.signal_ptr_moved_main.connect(self.slot_update_value)
+        # self.ss.bar.table.oscwin.signal_ptr_moved_main.connect(self.slot_update_value)
 
     @property
     def _value_str(self) -> str:
@@ -79,23 +30,23 @@ class SignalLabel(QListWidgetItem):
 
     @property
     def signal(self) -> Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]:
-        return self._signal
+        return self.ss.signal
 
     @property
     def whoami(self) -> int:
         """
         :return: Signal number in correspondent signal list
         """
-        return self._signal.i
+        return self.ss.signal.i
 
     def _set_style(self):
-        self.setForeground(QBrush(QColor(*self._signal.rgb)))
+        self.setForeground(QBrush(QColor(*self.ss.signal.rgb)))
 
     def do_sig_property(self):
         """Show/set signal properties"""
-        if self._prop_dlg_cls(self._signal).execute():
+        if self._prop_dlg_cls(self.ss.signal).execute():
             self._set_style()
-            self.sibling.slot_signal_restyled()
+            # self.sibling.slot_signal_restyled()
 
     def do_hide(self):
         """Hide signal in table
@@ -107,140 +58,206 @@ class SignalLabel(QListWidgetItem):
 
     def slot_update_value(self):
         """Update ctrl widget value"""
-        self.setText("%s\n%s" % (self._signal.sid, self._value_str))
+        self.setText("%s\n%s" % (self.ss.signal.sid, self._value_str))
 
 
 class StatusSignalLabel(SignalLabel):
     _prop_dlg_cls = StatusSignalPropertiesDialog
 
-    def __init__(self, signal: mycomtrade.StatusSignal, root: QWidget, parent: QWidget = None):
-        super().__init__(signal, root, parent)
+    def __init__(self, ss: 'SignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
+        super().__init__(ss, parent)
 
     @property
     def _value_str(self) -> str:
         """String representation of current value"""
-        return str(self._signal.value[self._root.main_ptr_i])
+        return str(self.ss.signal.value[self.ss.bar.table.oscwin.main_ptr_i])
 
 
 class AnalogSignalLabel(SignalLabel):
     _prop_dlg_cls = AnalogSignalPropertiesDialog
 
-    def __init__(self, signal: mycomtrade.AnalogSignal, root: QWidget, parent: QWidget = None):
-        super().__init__(signal, root, parent)
-        self._root.signal_chged_shift.connect(self.slot_update_value)
-        self._root.signal_chged_pors.connect(self.slot_update_value)
-        self._root.signal_chged_func.connect(self.slot_update_value)
+    def __init__(self, ss: 'SignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
+        super().__init__(ss, parent)
+        # self.ss.bar.table.oscwin.signal_chged_shift.connect(self.slot_update_value)
+        # self.ss.bar.table.oscwin.signal_chged_pors.connect(self.slot_update_value)
+        # self.ss.bar.table.oscwin.signal_chged_func.connect(self.slot_update_value)
 
     @property
     def _value_str(self) -> str:
-        return self._root.sig2str_i(self._signal, self._root.main_ptr_i, self._root.viewas)
+        return self.ss.bar.table.oscwin.sig2str_i(
+            self.ss.signal,
+            self.ss.bar.table.oscwin.main_ptr_i,
+            self.ss.bar.table.oscwin.viewas
+        )
 
 
-class SignalLabelList(QListWidget):
-    def __init__(self, parent: QWidget):
-        super().__init__(parent)
-        self.setSelectionMode(self.SingleSelection)  # FIXME: table row selection not works
-        self.setDragEnabled(True)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.__slot_context_menu)
-        self.itemClicked.connect(self.__slot_item_clicked)
+class BarCtrlWidget(QWidget):
+    class Anchor(QLabel):
+        def __init__(self, parent: 'BarCtrlWidget'):
+            super().__init__(parent)
+            self.setText('↕')
+            self.setCursor(Qt.PointingHandCursor)
 
-    def __slot_item_clicked(self, _):
-        """Deselect item on mouse up"""
-        self.clearSelection()
+        def mousePressEvent(self, _: QMouseEvent):
+            self.__start_drag()
 
-    def __slot_context_menu(self, point: QPoint):
-        if not (item := self.itemAt(point)):
-            return
-        context_menu = QMenu()
-        action_sig_property = context_menu.addAction("Channel property")
-        action_sig_hide = context_menu.addAction("Hide channel")
-        chosen_action = context_menu.exec_(self.mapToGlobal(point))
-        if chosen_action == action_sig_hide:
-            self.__do_sig_hide(item)
-        elif chosen_action == action_sig_property:
-            item.do_sig_property()
+        def __start_drag(self):
+            def _mk_icon() -> QPixmap:
+                __txt = self.parent().bar.signals[0].signal.name
+                br = QFontMetrics(iosc.const.FONT_DND).boundingRect(__txt)  # sig0 = 1, -11, 55, 14
+                __pix = QPixmap(br.width() + 2, br.height() + 2)  # TODO: +4
+                __pix.fill(Qt.transparent)
+                __painter = QPainter(__pix)
+                __painter.setFont(iosc.const.FONT_DND)
+                __painter.setPen(QPen(Qt.black))
+                __painter.drawRect(0, 0, br.width() + 1, br.height() + 1)
+                __painter.drawText(br.x(), -br.y(), __txt)
+                return __pix
 
-    def __do_sig_hide(self, item: SignalLabel):
-        item.do_hide()
-        hide_me = True
-        for i in range(self.count()):
-            hide_me &= self.item(i).isHidden()
-        if hide_me:  # self>SignalCtrlWidget>QWidget>SignalListTable
-            self.parent().parent().parent().hideRow(item.signal.i)  # FIXME: works for init state only
+            def _mk_mime() -> QMimeData:
+                bar: 'SignalBar' = self.parent().bar
+                return bar.table.mimeData([bar.table.item(bar.row, 0)])
 
+            drag = QDrag(self)
+            drag.setPixmap(_mk_icon())
+            drag.setMimeData(_mk_mime())
+            # drag.setHotSpot(event.pos())
+            drag.exec_(Qt.MoveAction, Qt.MoveAction)
 
-class SignalCtrlWidget(QWidget):
-    _root: QWidget
-    _t_side: SignalLabelList
-    _b_side: ZoomButtonBox
-    sibling: Optional[QCustomPlot]  # SignalChartWidget
+    class SignalLabelList(QListWidget):
+        def __init__(self, parent: 'BarCtrlWidget'):
+            super().__init__(parent)
+            self.setDragEnabled(True)
+            self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            self.setVerticalScrollMode(self.ScrollPerPixel)
+            self.setContextMenuPolicy(Qt.CustomContextMenu)
+            self.customContextMenuRequested.connect(self.__slot_context_menu)
+            self.itemClicked.connect(self.__slot_item_clicked)
 
-    def __init__(self, root: QWidget, parent: QTableWidget):
-        super().__init__(parent)
-        self._root = root
-        self.__mk_widgets()
-        self.__mk_layout()
-        self._b_side.hide()
-        self._b_side.signal_zoom.connect(self.slot_vzoom)
+        def __slot_item_clicked(self, _):
+            """Deselect item on mouse up"""
+            self.clearSelection()
 
-    @property
-    def table(self) -> QTableWidget:
-        """Return parent table"""
-        return self.parent().parent()
+        def __slot_context_menu(self, point: QPoint):
+            item: SignalLabel = self.itemAt(point)
+            if not item:
+                return
+            context_menu = QMenu()
+            action_sig_hide = context_menu.addAction("Hide")
+            chosen_action = context_menu.exec_(self.mapToGlobal(point))
+            if chosen_action == action_sig_hide:
+                item.ss.set_hidden(True)
 
-    @property
-    def row(self) -> int:
-        """Get row of parent table"""
-        parent_table = self.table
-        for i in range(parent_table.rowCount()):
-            if parent_table.cellWidget(i, 0) == self:
-                return i
+        @property
+        def selected_row(self) -> int:
+            return self.selectedIndexes()[0].row()
 
-    def __mk_widgets(self):
-        self._t_side = SignalLabelList(self)
-        self._b_side = ZoomButtonBox(self)
+        def startDrag(self, supported_actions: Union[Qt.DropActions, Qt.DropAction]):
+            def _mk_icon() -> QPixmap:
+                __txt = self.currentItem().ss.signal.name
+                br = QFontMetrics(iosc.const.FONT_DND).boundingRect(__txt)  # sig0 = 1, -11, 55, 14
+                __pix = QPixmap(br.width() + 1, br.height() + 1)
+                __pix.fill(Qt.transparent)
+                __painter = QPainter(__pix)
+                __painter.setFont(iosc.const.FONT_DND)
+                __painter.setPen(QPen(Qt.black))
+                __painter.drawText(br.x(), -br.y(), __txt)
+                return __pix
 
-    def __mk_layout(self):
-        self.setContentsMargins(QMargins())
-        layout = QHBoxLayout(self)
-        layout.setSpacing(0)
-        layout.setContentsMargins(QMargins())
-        layout.addWidget(QLabel(iosc.const.C0_TEXT))  # TODO: Drag anchor (tmp hack)
-        layout.addWidget(self._t_side)
-        layout.addWidget(self._b_side)
-        layout.setStretch(0, 1)
-        layout.setStretch(1, 0)
+            def _mk_mime() -> QMimeData:
+                return self.mimeData([self.currentItem()])
+
+            drag = QDrag(self)
+            drag.setPixmap(_mk_icon())
+            drag.setMimeData(_mk_mime())
+            drag.exec_(Qt.MoveAction, Qt.MoveAction)
+
+    class ZoomButtonBox(QWidget):
+        class ZoomButton(QPushButton):
+            def __init__(self, txt: str, parent: 'ZoomButtonBox'):
+                super().__init__(txt, parent)
+                self.setContentsMargins(QMargins())  # not helps
+                self.setFixedWidth(16)
+                self.setFlat(True)
+                self.setCursor(Qt.PointingHandCursor)
+
+        __b_zoom_in: ZoomButton
+        __b_zoom_0: ZoomButton
+        __b_zoom_out: ZoomButton
+
+        def __init__(self, parent: 'BarCtrlWidget'):
+            super().__init__(parent)
+            self.__b_zoom_in = self.ZoomButton("+", self)
+            self.__b_zoom_0 = self.ZoomButton("⚬", self)
+            self.__b_zoom_out = self.ZoomButton("-", self)
+            self.setLayout(QVBoxLayout())
+            self.layout().setSpacing(0)
+            self.layout().setContentsMargins(QMargins())
+            self.layout().addWidget(self.__b_zoom_in)
+            self.layout().addWidget(self.__b_zoom_0)
+            self.layout().addWidget(self.__b_zoom_out)
+            self.__update_buttons()
+            self.__b_zoom_in.clicked.connect(self.__slot_zoom_in)
+            self.__b_zoom_0.clicked.connect(self.__slot_zoom_0)
+            self.__b_zoom_out.clicked.connect(self.__slot_zoom_out)
+
+        def __slot_zoom_in(self):
+            self.__slot_zoom(1)
+
+        def __slot_zoom_out(self):
+            self.__slot_zoom(-1)
+
+        def __slot_zoom_0(self):
+            self.__slot_zoom(0)
+
+        def __slot_zoom(self, dy: int):
+            self.parent().bar.zoom_dy(dy)
+            self.__update_buttons()
+
+        def __update_buttons(self):
+            z = self.parent().bar.zoom_y
+            self.__b_zoom_in.setEnabled(z < 1000)
+            self.__b_zoom_0.setEnabled(z > 1)
+            self.__b_zoom_out.setEnabled(z > 1)
+
+    class VLine(QFrame):
+        __oscwin: 'ComtradeWidget'
+
+        def __init__(self, oscwin: 'ComtradeWidget'):
+            super().__init__()
+            self.__oscwin = oscwin
+            self.setGeometry(QRect(0, 0, 0, 0))  # size is not the matter
+            self.setFrameShape(QFrame.VLine)
+            self.setCursor(Qt.SplitHCursor)
+
+        def mouseMoveEvent(self, event: QMouseEvent):
+            """accepted() == True, x() = Δx."""
+            self.__oscwin.resize_col_ctrl(event.x())
+
+    bar: 'SignalBar'
+    anc: Anchor
+    lst: SignalLabelList
+    zbx: ZoomButtonBox
+
+    def __init__(self, bar: 'SignalBar'):
+        super().__init__()  # parent will be QWidget
+        self.bar = bar
+        self.anc = self.Anchor(self)
+        self.lst = self.SignalLabelList(self)
+        self.zbx = self.ZoomButtonBox(self)
+        # layout
+        layout = QGridLayout()
+        layout.addWidget(self.anc, 0, 0)
+        layout.addWidget(self.lst, 0, 1)
+        layout.addWidget(self.zbx, 0, 2)
+        layout.addWidget(self.VLine(self.bar.table.oscwin), 0, 3)
+        layout.addWidget(HLine(self), 1, 0, 1, -1)
         self.setLayout(layout)
+        self.layout().setContentsMargins(QMargins())
+        self.layout().setSpacing(0)
 
-    def __chk_zoom_buttons(self):
-        """Hide/Show zoom buttons depending on signals"""
-        show = False
-        for i in range(self._t_side.count()):
-            show |= not self._t_side.item(i).signal.is_bool
-        self._b_side.setVisible(show)
+    def sig_add(self, ss: 'SignalSuit') -> Union[StatusSignalLabel, AnalogSignalLabel]:
+        return StatusSignalLabel(ss, self.lst) if ss.signal.is_bool else AnalogSignalLabel(ss, self.lst)
 
-    def add_signal(self, signal: mycomtrade.Signal) -> Union[StatusSignalLabel, AnalogSignalLabel]:
-        lbl = StatusSignalLabel(signal, self._root) if signal.is_bool else AnalogSignalLabel(signal, self._root)
-        self._t_side.addItem(lbl)
-        self.__chk_zoom_buttons()
-        return lbl
-
-    def del_siglabel(self, label: SignalLabel):
-        todel = self._t_side.takeItem(self._t_side.row(label))
-        del todel
-
-    @property
-    def sig_count(self) -> int:
-        return self._t_side.count()
-
-    def vzoom_sync(self):
-        self._b_side.set_enabled(self.sibling.zoom)
-
-    def slot_vzoom(self, z: int):
-        if z:
-            self.sibling.zoom += z
-        else:
-            self.sibling.zoom = 1
-        self.vzoom_sync()
+    def sig_del(self, i: int):
+        self.lst.takeItem(i)

@@ -4,14 +4,17 @@ from enum import IntEnum
 from typing import Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, QMargins, QObject
-from PyQt5.QtGui import QResizeEvent, QMouseEvent, QBrush, QColor, QFont, QPen
-from PyQt5.QtWidgets import QScrollArea, QLabel, QWidget
-from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPItemText, QCPGraphData, QCPGraph, QCPRange, QCPPainter
+from PyQt5.QtGui import QBrush, QColor, QFont, QPen
+from PyQt5.QtWidgets import QLabel, QWidget, QScrollBar, QGridLayout
+from QCustomPlot2 import QCustomPlot, QCPScatterStyle, QCPItemText, QCPGraphData, QCPGraph, QCPRange, \
+    QCPAxisTickerFixed
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.sig.widget.ctrl import StatusSignalLabel, AnalogSignalLabel, SignalLabel, SignalCtrlWidget
+from iosc.sig.widget.hline import HLine
+from iosc.sig.widget.ctrl import StatusSignalLabel, AnalogSignalLabel, SignalLabel
 from iosc.sig.widget.ptr import MainPtr, SCPtr, TmpPtr, MsrPtr, LvlPtr
+
 # x. const
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
@@ -26,236 +29,167 @@ class EScatter(IntEnum):
     D = 2  # digit
 
 
-class SignalScrollArea(QScrollArea):
-    __vzoom_factor: QLabel
+class BarPlotWidget(QWidget):
+    class YZLabel(QLabel):
+        def __init__(self, parent: 'BarPlotWidget'):
+            super().__init__(parent)
+            self.setStyleSheet("QLabel { background-color : red; color : rgba(255,255,255,255) }")
+            self.__slot_zoom_changed()
+            parent.bar.signal_zoom_y_changed.connect(self.__slot_zoom_changed)
 
-    def __init__(self, parent: QWidget):
-        super().__init__(parent)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # self.horizontalScrollBar().hide()
-        self.__vzoom_factor = QLabel(self)
-        self.__vzoom_factor.setVisible(False)
-        self.__vzoom_factor.setStyleSheet("QLabel { background-color : red; color : rgba(255,255,255,255) }")
+        def __slot_zoom_changed(self):
+            z = self.parent().bar.zoom_y
+            if z == 1:
+                self.hide()
+            else:
+                if self.isHidden():
+                    self.show()
+                self.setText(f"×{z}")
+                self.adjustSize()
 
-    def resizeEvent(self, event: QResizeEvent):
-        event.accept()
-        if self.widget() and event.size().height() != event.oldSize().height():
-            self.widget().slot_vresize()
+    class BarPlot(QCustomPlot):
+        __y_min: float
+        __y_max: float
 
-    def slot_set_zoom_factor(self, z: int):
-        """Set label according to zoom"""
-        if z > 1:
-            if not self.__vzoom_factor.isVisible():
-                self.__vzoom_factor.setVisible(True)
-            self.__vzoom_factor.setText(f"x{z}")
-            self.__vzoom_factor.adjustSize()
-        else:
-            self.__vzoom_factor.clear()
-            self.__vzoom_factor.setVisible(False)
+        def __init__(self, parent: 'BarPlotWidget'):
+            super().__init__(parent)
+            self.__y_min = -1.1  # hack
+            self.__y_max = 1.1  # hack
+            self.__squeeze()
+            self.__decorate()
+            self.yAxis.setRange(self.__y_min, self.__y_max)
+            # x_coords = parent.bar.table.oscwin.x_coords
+            # self.xAxis.setRange(x_coords[0], x_coords[-1])
+            parent.bar.table.oscwin.xscroll_bar.valueChanged.connect(self.__slot_rerange_x_force)
+            parent.bar.table.oscwin.xscroll_bar.signal_update_plots.connect(self.__slot_rerange_x)
+            parent.bar.table.oscwin.signal_x_zoom.connect(self.__slot_retick)
 
+        @property
+        def __y_width(self) -> float:
+            return self.__y_max - self.__y_min
 
-class SignalChartWidget(QCustomPlot):  # FIXME: rename to SignalPlot
-    @dataclass
-    class State:  # TODO: include signals
-        v_zoom: int
-        v_pos: int
+        def __squeeze(self):
+            ar = self.axisRect(0)  # QCPAxisRect
+            ar.setMinimumMargins(QMargins())  # the best
+            ar.removeAxis(self.xAxis2)
+            ar.removeAxis(self.yAxis2)
+            # y
+            # self.yAxis.setVisible(False)  # or cp.graph().valueAxis()
+            self.yAxis.setTickLabels(False)
+            self.yAxis.setTicks(False)
+            self.yAxis.setPadding(0)
+            self.yAxis.ticker().setTickCount(1)  # the only z-line
+            # x
+            self.xAxis.setTicker(QCPAxisTickerFixed())
+            self.xAxis.setTickLabels(False)
+            self.xAxis.setTicks(False)
+            self.xAxis.setPadding(0)
+            self.__slot_retick()
 
-    _osc: mycomtrade.Comtrade
-    _sibling: SignalCtrlWidget
-    _root: QWidget
-    _sigraph: set  # [Union[StatusSignalGraph, AnalogSignalGraph]]
-    _main_ptr: MainPtr
-    _sc_ptr: SCPtr
-    _tmp_ptr: dict[int, TmpPtr]
-    _ptr_selected: bool
-    __vzoom: int
-    __scat_style: EScatter  # px/sample
+        def __decorate(self):
+            self.yAxis.setBasePen(iosc.const.PEN_NONE)  # hack
+            self.yAxis.grid().setZeroLinePen(iosc.const.PEN_ZERO)
+            self.xAxis.grid().setZeroLinePen(iosc.const.PEN_ZERO)
 
-    def __init__(self, osc: mycomtrade.Comtrade, sibling: SignalCtrlWidget, root: QWidget, parent: QScrollArea):
-        super().__init__(parent)
-        self._osc = osc
-        self._sibling = sibling
-        self._sibling.sibling = self
-        self._root = root
-        self._ptr_selected = False
-        self.__vzoom = 1
-        self.__scat_style = EScatter.N
-        self._sigraph = set()
-        self.__squeeze()
-        self.__decorate()
-        self.__set_data()
-        self._main_ptr = MainPtr(self.graph(0), self._root)  # after graph()
-        self._sc_ptr = SCPtr(self.graph(0), self._root)
-        self._tmp_ptr = dict()
-        for uid in self._root.tmp_ptr_i.keys():  # TmpPtr[]
-            self._slot_ptr_add_tmp(uid)
-        self._root.signal_chged_shift.connect(self.__slot_shift)
-        self._root.signal_xscale.connect(self._slot_chg_width)
-        self._root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
-        self._root.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
+        def slot_rerange_y(self, _: int):
+            """Refresh plot on YScroller move"""
+            ys: QScrollBar = self.parent().ys
+            y_min = self.__y_min + self.__y_width * ys.y_norm_min
+            y_max = self.__y_min + self.__y_width * ys.y_norm_max
+            self.yAxis.setRange(y_min, y_max)
+            self.replot()
 
-    @property
-    def sigraph(self):
-        return self._sigraph
+        def __slot_rerange_x(self):
+            oscwin = self.parent().bar.table.oscwin
+            x_coords = oscwin.osc.x
+            x_width = x_coords[-1] - x_coords[0]
+            self.xAxis.setRange(
+                x_coords[0] + oscwin.xscroll_bar.norm_min * x_width,
+                x_coords[0] + oscwin.xscroll_bar.norm_max * x_width,
+            )
 
-    def __squeeze(self):
-        ar = self.axisRect(0)  # QCPAxisRect
-        ar.setMinimumMargins(QMargins())  # the best
-        ar.removeAxis(self.xAxis2)
-        ar.removeAxis(self.yAxis2)
-        # self.yAxis.setVisible(False)  # or cp.graph().valueAxis()
-        self.yAxis.setTickLabels(False)
-        self.yAxis.setTicks(False)
-        self.yAxis.setPadding(0)
-        self.yAxis.ticker().setTickCount(1)  # the only z-line
-        self.xAxis.setTickLabels(False)
-        self.xAxis.setTicks(False)
-        self.xAxis.setPadding(0)
+        def __slot_rerange_x_force(self):
+            self.__slot_rerange_x()
+            self.replot()
 
-    def __decorate(self):
-        # self.yAxis.grid().setPen(QPen(QColor(255, 255, 255, 0)))
-        self.yAxis.setBasePen(iosc.const.PEN_NONE)  # hack
-        self.yAxis.grid().setZeroLinePen(iosc.const.PEN_ZERO)
-        self.xAxis.grid().setZeroLinePen(iosc.const.PEN_ZERO)
+        def __slot_retick(self):
+            self.xAxis.ticker().setTickStep(iosc.const.X_PX_WIDTH_uS[self.parent().bar.table.oscwin.x_zoom] / 10)
+            self.replot()
 
-    def __set_data(self):
-        """Set data for xPtr"""
-        self.addGraph()  # main graph
-        z_time = self._osc.trigger_time
-        x_data = [1000 * (t - z_time) for t in self._osc.time]
-        y_data = [0.0] * len(x_data)
-        self.graph(0).setData(x_data, y_data, True)
-        self.xAxis.setRange(
-            1000 * (self._osc.time[0] - z_time),
-            1000 * (self._osc.time[-1] - z_time)
-        )
+        def slot_refresh(self):
+            """Refresh plot after bar/signal moves"""
+            self.__slot_rerange_x()
+            self.__slot_retick()
 
-    def __re_range_y(self):
-        """Update Y-range on demand"""
-        mi = ma = 0.0
-        for sg in self._sigraph:
-            r = sg.range_y
-            mi = min(round(r.lower, 2), mi)
-            ma = max(round(r.upper, 2), ma)
-        self.yAxis.setRange(mi - iosc.const.SIG_A_YPAD, ma + iosc.const.SIG_A_YPAD)
-
-    def add_signal(self, signal: mycomtrade.Signal, sibling: SignalLabel):  # -> SignalGraph
-        gr = self.addGraph()
-        if signal.is_bool:
-            sigraph = StatusSignalGraph(gr, signal, sibling, self._root, self)
-        else:
-            sigraph = AnalogSignalGraph(gr, signal, sibling, self._root, self)
-            sigraph.refresh_scatter(self.__scat_style)
-        self._sigraph.add(sigraph)
-        self.__re_range_y()
-        return sigraph
-
-    def del_sigraph(self, sigraph: QObject):
-        ...  # TODO: rm graph
-        sigraph.clean()
-        self.removeGraph(sigraph.graph)
-        self._sigraph.remove(sigraph)
-        self.__re_range_y()
-        self.replot()
-
-    @property
-    def sig_count(self) -> int:
-        return len(self._sigraph)
-
-    def __slot_shift(self):
-        for sg in self._sigraph:
-            sg.refresh_data()
-        self.__re_range_y()
-        self.replot()
-
-    @property
-    def ptr_selected(self) -> bool:
-        return self._ptr_selected
-
-    @ptr_selected.setter
-    def ptr_selected(self, selected: bool):
-        self._ptr_selected = selected
-
-    def mousePressEvent(self, event: QMouseEvent):
-        super().mousePressEvent(event)  # always .isAcepted() after this
-        if event.button() == Qt.LeftButton and not self._ptr_selected:  # check selectable
-            i_new = self._root.x2i(self.xAxis.pixelToCoord(event.x()))
-            self._root.slot_ptr_moved_main(i_new)  # __move MainPtr here
-            super().mousePressEvent(event)  # and select it
-
-    def _slot_chg_width(self, _: int, w_new: int):
-        """Changing signal chart real width (px)"""
-        self.setFixedWidth(w_new)
-        self.xAxis.ticker().setTickCount(iosc.const.TICK_COUNT * self._root.xzoom)  # QCPAxisTicker; TODO: 200ms default
-        pps = int(w_new / len(self._osc.time))
-        if pps < iosc.const.X_SCATTER_MARK:
-            scat_style = EScatter.N
-        elif pps < iosc.const.X_SCATTER_NUM:
-            scat_style = EScatter.P
-        else:
-            scat_style = EScatter.D
-        if self.__scat_style != scat_style:
-            self.__scat_style = scat_style
-            do_refresh = False
-            for sg in self._sigraph:
-                if not sg.signal.is_bool:
-                    do_refresh |= sg.refresh_scatter(scat_style)
-            if do_refresh:
-                self.replot()
-
-    @property
-    def zoom(self):
-        return self.__vzoom
-
-    @zoom.setter
-    def zoom(self, z: int):
-        if z != self.__vzoom:
-            self.__vzoom = z
-            self.slot_vresize()
-            self.parent().parent().slot_set_zoom_factor(z)  # WTF? x2 parents
-
-    def slot_vresize(self):
-        h_vscroller = self.parent().height()
-        if self.height() != (new_height := h_vscroller * self.__vzoom):  # FIXME: ~~* vzoom~~ if bin only
-            self.setFixedHeight(new_height)
-
-    def _slot_ptr_add_tmp(self, ptr_id: int):
-        """Add new TmpPtr"""
-        self._tmp_ptr[ptr_id] = TmpPtr(self.graph(0), self._root, ptr_id)
-
-    def _slot_ptr_del_tmp(self, uid: int):
-        """Del TmpPtr"""
-        self.removeItem(self._tmp_ptr[uid])
-        del self._tmp_ptr[uid]
-        self.replot()
-
-    @property
-    def state(self) -> State:
-        return self.State(
-            v_zoom=self.__vzoom,
-            v_pos=self.parent().parent().verticalScrollBar().value(),
-        )
-
-    def restore(self, state: State):
-        """Restore signal state:
-        - [x] MainPtr (global, auto)
-        - [x] SCPtr (global, auto)
-        - [x] TmpPtr[] (global, auto)
-        - [x] x-width[, x-zoom] (global)
-        - [x] x-position (global)
-        - [?] v-zoom(self)
-        - [?] v-position
-        :todo: signals included
+    class YScroller(QScrollBar):
+        """Main idea:
+        - Constant predefined width (in units; max)
+        - Dynamic page (max..min for x1..xMax)
         """
-        self._slot_chg_width(0, self._root.chart_width)  # x-width[+x-zoom]
-        self.parent().parent().horizontalScrollBar().setValue(self._root.hsb.value())  # x-pos; WARNING: 2 x parent()
-        self.__vzoom = state.v_zoom
-        self.parent().parent().verticalScrollBar().setValue(state.v_pos)
-        self.replot()
+
+        def __init__(self, parent: 'BarPlotWidget'):
+            super().__init__(Qt.Vertical, parent)
+            self.__slot_zoom_changed()
+            parent.bar.signal_zoom_y_changed.connect(self.__slot_zoom_changed)
+
+        @property
+        def y_norm_min(self) -> float:
+            """Normalized (0..1) minimal window position"""
+            return 1 - (self.value() + self.pageStep()) / iosc.const.Y_SCROLL_HEIGHT
+
+        @property
+        def y_norm_max(self) -> float:
+            """Normalized (0..1) maximal window position"""
+            return 1 - self.value() / iosc.const.Y_SCROLL_HEIGHT
+
+        def __slot_zoom_changed(self):
+            z = self.parent().bar.zoom_y
+            if z == 1:
+                self.setPageStep(iosc.const.Y_SCROLL_HEIGHT)
+                self.setMaximum(0)
+                self.setValue(0)  # note: exact in this order
+                self.setEnabled(False)
+            else:
+                v0 = self.value()
+                p0 = self.pageStep()
+                p1 = round(iosc.const.Y_SCROLL_HEIGHT / z)
+                self.setPageStep(p1)
+                self.setMaximum(iosc.const.Y_SCROLL_HEIGHT - p1)
+                self.setValue(v0 + round((p0 - p1) / 2))
+                self.setEnabled(True)
+
+    bar: 'SignalBar'
+    yzlabel: YZLabel
+    plot: BarPlot
+    ys: YScroller
+
+    def __init__(self, bar: 'SignalBar'):
+        super().__init__()
+        self.bar = bar
+        self.plot = BarPlotWidget.BarPlot(self)
+        self.ys = self.YScroller(self)
+        self.yzlabel = self.YZLabel(self)
+        layout = QGridLayout()
+        layout.addWidget(self.plot, 0, 0)
+        layout.addWidget(self.ys, 0, 1)
+        layout.addWidget(HLine(self), 1, 0, 1, -1)
+        self.setLayout(layout)
+        self.layout().setContentsMargins(QMargins())
+        self.layout().setSpacing(0)
+        self.ys.valueChanged.connect(self.plot.slot_rerange_y)
+
+    def sig_add(self) -> QCPGraph:
+        return self.plot.addGraph()
+
+    def sig_del(self, gr: QCPGraph):
+        self.plot.removeGraph(gr)
 
 
-class SignalGraph(QObject):
+'''
+# FIXME:
+class SignalGraph(QObject):  # FIXME: == common.SignalSuit
     """QCPGraph wrapper to represent one signal"""
+
     @dataclass
     class State:
         signal: mycomtrade.Signal
@@ -411,7 +345,7 @@ class AnalogSignalGraph(SignalGraph):
                 shape = self.DigitScatterStyle()
             self._graph.setScatterStyle(shape)
             # <dirtyhack>
-            '''
+            """
             if self.__pps < iosc.const.X_SCATTER_NUM <= pps:
                 # self.graph().setScatterStyle(self.__myscatter)
                 for i, d in enumerate(self.graph().data()):
@@ -420,7 +354,7 @@ class AnalogSignalGraph(SignalGraph):
                 for i in reversed(range(self.itemCount())):
                     if isinstance(self.item(i), ScatterLabel):
                         self.removeItem(i)
-            '''
+            """
             # </dirtyhack>
             self.__scat_style = scat_style
             return True
@@ -471,3 +405,4 @@ class AnalogSignalGraph(SignalGraph):
             self.add_ptr_msr(s.uid, s.i)
         for s in state.lvl_ptr:
             self.add_ptr_lvl(s.uid, s.y)
+'''

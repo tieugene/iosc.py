@@ -1,10 +1,10 @@
-from PyQt5.QtCore import QMargins, Qt
+from PyQt5.QtCore import QMargins, Qt, pyqtSignal
+from PyQt5.QtGui import QResizeEvent
 from PyQt5.QtWidgets import QWidget
-from QCustomPlot2 import QCustomPlot, QCPItemText, QCPAxis
+from QCustomPlot2 import QCustomPlot, QCPItemText, QCPAxis, QCPAxisTickerFixed
 
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.sig.widget.common import CleanScrollArea
 
 
 class PtrLabel(QCPItemText):
@@ -16,7 +16,7 @@ class PtrLabel(QCPItemText):
         self.setTextAlignment(Qt.AlignCenter)
         self.setPadding(QMargins(2, 2, 2, 2))
         self.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
-        self.setFont(iosc.const.FONT_X)
+        self.setFont(iosc.const.FONT_TOPBAR)
         self.setColor(iosc.const.COLOR_LABEL_X)  # text
 
     def _mk_text(self, x: float):
@@ -71,58 +71,51 @@ class PtrLabelTmp(PtrLabel):
             self._update_ptr(i)
 
 
-class TimeAxisWidget(QCustomPlot):
-    __root: QWidget
-    __main_ptr_label: PtrLabelMain
-    _tmp_ptr: dict[int, PtrLabelTmp]
+class TimeAxisPlot(QCustomPlot):
+    signal_width_changed = pyqtSignal(int)
 
-    def __init__(self, osc: mycomtrade.MyComtrade, root: QWidget, parent: CleanScrollArea):
+    def __init__(self, parent: 'TopBar'):
         super().__init__(parent)
-        self.__root = root
-        self.__main_ptr_label = PtrLabelMain(self, root)
-        self._tmp_ptr = dict()
-        t0 = osc.raw.trigger_time
-        self.xAxis.setRange((osc.raw.time[0] - t0) * 1000, (osc.raw.time[-1] - t0) * 1000)
-        self.__squeeze()
-        self.__set_style()
-        self.__root.signal_xscale.connect(self._slot_chg_width)
-        self.__root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
-        self.__root.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
-
-    def __squeeze(self):
-        ar = self.axisRect(0)
+        ar = self.axisRect(0)  # QCPAxisRect
         ar.setMinimumMargins(QMargins())  # the best
         ar.removeAxis(self.yAxis)
-        ar.removeAxis(self.yAxis2)
         ar.removeAxis(self.xAxis2)
-        # -xaxis.setTickLabels(False)
-        # -xaxis.setTicks(False)
+        ar.removeAxis(self.yAxis2)
         self.xAxis.setTickLabelSide(QCPAxis.lsInside)
         self.xAxis.grid().setVisible(False)
+        self.xAxis.setTicker(QCPAxisTickerFixed())
+        # self.xAxis.setTickLabels(True)  # default
+        # self.xAxis.setTicks(True)  # default
         self.xAxis.setPadding(0)
-        self.setFixedHeight(iosc.const.XSCALE_HEIGHT)
+        self.xAxis.setTickLabelFont(iosc.const.FONT_TOPBAR)
+        self.setFixedHeight(24)
+        # data
+        x_coords = self.__oscwin.osc.x
+        self.xAxis.setRange(x_coords[0], x_coords[-1])
+        self.__slot_retick()
+        self.__oscwin.signal_x_zoom.connect(self.__slot_retick)
 
-    def __set_style(self):
-        # TODO: setLabelFormat("%d")
-        self.xAxis.setTickLabelFont(iosc.const.FONT_X)
+    @property
+    def __oscwin(self) -> 'ComtradeWidget':
+        return self.parent().parent()
 
-    def get_tmp_ptr_name(self, uid: id):
-        return self._tmp_ptr[uid].name
+    def resizeEvent(self, event: QResizeEvent):
+        super().resizeEvent(event)
+        if event.oldSize().width() != (w := event.size().width()):
+            self.signal_width_changed.emit(w)
 
-    def set_tmp_ptr_name(self, uid: id, name: str):
-        self._tmp_ptr[uid].name = name
+    def slot_rerange(self):
+        x_coords = self.__oscwin.osc.x
+        x_width = self.__oscwin.x_width_ms()
+        self.xAxis.setRange(
+            x_coords[0] + self.__oscwin.xscroll_bar.norm_min * x_width,
+            x_coords[0] + self.__oscwin.xscroll_bar.norm_max * x_width,
+        )
 
-    def _slot_chg_width(self, _: int, w_new: int):  # dafault: 1117
-        self.setFixedWidth(w_new)
-        self.xAxis.ticker().setTickCount(iosc.const.TICK_COUNT * self.__root.xzoom)
+    def slot_rerange_force(self):
+        self.slot_rerange()
         self.replot()
 
-    def _slot_ptr_add_tmp(self, uid: int):
-        """Add new TmpPtr"""
-        self._tmp_ptr[uid] = PtrLabelTmp(self, self.__root, uid)
-
-    def _slot_ptr_del_tmp(self, uid: int):
-        """Del TmpPtr"""
-        self.removeItem(self._tmp_ptr[uid])
-        del self._tmp_ptr[uid]
+    def __slot_retick(self):
+        self.xAxis.ticker().setTickStep(iosc.const.X_PX_WIDTH_uS[self.__oscwin.x_zoom] / 10)
         self.replot()

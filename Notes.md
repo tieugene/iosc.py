@@ -1,15 +1,23 @@
 # Notes
 
+- IDEA: store signal xPtrs in Signal
+- X-scale glitch:
+  + &check; Start
+  + &check; X-zoom in
+  + &check; X-resize to max
+  + &times; X-zoom out
+
 ## Signal table:
 
-- [x] **QTableWidget + Line as cell**
+- [x] **QTableWidget + Line in cell**
 - [ ] QGridLayout + Line
 - [ ] QGraphicalGridLayout + Line
 - [ ] QRubberBand (band)
-- [ ] QSizeGrip (grip == catch (band)
-- [ ] RTFM QHeaderView (resize by margin: mouseXEvent())
+- [ ] QSizeGrip (grip == catch (band))
+- [x] RTFM QHeaderView (resize by margin: mouseXEvent())
 - [x] QSplitters: parent widget not v-resizable
 - [x] QListWidget + Line as cell: rows not v-resizable
+- [x] QTableWidget + Line ac cell: too complex
 
 ### Variants:
 
@@ -18,6 +26,7 @@
   + &ominus; cell independent
 - [ ] QTableWidget + Lines as cells
   + &oplus; Drop over only
+  + &ominus; Too complex calc/navigation
 - [ ] QTableWidget + Lines in cells
 - [x] QListWidget:
   + not resizable rows
@@ -35,3 +44,43 @@
     * QGraphicsAnchorLayout (`examples/graphicsviews/anchorlayout.py`)
   
 Line = QFrame().setFrameShape(QtWidgets.QFrame.VLine)
+
+## YSlider
+
+Variants:
+
+- *chg pagestep (range = base * zoom_y_max)*
+- ~~chg range (page = base)~~
+
+## X-scaling:
+
+- Main value: precision (px/s):
+  + min: ... (1px = 1ms, grid = 100ms, 1s == 1 Kpx)
+  + max: ... (1px = 1&mu;s, grid = 0.1ms, 1s = 1 Mpx)
+- Steps (10):
+  + prec (px/s): 1/2/5 * 10&#8319; (n = 3..6) = 1K..1M
+  + px weight (&mu;s/px): 1..1000
+
+### 2do:
+
+Dst:
+- XScroller
+- TopBar
+- BarPlot
+
+Src:
+- [x] Signal windows resize (TopBar):
+  + [x] XScroller:
+    * [x] setPageSize(TopBar width)
+    * [x] setMaximum(x_width - pageSize())
+    * [x] [setValue(recalc)]
+  + [x] TopBar/BarPlot: rerange_x
+- [x] x-zoom:
+  + [x] XScroller:
+    * [x] setMaximum(x_width - pageSize())
+    * [x] [setValue(recalc)]
+  + [x] TopBar/BarPlot:
+    * [x] rerange_x
+    * [x] grid
+- [x] XScroller value change:
+  + [x] TopBar/BarPlot: rerange_x

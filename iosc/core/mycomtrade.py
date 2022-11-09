@@ -201,13 +201,20 @@ class RateList(Wrapper):
 
 
 class MyComtrade(Wrapper):
-    __analog: AnalogSignalList
-    __status: StatusSignalList
+    x: list[float]
+    y: list[Signal]
     __rate: RateList  # TODO: __rate: SampleRateList
+    # __analog: AnalogSignalList
+    # __status: StatusSignalList
 
     def __init__(self, path: pathlib.Path):
         super().__init__(Comtrade())
-        # loading
+        self.__load(path)
+        self.__sanity_check()
+        self.__setup()
+        self._raw.x_shifted = False  # FIXME: hacking xtra-var injection
+
+    def __load(self, path: pathlib.Path):
         encoding = None
         if path.suffix.lower() == '.cfg':
             with open(path, 'rb') as infile:
@@ -217,18 +224,34 @@ class MyComtrade(Wrapper):
             self._raw.load(str(path), encoding=encoding)
         else:
             self._raw.load(str(path))
-        self._raw.x_shifted = False  # FIXME: hacking xtra-var injection
-        self.__analog = AnalogSignalList(self._raw)
-        self.__status = StatusSignalList(self._raw)
+
+    def __sanity_check(self):
+        """
+        - rates
+        - null values
+        :return:
+        """
+        ...
+
+    def __setup(self):
+        """Translate loaded data into app usable"""
+        self.x = [1000 * (t - self._raw.trigger_time) for t in self._raw.time]  # TODO: fill
+        self.y = list()
+        for i in range(self._raw.analog_count):
+            self.y.append(AnalogSignal(self._raw, i))
+        for i in range(self._raw.status_count):
+            self.y.append(StatusSignal(self._raw, i))
+        # self.__analog = AnalogSignalList(self._raw)
+        # self.__status = StatusSignalList(self._raw)
         self.__rate = RateList(self._raw)
 
-    @property
-    def analog(self) -> AnalogSignalList:
-        return self.__analog
+    # @property
+    # def analog(self) -> AnalogSignalList:
+    #     return self.__analog
 
-    @property
-    def status(self) -> StatusSignalList:
-        return self.__status
+    # @property
+    # def status(self) -> StatusSignalList:
+    #     return self.__status
 
     @property
     def rate(self) -> RateList:
