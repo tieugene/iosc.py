@@ -111,7 +111,7 @@ class AnalogSignal(Signal):
 
 class MyComtrade(Wrapper):
     path: pathlib.Path
-    x: list[float]
+    x: np.array
     y: list[Union[StatusSignal, AnalogSignal]]
 
     def __init__(self, path: pathlib.Path):
