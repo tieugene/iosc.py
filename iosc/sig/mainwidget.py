@@ -247,24 +247,24 @@ class ComtradeWidget(QWidget):
                                       shortcut="Ctrl+S",
                                       triggered=self.__do_file_convert)
         self.action_resize_y_in = QAction(svg_icon(ESvgSrc.VZoomIn),
-                                          "Y-Zoom &in",
+                                          "Y-Resize +",
                                           self,
-                                          statusTip="Vertical zoom in all",
-                                          triggered=self.__do_ysize_all_in)
+                                          statusTip="Vertical resize (greater)",
+                                          triggered=self.__do_resize_y_all_inc)
         self.action_resize_y_out = QAction(svg_icon(ESvgSrc.VZoomOut),
-                                           "Y-Zoom &out",
+                                           "Y-Resize -",
                                            self,
-                                           statusTip="Vertical zoom out all",
-                                           triggered=self.__do_ysize_all_out)
+                                           statusTip="Vertical resize (smaller)",
+                                           triggered=self.__do_resize_y_all_dec)
         self.action_zoom_x_in = QAction(svg_icon(ESvgSrc.HZoomIn),
                                         "X-Zoom in",
                                         self,
-                                        statusTip="Horizontal zoom in all",
+                                        statusTip="Horizontal zoom in",
                                         triggered=self.__do_xzoom_in)
         self.action_zoom_x_out = QAction(svg_icon(ESvgSrc.HZoomOut),
                                          "X-Zoom out",
                                          self,
-                                         statusTip="Horizontal zoom out all",
+                                         statusTip="Horizontal zoom out",
                                          triggered=self.__do_xzoom_out)
         self.action_unhide = QAction(QIcon.fromTheme("edit-undo"),
                                      "&Unhide all",
@@ -470,11 +470,13 @@ class ComtradeWidget(QWidget):
     def __do_unhide(self):
         self.signal_unhide_all.emit()
 
-    def __do_ysize_all_in(self):
-        self.signal_ysize_all_in.emit()
+    def __do_resize_y_all_inc(self):
+        self.analog_table.resize_y_all(True)
+        self.status_table.resize_y_all(True)
 
-    def __do_ysize_all_out(self):
-        self.signal_ysize_all_out.emit()
+    def __do_resize_y_all_dec(self):
+        self.analog_table.resize_y_all(False)
+        self.status_table.resize_y_all(False)
 
     def __update_xzoom_actions(self):
         """Set X-zoom actions availability"""

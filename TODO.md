@@ -9,11 +9,11 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
     * [x] scroll
     * [x] resize *(дергается)*
     * [x] zoom
-  + Y:
-    * [ ] resize
-    * [ ] resize_all
-    * [ ] zoom
-    * [ ] scroll
+  + [x] Y:
+    * [x] resize
+    * [x] resize_all
+    * [x] zoom *(unstable)*
+    * [x] scroll
 - DnD:
   + sig.join
   + sig.move
@@ -28,5 +28,9 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + viewas
 - Pointers (common)
 - Pointers (analog)
-- FIXME: disable y-zoom for status signal only
-- FIXME: Plot: Signal normalize
+- FIXME:
+  + [ ] Plot: Signal normalize
+  + [ ] disable Y-zoom for status-only bars
+  + [ ] disable Y-resize for status-only bars
+  + [ ] Y-zoom unstable (w/ scroll)
+  + [ ] X-resize: too slow

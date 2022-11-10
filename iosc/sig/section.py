@@ -206,13 +206,10 @@ class SignalBarTable(QTableWidget):
             bar.sig_move(0, other_bar)
         other_bar.gfx.plot.replot()
 
-    def slot_vzoom_in(self):
+    def resize_y_all(self, inc: bool):
+        mult = 1.2 if inc else 1 / 1.2
         for row in range(self.rowCount()):
-            self.setRowHeight(row, int(self.rowHeight(row) * 1.2))
-
-    def slot_vzoom_out(self):
-        for row in range(self.rowCount()):
-            self.setRowHeight(row, int(self.rowHeight(row) / 1.2))
+            self.setRowHeight(row, int(self.rowHeight(row) * mult))
 
 
 class XScroller(QScrollBar):
