@@ -161,7 +161,7 @@ class ComtradeWidget(QWidget):
         """Recalc index in signal array int graph x-position (ms)"""
         return self.osc.x[i]
 
-    def sig2str(self, sig: mycomtrade.AnalogSignal, y: float) -> str:
+    def sig2str(self, sig: mycomtrade.AnalogSignal, y: float) -> str:  # FIXME: to AnaloSignalSuit
         """Return string repr of signal dependong on:
          - signal value
          - pors (global)
@@ -176,7 +176,7 @@ class ComtradeWidget(QWidget):
             uu = 'k' + uu
         return "%.3f %s" % (pors_y, uu)
 
-    def sig2str_i(self, sig: mycomtrade.AnalogSignal, i: int, func_i: int) -> str:
+    def sig2str_i(self, sig: mycomtrade.AnalogSignal, i: int, func_i: int) -> str:  # FIXME: to AnaloSignalSuit
         """Return string repr of signal dependong on:
          - signal value
          - in index i

@@ -12,21 +12,11 @@ from QCustomPlot2 import QCPGraph, QCPScatterStyle, QCustomPlot, QCPRange
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.sig.widget.ctrl import BarCtrlWidget, SignalLabel
+from iosc.sig.widget.ctrl import BarCtrlWidget, StatusSignalLabel, AnalogSignalLabel
 from iosc.sig.widget.chart import BarPlotWidget
+from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
 
-
-class ELineType(IntEnum):
-    Solid = 0
-    Dot = 1
-    DashDot = 2
-
-
-PEN_STYLE = {
-    ELineType.Solid: Qt.SolidLine,
-    ELineType.Dot: Qt.DotLine,
-    ELineType.DashDot: Qt.DashDotDotLine
-}
+PEN_STYLE = (Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)
 
 
 class SignalSuit(QObject):
@@ -34,10 +24,10 @@ class SignalSuit(QObject):
     signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]
     bar: Optional['SignalBar']
     num: Optional[int]  # order number in bar
-    _label: Optional[SignalLabel]
+    _label: Optional[Union[StatusSignalLabel, AnalogSignalLabel]]
     _graph: Optional[QCPGraph]
     _hidden: bool
-    _color: int  # FIXME: QColor
+    color: QColor
 
     def __init__(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal], oscwin: 'ComtradeWidget'):
         super().__init__()
@@ -48,7 +38,7 @@ class SignalSuit(QObject):
         self._label = None
         self._graph = None
         self._hidden = False
-        self._color = iosc.const.COLOR_SIG_DEFAULT.get(self.signal.raw2.ph.lower(), iosc.const.COLOR_SIG_UNKNOWN)
+        self.color = iosc.const.COLOR_SIG_DEFAULT.get(self.signal.raw2.ph.lower(), iosc.const.COLOR_SIG_UNKNOWN)
         oscwin.signal_x_zoom.connect(self.__slot_retick)
 
     @property
@@ -64,22 +54,6 @@ class SignalSuit(QObject):
             self.bar.update_stealth()
 
     @property
-    def color(self) -> int:
-        return self._color
-
-    @color.setter
-    def color(self, v: int):
-        self._color = v
-
-    @property
-    def rgb(self) -> tuple[int, int, int]:
-        return (self.color >> 16) & 255, (self.color >> 8) & 255, self.color & 255
-
-    @rgb.setter
-    def rgb(self, v: tuple[int, int, int]):
-        self._color = v[0] << 16 | v[1] << 8 | v[2]
-
-    @property
     def _data_y(self) -> list:
         return []  # stub
 
@@ -87,7 +61,8 @@ class SignalSuit(QObject):
         self._graph.setData(self.bar.table.oscwin.osc.x, self._data_y, True)
 
     def _set_style(self):
-        ...  # stub
+        if self._label:
+            self._label.set_color()
 
     def embed(self, bar: 'SignalBar', num: int):
         self.bar = bar
@@ -132,29 +107,28 @@ class StatusSignalSuit(SignalSuit):
         return self.signal.value
 
     def _set_style(self):
+        super()._set_style()
         brush = QBrush(iosc.const.BRUSH_D)
-        brush.setColor(QColor.fromRgb(*self.rgb))
+        brush.setColor(self.color)
         self._graph.setBrush(brush)
+
+    def do_sig_property(self):
+        """Show/set signal properties"""
+        if StatusSignalPropertiesDialog(self).execute():
+            self._set_style()
+            self._graph.parentPlot().replot()
 
 
 class AnalogSignalSuit(SignalSuit):
-    __line_style: ELineType
+    line_style: int
     __msr_ptr: set
     __lvl_ptr: set
 
     def __init__(self, signal: mycomtrade.AnalogSignal, oscwin: 'ComtradeWidget'):
+        self.line_style = 0
         self.__msr_ptr = set()
         self.__lvl_ptr = set()
-        self.__line_style = ELineType.Solid  # FIXME: Qt::PenStyle
         super().__init__(signal, oscwin)
-
-    @property
-    def line_style(self) -> ELineType:
-        return self.__line_style
-
-    @line_style.setter
-    def line_style(self, v: ELineType):
-        self.__line_style = v
 
     @property
     def range_y(self) -> QCPRange:
@@ -171,14 +145,20 @@ class AnalogSignalSuit(SignalSuit):
         return [v / divider for v in self.signal.value]
 
     def _set_style(self):
+        super()._set_style()
         pen = QPen(PEN_STYLE[self.line_style])
-        pen.setColor(QColor.fromRgb(*self.rgb))
+        pen.setColor(self.color)
         self._graph.setPen(pen)
         for ptr in self.__msr_ptr:
             ptr.slot_set_color()
         for ptr in self.__lvl_ptr:
             ptr.slot_set_color()
-        self._graph.parentPlot().replot()
+
+    def do_sig_property(self):
+        """Show/set signal properties"""
+        if AnalogSignalPropertiesDialog(self).execute():
+            self._set_style()
+            self._graph.parentPlot().replot()
 
 
 class SignalBar(QObject):
@@ -237,7 +217,7 @@ class SignalBar(QObject):
             self.suicide()
 
     def update_stealth(self):
-        """Update visibility according to children"""
+        """Update row visibility according to children hidden state"""
         hide_me = True
         for ss in self.signals:
             hide_me &= ss.hidden

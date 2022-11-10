@@ -64,7 +64,7 @@ class StatusSignal(Signal):
 
 class AnalogSignal(Signal):
     _is_bool = False
-    # __line_style: ELineType
+    # line_style: ELineType
     __mult: tuple[float, float]
     __uu_orig: str  # original uu (w/o m/k)
     __value_shifted: np.array
@@ -73,7 +73,7 @@ class AnalogSignal(Signal):
         super().__init__(raw, raw.cfg.analog_channels[i])
         self._value = self._raw.analog[i]
         self.__value_shifted = self._value - np.average(self._value)
-        # self.__line_style = ELineType.Solid
+        # self.line_style = ELineType.Solid
         # pri/sec multipliers
         if self._raw2.uu.startswith('m'):
             uu = 0.001

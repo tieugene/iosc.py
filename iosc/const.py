@@ -42,6 +42,5 @@ LINE_CELL_SIZE = 3
 Y_ZOOM_MAX = 100  # Max Y-zoom factor
 Y_SCROLL_HEIGHT = Y_ZOOM_MAX * 100  # Constant YScroller width, units
 X_PX_WIDTH_uS = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000)  # Px widhts, μs
-# orange (255, 127, 39), green (0, 128, 0), red (198, 0, 0)
-COLOR_SIG_DEFAULT = {'a': 16744231, 'b': 32768, 'c': 12976128}
-COLOR_SIG_UNKNOWN = 0
+COLOR_SIG_DEFAULT = {'a': QColor.fromRgb(255, 127, 39), 'b': QColor.fromRgb(0, 128, 0), 'c': QColor.fromRgb(198, 0, 0)}
+COLOR_SIG_UNKNOWN = QColor.fromRgb(0, 0, 0)

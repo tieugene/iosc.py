@@ -12,15 +12,13 @@ from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPro
 
 
 class SignalLabel(QListWidgetItem):
-    _prop_dlg_cls: SignalPropertiesDialog
     ss: Union['StatusSignalSuit', 'AnalogSignalSuit']
-    # sibling: Optional[QObject]  # SignalGraph
     # signal_restyled = pyqtSignal()  # N/A
 
     def __init__(self, ss: Union['StatusSignalSuit', 'AnalogSignalSuit'], parent: 'BarCtrlWidget.SignalLabelList' = None):
         super().__init__(parent)
         self.ss = ss
-        self._set_style()
+        # self._set_style()
         self.slot_update_value()
         # self.ss.bar.table.oscwin.signal_ptr_moved_main.connect(self.slot_update_value)
 
@@ -28,15 +26,10 @@ class SignalLabel(QListWidgetItem):
     def _value_str(self) -> str:
         return ''  # stub
 
-    def _set_style(self):
-        self.setForeground(QBrush(QColor(*self.ss.rgb)))
+    def set_color(self):
+        self.setForeground(QBrush(self.ss.color))
 
-    def do_sig_property(self):
-        """Show/set signal properties"""
-        if self._prop_dlg_cls(self.ss.signal).execute():
-            self._set_style()
-            # self.sibling.slot_signal_restyled()
-
+    '''
     def do_hide(self):
         """Hide signal in table
         # FIXME: row != signal no
@@ -44,6 +37,7 @@ class SignalLabel(QListWidgetItem):
         """
         self.setHidden(True)
         # TODO: hide chart
+    '''
 
     def slot_update_value(self):
         """Update ctrl widget value"""
@@ -51,7 +45,6 @@ class SignalLabel(QListWidgetItem):
 
 
 class StatusSignalLabel(SignalLabel):
-    _prop_dlg_cls = StatusSignalPropertiesDialog
 
     def __init__(self, ss: 'StatusSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
         super().__init__(ss, parent)
@@ -63,8 +56,6 @@ class StatusSignalLabel(SignalLabel):
 
 
 class AnalogSignalLabel(SignalLabel):
-    _prop_dlg_cls = AnalogSignalPropertiesDialog
-
     def __init__(self, ss: 'AnalogSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
         super().__init__(ss, parent)
         # self.ss.bar.table.oscwin.signal_chged_shift.connect(self.slot_update_value)
@@ -128,13 +119,16 @@ class BarCtrlWidget(QWidget):
             self.clearSelection()
 
         def __slot_context_menu(self, point: QPoint):
-            item: SignalLabel = self.itemAt(point)
+            item: Union[StatusSignalLabel, AnalogSignalLabel] = self.itemAt(point)
             if not item:
                 return
             context_menu = QMenu()
+            action_sig_property = context_menu.addAction("Properties...")
             action_sig_hide = context_menu.addAction("Hide")
             chosen_action = context_menu.exec_(self.mapToGlobal(point))
-            if chosen_action == action_sig_hide:
+            if chosen_action == action_sig_property:
+                item.ss.do_sig_property()
+            elif chosen_action == action_sig_hide:
                 item.ss.hidden = True
 
         @property
