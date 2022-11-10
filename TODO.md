@@ -24,7 +24,7 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [x] bar.move
 - [ ] Switch:
   + [x] pors
-  + [ ] shift
+  + [x] shift (?)
   + [ ] viewas
 - [ ] Pointers:
   + [ ] Common:
@@ -36,6 +36,7 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
     * [ ] Lvl
 - [ ] FIXME:
   + [ ] SignalLabelList: deselect
+  + [ ] Chk shift
   + [ ] Plot: Signal normalize
   + [ ] disable Y-zoom for status-only bars
   + [ ] disable Y-resize for status-only bars

@@ -132,6 +132,7 @@ class AnalogSignalSuit(SignalSuit):
         self.__msr_ptr = set()
         self.__lvl_ptr = set()
         super().__init__(signal, oscwin)
+        self._oscwin.signal_chged_shift.connect(self.__slot_update_value)
 
     @property
     def range_y(self) -> QCPRange:
@@ -196,6 +197,11 @@ class AnalogSignalSuit(SignalSuit):
             return "%s / %.3f°" % (y_str, math.degrees(cmath.phase(v)))
         else:
             return y_str
+
+    def __slot_update_value(self):
+        self._label.slot_update_value()
+        self._set_data()
+        self._graph.parentPlot().replot()
 
 
 class SignalBar(QObject):

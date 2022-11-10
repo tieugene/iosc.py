@@ -29,16 +29,6 @@ class SignalLabel(QListWidgetItem):
     def set_color(self):
         self.setForeground(QBrush(self.ss.color))
 
-    '''
-    def do_hide(self):
-        """Hide signal in table
-        # FIXME: row != signal no
-        # TODO: convert to signal call
-        """
-        self.setHidden(True)
-        # TODO: hide chart
-    '''
-
     def slot_update_value(self):
         """Update ctrl widget value"""
         self.setText("%s\n%s" % (self.ss.signal.sid, self._value_str))
@@ -58,7 +48,6 @@ class StatusSignalLabel(SignalLabel):
 class AnalogSignalLabel(SignalLabel):
     def __init__(self, ss: 'AnalogSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
         super().__init__(ss, parent)
-        self.ss.bar.table.oscwin.signal_chged_shift.connect(self.slot_update_value)
         self.ss.bar.table.oscwin.signal_chged_pors.connect(self.slot_update_value)
         self.ss.bar.table.oscwin.signal_chged_func.connect(self.slot_update_value)
 
