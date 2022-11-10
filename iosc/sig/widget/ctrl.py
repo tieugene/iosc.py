@@ -1,12 +1,12 @@
+# 1. std
 from typing import Union
-
-from PyQt5.QtCore import QMargins, pyqtSignal, Qt, QPoint, QRect, QMimeData
+# 2. Std
+from PyQt5.QtCore import QMargins, Qt, QPoint, QRect, QMimeData
 from PyQt5.QtGui import QBrush, QColor, QMouseEvent, QPixmap, QFontMetrics, QPainter, QPen, QDrag
-from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QVBoxLayout, QMenu, QListWidget, \
-    QListWidgetItem, QFrame, QGridLayout
-
+from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QVBoxLayout, QMenu, QListWidget, QListWidgetItem, QFrame,\
+    QGridLayout
+# 3. local
 import iosc.const
-from iosc.core import mycomtrade
 from iosc.sig.widget.hline import HLine
 from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog, SignalPropertiesDialog
 

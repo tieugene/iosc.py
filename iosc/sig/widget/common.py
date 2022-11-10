@@ -1,15 +1,15 @@
 """Signal wrappers, commmon things.
 TODO: StatusSignalSuit, AnalogSignalSuit.
 """
+# 1. std
 from enum import IntEnum
 from typing import Optional, Union
-
 # 2. 3rd
 from PyQt5.QtCore import QObject, pyqtSignal, QMargins, Qt
 from PyQt5.QtGui import QPen, QColor, QBrush
 from PyQt5.QtWidgets import QWidget
-from QCustomPlot2 import QCPGraph, QCPScatterStyle, QCustomPlot
-
+from QCustomPlot2 import QCPGraph, QCPScatterStyle, QCustomPlot, QCPRange
+# 3. local
 import iosc.const
 from iosc.core import mycomtrade
 from iosc.sig.widget.ctrl import BarCtrlWidget, SignalLabel
@@ -79,8 +79,12 @@ class SignalSuit(QObject):
     def rgb(self, v: tuple[int, int, int]):
         self._color = v[0] << 16 | v[1] << 8 | v[2]
 
+    @property
+    def _data_y(self) -> list:
+        return []  # stub
+
     def _set_data(self):
-        self._graph.setData(self.bar.table.oscwin.osc.x, self.signal.value, True)
+        self._graph.setData(self.bar.table.oscwin.osc.x, self._data_y, True)
 
     def _set_style(self):
         ...  # stub
@@ -118,6 +122,15 @@ class StatusSignalSuit(SignalSuit):
     def __init__(self, signal: mycomtrade.StatusSignal, oscwin: 'ComtradeWidget'):
         super().__init__(signal, oscwin)
 
+    @property
+    def range_y(self) -> QCPRange:
+        """For calculating parent plot y-size"""
+        return QCPRange(0.0, 1.0)
+
+    @property
+    def _data_y(self) -> list:
+        return self.signal.value
+
     def _set_style(self):
         brush = QBrush(iosc.const.BRUSH_D)
         brush.setColor(QColor.fromRgb(*self.rgb))
@@ -142,6 +155,20 @@ class AnalogSignalSuit(SignalSuit):
     @line_style.setter
     def line_style(self, v: ELineType):
         self.__line_style = v
+
+    @property
+    def range_y(self) -> QCPRange:
+        retvalue = self._graph.data().valueRange()[0]
+        if retvalue.lower == retvalue.upper == 0.0:
+            retvalue = QCPRange(-1.0, 1.0)
+        return retvalue
+
+    @property
+    def _data_y(self) -> list:
+        divider = max(abs(min(self.signal.value)), abs(max(self.signal.value)))
+        if divider == 0.0:
+            divider = 1.0
+        return [v / divider for v in self.signal.value]
 
     def _set_style(self):
         pen = QPen(PEN_STYLE[self.line_style])

@@ -1,6 +1,6 @@
 """Mainwidget widget lists"""
 # 1. std
-from typing import Union, Optional, Tuple
+from typing import Tuple
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal, QMargins
 from PyQt5.QtGui import QDropEvent, QDragEnterEvent, QDragMoveEvent, QPainter

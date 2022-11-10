@@ -4,7 +4,7 @@ RTFM context menu: examples/webenginewidgets/tabbedbrowser
 import cmath
 import math
 import pathlib
-from typing import Any, Optional, Dict
+from typing import Any, Dict
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon
