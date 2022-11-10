@@ -99,6 +99,8 @@ class BarPlotWidget(QWidget):
             self._oscwin.xscroll_bar.valueChanged.connect(self.__slot_rerange_x_force)
             self._oscwin.xscroll_bar.signal_update_plots.connect(self.__slot_rerange_x)
             self._oscwin.signal_x_zoom.connect(self.__slot_retick)
+            self._oscwin.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
+            self._oscwin.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
 
         @property
         def __y_range(self) -> tuple[float, float]:
@@ -181,6 +183,16 @@ class BarPlotWidget(QWidget):
             self.__slot_rerange_x()
             self.__slot_retick()
 
+        def _slot_ptr_add_tmp(self, ptr_id: int):
+            """Add new TmpPtr"""
+            self._tmp_ptr[ptr_id] = TmpPtr(self.graph(0), self._oscwin, ptr_id)
+
+        def _slot_ptr_del_tmp(self, uid: int):
+            """Del TmpPtr"""
+            self.removeItem(self._tmp_ptr[uid])
+            del self._tmp_ptr[uid]
+            self.replot()
+
     bar: 'SignalBar'
     ys: YScroller
     yzlabel: YZLabel
@@ -206,226 +218,3 @@ class BarPlotWidget(QWidget):
 
     def sig_del(self, gr: QCPGraph):
         self.plot.removeGraph(gr)
-
-
-'''
-# FIXME:
-class SignalGraph(QObject):  # FIXME: == common.SignalSuit
-    """QCPGraph wrapper to represent one signal"""
-
-    @dataclass
-    class State:
-        signal: mycomtrade.Signal
-
-    _graph: QCPGraph
-    _signal: mycomtrade.Signal
-    _sibling: SignalLabel
-    _oscwin: QWidget
-
-    def __init__(self, graph: QCPGraph, signal: mycomtrade.Signal, sibling: SignalLabel, root: QWidget,
-                 parent: SignalChartWidget):
-        super().__init__(parent)
-        self._graph = graph
-        self._signal = signal
-        self._sibling = sibling
-        sibling.sibling = self
-        self._oscwin = root
-        self._oscwin.sig_no2widget[int(self._signal.is_bool)][self._signal.i] = self
-        self._set_data()
-        self._set_style()
-
-    @property
-    def graph(self) -> QCPGraph:
-        return self._graph
-
-    @property
-    def signal(self) -> mycomtrade.Signal:
-        return self._signal
-
-    def _set_data(self):
-        z_time = self._signal.raw.trigger_time
-        x_data = [1000 * (t - z_time) for t in self._signal.time]
-        self._graph.setData(x_data, self._data_y, True)
-
-    @property
-    def _data_y(self) -> list:
-        return []  # stub
-
-    def refresh_data(self):
-        ...
-
-    def _set_style(self):
-        ...  # stub
-
-    def slot_signal_restyled(self):
-        self._set_style()
-        self._graph.parentPlot().replot()
-
-    def clean(self):
-        """Clean up before deleting"""
-        self._oscwin.sig_no2widget[int(self._signal.is_bool)][self._signal.i] = None
-
-    @property
-    def state(self) -> State:
-        return self.State(
-            signal=self._signal
-        )
-
-    def restore(self, _: State):
-        ...  # stub
-
-
-class StatusSignalGraph(SignalGraph):
-    _signal: mycomtrade.StatusSignal
-    _sibling: StatusSignalLabel
-
-    def __init__(self, graph: QCPGraph, signal: mycomtrade.Signal, sibling: SignalLabel, root: QWidget,
-                 parent: SignalChartWidget):
-        super().__init__(graph, signal, sibling, root, parent)
-
-    @property
-    def _data_y(self) -> list:
-        return self._signal.value
-
-    @property
-    def range_y(self) -> QCPRange:
-        return QCPRange(0.0, 1.0)
-
-    def _set_style(self):
-        brush = QBrush(iosc.const.BRUSH_D)
-        brush.setColor(QColor.fromRgb(*self._signal.rgb))
-        self._graph.setBrush(brush)
-
-
-class AnalogSignalGraph(SignalGraph):
-    @dataclass
-    class State(SignalGraph.State):
-        msr_ptr: list[MsrPtr.State]  # uid, x_idx
-        lvl_ptr: list[LvlPtr.State]  # uid, y
-
-    class ScatterLabel(QCPItemText):
-        def __init__(self, num: int, point: QCPGraphData, parent: QCustomPlot):
-            super().__init__(parent)
-            self.setPositionAlignment(Qt.AlignBottom | Qt.AlignHCenter)
-            self.setFont(QFont('mono', 8))
-            self.setText(str(num))
-            self.position.setCoords(point.key, point.value)
-
-    class DigitScatterStyle(QCPScatterStyle):
-        def __init__(self):
-            super().__init__(QCPScatterStyle.ssCircle)
-        # def drawShape(self, painter: QCPPainter, *__args):  # not works
-        #     print(len(__args))
-        #     super().drawShape(painter, *__args)
-
-    _signal: mycomtrade.AnalogSignal
-    _sibling: AnalogSignalLabel
-    __scat_style: EScatter
-    __msr_ptr: set
-    __lvl_ptr: set
-
-    def __init__(self, graph: QCPGraph, signal: mycomtrade.Signal, sibling: SignalLabel, root: QWidget,
-                 parent: SignalChartWidget):
-        self.__scat_style = EScatter.N
-        self.__msr_ptr = set()
-        self.__lvl_ptr = set()
-        super().__init__(graph, signal, sibling, root, parent)
-
-    @property
-    def _data_y(self) -> list:
-        divider = max(abs(min(self._signal.value)), abs(max(self._signal.value)))
-        if divider == 0.0:
-            divider = 1.0
-        return [v / divider for v in self._signal.value]
-
-    @property
-    def range_y(self) -> QCPRange:
-        retvalue = self._graph.data().valueRange()[0]
-        if retvalue.lower == retvalue.upper == 0.0:
-            retvalue = QCPRange(-1.0, 1.0)
-        return retvalue
-
-    def refresh_data(self):
-        self._set_data()
-
-    def _set_style(self):
-        pen = QPen(PEN_STYLE[self._signal.line_type])
-        pen.setColor(QColor.fromRgb(*self._signal.rgb))
-        self._graph.setPen(pen)
-        for ptr in self.__msr_ptr:
-            ptr.slot_set_color()
-        for ptr in self.__lvl_ptr:
-            ptr.slot_set_color()
-        self._graph.parentPlot().replot()
-
-    def refresh_scatter(self, scat_style: EScatter) -> bool:
-        if self.__scat_style != scat_style:
-            if scat_style < EScatter.P:
-                shape = QCPScatterStyle(QCPScatterStyle.ssNone)
-            elif scat_style < EScatter.D:
-                shape = QCPScatterStyle(QCPScatterStyle.ssPlus)
-            else:
-                shape = self.DigitScatterStyle()
-            self._graph.setScatterStyle(shape)
-            # <dirtyhack>
-            """
-            if self.__pps < iosc.const.X_SCATTER_NUM <= pps:
-                # self.graph().setScatterStyle(self.__myscatter)
-                for i, d in enumerate(self.graph().data()):
-                    ScatterLabel(i, d, self)
-            elif self.__pps >= iosc.const.X_SCATTER_NUM > pps:
-                for i in reversed(range(self.itemCount())):
-                    if isinstance(self.item(i), ScatterLabel):
-                        self.removeItem(i)
-            """
-            # </dirtyhack>
-            self.__scat_style = scat_style
-            return True
-
-    def add_ptr_msr(self, uid: int, i: int):
-        """Add new MsrPtr"""
-        self.__msr_ptr.add(MsrPtr(self, self._oscwin, self._signal, uid, i))
-
-    def del_ptr_msr(self, ptr: MsrPtr):
-        """Del MsrPtr"""
-        ptr.clean()
-        self.__msr_ptr.remove(ptr)
-        self._graph.parentPlot().removeItem(ptr)
-        self._graph.parentPlot().replot()
-
-    def add_ptr_lvl(self, uid: int, y: Optional[float] = None):
-        self.__lvl_ptr.add(LvlPtr(self, self._oscwin, self._signal, uid, y or self.range_y.upper))
-
-    def del_ptr_lvl(self, ptr: LvlPtr):
-        """Del LvlPtr"""
-        ptr.clean()
-        self.__lvl_ptr.remove(ptr)
-        self._graph.parentPlot().removeItem(ptr)
-        self._graph.parentPlot().replot()
-
-    def clean(self):
-        """Clean up before deleting"""
-        super().clean()
-        for ptr in reversed(tuple(self.__msr_ptr)):
-            self.del_ptr_msr(ptr)
-        for ptr in reversed(tuple(self.__lvl_ptr)):
-            self.del_ptr_lvl(ptr)
-
-    @property
-    def state(self) -> State:
-        return self.State(
-            signal=self._signal,
-            msr_ptr=[ptr.state for ptr in self.__msr_ptr],
-            lvl_ptr=[ptr.state for ptr in self.__lvl_ptr]
-        )
-
-    def restore(self, state: State):
-        """Restore signal state:
-        - [x] MsrPtr[]
-        - [x] LvlPtr[]
-        """
-        for s in state.msr_ptr:
-            self.add_ptr_msr(s.uid, s.i)
-        for s in state.lvl_ptr:
-            self.add_ptr_lvl(s.uid, s.y)
-'''

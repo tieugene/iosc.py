@@ -80,6 +80,7 @@ class TimeAxisPlot(OneBarPlot):
     def __init__(self, parent: 'TopBar'):
         super().__init__(parent)
         self.__main_ptr_label = PtrLabelMain(self)
+        self._tmp_ptr = dict()
         # self.xAxis.setTickLabels(True)  # default
         # self.xAxis.setTicks(True)  # default
         self.xAxis.setTickLabelSide(QCPAxis.lsInside)
@@ -87,6 +88,8 @@ class TimeAxisPlot(OneBarPlot):
         self.xAxis.setTickLabelFont(iosc.const.FONT_TOPBAR)
         self.__slot_retick()
         self._oscwin.signal_x_zoom.connect(self.__slot_retick)
+        self._oscwin.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
+        self._oscwin.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
 
     def resizeEvent(self, event: QResizeEvent):
         super().resizeEvent(event)
@@ -95,4 +98,14 @@ class TimeAxisPlot(OneBarPlot):
 
     def __slot_retick(self):
         self.xAxis.ticker().setTickStep(iosc.const.X_PX_WIDTH_uS[self._oscwin.x_zoom] / 10)
+        self.replot()
+
+    def _slot_ptr_add_tmp(self, uid: int):
+        """Add new TmpPtr"""
+        self._tmp_ptr[uid] = PtrLabelTmp(self, uid)
+
+    def _slot_ptr_del_tmp(self, uid: int):
+        """Del TmpPtr"""
+        self.removeItem(self._tmp_ptr[uid])
+        del self._tmp_ptr[uid]
         self.replot()
