@@ -1,10 +1,9 @@
+# 2. 3rd
 from PyQt5.QtCore import QMargins, Qt, pyqtSignal
 from PyQt5.QtGui import QResizeEvent
-from PyQt5.QtWidgets import QWidget
-from QCustomPlot2 import QCustomPlot, QCPItemText, QCPAxis, QCPAxisTickerFixed
-
+from QCustomPlot2 import QCPItemText, QCPAxis, QCPAxisTickerFixed
+# 3. local
 import iosc.const
-from iosc.core import mycomtrade
 from iosc.sig.widget.common import OneBarPlot
 
 
@@ -99,6 +98,12 @@ class TimeAxisPlot(OneBarPlot):
     def __slot_retick(self):
         self.xAxis.ticker().setTickStep(iosc.const.X_PX_WIDTH_uS[self._oscwin.x_zoom] / 10)
         self.replot()
+
+    def get_tmp_ptr_name(self, uid: id):
+        return self._tmp_ptr[uid].name
+
+    def set_tmp_ptr_name(self, uid: id, name: str):
+        self._tmp_ptr[uid].name = name
 
     def _slot_ptr_add_tmp(self, uid: int):
         """Add new TmpPtr"""

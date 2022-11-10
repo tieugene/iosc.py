@@ -532,8 +532,8 @@ class ComtradeWidget(QWidget):
 
     def slot_ptr_edit_tmp(self, uid: int):
         v = self.i2x(self.__tmp_ptr_i[uid])
-        name = self.timeaxis_bar.widget.get_tmp_ptr_name(uid)
+        name = self.timeaxis_bar.plot.get_tmp_ptr_name(uid)
         form = TmpPtrDialog((v, self.osc.x_min, self.osc.x_max, 1000 / self.osc.rate, name))
         if form.exec_():
-            self.timeaxis_bar.widget.set_tmp_ptr_name(uid, form.f_name.text())
+            self.timeaxis_bar.plot.set_tmp_ptr_name(uid, form.f_name.text())
             self.signal_ptr_moved_tmp.emit(uid, self.x2i(form.f_val.value()))

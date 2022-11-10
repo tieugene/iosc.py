@@ -27,10 +27,10 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [x] shift (?)
   + [x] viewas
 - […] Pointers:
-  + […] Common:
+  + [x] Common:
     + [x] Main
     + [x] OMP
-    + [ ] Tmp
+    + [x] Tmp
   + [ ] Analog:
     * [ ] Msr
     * [ ] Lvl
