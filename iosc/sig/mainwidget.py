@@ -17,7 +17,7 @@ from iosc.core.sigfunc import func_list
 from iosc.icon import svg_icon, ESvgSrc
 from iosc.core.convtrade import convert, ConvertError
 from iosc.sig.section import TimeAxisBar, SignalBarTable, TimeStampsBar, XScroller
-from iosc.sig.widget.common import SignalSuit
+from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit
 from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
 
 
@@ -419,11 +419,10 @@ class ComtradeWidget(QWidget):
 
     def __set_data(self):
         for sig in self.osc.y:
-            ss = SignalSuit(sig, self)
             if not sig.is_bool:
-                self.analog_table.bar_insert().sig_add(ss)  # FIXME: default height
+                self.analog_table.bar_insert().sig_add(AnalogSignalSuit(sig, self))  # FIXME: default height
             else:
-                self.status_table.bar_insert().sig_add(ss)  # FIXME: default height
+                self.status_table.bar_insert().sig_add(StatusSignalSuit(sig, self))  # FIXME: default height
 
     def __do_file_close(self):  # FIXME: not closes tab
         # self.parent().removeTab(self.__index)

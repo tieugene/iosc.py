@@ -16,11 +16,13 @@ from iosc.sig.widget.ctrl import StatusSignalLabel, AnalogSignalLabel, SignalLab
 from iosc.sig.widget.ptr import MainPtr, SCPtr, TmpPtr, MsrPtr, LvlPtr
 
 # x. const
+'''
 PEN_STYLE = {
     mycomtrade.ELineType.Solid: Qt.SolidLine,
     mycomtrade.ELineType.Dot: Qt.DotLine,
     mycomtrade.ELineType.DashDot: Qt.DashDotDotLine
 }
+'''
 
 
 class EScatter(IntEnum):

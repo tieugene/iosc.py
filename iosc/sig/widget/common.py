@@ -1,11 +1,12 @@
 """Signal wrappers, commmon things.
 TODO: StatusSignalSuit, AnalogSignalSuit.
 """
+from enum import IntEnum
 from typing import Optional, Union
 
 # 2. 3rd
-from PyQt5.QtCore import QObject, pyqtSignal, QMargins
-from PyQt5.QtGui import QPen
+from PyQt5.QtCore import QObject, pyqtSignal, QMargins, Qt
+from PyQt5.QtGui import QPen, QColor, QBrush
 from PyQt5.QtWidgets import QWidget
 from QCustomPlot2 import QCPGraph, QCPScatterStyle, QCustomPlot
 
@@ -15,66 +16,148 @@ from iosc.sig.widget.ctrl import BarCtrlWidget, SignalLabel
 from iosc.sig.widget.chart import BarPlotWidget
 
 
+class ELineType(IntEnum):
+    Solid = 0
+    Dot = 1
+    DashDot = 2
+
+
+PEN_STYLE = {
+    ELineType.Solid: Qt.SolidLine,
+    ELineType.Dot: Qt.DotLine,
+    ELineType.DashDot: Qt.DashDotDotLine
+}
+
+
 class SignalSuit(QObject):
-    __oscwin: 'ComtradeWidget'
+    _oscwin: 'ComtradeWidget'
     signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]
     bar: Optional['SignalBar']
-    num: Optional[int]
-    __label: Optional[SignalLabel]
-    __graph: Optional[QCPGraph]
-    hidden: bool
+    num: Optional[int]  # order number in bar
+    _label: Optional[SignalLabel]
+    _graph: Optional[QCPGraph]
+    _hidden: bool
+    _color: int  # FIXME: QColor
 
-    def __init__(self, signal: mycomtrade.Signal, oscwin: 'ComtradeWidget'):
+    def __init__(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal], oscwin: 'ComtradeWidget'):
         super().__init__()
-        self.__oscwin = oscwin
+        self._oscwin = oscwin
         self.signal = signal
         self.bar = None
         self.num = None  # signal order number in bar
-        self.__label = None
-        self.__graph = None
-        self.hidden = False
+        self._label = None
+        self._graph = None
+        self._hidden = False
+        self._color = iosc.const.COLOR_SIG_DEFAULT.get(self.signal.raw2.ph.lower(), iosc.const.COLOR_SIG_UNKNOWN)
         oscwin.signal_x_zoom.connect(self.__slot_retick)
+
+    @property
+    def hidden(self) -> bool:
+        return self._hidden
+
+    @hidden.setter
+    def hidden(self, hide: bool):
+        if self._hidden != hide:
+            self._label.setHidden(hide)
+            self._graph.setVisible(not hide)
+            self._hidden = hide
+            self.bar.update_stealth()
+
+    @property
+    def color(self) -> int:
+        return self._color
+
+    @color.setter
+    def color(self, v: int):
+        self._color = v
+
+    @property
+    def rgb(self) -> tuple[int, int, int]:
+        return (self.color >> 16) & 255, (self.color >> 8) & 255, self.color & 255
+
+    @rgb.setter
+    def rgb(self, v: tuple[int, int, int]):
+        self._color = v[0] << 16 | v[1] << 8 | v[2]
+
+    def _set_data(self):
+        self._graph.setData(self.bar.table.oscwin.osc.x, self.signal.value, True)
+
+    def _set_style(self):
+        ...  # stub
 
     def embed(self, bar: 'SignalBar', num: int):
         self.bar = bar
         self.num = num
-        self.__label = self.bar.ctrl.sig_add(self)
-        self.__graph = self.bar.gfx.sig_add()
-        self.__graph.setData(self.bar.table.oscwin.osc.x, self.signal.value, True)
-        self.__graph.setPen(QPen(self.signal.color))
-        self.__graph.parentPlot().slot_refresh()
+        self._label = self.bar.ctrl.sig_add(self)
+        self._graph = self.bar.gfx.sig_add()
+        self._set_data()
+        self._set_style()
+        self._graph.parentPlot().slot_refresh()
         self.__slot_retick()
 
     def detach(self):
         self.bar.ctrl.sig_del(self.num)
-        self.bar.gfx.sig_del(self.__graph)
+        self.bar.gfx.sig_del(self._graph)
         self.bar.gfx.plot.replot()
         self.num = None
         self.bar = None
 
-    def set_hidden(self, hide: bool):
-        if self.hidden != hide:
-            self.__label.setHidden(hide)
-            self.__graph.setVisible(not hide)
-            self.hidden = hide
-            self.bar.update_stealth()
-
     def __slot_retick(self):
         """Update scatter style on x-zoom change"""
-        if self.__graph:
-            now = self.__graph.scatterStyle().shape() != QCPScatterStyle.ssNone
-            need = self.__oscwin.x_sample_width_px() >= iosc.const.X_SCATTER_MARK
+        if self._graph:
+            now = self._graph.scatterStyle().shape() != QCPScatterStyle.ssNone
+            need = self._oscwin.x_sample_width_px() >= iosc.const.X_SCATTER_MARK
             if now != need:
-                self.__graph.setScatterStyle(QCPScatterStyle(
+                self._graph.setScatterStyle(QCPScatterStyle(
                     QCPScatterStyle.ssPlus if need else QCPScatterStyle.ssNone
                 ))
-                self.__graph.parentPlot().replot()  # bad solution but ...
+                self._graph.parentPlot().replot()  # bad solution but ...
+
+
+class StatusSignalSuit(SignalSuit):
+    def __init__(self, signal: mycomtrade.StatusSignal, oscwin: 'ComtradeWidget'):
+        super().__init__(signal, oscwin)
+
+    def _set_style(self):
+        brush = QBrush(iosc.const.BRUSH_D)
+        brush.setColor(QColor.fromRgb(*self.rgb))
+        self._graph.setBrush(brush)
+
+
+class AnalogSignalSuit(SignalSuit):
+    __line_style: ELineType
+    __msr_ptr: set
+    __lvl_ptr: set
+
+    def __init__(self, signal: mycomtrade.AnalogSignal, oscwin: 'ComtradeWidget'):
+        self.__msr_ptr = set()
+        self.__lvl_ptr = set()
+        self.__line_style = ELineType.Solid  # FIXME: Qt::PenStyle
+        super().__init__(signal, oscwin)
+
+    @property
+    def line_style(self) -> ELineType:
+        return self.__line_style
+
+    @line_style.setter
+    def line_style(self, v: ELineType):
+        self.__line_style = v
+
+    def _set_style(self):
+        pen = QPen(PEN_STYLE[self.line_style])
+        pen.setColor(QColor.fromRgb(*self.rgb))
+        self._graph.setPen(pen)
+        for ptr in self.__msr_ptr:
+            ptr.slot_set_color()
+        for ptr in self.__lvl_ptr:
+            ptr.slot_set_color()
+        self._graph.parentPlot().replot()
 
 
 class SignalBar(QObject):
     table: 'SignalBarTable'
     row: int
-    signals: list[SignalSuit]
+    signals: list[Union[StatusSignalSuit, AnalogSignalSuit]]
     zoom_y: int
     ctrl: BarCtrlWidget
     gfx: BarPlotWidget
@@ -109,7 +192,7 @@ class SignalBar(QObject):
     def sig_count(self) -> int:
         return len(self.signals)
 
-    def sig_add(self, ss: SignalSuit):
+    def sig_add(self, ss: Union[StatusSignalSuit, AnalogSignalSuit]):
         ss.embed(self, len(self.signals))
         self.signals.append(ss)
         self.update_stealth()
@@ -136,7 +219,7 @@ class SignalBar(QObject):
 
     def __slot_unhide_all(self):
         for ss in self.signals:
-            ss.set_hidden(False)
+            ss.hidden = False
         if self.table.isRowHidden(self.row):
             self.table.setRowHidden(self.row, False)
 
@@ -152,6 +235,8 @@ class SignalBar(QObject):
 
 
 class OneBarPlot(QCustomPlot):
+    """Parent for top and bottom bars plots"""
+
     def __init__(self, parent: QWidget):
         super().__init__(parent)
         ar = self.axisRect(0)

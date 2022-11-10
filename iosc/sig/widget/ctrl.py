@@ -13,11 +13,11 @@ from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPro
 
 class SignalLabel(QListWidgetItem):
     _prop_dlg_cls: SignalPropertiesDialog
-    ss: 'SignalSuit'
+    ss: Union['StatusSignalSuit', 'AnalogSignalSuit']
     # sibling: Optional[QObject]  # SignalGraph
     # signal_restyled = pyqtSignal()  # N/A
 
-    def __init__(self, ss: 'SignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
+    def __init__(self, ss: Union['StatusSignalSuit', 'AnalogSignalSuit'], parent: 'BarCtrlWidget.SignalLabelList' = None):
         super().__init__(parent)
         self.ss = ss
         self._set_style()
@@ -28,19 +28,8 @@ class SignalLabel(QListWidgetItem):
     def _value_str(self) -> str:
         return ''  # stub
 
-    @property
-    def signal(self) -> Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]:
-        return self.ss.signal
-
-    @property
-    def whoami(self) -> int:
-        """
-        :return: Signal number in correspondent signal list
-        """
-        return self.ss.signal.i
-
     def _set_style(self):
-        self.setForeground(QBrush(QColor(*self.ss.signal.rgb)))
+        self.setForeground(QBrush(QColor(*self.ss.rgb)))
 
     def do_sig_property(self):
         """Show/set signal properties"""
@@ -64,7 +53,7 @@ class SignalLabel(QListWidgetItem):
 class StatusSignalLabel(SignalLabel):
     _prop_dlg_cls = StatusSignalPropertiesDialog
 
-    def __init__(self, ss: 'SignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
+    def __init__(self, ss: 'StatusSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
         super().__init__(ss, parent)
 
     @property
@@ -76,7 +65,7 @@ class StatusSignalLabel(SignalLabel):
 class AnalogSignalLabel(SignalLabel):
     _prop_dlg_cls = AnalogSignalPropertiesDialog
 
-    def __init__(self, ss: 'SignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
+    def __init__(self, ss: 'AnalogSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
         super().__init__(ss, parent)
         # self.ss.bar.table.oscwin.signal_chged_shift.connect(self.slot_update_value)
         # self.ss.bar.table.oscwin.signal_chged_pors.connect(self.slot_update_value)
@@ -146,7 +135,7 @@ class BarCtrlWidget(QWidget):
             action_sig_hide = context_menu.addAction("Hide")
             chosen_action = context_menu.exec_(self.mapToGlobal(point))
             if chosen_action == action_sig_hide:
-                item.ss.set_hidden(True)
+                item.ss.hidden = True
 
         @property
         def selected_row(self) -> int:
