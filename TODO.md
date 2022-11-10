@@ -31,9 +31,9 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
     + [x] Main
     + [x] OMP
     + [x] Tmp
-  + […] Analog:
+  + [x] Analog:
     * [x] Msr
-    * [ ] Lvl
+    * [x] Lvl
 - [ ] FIXME:
   + [ ] Plot: Signal normalize
   + [ ] SignalLabelList: deselect

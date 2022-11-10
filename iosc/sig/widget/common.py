@@ -18,7 +18,7 @@ from iosc.core.sigfunc import func_list
 from iosc.sig.widget.ctrl import BarCtrlWidget, StatusSignalLabel, AnalogSignalLabel
 from iosc.sig.widget.chart import BarPlotWidget
 from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
-from iosc.sig.widget.ptr import MsrPtr
+from iosc.sig.widget.ptr import MsrPtr, LvlPtr
 
 PEN_STYLE = (Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)
 
@@ -212,6 +212,16 @@ class AnalogSignalSuit(SignalSuit):
         """Del MsrPtr"""
         ptr.clean()
         self.__msr_ptr.remove(ptr)
+        self.graph.parentPlot().removeItem(ptr)
+        self.graph.parentPlot().replot()
+
+    def add_ptr_lvl(self, uid: int, y: Optional[float] = None):
+        self.__lvl_ptr.add(LvlPtr(self, self._oscwin, uid, y or self.range_y.upper))
+
+    def del_ptr_lvl(self, ptr: LvlPtr):
+        """Del LvlPtr"""
+        ptr.clean()
+        self.__lvl_ptr.remove(ptr)
         self.graph.parentPlot().removeItem(ptr)
         self.graph.parentPlot().replot()
 

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal, QObject
+from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal
 from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor, QPen
 from PyQt5.QtWidgets import QWidget, QMenu
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect, QCPGraph
@@ -417,30 +417,28 @@ class LvlPtr(QCPItemStraightLine):
             super().__init__(cp)
             self.setColor(Qt.white)  # text
 
-    __sigraph: QObject
-    __root: QWidget
-    __signal: mycomtrade.AnalogSignal
+    __ss: 'AnalogSignalSuit'
+    __oscwin: 'ComtradeWidget'
     __uid: int  # uniq id
     __tip: _Tip
     __mult: float  # multiplier reduced<>real
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, sigraph: QObject, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, y: float):
-        super().__init__(sigraph.graph.parentPlot())
-        self.__sigraph = sigraph
-        self.__root = root
-        self.__signal = signal
+    def __init__(self, ss: 'AnalogSignalSuit', root: 'ComtradeWidget', uid: int, y: float):
+        super().__init__(ss.graph.parentPlot())
+        self.__ss = ss
+        self.__oscwin = root
         self.__uid = uid
         self.__tip = self._Tip(self.parentPlot())
         # self.setPen(iosc.const.PEN_PTR_OMP)
         self.__set_color()
         self.y_reduced = y
-        self.__mult = max(max(max(signal.value), 0), abs(min(0, min(signal.value))))  # multiplier rediced<>real
+        self.__mult = max(max(max(self.__ss.signal.value), 0), abs(min(0, min(self.__ss.signal.value))))  # multiplier rediced<>real
         self.__slot_update_text()
-        self.__root.lvl_ptr_uids.add(self.__uid)
+        self.__oscwin.lvl_ptr_uids.add(self.__uid)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
-        # self.__root.signal_chged_shift.connect(self.__slot_update_text)  # behavior undefined
-        self.__root.signal_chged_pors.connect(self.__slot_update_text)
+        # self.__oscwin.signal_chged_shift.connect(self.__slot_update_text)  # behavior undefined
+        self.__oscwin.signal_chged_pors.connect(self.__slot_update_text)
 
     @property
     def uid(self) -> int:
@@ -456,8 +454,8 @@ class LvlPtr(QCPItemStraightLine):
         :param y:
         :note: for  QCPItemLine: s/point1/start/, s/point2/end/
         """
-        self.point1.setCoords(self.__root.x_min, y)
-        self.point2.setCoords(self.__root.x_max, y)
+        self.point1.setCoords(self.__oscwin.osc.x_min, y)
+        self.point2.setCoords(self.__oscwin.osc.x_max, y)
         self.__tip.position.setCoords(0, self.y_reduced)  # FIXME: x = ?
         self.__tip.setPositionAlignment(Qt.AlignLeft | (Qt.AlignTop if self.y_reduced > 0 else Qt.AlignBottom))
 
@@ -471,7 +469,7 @@ class LvlPtr(QCPItemStraightLine):
 
     def __set_color(self):
         pen = QPen(iosc.const.PENSTYLE_PTR_LVL)
-        color = QColor.fromRgb(*self.__signal.rgb)
+        color = self.__ss.color
         pen.setColor(color)
         self.setPen(pen)
         self.__tip.setBrush(QBrush(color))  # rect
@@ -486,10 +484,10 @@ class LvlPtr(QCPItemStraightLine):
         :param y: Value to redice
         :return: porsed y
         """
-        return y * self.__signal.get_mult(self.__root.show_sec)
+        return y * self.__ss.signal.get_mult(self.__oscwin.show_sec)
 
     def __slot_update_text(self):
-        self.__tip.setText("L%d: %s" % (self.__uid, self.__root.sig2str(self.__signal, self.y_real)))
+        self.__tip.setText("L%d: %s" % (self.__uid, self.__ss.sig2str(self.y_real)))
         self.parentPlot().replot()  # TODO: don't to this on total repaint
 
     def mousePressEvent(self, event: QMouseEvent, _):  # rmb click start
@@ -513,22 +511,22 @@ class LvlPtr(QCPItemStraightLine):
         if chosen_action == action_edit:
             self.__edit_self()
         elif chosen_action == action_del:
-            self.__sigraph.del_ptr_lvl(self)
+            self.__ss.del_ptr_lvl(self)
 
     def __edit_self(self):
         # pors all values
         form = LvlPtrDialog((
             self.__y_pors(self.y_real),
-            self.__y_pors(min(self.__signal.value)),
-            self.__y_pors(max(self.__signal.value))
+            self.__y_pors(min(self.__ss.signal.value)),
+            self.__y_pors(max(self.__ss.signal.value))
         ))
         if form.exec_():
             # unpors back
-            self.y_real = form.f_val.value() / self.__signal.get_mult(self.__root.show_sec)
+            self.y_real = form.f_val.value() / self.__ss.signal.get_mult(self.__oscwin.show_sec)
             self.__slot_update_text()
 
     def clean(self):
-        self.__root.lvl_ptr_uids.remove(self.__uid)
+        self.__oscwin.lvl_ptr_uids.remove(self.__uid)
         self.parentPlot().removeItem(self.__tip)
 
     @property

@@ -488,10 +488,10 @@ class ComtradeWidget(QWidget):
                 self.ass_list[i].add_ptr_msr(uid, self.main_ptr_i)
 
     def __do_ptr_add_lvl(self):
-        if sig_selected := SelectSignalsDialog(self.osc.y).execute():
-            for i in sig_selected:
+        if ss_selected := SelectSignalsDialog(self.ass_list).execute():
+            for i in ss_selected:
                 uid = max(self.lvl_ptr_uids) + 1 if self.lvl_ptr_uids else 1
-                self.ass_list[0][i].add_ptr_lvl(uid)
+                self.ass_list[i].add_ptr_lvl(uid)
 
     def resize_col_ctrl(self, dx: int):
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:
