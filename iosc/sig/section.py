@@ -247,8 +247,8 @@ class XScroller(QScrollBar):
         """Update maximum against new x-zoom.
         (x_width_px changed, page (px) - not)"""
         page = self.pageStep()
-        x_width_px = self.parent().x_width_px
-        if (max_new := self.parent().x_width_px - self.pageStep()) < 0:
+        x_width_px = self.parent().x_width_px()
+        if (max_new := x_width_px - self.pageStep()) < 0:
             max_new = 0
         v_new = min(
             max_new,
