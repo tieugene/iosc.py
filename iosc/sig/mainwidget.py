@@ -90,7 +90,7 @@ class ComtradeWidget(QWidget):
         super().__init__(parent)
         self.osc = osc
         self.col_ctrl_width = iosc.const.COL0_WIDTH_INIT
-        self.__main_ptr_i = self.x2i(0.0)  # default: Z
+        self.__main_ptr_i = self.x2i(0.0)  # default: Z (Osc1: 600)
         self.__sc_ptr_i = self.__main_ptr_i + 2 * self.osc.spp
         self.__tmp_ptr_i = dict()
         self.msr_ptr_uids = set()
@@ -155,7 +155,7 @@ class ComtradeWidget(QWidget):
 
     def x2i(self, x: float) -> int:
         """Recalc graph x-position (ms) into index in signal array"""
-        return int(round((x - self.osc.x_min) / self.osc.rate / 1000))
+        return int(round((x - self.osc.x_min) / 1000 * self.osc.rate))
 
     def i2x(self, i: int) -> float:
         """Recalc index in signal array int graph x-position (ms)"""

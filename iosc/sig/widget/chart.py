@@ -2,11 +2,13 @@
 from enum import IntEnum
 # 2. 3rd
 from PyQt5.QtCore import Qt, QMargins
+from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QLabel, QWidget, QScrollBar, QGridLayout
 from QCustomPlot2 import QCustomPlot, QCPGraph, QCPAxisTickerFixed
 # 3. local
 import iosc.const
 from iosc.sig.widget.hline import HLine
+from iosc.sig.widget.ptr import MainPtr, TmpPtr, SCPtr
 
 
 class EScatter(IntEnum):
@@ -75,17 +77,28 @@ class BarPlotWidget(QWidget):
                 self.setEnabled(True)
 
     class BarPlot(QCustomPlot):
+        _oscwin: 'ComtradeWidget'
+        _main_ptr: MainPtr
+        _sc_ptr: SCPtr
+        _tmp_ptr: dict[int, TmpPtr]
+        ptr_selected: bool
+
         def __init__(self, parent: 'BarPlotWidget'):
             super().__init__(parent)
+            self._oscwin = parent.bar.table.oscwin
             self.__squeeze()
             self.__decorate()
+            self.__set_data()
+            self._main_ptr = MainPtr(self.graph(0), self._oscwin)  # after graph()
+            self._sc_ptr = SCPtr(self.graph(0), self._oscwin)
+            self._tmp_ptr = dict()
+            self.ptr_selected = False
             # self.yAxis.setRange(*self.__y_range)  # not helps
             # self.slot_rerange_y()  # not helps
-            # x_coords = parent.bar.table.oscwin.x_coords
             # self.xAxis.setRange(x_coords[0], x_coords[-1])
-            parent.bar.table.oscwin.xscroll_bar.valueChanged.connect(self.__slot_rerange_x_force)
-            parent.bar.table.oscwin.xscroll_bar.signal_update_plots.connect(self.__slot_rerange_x)
-            parent.bar.table.oscwin.signal_x_zoom.connect(self.__slot_retick)
+            self._oscwin.xscroll_bar.valueChanged.connect(self.__slot_rerange_x_force)
+            self._oscwin.xscroll_bar.signal_update_plots.connect(self.__slot_rerange_x)
+            self._oscwin.signal_x_zoom.connect(self.__slot_retick)
 
         @property
         def __y_range(self) -> tuple[float, float]:
@@ -119,6 +132,19 @@ class BarPlotWidget(QWidget):
             self.yAxis.grid().setZeroLinePen(iosc.const.PEN_ZERO)
             self.xAxis.grid().setZeroLinePen(iosc.const.PEN_ZERO)
 
+        def __set_data(self):
+            """Set data for global xPtrs"""
+            self.addGraph()  # main graph
+            x_data = self._oscwin.osc.x
+            self.graph(0).setData(x_data, [0.0] * len(x_data), True)
+
+        def mousePressEvent(self, event: QMouseEvent):
+            super().mousePressEvent(event)  # always .isAcepted() after this
+            if event.button() == Qt.LeftButton and not self.ptr_selected:  # check selectable
+                i_new = self._oscwin.x2i(self.xAxis.pixelToCoord(event.x()))
+                self._oscwin.slot_ptr_moved_main(i_new)  # __move MainPtr here
+                super().mousePressEvent(event)  # and select it
+
         def slot_rerange_y(self):
             """Refresh plot on YScroller move.
             FIXME: something bad 1st time
@@ -135,12 +161,11 @@ class BarPlotWidget(QWidget):
             self.replot()
 
         def __slot_rerange_x(self):
-            oscwin = self.parent().bar.table.oscwin
-            x_coords = oscwin.osc.x
-            x_width = oscwin.osc.x_size
+            x_coords = self._oscwin.osc.x
+            x_width = self._oscwin.osc.x_size
             self.xAxis.setRange(
-                x_coords[0] + oscwin.xscroll_bar.norm_min * x_width,
-                x_coords[0] + oscwin.xscroll_bar.norm_max * x_width,
+                x_coords[0] + self._oscwin.xscroll_bar.norm_min * x_width,
+                x_coords[0] + self._oscwin.xscroll_bar.norm_max * x_width,
             )
 
         def __slot_rerange_x_force(self):
@@ -148,7 +173,7 @@ class BarPlotWidget(QWidget):
             self.replot()
 
         def __slot_retick(self):
-            self.xAxis.ticker().setTickStep(iosc.const.X_PX_WIDTH_uS[self.parent().bar.table.oscwin.x_zoom] / 10)
+            self.xAxis.ticker().setTickStep(iosc.const.X_PX_WIDTH_uS[self._oscwin.x_zoom] / 10)
             self.replot()
 
         def slot_refresh(self):
@@ -195,7 +220,7 @@ class SignalGraph(QObject):  # FIXME: == common.SignalSuit
     _graph: QCPGraph
     _signal: mycomtrade.Signal
     _sibling: SignalLabel
-    _root: QWidget
+    _oscwin: QWidget
 
     def __init__(self, graph: QCPGraph, signal: mycomtrade.Signal, sibling: SignalLabel, root: QWidget,
                  parent: SignalChartWidget):
@@ -204,8 +229,8 @@ class SignalGraph(QObject):  # FIXME: == common.SignalSuit
         self._signal = signal
         self._sibling = sibling
         sibling.sibling = self
-        self._root = root
-        self._root.sig_no2widget[int(self._signal.is_bool)][self._signal.i] = self
+        self._oscwin = root
+        self._oscwin.sig_no2widget[int(self._signal.is_bool)][self._signal.i] = self
         self._set_data()
         self._set_style()
 
@@ -238,7 +263,7 @@ class SignalGraph(QObject):  # FIXME: == common.SignalSuit
 
     def clean(self):
         """Clean up before deleting"""
-        self._root.sig_no2widget[int(self._signal.is_bool)][self._signal.i] = None
+        self._oscwin.sig_no2widget[int(self._signal.is_bool)][self._signal.i] = None
 
     @property
     def state(self) -> State:
@@ -359,7 +384,7 @@ class AnalogSignalGraph(SignalGraph):
 
     def add_ptr_msr(self, uid: int, i: int):
         """Add new MsrPtr"""
-        self.__msr_ptr.add(MsrPtr(self, self._root, self._signal, uid, i))
+        self.__msr_ptr.add(MsrPtr(self, self._oscwin, self._signal, uid, i))
 
     def del_ptr_msr(self, ptr: MsrPtr):
         """Del MsrPtr"""
@@ -369,7 +394,7 @@ class AnalogSignalGraph(SignalGraph):
         self._graph.parentPlot().replot()
 
     def add_ptr_lvl(self, uid: int, y: Optional[float] = None):
-        self.__lvl_ptr.add(LvlPtr(self, self._root, self._signal, uid, y or self.range_y.upper))
+        self.__lvl_ptr.add(LvlPtr(self, self._oscwin, self._signal, uid, y or self.range_y.upper))
 
     def del_ptr_lvl(self, ptr: LvlPtr):
         """Del LvlPtr"""

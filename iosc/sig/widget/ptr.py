@@ -30,13 +30,13 @@ class VLine(QCPItemStraightLine):
 
 class Ptr(QCPItemTracer):
     __cursor: QCursor
-    _root: QWidget
+    _oscwin: 'ComtradeWidget'
     signal_ptr_moved = pyqtSignal(int)
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, graph: QCPGraph, root: QWidget):
+    def __init__(self, graph: QCPGraph, root: 'ComtradeWidget'):
         super().__init__(graph.parentPlot())
-        self._root = root
+        self._oscwin = root
         self.setGraph(graph)
         self.position.setAxes(graph.parentPlot().xAxis, None)
 
@@ -76,15 +76,15 @@ class Ptr(QCPItemTracer):
     @property
     def i(self) -> int:
         """Index of value in current self position"""
-        return self._root.x2i(self.x)
+        return self._oscwin.x2i(self.x)
 
     def _switch_cursor(self, selected: bool):
         if selected:
-            self.__cursor = self._root.cursor()
+            self.__cursor = self._oscwin.cursor()
             cur = iosc.const.CURSOR_PTR
         else:
             cur = self.__cursor
-        self._root.setCursor(cur)
+        self._oscwin.setCursor(cur)
 
     def _mouse2ms(self, event: QMouseEvent) -> float:
         """Get mouse position as ms"""
@@ -102,17 +102,17 @@ class SCPtr(Ptr):
         self.__pr_ptr = VLine(graph.parentPlot())
         self.__pr_ptr.setPen(iosc.const.PEN_PTR_OMP)
         self.__set_limits()
-        self.__slot_ptr_move(self._root.sc_ptr_i, False)
+        self.__slot_ptr_move(self._oscwin.sc_ptr_i, False)
         self.selectionChanged.connect(self.__selection_chg)
-        self.signal_ptr_moved.connect(self._root.slot_ptr_moved_sc)
-        self._root.signal_ptr_moved_sc.connect(self.__slot_ptr_move)
+        self.signal_ptr_moved.connect(self._oscwin.slot_ptr_moved_sc)
+        self._oscwin.signal_ptr_moved_sc.connect(self.__slot_ptr_move)
 
     def __set_limits(self):
         """Set limits for moves"""
-        i_z = self._root.x2i(0.0)
+        i_z = self._oscwin.x2i(0.0)
         self.__x_limit = (
-            self._root.i2x(i_z + 1),
-            self._root.i2x(i_z + self._root.omp_width * self._root.tpp - 1)
+            self._oscwin.i2x(i_z + 1),
+            self._oscwin.i2x(i_z + self._oscwin.omp_width * self._oscwin.osc.spp - 1)
         )
 
     def __selection_chg(self, selection: bool):
@@ -121,8 +121,8 @@ class SCPtr(Ptr):
 
     def __slot_ptr_move(self, i: int, replot: bool = True):
         if not self.selected():  # check is not myself
-            self.setGraphKey(self._root.i2x(i))
-        self.__pr_ptr.move2x(self._root.i2x(i - self._root.omp_width * self._root.tpp))
+            self.setGraphKey(self._oscwin.i2x(i))
+        self.__pr_ptr.move2x(self._oscwin.i2x(i - self._oscwin.omp_width * self._oscwin.osc.spp))
         if replot:
             self.parentPlot().replot()
 
@@ -148,8 +148,8 @@ class SCPtr(Ptr):
 
     def mouseDoubleClickEvent(self, event: QMouseEvent, _):
         event.accept()
-        if new_omp_width := get_new_omp_width(self._root, self._root.omp_width):
-            self._root.omp_width = new_omp_width
+        if new_omp_width := get_new_omp_width(self._oscwin, self._oscwin.omp_width):
+            self._oscwin.omp_width = new_omp_width
 
 
 class _TipBase(QCPItemText):
@@ -238,16 +238,17 @@ class _PowerPtr(Ptr):
 
 
 class MainPtr(_PowerPtr):
-    def __init__(self, graph: QCPGraph, root: QWidget):
+    def __init__(self, graph: QCPGraph, root: 'ComtradeWidget'):
         super().__init__(graph, root)
         self.setPen(iosc.const.PEN_PTR_MAIN)
-        self.slot_ptr_move(self._root.main_ptr_i, False)
-        self.signal_ptr_moved.connect(self._root.slot_ptr_moved_main)
-        self._root.signal_ptr_moved_main.connect(self.slot_ptr_move)
+        self.slot_ptr_move(self._oscwin.main_ptr_i, False)
+        # print(self._oscwin.main_ptr_i)
+        self.signal_ptr_moved.connect(self._oscwin.slot_ptr_moved_main)
+        self._oscwin.signal_ptr_moved_main.connect(self.slot_ptr_move)
 
     def slot_ptr_move(self, i: int, replot: bool = True):
         if not self.selected():  # check is not myself
-            self.setGraphKey(self._root.i2x(i))
+            self.setGraphKey(self._oscwin.i2x(i))
             if replot:
                 self.parentPlot().replot()
 
@@ -271,16 +272,16 @@ class TmpPtr(_PowerPtr):
         super().__init__(graph, root)
         self._uid = uid
         self.setPen(iosc.const.PEN_PTR_TMP)
-        self.__slot_ptr_move(uid, self._root.tmp_ptr_i[uid], False)
-        self.signal_ptr_moved_tmp.connect(self._root.slot_ptr_moved_tmp)
-        # self.signal_ptr_del_tmp.connect(self._root.slot_ptr_del_tmp)
-        self.signal_ptr_edit_tmp.connect(self._root.slot_ptr_edit_tmp)
-        self._root.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
+        self.__slot_ptr_move(uid, self._oscwin.tmp_ptr_i[uid], False)
+        self.signal_ptr_moved_tmp.connect(self._oscwin.slot_ptr_moved_tmp)
+        # self.signal_ptr_del_tmp.connect(self._oscwin.slot_ptr_del_tmp)
+        self.signal_ptr_edit_tmp.connect(self._oscwin.slot_ptr_edit_tmp)
+        self._oscwin.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
     def __slot_ptr_move(self, uid: int, i: int, replot: bool = True):
         if not self.selected() and uid == self._uid:  # check is not myself and myself
-            self.setGraphKey(self._root.i2x(i))
+            self.setGraphKey(self._oscwin.i2x(i))
             if replot:
                 self.parentPlot().replot()
 
@@ -302,7 +303,7 @@ class TmpPtr(_PowerPtr):
         if chosen_action == action_edit:
             self.signal_ptr_edit_tmp.emit(self._uid)
         elif chosen_action == action_del:
-            self._root.slot_ptr_del_tmp(self._uid)
+            self._oscwin.slot_ptr_del_tmp(self._uid)
             # self.signal_ptr_del_tmp.emit(self.__uid)
 
 
@@ -337,10 +338,10 @@ class MsrPtr(Ptr):
         self.updatePosition()
         self.__set_color()
         self.__move_tip()
-        self._root.msr_ptr_uids.add(uid)
+        self._oscwin.msr_ptr_uids.add(uid)
         self.selectionChanged.connect(self.__slot_selection_chg)
-        self._root.signal_chged_shift.connect(self.__slot_update_text)
-        self._root.signal_chged_pors.connect(self.__slot_update_text)
+        self._oscwin.signal_chged_shift.connect(self.__slot_update_text)
+        self._oscwin.signal_chged_pors.connect(self.__slot_update_text)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
     @property
@@ -363,7 +364,7 @@ class MsrPtr(Ptr):
         self.parentPlot().replot()  # update selection decoration
 
     def __slot_update_text(self):
-        v = self._root.sig2str_i(self.__signal, self.i, self.__func_i)  # was self.position.value()
+        v = self._oscwin.sig2str_i(self.__signal, self.i, self.__func_i)  # was self.position.value()
         m = self.FUNC_ABBR[self.__func_i]
         self.__tip.setText("M%d: %s (%s)" % (self.__uid, v, m))
         self.parentPlot().replot()
@@ -393,7 +394,7 @@ class MsrPtr(Ptr):
             self.__sigraph.del_ptr_msr(self)
 
     def __edit_self(self):
-        form = MsrPtrDialog((self.x, self._root.x_min, self._root.x_max, 1000 / self._root.osc.rate, self.__func_i))
+        form = MsrPtrDialog((self.x, self._oscwin.x_min, self._oscwin.x_max, 1000 / self._oscwin.osc.rate, self.__func_i))
         if form.exec_():  # TODO: optimize
             self.setGraphKey(form.f_val.value())
             self.updatePosition()
@@ -402,7 +403,7 @@ class MsrPtr(Ptr):
 
     def clean(self):
         """Clean self before deleting"""
-        self._root.msr_ptr_uids.remove(self.__uid)
+        self._oscwin.msr_ptr_uids.remove(self.__uid)
         self.parentPlot().removeItem(self.__tip)
 
     @property
