@@ -18,6 +18,7 @@ from iosc.core.sigfunc import func_list
 from iosc.sig.widget.ctrl import BarCtrlWidget, StatusSignalLabel, AnalogSignalLabel
 from iosc.sig.widget.chart import BarPlotWidget
 from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
+from iosc.sig.widget.ptr import MsrPtr
 
 PEN_STYLE = (Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)
 
@@ -28,7 +29,7 @@ class SignalSuit(QObject):
     bar: Optional['SignalBar']
     num: Optional[int]  # order number in bar
     _label: Optional[Union[StatusSignalLabel, AnalogSignalLabel]]
-    _graph: Optional[QCPGraph]
+    graph: Optional[QCPGraph]
     _hidden: bool
     color: QColor
 
@@ -39,7 +40,7 @@ class SignalSuit(QObject):
         self.bar = None
         self.num = None  # signal order number in bar
         self._label = None
-        self._graph = None
+        self.graph = None
         self._hidden = False
         self.color = iosc.const.COLOR_SIG_DEFAULT.get(self.signal.raw2.ph.lower(), iosc.const.COLOR_SIG_UNKNOWN)
         oscwin.signal_x_zoom.connect(self.__slot_retick)
@@ -52,7 +53,7 @@ class SignalSuit(QObject):
     def hidden(self, hide: bool):
         if self._hidden != hide:
             self._label.setHidden(hide)
-            self._graph.setVisible(not hide)
+            self.graph.setVisible(not hide)
             self._hidden = hide
             self.bar.update_stealth()
 
@@ -61,7 +62,7 @@ class SignalSuit(QObject):
         return []  # stub
 
     def _set_data(self):
-        self._graph.setData(self.bar.table.oscwin.osc.x, self._data_y, True)
+        self.graph.setData(self.bar.table.oscwin.osc.x, self._data_y, True)
 
     def _set_style(self):
         if self._label:
@@ -71,29 +72,29 @@ class SignalSuit(QObject):
         self.bar = bar
         self.num = num
         self._label = self.bar.ctrl.sig_add(self)
-        self._graph = self.bar.gfx.sig_add()
+        self.graph = self.bar.gfx.sig_add()
         self._set_data()
         self._set_style()
-        self._graph.parentPlot().slot_refresh()
+        self.graph.parentPlot().slot_refresh()
         self.__slot_retick()
 
     def detach(self):
         self.bar.ctrl.sig_del(self.num)
-        self.bar.gfx.sig_del(self._graph)
+        self.bar.gfx.sig_del(self.graph)
         self.bar.gfx.plot.replot()
         self.num = None
         self.bar = None
 
     def __slot_retick(self):
         """Update scatter style on x-zoom change"""
-        if self._graph:
-            now = self._graph.scatterStyle().shape() != QCPScatterStyle.ssNone
+        if self.graph:
+            now = self.graph.scatterStyle().shape() != QCPScatterStyle.ssNone
             need = self._oscwin.x_sample_width_px() >= iosc.const.X_SCATTER_MARK
             if now != need:
-                self._graph.setScatterStyle(QCPScatterStyle(
+                self.graph.setScatterStyle(QCPScatterStyle(
                     QCPScatterStyle.ssPlus if need else QCPScatterStyle.ssNone
                 ))
-                self._graph.parentPlot().replot()  # bad solution but ...
+                self.graph.parentPlot().replot()  # bad solution but ...
 
 
 class StatusSignalSuit(SignalSuit):
@@ -113,13 +114,13 @@ class StatusSignalSuit(SignalSuit):
         super()._set_style()
         brush = QBrush(iosc.const.BRUSH_D)
         brush.setColor(self.color)
-        self._graph.setBrush(brush)
+        self.graph.setBrush(brush)
 
     def do_sig_property(self):
         """Show/set signal properties"""
         if StatusSignalPropertiesDialog(self).execute():
             self._set_style()
-            self._graph.parentPlot().replot()
+            self.graph.parentPlot().replot()
 
 
 class AnalogSignalSuit(SignalSuit):
@@ -136,7 +137,7 @@ class AnalogSignalSuit(SignalSuit):
 
     @property
     def range_y(self) -> QCPRange:
-        retvalue = self._graph.data().valueRange()[0]
+        retvalue = self.graph.data().valueRange()[0]
         if retvalue.lower == retvalue.upper == 0.0:
             retvalue = QCPRange(-1.0, 1.0)
         return retvalue
@@ -152,7 +153,7 @@ class AnalogSignalSuit(SignalSuit):
         super()._set_style()
         pen = QPen(PEN_STYLE[self.line_style])
         pen.setColor(self.color)
-        self._graph.setPen(pen)
+        self.graph.setPen(pen)
         for ptr in self.__msr_ptr:
             ptr.slot_set_color()
         for ptr in self.__lvl_ptr:
@@ -162,7 +163,7 @@ class AnalogSignalSuit(SignalSuit):
         """Show/set signal properties"""
         if AnalogSignalPropertiesDialog(self).execute():
             self._set_style()
-            self._graph.parentPlot().replot()
+            self.graph.parentPlot().replot()
 
     def sig2str(self, y: float) -> str:
         """Return string repr of signal dependong on:
@@ -201,7 +202,18 @@ class AnalogSignalSuit(SignalSuit):
     def __slot_update_value(self):
         self._label.slot_update_value()
         self._set_data()
-        self._graph.parentPlot().replot()
+        self.graph.parentPlot().replot()
+
+    def add_ptr_msr(self, uid: int, i: int):
+        """Add new MsrPtr"""
+        self.__msr_ptr.add(MsrPtr(self, self._oscwin, uid, i))
+
+    def del_ptr_msr(self, ptr: MsrPtr):
+        """Del MsrPtr"""
+        ptr.clean()
+        self.__msr_ptr.remove(ptr)
+        self.graph.parentPlot().removeItem(ptr)
+        self.graph.parentPlot().replot()
 
 
 class SignalBar(QObject):

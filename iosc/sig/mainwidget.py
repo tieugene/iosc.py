@@ -37,7 +37,7 @@ class ComtradeWidget(QWidget):
     x_zoom: int
     show_sec: bool  # pri/sec selector
     viewas: int  # TODO: enum
-    sig_no2widget: tuple[list, list]  # Translate signal no to chart widget
+    ass_list: list[AnalogSignalSuit]  # Translate signal no to chart widget
     # actions
     action_close: QAction
     action_info: QAction
@@ -100,7 +100,7 @@ class ComtradeWidget(QWidget):
         self.x_zoom = len(iosc.const.X_PX_WIDTH_uS) - 1  # initial: max
         self.show_sec = True
         self.viewas = 0
-        # self.sig_no2widget = list()
+        self.ass_list = list()
         self.__mk_widgets()
         self.__mk_layout()
         self.__mk_actions()
@@ -386,7 +386,8 @@ class ComtradeWidget(QWidget):
     def __set_data(self):
         for sig in self.osc.y:
             if not sig.is_bool:
-                self.analog_table.bar_insert().sig_add(AnalogSignalSuit(sig, self))  # FIXME: default height
+                self.analog_table.bar_insert().sig_add(ass := AnalogSignalSuit(sig, self))  # FIXME: default height
+                self.ass_list.append(ass)
             else:
                 self.status_table.bar_insert().sig_add(StatusSignalSuit(sig, self))  # FIXME: default height
 
@@ -481,16 +482,16 @@ class ComtradeWidget(QWidget):
         # self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
 
     def __do_ptr_add_msr(self):
-        if sig_selected := SelectSignalsDialog(self.osc.y).execute():
-            for i in sig_selected:
+        if ss_selected := SelectSignalsDialog(self.ass_list).execute():
+            for i in ss_selected:
                 uid = max(self.msr_ptr_uids) + 1 if self.msr_ptr_uids else 1
-                self.sig_no2widget[0][i].add_ptr_msr(uid, self.main_ptr_i)
+                self.ass_list[i].add_ptr_msr(uid, self.main_ptr_i)
 
     def __do_ptr_add_lvl(self):
         if sig_selected := SelectSignalsDialog(self.osc.y).execute():
             for i in sig_selected:
                 uid = max(self.lvl_ptr_uids) + 1 if self.lvl_ptr_uids else 1
-                self.sig_no2widget[0][i].add_ptr_lvl(uid)
+                self.ass_list[0][i].add_ptr_lvl(uid)
 
     def resize_col_ctrl(self, dx: int):
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:

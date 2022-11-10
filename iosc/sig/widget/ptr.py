@@ -308,11 +308,6 @@ class TmpPtr(_PowerPtr):
 
 
 class MsrPtr(Ptr):
-    @dataclass
-    class State:
-        uid: int
-        i: int
-
     class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
@@ -320,21 +315,20 @@ class MsrPtr(Ptr):
             self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
 
     FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
-    __sigraph: QObject
+    __ss: 'AnalogSignalSuit'
     __uid: int  # uniq id
     __signal: mycomtrade.AnalogSignal
     __func_i: int  # value mode (function) number (in sigfunc.func_list[])
     __tip: _Tip
     signal_ptr_del_msr = pyqtSignal(int)
 
-    def __init__(self, sigraph: QObject, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, i: int):
-        super().__init__(sigraph.graph, root)
-        self.__sigraph = sigraph
+    def __init__(self, ss: 'AnalogSignalSuit', root: 'ComtradeWidget', uid: int, i: int):
+        super().__init__(ss.graph, root)
+        self.__ss = ss
         self.__uid = uid
-        self.__signal = signal
         self.__func_i = root.viewas
-        self.__tip = self._Tip(self.graph().parentPlot())
-        self.setGraphKey(root.i2x(i))
+        self.__tip = self._Tip(ss.graph.parentPlot())
+        self.setGraphKey(self._oscwin.i2x(i))
         self.updatePosition()
         self.__set_color()
         self.__move_tip()
@@ -350,7 +344,7 @@ class MsrPtr(Ptr):
 
     def __set_color(self):
         pen = QPen(iosc.const.PENSTYLE_PTR_MSR)
-        color = QColor.fromRgb(*self.__signal.rgb)
+        color = self.__ss.color
         pen.setColor(color)
         self.setPen(pen)
         self.__tip.setBrush(QBrush(color))  # rect
@@ -364,8 +358,8 @@ class MsrPtr(Ptr):
         self.parentPlot().replot()  # update selection decoration
 
     def __slot_update_text(self):
-        v = self._oscwin.sig2str_i(self.__signal, self.i, self.__func_i)  # was self.position.value()
-        m = self.FUNC_ABBR[self.__func_i]
+        v = self.__ss.sig2str_i(self.i)  # was self.position.value()
+        m = self.FUNC_ABBR[self._oscwin.viewas]
         self.__tip.setText("M%d: %s (%s)" % (self.__uid, v, m))
         self.parentPlot().replot()
 
@@ -391,10 +385,15 @@ class MsrPtr(Ptr):
         if chosen_action == action_edit:
             self.__edit_self()
         elif chosen_action == action_del:
-            self.__sigraph.del_ptr_msr(self)
+            self.__ss.del_ptr_msr(self)
 
     def __edit_self(self):
-        form = MsrPtrDialog((self.x, self._oscwin.x_min, self._oscwin.x_max, 1000 / self._oscwin.osc.rate, self.__func_i))
+        form = MsrPtrDialog((
+            self.x,
+            self._oscwin.osc.x_min,
+            self._oscwin.osc.x_max, 1000 / self._oscwin.osc.rate,
+            self.__func_i
+        ))
         if form.exec_():  # TODO: optimize
             self.setGraphKey(form.f_val.value())
             self.updatePosition()
@@ -405,13 +404,6 @@ class MsrPtr(Ptr):
         """Clean self before deleting"""
         self._oscwin.msr_ptr_uids.remove(self.__uid)
         self.parentPlot().removeItem(self.__tip)
-
-    @property
-    def state(self) -> State:
-        return self.State(
-            uid=self.__uid,
-            i=self.i
-        )
 
 
 class LvlPtr(QCPItemStraightLine):

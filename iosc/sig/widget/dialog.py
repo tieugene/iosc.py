@@ -7,7 +7,6 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QPushButton, QColorDialog, QLineEdit, \
     QInputDialog, QWidget, QDoubleSpinBox, QListWidget, QVBoxLayout, QListWidgetItem
 # 3. local
-from iosc.core import mycomtrade
 
 
 class SignalPropertiesDialog(QDialog):
@@ -156,7 +155,7 @@ class SelectSignalsDialog(QDialog):
     buttons_select: QDialogButtonBox
     button_box: QDialogButtonBox
 
-    def __init__(self, s_list: list[mycomtrade.Signal], parent=None):
+    def __init__(self, ass_list: list['AnalogSignalSuit'], parent=None):
         super().__init__(parent)
         self.setWindowTitle("Select signals")
         # 1. set widgets
@@ -168,12 +167,11 @@ class SelectSignalsDialog(QDialog):
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.f_signals = QListWidget()
         self.f_signals.setSelectionMode(self.f_signals.MultiSelection)
-        for sig in s_list:
-            if not sig.is_bool:
-                item = QListWidgetItem(sig.sid, self.f_signals)
-                item.setFlags(item.flags() & (~Qt.ItemIsUserCheckable))
-                item.setCheckState(Qt.Unchecked)
-                item.setForeground(QColor(*sig.rgb))
+        for ss in ass_list:
+            item = QListWidgetItem(ss.signal.sid, self.f_signals)
+            item.setFlags(item.flags() & (~Qt.ItemIsUserCheckable))
+            item.setCheckState(Qt.Unchecked)
+            item.setForeground(ss.color)
         # 3. set layout
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(self.buttons_select)

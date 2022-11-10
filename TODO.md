@@ -31,8 +31,8 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
     + [x] Main
     + [x] OMP
     + [x] Tmp
-  + [ ] Analog:
-    * [ ] Msr
+  + […] Analog:
+    * [x] Msr
     * [ ] Lvl
 - [ ] FIXME:
   + [ ] Plot: Signal normalize
@@ -45,8 +45,4 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [ ] Bar height (init, DnD)
   + [ ] X-resize: too slow
 
-## x2i
-
-Osc1:
-- x0: t = -500 ms, i = 0
-- xz: t = 0.0 ms, i = 600
+&hellip;
