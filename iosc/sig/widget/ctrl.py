@@ -83,7 +83,7 @@ class BarCtrlWidget(QWidget):
 
         def __start_drag(self):
             def _mk_icon() -> QPixmap:
-                __txt = self.parent().bar.signals[0].signal.name
+                __txt = self.parent().bar.signals[0].signal.sid
                 br = QFontMetrics(iosc.const.FONT_DND).boundingRect(__txt)  # sig0 = 1, -11, 55, 14
                 __pix = QPixmap(br.width() + 2, br.height() + 2)  # TODO: +4
                 __pix.fill(Qt.transparent)
@@ -119,6 +119,7 @@ class BarCtrlWidget(QWidget):
             self.clearSelection()
 
         def __slot_context_menu(self, point: QPoint):
+            self.clearSelection()
             item: Union[StatusSignalLabel, AnalogSignalLabel] = self.itemAt(point)
             if not item:
                 return
@@ -137,7 +138,7 @@ class BarCtrlWidget(QWidget):
 
         def startDrag(self, supported_actions: Union[Qt.DropActions, Qt.DropAction]):
             def _mk_icon() -> QPixmap:
-                __txt = self.currentItem().ss.signal.name
+                __txt = self.currentItem().ss.signal.sid
                 br = QFontMetrics(iosc.const.FONT_DND).boundingRect(__txt)  # sig0 = 1, -11, 55, 14
                 __pix = QPixmap(br.width() + 1, br.height() + 1)
                 __pix.fill(Qt.transparent)
