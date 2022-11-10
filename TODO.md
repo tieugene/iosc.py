@@ -23,7 +23,7 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [x] sig.unjoin
   + [x] bar.move
 - [ ] Switch:
-  + [ ] pors
+  + [x] pors
   + [ ] shift
   + [ ] viewas
 - [ ] Pointers:

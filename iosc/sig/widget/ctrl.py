@@ -58,17 +58,13 @@ class StatusSignalLabel(SignalLabel):
 class AnalogSignalLabel(SignalLabel):
     def __init__(self, ss: 'AnalogSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
         super().__init__(ss, parent)
-        # self.ss.bar.table.oscwin.signal_chged_shift.connect(self.slot_update_value)
-        # self.ss.bar.table.oscwin.signal_chged_pors.connect(self.slot_update_value)
-        # self.ss.bar.table.oscwin.signal_chged_func.connect(self.slot_update_value)
+        self.ss.bar.table.oscwin.signal_chged_shift.connect(self.slot_update_value)
+        self.ss.bar.table.oscwin.signal_chged_pors.connect(self.slot_update_value)
+        self.ss.bar.table.oscwin.signal_chged_func.connect(self.slot_update_value)
 
     @property
     def _value_str(self) -> str:
-        return self.ss.bar.table.oscwin.sig2str_i(
-            self.ss.signal,
-            self.ss.bar.table.oscwin.main_ptr_i,
-            self.ss.bar.table.oscwin.viewas
-        )
+        return self.ss.sig2str_i(self.ss.bar.table.oscwin.main_ptr_i)
 
 
 class BarCtrlWidget(QWidget):

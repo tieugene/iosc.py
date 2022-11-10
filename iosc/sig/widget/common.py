@@ -1,6 +1,8 @@
 """Signal wrappers, commmon things.
 TODO: StatusSignalSuit, AnalogSignalSuit.
 """
+import cmath
+import math
 # 1. std
 from enum import IntEnum
 from typing import Optional, Union
@@ -12,6 +14,7 @@ from QCustomPlot2 import QCPGraph, QCPScatterStyle, QCustomPlot, QCPRange
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
+from iosc.core.sigfunc import func_list
 from iosc.sig.widget.ctrl import BarCtrlWidget, StatusSignalLabel, AnalogSignalLabel
 from iosc.sig.widget.chart import BarPlotWidget
 from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
@@ -159,6 +162,40 @@ class AnalogSignalSuit(SignalSuit):
         if AnalogSignalPropertiesDialog(self).execute():
             self._set_style()
             self._graph.parentPlot().replot()
+
+    def sig2str(self, y: float) -> str:
+        """Return string repr of signal dependong on:
+         - signal value
+         - pors (global)
+         - orig/shifted (global, indirect)"""
+        pors_y = y * self.signal.get_mult(self._oscwin.show_sec)
+        uu = self.signal.uu_orig
+        if abs(pors_y) < 1:
+            pors_y *= 1000
+            uu = 'm' + uu
+        elif abs(pors_y) > 1000:
+            pors_y /= 1000
+            uu = 'k' + uu
+        return "%.3f %s" % (pors_y, uu)
+
+    def sig2str_i(self, i: int) -> str:  # FIXME: to AnaloSignalSuit
+        """Return string repr of signal dependong on:
+         - signal value
+         - in index i
+         - selected function[func_i]
+         - pors (global)
+         - orig/shifted (global, indirect)"""
+        func = func_list[self._oscwin.viewas]
+        v = func(self.signal.value, i, self._oscwin.osc.spp)
+        if isinstance(v, complex):  # hrm1
+            y = abs(v)
+        else:
+            y = v
+        y_str = self.sig2str(y)
+        if isinstance(v, complex):  # hrm1
+            return "%s / %.3f°" % (y_str, math.degrees(cmath.phase(v)))
+        else:
+            return y_str
 
 
 class SignalBar(QObject):

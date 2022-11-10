@@ -161,40 +161,6 @@ class ComtradeWidget(QWidget):
         """Recalc index in signal array int graph x-position (ms)"""
         return self.osc.x[i]
 
-    def sig2str(self, sig: mycomtrade.AnalogSignal, y: float) -> str:  # FIXME: to AnaloSignalSuit
-        """Return string repr of signal dependong on:
-         - signal value
-         - pors (global)
-         - orig/shifted (global, indirect)"""
-        pors_y = y * sig.get_mult(self.show_sec)
-        uu = sig.uu_orig
-        if abs(pors_y) < 1:
-            pors_y *= 1000
-            uu = 'm' + uu
-        elif abs(pors_y) > 1000:
-            pors_y /= 1000
-            uu = 'k' + uu
-        return "%.3f %s" % (pors_y, uu)
-
-    def sig2str_i(self, sig: mycomtrade.AnalogSignal, i: int, func_i: int) -> str:  # FIXME: to AnaloSignalSuit
-        """Return string repr of signal dependong on:
-         - signal value
-         - in index i
-         - selected function[func_i]
-         - pors (global)
-         - orig/shifted (global, indirect)"""
-        func = func_list[func_i]
-        v = func(sig.value, i, self.osc.spp)
-        if isinstance(v, complex):  # hrm1
-            y = abs(v)
-        else:
-            y = v
-        y_str = self.sig2str(sig, y)
-        if isinstance(v, complex):  # hrm1
-            return "%s / %.3f°" % (y_str, math.degrees(cmath.phase(v)))
-        else:
-            return y_str
-
     def __mk_widgets(self):
         self.menubar = QMenuBar()
         self.toolbar = QToolBar(self)
