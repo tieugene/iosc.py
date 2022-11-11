@@ -238,5 +238,5 @@ class BarCtrlWidget(QWidget):
         - Y-zoom buttons
         - Y-resize widget
         """
-        self.zbx.setEnabled(not self.bar.is_bool)
-        self.hline.setEnabled(not self.bar.is_bool)
+        self.zbx.setEnabled(not self.bar.is_bool())
+        self.hline.setEnabled(not self.bar.is_bool())

@@ -272,12 +272,11 @@ class SignalBar(QObject):
     def sig_count(self) -> int:
         return len(self.signals)
 
-    @property
-    def is_bool(self):
+    def is_bool(self, w_hidden: bool = False):
         """Whether bar contains status signals only"""
         retvalue = True
         for ss in self.signals:
-            if not ss.hidden:
+            if not ss.hidden or w_hidden:
                 retvalue &= ss.signal.is_bool
         return retvalue
 
@@ -291,7 +290,9 @@ class SignalBar(QObject):
         self.deleteLater()
 
     def zoom_dy(self, dy: int):
-        """Y-zoom button changed"""
+        """Y-zoom button changed.
+        :param dy: -1=decrease, 1=increase, 0=reset to 1
+        """
         if dy:
             if 1 <= self.zoom_y + dy <= 1000:
                 self.zoom_y += dy

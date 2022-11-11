@@ -203,8 +203,8 @@ class BarPlotWidget(QWidget):
         super().__init__()
         self.bar = bar
         self.ys = self.YScroller(self)
-        self.yzlabel = self.YZLabel(self)
         self.plot = BarPlotWidget.BarPlot(self)
+        self.yzlabel = self.YZLabel(self)  # WARN: after (=over) plot
         self.hline = HLine(self)
         layout = QGridLayout()
         layout.addWidget(self.plot, 0, 0)
@@ -225,4 +225,4 @@ class BarPlotWidget(QWidget):
         """Update some things depending on if bar is status-only:
         - Y-resize widget
         """
-        self.hline.setEnabled(not self.bar.is_bool)
+        self.hline.setEnabled(not self.bar.is_bool())
