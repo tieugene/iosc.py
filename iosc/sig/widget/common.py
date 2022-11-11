@@ -107,7 +107,7 @@ class StatusSignalSuit(SignalSuit):
 
     @property
     def _data_y(self) -> list:
-        return self.signal.value
+        return [v * 2/3 for v in self.signal.value]
 
     def _set_style(self):
         super()._set_style()
@@ -267,6 +267,7 @@ class SignalBar(QObject):
         ss.embed(self, len(self.signals))
         self.signals.append(ss)
         self.update_stealth()
+        self.gfx.plot.slot_rerange_y()
 
     def sig_move(self, i: int, other_bar: 'SignalBar'):
         ss = self.signals[i]
@@ -277,6 +278,7 @@ class SignalBar(QObject):
             for i, ss in enumerate(self.signals):
                 ss.num = i
             self.update_stealth()
+            self.gfx.plot.slot_rerange_y()
         else:
             self.suicide()
 

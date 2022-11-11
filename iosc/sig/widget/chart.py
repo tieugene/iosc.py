@@ -109,7 +109,8 @@ class BarPlotWidget(QWidget):
                 r = ss.range_y
                 mi = min(round(r.lower, 2), mi)
                 ma = max(round(r.upper, 2), ma)
-            return mi, ma
+            dm = (ma - mi) * 0.1
+            return mi - dm, ma + dm
 
         def __squeeze(self):
             ar = self.axisRect(0)  # QCPAxisRect
@@ -151,10 +152,9 @@ class BarPlotWidget(QWidget):
             """Refresh plot on YScroller move.
             FIXME: something bad 1st time
             """
-            ys: BarPlotWidget.YScroller = self.parent().ys
             y_range = self.__y_range
             y_width = y_range[1] - y_range[0]
-            ys_range = ys.range_norm
+            ys_range = self.parent().ys.range_norm
             self.yAxis.setRange(
                 y_range[0] + y_width * ys_range[0],
                 y_range[0] + y_width * ys_range[1]

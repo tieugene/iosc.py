@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QVBoxLayout, QMenu, QL
 # 3. local
 import iosc.const
 from iosc.sig.widget.hline import HLine
-from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog, SignalPropertiesDialog
 
 
 class SignalLabel(QListWidgetItem):
