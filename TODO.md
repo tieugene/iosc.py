@@ -50,6 +50,7 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [x] Plot: Signal normalize
   + [x] SignalLabelList: deselect
   + [x] Scatters (none/plus)
+  + [x] MainPtr move labels refresh
 
 ## Samples:
 
@@ -59,3 +60,4 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + Rate: 600 Hz
   + SPP: 12
   + Sample width, ms: 1.(6)
+  + Z-point: &numero;49

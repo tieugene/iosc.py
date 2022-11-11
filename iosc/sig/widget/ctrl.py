@@ -19,7 +19,7 @@ class SignalLabel(QListWidgetItem):
         self.ss = ss
         # self._set_style()
         self.slot_update_value()
-        # self.ss.bar.table.oscwin.signal_ptr_moved_main.connect(self.slot_update_value)
+        self.ss.bar.table.oscwin.signal_ptr_moved_main.connect(self.slot_update_value)
 
     @property
     def _value_str(self) -> str:
