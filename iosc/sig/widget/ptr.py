@@ -407,11 +407,6 @@ class MsrPtr(Ptr):
 
 
 class LvlPtr(QCPItemStraightLine):
-    @dataclass
-    class State:
-        uid: int
-        y: float
-
     class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
@@ -433,7 +428,7 @@ class LvlPtr(QCPItemStraightLine):
         # self.setPen(iosc.const.PEN_PTR_OMP)
         self.__set_color()
         self.y_reduced = y
-        self.__mult = max(max(max(self.__ss.signal.value), 0), abs(min(0, min(self.__ss.signal.value))))  # multiplier rediced<>real
+        self.__mult = max(max(self.__ss.signal.v_max, 0), abs(min(0, self.__ss.signal.v_min)))  # mult-r rediced<>real
         self.__slot_update_text()
         self.__oscwin.lvl_ptr_uids.add(self.__uid)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
@@ -528,10 +523,3 @@ class LvlPtr(QCPItemStraightLine):
     def clean(self):
         self.__oscwin.lvl_ptr_uids.remove(self.__uid)
         self.parentPlot().removeItem(self.__tip)
-
-    @property
-    def state(self) -> State:
-        return self.State(
-            uid=self.__uid,
-            y=self.y_reduced
-        )

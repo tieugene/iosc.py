@@ -2,6 +2,21 @@
 
 Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 
+## FIXME:
+
+- [ ] Plot: Signal normalize
+- [ ] SignalLabelList: deselect
+- [ ] Chk shift
+- [ ] HrmX incorrect
+- [ ] disable Y-zoom for status-only bars
+- [ ] disable Y-resize for status-only bars
+- [ ] Y-zoom unstable (w/ scroll)
+- [ ] Bar height (init, DnD)
+- [ ] X-resize: too slow
+- [ ] DnD: Restore MsrPtr/LvlPtr
+- [ ] Scatter
+
+## Done
 - [x] z-ptr (bottom)
 - [x] Signal: color, style
 - [x] Scale:
@@ -26,7 +41,7 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [x] pors
   + [x] shift (?)
   + [x] viewas
-- […] Pointers:
+- [x] Pointers:
   + [x] Common:
     + [x] Main
     + [x] OMP
@@ -34,15 +49,3 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [x] Analog:
     * [x] Msr
     * [x] Lvl
-- [ ] FIXME:
-  + [ ] Plot: Signal normalize
-  + [ ] SignalLabelList: deselect
-  + [ ] Chk shift
-  + [ ] HrmX incorrect
-  + [ ] disable Y-zoom for status-only bars
-  + [ ] disable Y-resize for status-only bars
-  + [ ] Y-zoom unstable (w/ scroll)
-  + [ ] Bar height (init, DnD)
-  + [ ] X-resize: too slow
-
-&hellip;

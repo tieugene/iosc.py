@@ -96,6 +96,14 @@ class AnalogSignal(Signal):
     def value(self) -> np.array:
         return self.__value_shifted if self._raw.x_shifted else self._value
 
+    @property
+    def v_min(self) -> float:
+        return min(self.value)
+
+    @property
+    def v_max(self) -> float:
+        return max(self.value)
+
     def get_mult(self, ps: bool) -> float:
         """
         Get multiplier

@@ -4,7 +4,6 @@ TODO: StatusSignalSuit, AnalogSignalSuit.
 import cmath
 import math
 # 1. std
-from enum import IntEnum
 from typing import Optional, Union
 # 2. 3rd
 from PyQt5.QtCore import QObject, pyqtSignal, QMargins, Qt

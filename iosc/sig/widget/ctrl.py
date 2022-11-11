@@ -2,7 +2,7 @@
 from typing import Union
 # 2. Std
 from PyQt5.QtCore import QMargins, Qt, QPoint, QRect, QMimeData
-from PyQt5.QtGui import QBrush, QColor, QMouseEvent, QPixmap, QFontMetrics, QPainter, QPen, QDrag
+from PyQt5.QtGui import QBrush, QMouseEvent, QPixmap, QFontMetrics, QPainter, QPen, QDrag
 from PyQt5.QtWidgets import QPushButton, QWidget, QLabel, QVBoxLayout, QMenu, QListWidget, QListWidgetItem, QFrame,\
     QGridLayout
 # 3. local
