@@ -139,6 +139,7 @@ class BarCtrlWidget(QWidget):
             drag.setPixmap(_mk_icon())
             drag.setMimeData(_mk_mime())
             drag.exec_(Qt.MoveAction, Qt.MoveAction)
+            self.clearSelection()
 
     class ZoomButtonBox(QWidget):
         class ZoomButton(QPushButton):

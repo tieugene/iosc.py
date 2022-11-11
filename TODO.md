@@ -4,7 +4,6 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 
 ## FIXME:
 
-- [ ] SignalLabelList: deselect
 - [ ] Chk shift
 - [ ] HrmX incorrect
 - [ ] disable Y-zoom for status-only bars
@@ -50,4 +49,4 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
     * [x] Lvl
 - [x] Fixes:
   - [x] Plot: Signal normalize
-  - [ ] 
+  - [x] SignalLabelList: deselect
