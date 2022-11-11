@@ -34,7 +34,7 @@ PENSTYLE_PTR_LVL = Qt.DashLine  # LVlPtr pen style
 RECT_PTR_HEIGHT = 20
 TICK_COUNT = 20
 Y_PAD = 0.1  # upper and lower Y-padding; 0.1 == 10%
-X_SCATTER_MARK = 20  # lowest px/sample to show samples as '+'
+X_SCATTER_MARK = 10  # lowest px/sample to show samples as '+'
 X_SCATTER_NUM = 50  # lowest px/sample to show samples as No
 X_CENTERED = True  # center view on x-scaling (glitches on True)
 # new 221108

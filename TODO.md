@@ -4,7 +4,7 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 
 ## FIXME:
 
-- [ ] Chk shift
+- […] Chk shift
 - [ ] HrmX incorrect
 - [ ] disable Y-zoom for status-only bars
 - [ ] disable Y-resize for status-only bars
@@ -12,7 +12,6 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 - [ ] Bar height (init, DnD)
 - [ ] X-resize: too slow
 - [ ] DnD: Restore MsrPtr/LvlPtr
-- [ ] Scatter
 
 ## Done
 - [x] z-ptr (bottom)
@@ -48,5 +47,15 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
     * [x] Msr
     * [x] Lvl
 - [x] Fixes:
-  - [x] Plot: Signal normalize
-  - [x] SignalLabelList: deselect
+  + [x] Plot: Signal normalize
+  + [x] SignalLabelList: deselect
+  + [x] Scatters (none/plus)
+
+## Samples:
+
+- `IMF3R-7783--13-03-11-15-19-07.cfg`:
+  + Samples: 120
+  + Freq: 50 Hz
+  + Rate: 600 Hz
+  + SPP: 12
+  + Sample width, ms: 1.(6)

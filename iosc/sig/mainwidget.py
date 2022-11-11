@@ -117,7 +117,7 @@ class ComtradeWidget(QWidget):
     # property
     def x_sample_width_px(self) -> int:
         """Current width of samples interval in px"""
-        return round(self.x_width_px() / self.osc.rate / 1000)
+        return round(self.x_width_px() / self.osc.raw.total_samples)
 
     @property
     def main_ptr_i(self) -> int:
