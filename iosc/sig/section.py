@@ -208,8 +208,9 @@ class SignalBarTable(QTableWidget):
 
     def resize_y_all(self, inc: bool):
         mult = 1.2 if inc else 1 / 1.2
-        for row in range(self.rowCount()):
-            self.setRowHeight(row, int(self.rowHeight(row) * mult))
+        for bar in self.bars:
+            if not bar.is_bool:
+                bar.height = round(bar.height * mult)
 
 
 class XScroller(QScrollBar):

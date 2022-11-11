@@ -197,6 +197,7 @@ class BarPlotWidget(QWidget):
     ys: YScroller
     yzlabel: YZLabel
     plot: BarPlot
+    hline: HLine
 
     def __init__(self, bar: 'SignalBar'):
         super().__init__()
@@ -204,10 +205,11 @@ class BarPlotWidget(QWidget):
         self.ys = self.YScroller(self)
         self.yzlabel = self.YZLabel(self)
         self.plot = BarPlotWidget.BarPlot(self)
+        self.hline = HLine(self)
         layout = QGridLayout()
         layout.addWidget(self.plot, 0, 0)
         layout.addWidget(self.ys, 0, 1)
-        layout.addWidget(HLine(self), 1, 0, 1, -1)
+        layout.addWidget(self.hline, 1, 0, 1, -1)
         self.setLayout(layout)
         self.layout().setContentsMargins(QMargins())
         self.layout().setSpacing(0)
@@ -218,3 +220,9 @@ class BarPlotWidget(QWidget):
 
     def sig_del(self, gr: QCPGraph):
         self.plot.removeGraph(gr)
+
+    def update_statusonly(self):
+        """Update some things depending on if bar is status-only:
+        - Y-resize widget
+        """
+        self.hline.setEnabled(not self.bar.is_bool)

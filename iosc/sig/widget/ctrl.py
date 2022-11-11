@@ -207,6 +207,7 @@ class BarCtrlWidget(QWidget):
     anc: Anchor
     lst: SignalLabelList
     zbx: ZoomButtonBox
+    hline: HLine
 
     def __init__(self, bar: 'SignalBar'):
         super().__init__()  # parent will be QWidget
@@ -214,13 +215,14 @@ class BarCtrlWidget(QWidget):
         self.anc = self.Anchor(self)
         self.lst = self.SignalLabelList(self)
         self.zbx = self.ZoomButtonBox(self)
+        self.hline = HLine(self)
         # layout
         layout = QGridLayout()
         layout.addWidget(self.anc, 0, 0)
         layout.addWidget(self.lst, 0, 1)
         layout.addWidget(self.zbx, 0, 2)
         layout.addWidget(self.VLine(self.bar.table.oscwin), 0, 3)
-        layout.addWidget(HLine(self), 1, 0, 1, -1)
+        layout.addWidget(self.hline, 1, 0, 1, -1)
         self.setLayout(layout)
         self.layout().setContentsMargins(QMargins())
         self.layout().setSpacing(0)
@@ -230,3 +232,11 @@ class BarCtrlWidget(QWidget):
 
     def sig_del(self, i: int):
         self.lst.takeItem(i)
+
+    def update_statusonly(self):
+        """Update some things depending on if bar is status-only:
+        - Y-zoom buttons
+        - Y-resize widget
+        """
+        self.zbx.setEnabled(not self.bar.is_bool)
+        self.hline.setEnabled(not self.bar.is_bool)

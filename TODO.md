@@ -4,12 +4,11 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 
 ## FIXME:
 
-- […] disable Y-zoom for status-only bars
-- [ ] disable Y-resize for status-only bars
+- […] Y-zoom indicator
+- [ ] DnD: Restore MsrPtr/LvlPtr
 - [ ] Y-zoom unstable (w/ scroll)
 - [ ] Bar height (init, DnD)
 - [ ] X-resize: too slow
-- [ ] DnD: Restore MsrPtr/LvlPtr
 
 ## Done
 - [x] z-ptr (bottom)
@@ -50,6 +49,7 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [x] Scatters (none/plus)
   + [x] MainPtr move labels refresh
   + [x] Chk shift (rerange)
+  + [x] Disable Y-scaling (zoom/resize[_all]) for status-only bars
 
 
 ## Samples:

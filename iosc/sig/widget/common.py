@@ -250,6 +250,37 @@ class SignalBar(QObject):
         self.table.setCellWidget(self.row, 1, self.gfx)
         self.table.oscwin.signal_unhide_all.connect(self.__slot_unhide_all)
 
+    @property
+    def hidden(self) -> bool:
+        return self.table.isRowHidden(self.row)
+
+    @hidden.setter
+    def hidden(self, h: bool):
+        if self.hidden != h:
+            self.table.setRowHidden(self.row, h)
+
+    @property
+    def height(self) -> int:
+        return self.table.rowHeight(self.row)
+
+    @height.setter
+    def height(self, h: int):
+        if self.height != h:
+            self.table.setRowHeight(self.row, h)
+
+    @property
+    def sig_count(self) -> int:
+        return len(self.signals)
+
+    @property
+    def is_bool(self):
+        """Whether bar contains status signals only"""
+        retvalue = True
+        for ss in self.signals:
+            if not ss.hidden:
+                retvalue &= ss.signal.is_bool
+        return retvalue
+
     def suicide(self):
         del self.table.bars[self.row]
         self.table.removeCellWidget(self.row, 0)
@@ -258,43 +289,6 @@ class SignalBar(QObject):
         self.ctrl.close()
         self.gfx.close()
         self.deleteLater()
-
-    @property
-    def sig_count(self) -> int:
-        return len(self.signals)
-
-    def sig_add(self, ss: Union[StatusSignalSuit, AnalogSignalSuit]):
-        ss.embed(self, len(self.signals))
-        self.signals.append(ss)
-        self.update_stealth()
-        self.gfx.plot.slot_rerange_y()
-
-    def sig_move(self, i: int, other_bar: 'SignalBar'):
-        ss = self.signals[i]
-        del self.signals[i]
-        ss.detach()
-        other_bar.sig_add(ss)
-        if self.signals:
-            for i, ss in enumerate(self.signals):
-                ss.num = i
-            self.update_stealth()
-            self.gfx.plot.slot_rerange_y()
-        else:
-            self.suicide()
-
-    def update_stealth(self):
-        """Update row visibility according to children hidden state"""
-        hide_me = True
-        for ss in self.signals:
-            hide_me &= ss.hidden
-        if hide_me != self.table.isRowHidden(self.row):
-            self.table.setRowHidden(self.row, hide_me)
-
-    def __slot_unhide_all(self):
-        for ss in self.signals:
-            ss.hidden = False
-        if self.table.isRowHidden(self.row):
-            self.table.setRowHidden(self.row, False)
 
     def zoom_dy(self, dy: int):
         """Y-zoom button changed"""
@@ -305,6 +299,43 @@ class SignalBar(QObject):
         elif self.zoom_y > 1:
             self.zoom_y = 1
             self.signal_zoom_y_changed.emit()
+
+    def sig_add(self, ss: Union[StatusSignalSuit, AnalogSignalSuit]):
+        ss.embed(self, len(self.signals))
+        self.signals.append(ss)
+        self.update_stealth()
+
+    def sig_move(self, i: int, other_bar: 'SignalBar'):
+        ss = self.signals[i]
+        del self.signals[i]
+        ss.detach()
+        other_bar.sig_add(ss)
+        if self.signals:
+            for i, ss in enumerate(self.signals):
+                ss.num = i
+            self.update_stealth()
+        else:
+            self.suicide()
+
+    def update_stealth(self):
+        """Update row visibility according to children hidden state"""
+        hide_me = True
+        for ss in self.signals:
+            hide_me &= ss.hidden
+        self.hidden = hide_me
+        if not hide_me:
+            self.__update_statusonly()
+            self.gfx.plot.slot_rerange_y()
+
+    def __slot_unhide_all(self):
+        for ss in self.signals:
+            ss.hidden = False
+
+    def __update_statusonly(self):
+        # if not self.isHidden():
+        self.ctrl.update_statusonly()
+        self.gfx.update_statusonly()
+        # TODO: update row height
 
 
 class OneBarPlot(QCustomPlot):
