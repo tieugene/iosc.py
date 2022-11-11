@@ -132,7 +132,7 @@ class AnalogSignalSuit(SignalSuit):
         self.__msr_ptr = set()
         self.__lvl_ptr = set()
         super().__init__(signal, oscwin)
-        self._oscwin.signal_chged_shift.connect(self.__slot_update_value)
+        self._oscwin.signal_chged_shift.connect(self.__slot_reload_data)
 
     @property
     def range_y(self) -> QCPRange:
@@ -198,10 +198,10 @@ class AnalogSignalSuit(SignalSuit):
         else:
             return y_str
 
-    def __slot_update_value(self):
-        self._label.slot_update_value()
+    def __slot_reload_data(self):
         self._set_data()
-        self.graph.parentPlot().replot()
+        self._label.slot_update_value()
+        self.graph.parentPlot().slot_rerange_y()
 
     def add_ptr_msr(self, uid: int, i: int):
         """Add new MsrPtr"""

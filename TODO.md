@@ -4,9 +4,7 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 
 ## FIXME:
 
-- […] Chk shift
-- [ ] HrmX incorrect
-- [ ] disable Y-zoom for status-only bars
+- […] disable Y-zoom for status-only bars
 - [ ] disable Y-resize for status-only bars
 - [ ] Y-zoom unstable (w/ scroll)
 - [ ] Bar height (init, DnD)
@@ -51,6 +49,8 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [x] SignalLabelList: deselect
   + [x] Scatters (none/plus)
   + [x] MainPtr move labels refresh
+  + [x] Chk shift (rerange)
+
 
 ## Samples:
 
