@@ -91,7 +91,9 @@ class BarPlotWidget(QWidget):
             self.__set_data()
             self._main_ptr = MainPtr(self.graph(0), self._oscwin)  # after graph()
             self._sc_ptr = SCPtr(self.graph(0), self._oscwin)
-            self._tmp_ptr = dict()
+            self._tmp_ptr = dict()  # FIXME: load existing
+            for uid in self._oscwin.tmp_ptr_i.keys():
+                self._slot_ptr_add_tmp(uid)
             self.ptr_selected = False
             # self.yAxis.setRange(*self.__y_range)  # not helps
             # self.slot_rerange_y()  # not helps

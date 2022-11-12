@@ -2,16 +2,11 @@
 
 Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 
-## FIXME:
-
-- […] DnD: TmpPtr not restored on signal unjoin
-- [ ] Y-zoom unstable (w/ scroll)
-- [ ] Y-zoom: reset for exact status-only bar
-- [ ] X-resize: too slow
-
-## TODO:
-- [ ] Bar height (init, hide, DnD)
-- [ ] File - Close
+- […] FIXME: Y-zoom unstable (w/ scroll)
+- [ ] FIXME: Y-zoom: reset for exact status-only bar
+- [ ] FIXME: X-resize: too slow
+- [ ] TODO: Bar height (init, hide, DnD)
+- [ ] TODO: File - Close
 
 ## Done
 - [x] z-ptr (bottom)
@@ -55,6 +50,7 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [x] Disable Y-scaling (zoom/resize[_all]) for status-only bars
   + [x] Y-zoom indicator
   + [x] DnD: Clean/Restore MsrPtr/LvlPtr
+  + [x] DnD: TmpPtr not restored on signal unjoin
 
 ## Samples:
 
