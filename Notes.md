@@ -84,3 +84,13 @@ Src:
     * [x] grid
 - [x] XScroller value change:
   + [x] TopBar/BarPlot: rerange_x
+
+## Samples:
+
+- `IMF3R-7783--13-03-11-15-19-07.cfg`:
+  + Samples: 120
+  + Freq: 50 Hz
+  + Rate: 600 Hz
+  + SPP: 12
+  + Sample width, ms: 1.(6)
+  + Z-point: &numero;49
