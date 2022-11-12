@@ -5,16 +5,20 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 ## FIXME:
 
 - […] DnD: Clean/Restore MsrPtr/LvlPtr:
-  + ?Store ptrs
-  + del ptrs
-  + detach
-  + embed
-  + create ptrs
+  + [x] Store ptrs
+  + [x] del ptrs (beacuse of QCP as item parent)
+  + [x] detach
+  + [x] embed
+  + [ ] create ptrs
+- [ ] TmpPtr not restored on signal unjoin
 - [ ] Y-zoom unstable (w/ scroll)
-- [ ] Bar height (init, hide, DnD)
 - [ ] Y-zoom: reset for exact status-only bar
 - [ ] X-resize: too slow
 - [ ] File - Close
+
+## TODO:
+- [ ] Bar height (init, hide, DnD)
+
 
 ## Done
 - [x] z-ptr (bottom)

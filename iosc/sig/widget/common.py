@@ -153,16 +153,35 @@ class AnalogSignalSuit(SignalSuit):
         pen = QPen(PEN_STYLE[self.line_style])
         pen.setColor(self.color)
         self.graph.setPen(pen)
-        for ptr in self.msr_ptr:
-            ptr.slot_set_color()
-        for ptr in self.lvl_ptr:
-            ptr.slot_set_color()
+        for v in self.msr_ptr.values():
+            if ptr := v[0]:
+                ptr.slot_set_color()
+        for v in self.lvl_ptr.values():
+            if ptr := v[0]:
+                ptr.slot_set_color()
 
     def do_sig_property(self):
         """Show/set signal properties"""
         if AnalogSignalPropertiesDialog(self).execute():
             self._set_style()
             self.graph.parentPlot().replot()
+
+    def __kill_ptr_msr(self, uid: int):
+        if ptr := self.msr_ptr[uid][0]:
+            ptr.suicide()
+            del ptr  # or ptr.deleteLater()
+
+    def __kill_ptr_lvl(self, uid: int):
+        if ptr := self.lvl_ptr[uid][0]:
+            ptr.suicide()
+            del ptr  # or ptr.deleteLater()
+
+    def detach(self):
+        for uid in self.msr_ptr.keys():
+            self.__kill_ptr_msr(uid)
+        for uid in self.lvl_ptr.keys():
+            self.__kill_ptr_lvl(uid)
+        super().detach()
 
     def sig2str(self, y: float) -> str:
         """Return string repr of signal dependong on:
@@ -206,16 +225,13 @@ class AnalogSignalSuit(SignalSuit):
     def add_ptr_msr(self, uid: int, i: int):
         """Add new MsrPtr.
         Call from ComtradeWidget."""
-        # self.msr_ptr.add(MsrPtr(self, self.oscwin, uid, i))  # TODO: embed itself
         self.msr_ptr[uid] = [None, i, self.oscwin.viewas]
         MsrPtr(self, uid)
 
     def del_ptr_msr(self, uid: int):  # TODO: detach itself at all
         """Del MsrPtr.
         Call from MsrPtr context menu"""
-        ptr = self.msr_ptr[uid][0]
-        ptr.suicide()
-        del ptr  # or ptr.deleteLater()
+        self.__kill_ptr_msr(uid)
         del self.msr_ptr[uid]
         self.graph.parentPlot().replot()
 
@@ -229,9 +245,7 @@ class AnalogSignalSuit(SignalSuit):
     def del_ptr_lvl(self, uid: int):
         """Del LvlPtr.
         Call from LvlPtr context menu."""
-        ptr = self.lvl_ptr[uid][0]
-        ptr.suicide()
-        del ptr  # or ptr.deleteLater()
+        self.__kill_ptr_lvl(uid)
         del self.lvl_ptr[uid]
         self.graph.parentPlot().replot()
 
