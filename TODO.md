@@ -4,21 +4,14 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 
 ## FIXME:
 
-- […] DnD: Clean/Restore MsrPtr/LvlPtr:
-  + [x] Store ptrs
-  + [x] del ptrs (beacuse of QCP as item parent)
-  + [x] detach
-  + [x] embed
-  + [ ] create ptrs
-- [ ] TmpPtr not restored on signal unjoin
+- […] DnD: TmpPtr not restored on signal unjoin
 - [ ] Y-zoom unstable (w/ scroll)
 - [ ] Y-zoom: reset for exact status-only bar
 - [ ] X-resize: too slow
-- [ ] File - Close
 
 ## TODO:
 - [ ] Bar height (init, hide, DnD)
-
+- [ ] File - Close
 
 ## Done
 - [x] z-ptr (bottom)
@@ -61,6 +54,7 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [x] Chk shift (rerange)
   + [x] Disable Y-scaling (zoom/resize[_all]) for status-only bars
   + [x] Y-zoom indicator
+  + [x] DnD: Clean/Restore MsrPtr/LvlPtr
 
 ## Samples:
 
@@ -71,13 +65,3 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + SPP: 12
   + Sample width, ms: 1.(6)
   + Z-point: &numero;49
-
-## Local Ptrs:
-
-- MsrPtr:
-  + uid (!)
-  + i (position)
-  + func_i
-- LvlPtr:
-  + uid (!)
-  + y

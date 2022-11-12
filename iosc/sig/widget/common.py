@@ -166,6 +166,13 @@ class AnalogSignalSuit(SignalSuit):
             self._set_style()
             self.graph.parentPlot().replot()
 
+    def embed(self, bar: 'SignalBar', num: int):
+        super().embed(bar, num)
+        for uid in self.msr_ptr.keys():
+            MsrPtr(self, uid)
+        for uid in self.lvl_ptr.keys():
+            LvlPtr(self, uid)
+
     def __kill_ptr_msr(self, uid: int):
         if ptr := self.msr_ptr[uid][0]:
             ptr.suicide()
