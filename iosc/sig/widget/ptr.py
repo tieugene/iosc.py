@@ -1,13 +1,12 @@
-from dataclasses import dataclass
+# 1. std
 from typing import Optional
-
+# 2. 3rd
 from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal
 from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor, QPen
 from PyQt5.QtWidgets import QWidget, QMenu
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect, QCPGraph
-# 4. local
+# 3. local
 import iosc.const
-from iosc.core import mycomtrade
 from iosc.sig.widget.dialog import get_new_omp_width, MsrPtrDialog, LvlPtrDialog
 
 
@@ -424,17 +423,18 @@ class LvlPtr(QCPItemStraightLine):
     __mult: float  # multiplier reduced<>real
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, ss: 'AnalogSignalSuit', root: 'ComtradeWidget', uid: int, y: float):
+    def __init__(self, ss: 'AnalogSignalSuit', uid: int):
         super().__init__(ss.graph.parentPlot())
         self.__ss = ss
-        self.__oscwin = root
         self.__uid = uid
+        self.__oscwin = ss.oscwin
         self.__tip = self._Tip(self.parentPlot())
         # self.setPen(iosc.const.PEN_PTR_OMP)
         self.__set_color()
-        self.y_reduced = y
+        self.y_reduced = self.__ss.lvl_ptr[self.__uid][1]
         self.__mult = max(max(self.__ss.signal.v_max, 0), abs(min(0, self.__ss.signal.v_min)))  # mult-r rediced<>real
         self.__slot_update_text()
+        self.__ss.lvl_ptr[self.__uid][0] = self
         self.__oscwin.lvl_ptr_uids.add(self.__uid)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
         # self.__oscwin.signal_chged_shift.connect(self.__slot_update_text)  # behavior undefined
@@ -511,7 +511,7 @@ class LvlPtr(QCPItemStraightLine):
         if chosen_action == action_edit:
             self.__edit_self()
         elif chosen_action == action_del:
-            self.__ss.del_ptr_lvl(self)
+            self.__ss.del_ptr_lvl(self.__uid)
 
     def __edit_self(self):
         # pors all values
@@ -526,6 +526,8 @@ class LvlPtr(QCPItemStraightLine):
             self.__slot_update_text()
 
     def suicide(self):
-        self.__oscwin.lvl_ptr_uids.remove(self.__uid)
+        self.__ss.lvl_ptr[self.__uid][1] = self.y_reduced
         self.parentPlot().removeItem(self.__tip)
         self.parentPlot().removeItem(self)
+        self.__oscwin.lvl_ptr_uids.remove(self.__uid)
+        self.__ss.lvl_ptr[self.__uid][0] = None

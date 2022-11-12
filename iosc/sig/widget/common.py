@@ -222,13 +222,17 @@ class AnalogSignalSuit(SignalSuit):
     def add_ptr_lvl(self, uid: int, y: Optional[float] = None):
         """Add new LvlPtr to the ss.
         Call from ComtradeWidget."""
-        self.lvl_ptr.add(LvlPtr(self, self.oscwin, uid, y or self.range_y.upper))
+        # self.lvl_ptr.add(LvlPtr(self, self.oscwin, uid, y or self.range_y.upper))
+        self.lvl_ptr[uid] = [None, y or self.range_y.upper]
+        LvlPtr(self, uid)
 
-    def del_ptr_lvl(self, ptr: LvlPtr):
+    def del_ptr_lvl(self, uid: int):
         """Del LvlPtr.
         Call from LvlPtr context menu."""
+        ptr = self.lvl_ptr[uid][0]
         ptr.suicide()
-        self.lvl_ptr.remove(ptr)
+        del ptr  # or ptr.deleteLater()
+        del self.lvl_ptr[uid]
         self.graph.parentPlot().replot()
 
 
