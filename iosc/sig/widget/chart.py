@@ -215,10 +215,10 @@ class BarPlotWidget(QWidget):
         self.layout().setSpacing(0)
         self.ys.valueChanged.connect(self.plot.slot_rerange_y)
 
-    def sig_add(self) -> QCPGraph:
+    def graph_add(self) -> QCPGraph:
         return self.plot.addGraph()
 
-    def sig_del(self, gr: QCPGraph):
+    def graph_del(self, gr: QCPGraph):
         self.plot.removeGraph(gr)
 
     def update_statusonly(self):

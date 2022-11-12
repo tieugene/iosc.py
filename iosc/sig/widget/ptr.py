@@ -317,7 +317,6 @@ class MsrPtr(Ptr):
     FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
     __ss: 'AnalogSignalSuit'
     __uid: int  # uniq id
-    __signal: mycomtrade.AnalogSignal
     __func_i: int  # value mode (function) number (in sigfunc.func_list[])
     __tip: _Tip
     signal_ptr_del_msr = pyqtSignal(int)
@@ -400,10 +399,11 @@ class MsrPtr(Ptr):
             self.__func_i = form.f_func.currentIndex()
             self.__move_tip()
 
-    def clean(self):
+    def suicide(self):
         """Clean self before deleting"""
         self._oscwin.msr_ptr_uids.remove(self.__uid)
         self.parentPlot().removeItem(self.__tip)
+        self.parentPlot().removeItem(self)
 
 
 class LvlPtr(QCPItemStraightLine):
@@ -520,6 +520,7 @@ class LvlPtr(QCPItemStraightLine):
             self.y_real = form.f_val.value() / self.__ss.signal.get_mult(self.__oscwin.show_sec)
             self.__slot_update_text()
 
-    def clean(self):
+    def suicide(self):
         self.__oscwin.lvl_ptr_uids.remove(self.__uid)
         self.parentPlot().removeItem(self.__tip)
+        self.parentPlot().removeItem(self)

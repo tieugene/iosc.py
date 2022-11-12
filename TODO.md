@@ -4,11 +4,17 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 
 ## FIXME:
 
-- […] DnD: Restore MsrPtr/LvlPtr
-- [ ] Bar height (init, DnD)
+- […] DnD: Clean/Restore MsrPtr/LvlPtr:
+  + ?Store ptrs
+  + del ptrs
+  + detach
+  + embed
+  + create ptrs
 - [ ] Y-zoom unstable (w/ scroll)
+- [ ] Bar height (init, hide, DnD)
 - [ ] Y-zoom: reset for exact status-only bar
 - [ ] X-resize: too slow
+- [ ] File - Close
 
 ## Done
 - [x] z-ptr (bottom)
@@ -33,7 +39,7 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [x] bar.move
 - [x] Switch:
   + [x] pors
-  + [x] shift (?)
+  + [x] shift
   + [x] viewas
 - [x] Pointers:
   + [x] Common:
@@ -61,3 +67,13 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + SPP: 12
   + Sample width, ms: 1.(6)
   + Z-point: &numero;49
+
+## Local Ptrs:
+
+- MsrPtr:
+  + uid (!)
+  + i (position)
+  + func_i
+- LvlPtr:
+  + uid (!)
+  + y

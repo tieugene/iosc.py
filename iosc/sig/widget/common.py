@@ -71,7 +71,7 @@ class SignalSuit(QObject):
         self.bar = bar
         self.num = num
         self._label = self.bar.ctrl.sig_add(self)
-        self.graph = self.bar.gfx.sig_add()
+        self.graph = self.bar.gfx.graph_add()
         self._set_data()
         self._set_style()
         self.graph.parentPlot().slot_refresh()
@@ -79,7 +79,7 @@ class SignalSuit(QObject):
 
     def detach(self):
         self.bar.ctrl.sig_del(self.num)
-        self.bar.gfx.sig_del(self.graph)
+        self.bar.gfx.graph_del(self.graph)
         self.bar.gfx.plot.replot()
         self.num = None
         self.bar = None
@@ -205,23 +205,24 @@ class AnalogSignalSuit(SignalSuit):
 
     def add_ptr_msr(self, uid: int, i: int):
         """Add new MsrPtr"""
-        self.__msr_ptr.add(MsrPtr(self, self._oscwin, uid, i))
+        self.__msr_ptr.add(MsrPtr(self, self._oscwin, uid, i))  # TODO: embed itself
 
-    def del_ptr_msr(self, ptr: MsrPtr):
-        """Del MsrPtr"""
-        ptr.clean()
+    def del_ptr_msr(self, ptr: MsrPtr):  # TODO: detach itself at all
+        """Del MsrPtr.
+        Call from MsrPtr context menu"""
+        ptr.suicide()
         self.__msr_ptr.remove(ptr)
-        self.graph.parentPlot().removeItem(ptr)
         self.graph.parentPlot().replot()
 
     def add_ptr_lvl(self, uid: int, y: Optional[float] = None):
         self.__lvl_ptr.add(LvlPtr(self, self._oscwin, uid, y or self.range_y.upper))
 
     def del_ptr_lvl(self, ptr: LvlPtr):
-        """Del LvlPtr"""
-        ptr.clean()
+        """Del LvlPtr.
+        Call from LvlPtr context menu
+        """
+        ptr.suicide()
         self.__lvl_ptr.remove(ptr)
-        self.graph.parentPlot().removeItem(ptr)
         self.graph.parentPlot().replot()
 
 

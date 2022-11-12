@@ -38,7 +38,7 @@ X_SCATTER_MARK = 10  # lowest px/sample to show samples as '+'
 X_SCATTER_NUM = 50  # lowest px/sample to show samples as No
 X_CENTERED = True  # center view on x-scaling (glitches on True)
 # new 221108
-LINE_CELL_SIZE = 3
+LINE_CELL_SIZE = 1
 Y_ZOOM_MAX = 100  # Max Y-zoom factor
 Y_SCROLL_HEIGHT = Y_ZOOM_MAX * 100  # Constant YScroller width, units
 X_PX_WIDTH_uS = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000)  # Px widhts, μs
