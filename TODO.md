@@ -2,13 +2,16 @@
 
 Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 
-- […] FIXME: Y-zoom unstable (w/ scroll)
-- [ ] FIXME: Y-zoom: reset for exact status-only bar
-- [ ] FIXME: X-resize: too slow
-- [ ] TODO: Bar height (init, hide, DnD)
-- [ ] TODO: File - Close
+- [ ] Y-zoom unstable (w/ scroll)
+- [ ] Y-zoom: reset for exact status-only bar
+- [ ] X-resize: too slow
+- [ ] _Bar height (init, hide, DnD)_
 
-## Done
+## Todo:
+- [ ] `MyComtrade.__sanity_check()`
+- [ ] `ComtradeWidget.__do_file_close()`
+
+## Done:
 - [x] z-ptr (bottom)
 - [x] Signal: color, style
 - [x] Scale:
