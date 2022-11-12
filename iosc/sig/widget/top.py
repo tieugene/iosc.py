@@ -1,22 +1,22 @@
-from PyQt5.QtCore import QMargins, Qt
-from PyQt5.QtWidgets import QWidget
-from QCustomPlot2 import QCustomPlot, QCPItemText, QCPAxis
-
+# 2. 3rd
+from PyQt5.QtCore import QMargins, Qt, pyqtSignal
+from PyQt5.QtGui import QResizeEvent
+from QCustomPlot2 import QCPItemText, QCPAxis, QCPAxisTickerFixed
+# 3. local
 import iosc.const
-from iosc.core import mycomtrade
-from iosc.sig.widget.common import CleanScrollArea
+from iosc.sig.widget.common import OneBarPlot
 
 
 class PtrLabel(QCPItemText):
-    _root: QWidget
+    _oscwin: 'ComtradeWidget'
 
-    def __init__(self, parent: QCustomPlot, root: QWidget):
+    def __init__(self, parent: 'TimeAxisPlot'):
         super().__init__(parent)
-        self._root = root
+        self._oscwin = parent.parent().parent()
         self.setTextAlignment(Qt.AlignCenter)
         self.setPadding(QMargins(2, 2, 2, 2))
         self.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
-        self.setFont(iosc.const.FONT_X)
+        self.setFont(iosc.const.FONT_TOPBAR)
         self.setColor(iosc.const.COLOR_LABEL_X)  # text
 
     def _mk_text(self, x: float):
@@ -26,18 +26,18 @@ class PtrLabel(QCPItemText):
         """Repaint/__move main ptr value label (%.2f)
         :fixme: draw in front of ticks
         """
-        x = self._root.i2x(i)
+        x = self._oscwin.i2x(i)
         self.setText(self._mk_text(x))
         self.position.setCoords(x, 0)
         self.parentPlot().replot()
 
 
 class PtrLabelMain(PtrLabel):
-    def __init__(self, parent: QCustomPlot, root: QWidget):
-        super().__init__(parent, root)
+    def __init__(self, parent: 'TimeAxisPlot'):
+        super().__init__(parent)
         self.setBrush(iosc.const.BRUSH_PTR_MAIN)  # rect
-        self.__slot_ptr_move(root.main_ptr_i)
-        self._root.signal_ptr_moved_main.connect(self.__slot_ptr_move)
+        self.__slot_ptr_move(self._oscwin.main_ptr_i)
+        self._oscwin.signal_ptr_moved_main.connect(self.__slot_ptr_move)
 
     def __slot_ptr_move(self, i: int):
         self._update_ptr(i)
@@ -47,13 +47,13 @@ class PtrLabelTmp(PtrLabel):
     _uid: int
     _name: str
 
-    def __init__(self, parent: QCustomPlot, root: QWidget, uid: int):
-        super().__init__(parent, root)
+    def __init__(self, parent: 'TimeAxisPlot', uid: int):
+        super().__init__(parent)
         self._uid = uid
         self._name = ''
         self.setBrush(iosc.const.BRUSH_PTR_TMP)  # rect
-        self.__slot_ptr_move(uid, root.tmp_ptr_i[uid])
-        self._root.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
+        self.__slot_ptr_move(uid, self._oscwin.tmp_ptr_i[uid])
+        self._oscwin.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
 
     def _mk_text(self, x: float):
         return "%s: %.2f" % (self._name if self._name else "T%d" % self._uid, x)
@@ -71,40 +71,33 @@ class PtrLabelTmp(PtrLabel):
             self._update_ptr(i)
 
 
-class TimeAxisWidget(QCustomPlot):
-    __root: QWidget
+class TimeAxisPlot(OneBarPlot):
     __main_ptr_label: PtrLabelMain
     _tmp_ptr: dict[int, PtrLabelTmp]
+    signal_width_changed = pyqtSignal(int)
 
-    def __init__(self, osc: mycomtrade.MyComtrade, root: QWidget, parent: CleanScrollArea):
+    def __init__(self, parent: 'TopBar'):
         super().__init__(parent)
-        self.__root = root
-        self.__main_ptr_label = PtrLabelMain(self, root)
+        self.__main_ptr_label = PtrLabelMain(self)
         self._tmp_ptr = dict()
-        t0 = osc.raw.trigger_time
-        self.xAxis.setRange((osc.raw.time[0] - t0) * 1000, (osc.raw.time[-1] - t0) * 1000)
-        self.__squeeze()
-        self.__set_style()
-        self.__root.signal_xscale.connect(self._slot_chg_width)
-        self.__root.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
-        self.__root.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
-
-    def __squeeze(self):
-        ar = self.axisRect(0)
-        ar.setMinimumMargins(QMargins())  # the best
-        ar.removeAxis(self.yAxis)
-        ar.removeAxis(self.yAxis2)
-        ar.removeAxis(self.xAxis2)
-        # -xaxis.setTickLabels(False)
-        # -xaxis.setTicks(False)
+        # self.xAxis.setTickLabels(True)  # default
+        # self.xAxis.setTicks(True)  # default
         self.xAxis.setTickLabelSide(QCPAxis.lsInside)
-        self.xAxis.grid().setVisible(False)
-        self.xAxis.setPadding(0)
-        self.setFixedHeight(iosc.const.XSCALE_HEIGHT)
+        self.xAxis.setTicker(QCPAxisTickerFixed())
+        self.xAxis.setTickLabelFont(iosc.const.FONT_TOPBAR)
+        self.__slot_retick()
+        self._oscwin.signal_x_zoom.connect(self.__slot_retick)
+        self._oscwin.signal_ptr_add_tmp.connect(self._slot_ptr_add_tmp)
+        self._oscwin.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
 
-    def __set_style(self):
-        # TODO: setLabelFormat("%d")
-        self.xAxis.setTickLabelFont(iosc.const.FONT_X)
+    def resizeEvent(self, event: QResizeEvent):
+        super().resizeEvent(event)
+        if event.oldSize().width() != (w := event.size().width()):
+            self.signal_width_changed.emit(w)
+
+    def __slot_retick(self):
+        self.xAxis.ticker().setTickStep(iosc.const.X_PX_WIDTH_uS[self._oscwin.x_zoom] / 10)
+        self.replot()
 
     def get_tmp_ptr_name(self, uid: id):
         return self._tmp_ptr[uid].name
@@ -112,14 +105,9 @@ class TimeAxisWidget(QCustomPlot):
     def set_tmp_ptr_name(self, uid: id, name: str):
         self._tmp_ptr[uid].name = name
 
-    def _slot_chg_width(self, _: int, w_new: int):  # dafault: 1117
-        self.setFixedWidth(w_new)
-        self.xAxis.ticker().setTickCount(iosc.const.TICK_COUNT * self.__root.xzoom)
-        self.replot()
-
     def _slot_ptr_add_tmp(self, uid: int):
         """Add new TmpPtr"""
-        self._tmp_ptr[uid] = PtrLabelTmp(self, self.__root, uid)
+        self._tmp_ptr[uid] = PtrLabelTmp(self, uid)
 
     def _slot_ptr_del_tmp(self, uid: int):
         """Del TmpPtr"""

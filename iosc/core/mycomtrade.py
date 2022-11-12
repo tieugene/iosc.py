@@ -1,27 +1,14 @@
 """Comtrade wrapper
-:todo: exception
-:todo: use Ccomtrade.cfg.analog_signal[]
+:todo: exceptions
 """
 # 1. std
+from typing import Union
 import pathlib
-from enum import IntEnum
-from typing import Optional
 # 2. 3rd
 import chardet
 import numpy as np
-
 # 3. local
 from .comtrade import Comtrade, Channel
-# x. const
-# orange (255, 127, 39), green (0, 128, 0), red (198, 0, 0)
-DEFAULT_SIG_COLOR = {'a': 16744231, 'b': 32768, 'c': 12976128}
-UNKNOWN_SIG_COLOR = 0  # 'black'
-
-
-class ELineType(IntEnum):
-    Solid = 0
-    Dot = 1
-    DashDot = 2
 
 
 class Wrapper:
@@ -40,12 +27,10 @@ class Signal(Wrapper):
     _is_bool: bool
     _raw2: Channel
     _value: np.array  # list of values
-    _color: Optional[int]
 
     def __init__(self, raw: Comtrade, raw2: Channel):
         super().__init__(raw)
         self._raw2 = raw2
-        self._color = None
 
     @property
     def raw2(self) -> Channel:
@@ -56,35 +41,12 @@ class Signal(Wrapper):
         return self._raw2.name
 
     @property
-    def time(self) -> np.array:
+    def time(self) -> np.array:  # FIXME: rm
         return self._raw.time
 
     @property
     def is_bool(self) -> bool:
         return self._is_bool
-
-    @property
-    def i(self) -> int:
-        """Channel no in list, 0-based"""
-        return self._raw2.n - 1
-
-    @property
-    def color(self) -> int:
-        if self._color is None:  # set default color on demand
-            return DEFAULT_SIG_COLOR.get(self._raw2.ph.lower(), UNKNOWN_SIG_COLOR)
-        return self._color
-
-    @color.setter
-    def color(self, v: int):
-        self._color = v
-
-    @property
-    def rgb(self) -> tuple[int, int, int]:
-        return (self.color >> 16) & 255, (self.color >> 8) & 255, self.color & 255
-
-    @rgb.setter
-    def rgb(self, v: tuple[int, int, int]):
-        self._color = v[0] << 16 | v[1] << 8 | v[2]
 
 
 class StatusSignal(Signal):
@@ -101,7 +63,6 @@ class StatusSignal(Signal):
 
 class AnalogSignal(Signal):
     _is_bool = False
-    __line_style: ELineType
     __mult: tuple[float, float]
     __uu_orig: str  # original uu (w/o m/k)
     __value_shifted: np.array
@@ -110,7 +71,6 @@ class AnalogSignal(Signal):
         super().__init__(raw, raw.cfg.analog_channels[i])
         self._value = self._raw.analog[i]
         self.__value_shifted = self._value - np.average(self._value)
-        self.__line_style = ELineType.Solid
         # pri/sec multipliers
         if self._raw2.uu.startswith('m'):
             uu = 0.001
@@ -137,12 +97,12 @@ class AnalogSignal(Signal):
         return self.__value_shifted if self._raw.x_shifted else self._value
 
     @property
-    def line_type(self) -> ELineType:
-        return self.__line_style
+    def v_min(self) -> float:
+        return min(self.value)
 
-    @line_type.setter
-    def line_type(self, v: ELineType):
-        self.__line_style = v
+    @property
+    def v_max(self) -> float:
+        return max(self.value)
 
     def get_mult(self, ps: bool) -> float:
         """
@@ -157,82 +117,67 @@ class AnalogSignal(Signal):
         return self.__uu_orig
 
 
-class SignalList(Wrapper):
-    _count: int
-    _list: list[Signal]
-
-    def __init__(self, raw: Comtrade):
-        super().__init__(raw)
-        self._count = 0
-        self._list = []
-
-    def __len__(self) -> int:
-        return self._count
-
-    def __getitem__(self, i: int) -> Signal:
-        return self._list[i]
-
-
-class StatusSignalList(SignalList):
-    def __init__(self, raw: Comtrade):
-        super().__init__(raw)
-        self._count = self._raw.status_count
-        for i in range(self._count):
-            self._list.append(StatusSignal(self._raw, i))
-
-
-class AnalogSignalList(SignalList):
-    def __init__(self, raw: Comtrade):
-        super().__init__(raw)
-        self._count = self._raw.analog_count
-        for i in range(self._count):
-            self._list.append(AnalogSignal(self._raw, i))
-
-
-class RateList(Wrapper):
-    def __init__(self, raw: Comtrade):
-        super().__init__(raw)
-
-    def __len__(self) -> int:
-        return self._raw.cfg.nrates
-
-    def __getitem__(self, i: int) -> tuple[float, int]:  # hz, points
-        return self._raw.cfg.sample_rates[i]
-
-
 class MyComtrade(Wrapper):
-    __analog: AnalogSignalList
-    __status: StatusSignalList
-    __rate: RateList  # TODO: __rate: SampleRateList
+    path: pathlib.Path
+    x: np.array
+    y: list[Union[StatusSignal, AnalogSignal]]
 
     def __init__(self, path: pathlib.Path):
         super().__init__(Comtrade())
-        # loading
+        self.path = path
+        self.__load()
+        self.__sanity_check()
+        self.__setup()
+        self._raw.x_shifted = False  # FIXME: hacking xtra-var injection
+
+    def __load(self):
         encoding = None
-        if path.suffix.lower() == '.cfg':
-            with open(path, 'rb') as infile:
+        if self.path.suffix.lower() == '.cfg':
+            with open(self.path, 'rb') as infile:
                 if (enc := chardet.detect(infile.read())['encoding']) not in {'ascii', 'utf-8'}:
                     encoding = enc
         if encoding:
-            self._raw.load(str(path), encoding=encoding)
+            self._raw.load(str(self.path), encoding=encoding)
         else:
-            self._raw.load(str(path))
-        self._raw.x_shifted = False  # FIXME: hacking xtra-var injection
-        self.__analog = AnalogSignalList(self._raw)
-        self.__status = StatusSignalList(self._raw)
-        self.__rate = RateList(self._raw)
+            self._raw.load(str(self.path))
+
+    def __sanity_check(self):
+        """
+        - rates (1, raw.total_samples, ?frequency)
+        - null values
+        :return:
+        """
+        ...
+
+    def __setup(self):
+        """Translate loaded data into app usable"""
+        self.x = [1000 * (t - self._raw.trigger_time) for t in self._raw.time]
+        self.y = list()
+        for i in range(self._raw.analog_count):
+            self.y.append(AnalogSignal(self._raw, i))
+        for i in range(self._raw.status_count):
+            self.y.append(StatusSignal(self._raw, i))
 
     @property
-    def analog(self) -> AnalogSignalList:
-        return self.__analog
+    def x_min(self) -> float:
+        return self.x[0]
 
     @property
-    def status(self) -> StatusSignalList:
-        return self.__status
+    def x_max(self) -> float:
+        return self.x[-1]
 
     @property
-    def rate(self) -> RateList:
-        return self.__rate
+    def x_size(self) -> float:
+        return self.x[-1] - self.x[0]
+
+    @property
+    def rate(self) -> float:
+        return self._raw.cfg.sample_rates[0][0]
+
+    @property
+    def spp(self) -> int:
+        """Samples per period"""
+        return int(round(self.rate / self._raw.frequency))
 
     @property
     def shifted(self):

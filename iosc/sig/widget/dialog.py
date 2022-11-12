@@ -1,18 +1,16 @@
 """Edit dialogs"""
-from typing import Optional
-
+# 1. std
+from typing import Optional, Union
 # 2. 3rd
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QDoubleValidator, QBrush
+from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QPushButton, QColorDialog, QLineEdit, \
     QInputDialog, QWidget, QDoubleSpinBox, QListWidget, QVBoxLayout, QListWidgetItem
 # 3. local
-from iosc.core import mycomtrade
-from iosc.core.mycomtrade import AnalogSignalList, StatusSignalList
 
 
 class SignalPropertiesDialog(QDialog):
-    _signal: mycomtrade.Signal
+    _ss: Union['StatusSignalSuit', 'AnalogSignalSuit']
     _color: QColor
     f_name: QLineEdit
     f_type: QLineEdit
@@ -20,13 +18,13 @@ class SignalPropertiesDialog(QDialog):
     button_box: QDialogButtonBox
     _layout: QFormLayout
 
-    def __init__(self, signal: mycomtrade.Signal, parent=None):
+    def __init__(self, ss: Union['StatusSignalSuit', 'AnalogSignalSuit'], parent=None):
         super().__init__(parent)
         # 1. store args
-        self._signal = signal
-        self._color = QColor.fromRgb(*signal.rgb)
+        self._ss = ss
+        self._color = ss.color
         # 2. set widgets
-        self.f_name = QLineEdit(signal.sid, self)
+        self.f_name = QLineEdit(ss.signal.sid, self)
         self.f_name.setReadOnly(True)
         self.f_type = QLineEdit()
         self.f_type.setReadOnly(True)
@@ -53,10 +51,22 @@ class SignalPropertiesDialog(QDialog):
         self.f_color.setStyleSheet("color : %s" % self._color.name(QColor.HexRgb))
 
     def __set_color(self):
-        color = QColorDialog.getColor(Qt.green, self)
+        color = QColorDialog.getColor(self._color, self)
         if color.isValid():
             self._color = color
             self.__set_color_button()
+
+
+class StatusSignalPropertiesDialog(SignalPropertiesDialog):
+    def __init__(self, ss: 'StatusSignalSuit', parent=None):
+        super().__init__(ss, parent)
+        self.f_type.setText("Status")
+
+    def execute(self) -> bool:
+        if self.exec_():
+            self._ss.color = self._color
+            return True
+        return False
 
 
 class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
@@ -66,20 +76,20 @@ class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
     f_pors: QLineEdit
     f_style: QComboBox
 
-    def __init__(self, signal: mycomtrade.AnalogSignal, parent=None):
-        super().__init__(signal, parent)
+    def __init__(self, ss: 'AnalogSignalSuit', parent=None):
+        super().__init__(ss, parent)
         self.f_type.setText("Analog")
-        self.f_uu = QLineEdit(self._signal.raw2.uu)
+        self.f_uu = QLineEdit(self._ss.signal.raw2.uu)
         self.f_uu.setReadOnly(True)
-        self.f_pmult = QLineEdit(str(self._signal.raw2.primary))
+        self.f_pmult = QLineEdit(str(self._ss.signal.raw2.primary))
         self.f_pmult.setReadOnly(True)
-        self.f_smult = QLineEdit(str(self._signal.raw2.secondary))
+        self.f_smult = QLineEdit(str(self._ss.signal.raw2.secondary))
         self.f_smult.setReadOnly(True)
-        self.f_pors = QLineEdit(self._signal.raw2.pors)
+        self.f_pors = QLineEdit(self._ss.signal.raw2.pors)
         self.f_pors.setReadOnly(True)
         self.f_style = QComboBox(self)
         self.f_style.addItems(("Solid", "Dotted", "Dash-dotted"))
-        self.f_style.setCurrentIndex(self._signal.line_type.value)
+        self.f_style.setCurrentIndex(self._ss.line_style)
         # add them
         self._layout.insertRow(2, "Unit", self.f_uu)
         self._layout.insertRow(3, "Primary: x", self.f_pmult)
@@ -89,20 +99,8 @@ class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
 
     def execute(self) -> bool:
         if self.exec_():
-            self._signal.line_type = mycomtrade.ELineType(self.f_style.currentIndex())
-            self._signal.rgb = (self._color.red(), self._color.green(), self._color.blue())
-            return True
-        return False
-
-
-class StatusSignalPropertiesDialog(SignalPropertiesDialog):
-    def __init__(self, signal: mycomtrade.StatusSignal, parent=None):
-        super().__init__(signal, parent)
-        self.f_type.setText("Status")
-
-    def execute(self) -> bool:
-        if self.exec_():
-            self._signal.rgb = (self._color.red(), self._color.green(), self._color.blue())
+            self._ss.line_style = self.f_style.currentIndex()
+            self._ss.color = self._color
             return True
         return False
 
@@ -157,7 +155,7 @@ class SelectSignalsDialog(QDialog):
     buttons_select: QDialogButtonBox
     button_box: QDialogButtonBox
 
-    def __init__(self, a_list: AnalogSignalList, parent=None):
+    def __init__(self, ass_list: list['AnalogSignalSuit'], parent=None):
         super().__init__(parent)
         self.setWindowTitle("Select signals")
         # 1. set widgets
@@ -169,12 +167,11 @@ class SelectSignalsDialog(QDialog):
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.f_signals = QListWidget()
         self.f_signals.setSelectionMode(self.f_signals.MultiSelection)
-        for sig in a_list:
-            item = QListWidgetItem(sig.sid)
+        for ss in ass_list:
+            item = QListWidgetItem(ss.signal.sid, self.f_signals)
             item.setFlags(item.flags() & (~Qt.ItemIsUserCheckable))
             item.setCheckState(Qt.Unchecked)
-            item.setForeground(QColor(*sig.rgb))
-            self.f_signals.addItem(item)
+            item.setForeground(ss.color)
         # 3. set layout
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(self.buttons_select)

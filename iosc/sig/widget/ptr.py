@@ -1,13 +1,12 @@
-from dataclasses import dataclass
+# 1. std
 from typing import Optional
-
-from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal, QObject
+# 2. 3rd
+from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal
 from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor, QPen
 from PyQt5.QtWidgets import QWidget, QMenu
 from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect, QCPGraph
-# 4. local
+# 3. local
 import iosc.const
-from iosc.core import mycomtrade
 from iosc.sig.widget.dialog import get_new_omp_width, MsrPtrDialog, LvlPtrDialog
 
 
@@ -30,13 +29,13 @@ class VLine(QCPItemStraightLine):
 
 class Ptr(QCPItemTracer):
     __cursor: QCursor
-    _root: QWidget
+    _oscwin: 'ComtradeWidget'
     signal_ptr_moved = pyqtSignal(int)
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, graph: QCPGraph, root: QWidget):
+    def __init__(self, graph: QCPGraph, root: 'ComtradeWidget'):
         super().__init__(graph.parentPlot())
-        self._root = root
+        self._oscwin = root
         self.setGraph(graph)
         self.position.setAxes(graph.parentPlot().xAxis, None)
 
@@ -76,15 +75,15 @@ class Ptr(QCPItemTracer):
     @property
     def i(self) -> int:
         """Index of value in current self position"""
-        return self._root.x2i(self.x)
+        return self._oscwin.x2i(self.x)
 
     def _switch_cursor(self, selected: bool):
         if selected:
-            self.__cursor = self._root.cursor()
+            self.__cursor = self._oscwin.cursor()
             cur = iosc.const.CURSOR_PTR
         else:
             cur = self.__cursor
-        self._root.setCursor(cur)
+        self._oscwin.setCursor(cur)
 
     def _mouse2ms(self, event: QMouseEvent) -> float:
         """Get mouse position as ms"""
@@ -102,17 +101,17 @@ class SCPtr(Ptr):
         self.__pr_ptr = VLine(graph.parentPlot())
         self.__pr_ptr.setPen(iosc.const.PEN_PTR_OMP)
         self.__set_limits()
-        self.__slot_ptr_move(self._root.sc_ptr_i, False)
+        self.__slot_ptr_move(self._oscwin.sc_ptr_i, False)
         self.selectionChanged.connect(self.__selection_chg)
-        self.signal_ptr_moved.connect(self._root.slot_ptr_moved_sc)
-        self._root.signal_ptr_moved_sc.connect(self.__slot_ptr_move)
+        self.signal_ptr_moved.connect(self._oscwin.slot_ptr_moved_sc)
+        self._oscwin.signal_ptr_moved_sc.connect(self.__slot_ptr_move)
 
     def __set_limits(self):
         """Set limits for moves"""
-        i_z = self._root.x2i(0.0)
+        i_z = self._oscwin.x2i(0.0)
         self.__x_limit = (
-            self._root.i2x(i_z + 1),
-            self._root.i2x(i_z + self._root.omp_width * self._root.tpp - 1)
+            self._oscwin.i2x(i_z + 1),
+            self._oscwin.i2x(i_z + self._oscwin.omp_width * self._oscwin.osc.spp - 1)
         )
 
     def __selection_chg(self, selection: bool):
@@ -121,8 +120,8 @@ class SCPtr(Ptr):
 
     def __slot_ptr_move(self, i: int, replot: bool = True):
         if not self.selected():  # check is not myself
-            self.setGraphKey(self._root.i2x(i))
-        self.__pr_ptr.move2x(self._root.i2x(i - self._root.omp_width * self._root.tpp))
+            self.setGraphKey(self._oscwin.i2x(i))
+        self.__pr_ptr.move2x(self._oscwin.i2x(i - self._oscwin.omp_width * self._oscwin.osc.spp))
         if replot:
             self.parentPlot().replot()
 
@@ -148,8 +147,8 @@ class SCPtr(Ptr):
 
     def mouseDoubleClickEvent(self, event: QMouseEvent, _):
         event.accept()
-        if new_omp_width := get_new_omp_width(self._root, self._root.omp_width):
-            self._root.omp_width = new_omp_width
+        if new_omp_width := get_new_omp_width(self._oscwin, self._oscwin.omp_width):
+            self._oscwin.omp_width = new_omp_width
 
 
 class _TipBase(QCPItemText):
@@ -238,16 +237,17 @@ class _PowerPtr(Ptr):
 
 
 class MainPtr(_PowerPtr):
-    def __init__(self, graph: QCPGraph, root: QWidget):
+    def __init__(self, graph: QCPGraph, root: 'ComtradeWidget'):
         super().__init__(graph, root)
         self.setPen(iosc.const.PEN_PTR_MAIN)
-        self.slot_ptr_move(self._root.main_ptr_i, False)
-        self.signal_ptr_moved.connect(self._root.slot_ptr_moved_main)
-        self._root.signal_ptr_moved_main.connect(self.slot_ptr_move)
+        self.slot_ptr_move(self._oscwin.main_ptr_i, False)
+        # print(self.oscwin.main_ptr_i)
+        self.signal_ptr_moved.connect(self._oscwin.slot_ptr_moved_main)
+        self._oscwin.signal_ptr_moved_main.connect(self.slot_ptr_move)
 
     def slot_ptr_move(self, i: int, replot: bool = True):
         if not self.selected():  # check is not myself
-            self.setGraphKey(self._root.i2x(i))
+            self.setGraphKey(self._oscwin.i2x(i))
             if replot:
                 self.parentPlot().replot()
 
@@ -271,16 +271,16 @@ class TmpPtr(_PowerPtr):
         super().__init__(graph, root)
         self._uid = uid
         self.setPen(iosc.const.PEN_PTR_TMP)
-        self.__slot_ptr_move(uid, self._root.tmp_ptr_i[uid], False)
-        self.signal_ptr_moved_tmp.connect(self._root.slot_ptr_moved_tmp)
-        # self.signal_ptr_del_tmp.connect(self._root.slot_ptr_del_tmp)
-        self.signal_ptr_edit_tmp.connect(self._root.slot_ptr_edit_tmp)
-        self._root.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
+        self.__slot_ptr_move(uid, self._oscwin.tmp_ptr_i[uid], False)
+        self.signal_ptr_moved_tmp.connect(self._oscwin.slot_ptr_moved_tmp)
+        # self.signal_ptr_del_tmp.connect(self.oscwin.slot_ptr_del_tmp)
+        self.signal_ptr_edit_tmp.connect(self._oscwin.slot_ptr_edit_tmp)
+        self._oscwin.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
     def __slot_ptr_move(self, uid: int, i: int, replot: bool = True):
         if not self.selected() and uid == self._uid:  # check is not myself and myself
-            self.setGraphKey(self._root.i2x(i))
+            self.setGraphKey(self._oscwin.i2x(i))
             if replot:
                 self.parentPlot().replot()
 
@@ -302,16 +302,11 @@ class TmpPtr(_PowerPtr):
         if chosen_action == action_edit:
             self.signal_ptr_edit_tmp.emit(self._uid)
         elif chosen_action == action_del:
-            self._root.slot_ptr_del_tmp(self._uid)
+            self._oscwin.slot_ptr_del_tmp(self._uid)
             # self.signal_ptr_del_tmp.emit(self.__uid)
 
 
 class MsrPtr(Ptr):
-    @dataclass
-    class State:
-        uid: int
-        i: int
-
     class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
@@ -319,28 +314,27 @@ class MsrPtr(Ptr):
             self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
 
     FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
-    __sigraph: QObject
+    __ss: 'AnalogSignalSuit'
     __uid: int  # uniq id
-    __signal: mycomtrade.AnalogSignal
     __func_i: int  # value mode (function) number (in sigfunc.func_list[])
     __tip: _Tip
     signal_ptr_del_msr = pyqtSignal(int)
 
-    def __init__(self, sigraph: QObject, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, i: int):
-        super().__init__(sigraph.graph, root)
-        self.__sigraph = sigraph
+    def __init__(self, ss: 'AnalogSignalSuit', uid: int):
+        super().__init__(ss.graph, ss.oscwin)
+        self.__ss = ss
         self.__uid = uid
-        self.__signal = signal
-        self.__func_i = root.viewas
-        self.__tip = self._Tip(self.graph().parentPlot())
-        self.setGraphKey(root.i2x(i))
+        self.__func_i = self.__ss.msr_ptr[uid][2]
+        self.__tip = self._Tip(ss.graph.parentPlot())
+        self.setGraphKey(self._oscwin.i2x(self.__ss.msr_ptr[uid][1]))
         self.updatePosition()
         self.__set_color()
         self.__move_tip()
-        self._root.msr_ptr_uids.add(uid)
+        self.__ss.msr_ptr[uid][0] = self  # embed self into parent ss
+        self._oscwin.msr_ptr_uids.add(uid)
         self.selectionChanged.connect(self.__slot_selection_chg)
-        self._root.signal_chged_shift.connect(self.__slot_update_text)
-        self._root.signal_chged_pors.connect(self.__slot_update_text)
+        self._oscwin.signal_chged_shift.connect(self.__slot_update_text)
+        self._oscwin.signal_chged_pors.connect(self.__slot_update_text)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
 
     @property
@@ -349,7 +343,7 @@ class MsrPtr(Ptr):
 
     def __set_color(self):
         pen = QPen(iosc.const.PENSTYLE_PTR_MSR)
-        color = QColor.fromRgb(*self.__signal.rgb)
+        color = self.__ss.color
         pen.setColor(color)
         self.setPen(pen)
         self.__tip.setBrush(QBrush(color))  # rect
@@ -363,8 +357,8 @@ class MsrPtr(Ptr):
         self.parentPlot().replot()  # update selection decoration
 
     def __slot_update_text(self):
-        v = self._root.sig2str_i(self.__signal, self.i, self.__func_i)  # was self.position.value()
-        m = self.FUNC_ABBR[self.__func_i]
+        v = self.__ss.sig2str_i(self.i)  # was self.position.value()
+        m = self.FUNC_ABBR[self._oscwin.viewas]
         self.__tip.setText("M%d: %s (%s)" % (self.__uid, v, m))
         self.parentPlot().replot()
 
@@ -390,64 +384,61 @@ class MsrPtr(Ptr):
         if chosen_action == action_edit:
             self.__edit_self()
         elif chosen_action == action_del:
-            self.__sigraph.del_ptr_msr(self)
+            self.__ss.del_ptr_msr(self.__uid)
 
     def __edit_self(self):
-        form = MsrPtrDialog((self.x, self._root.x_min, self._root.x_max, self._root.x_step, self.__func_i))
+        form = MsrPtrDialog((
+            self.x,
+            self._oscwin.osc.x_min,
+            self._oscwin.osc.x_max, 1000 / self._oscwin.osc.rate,
+            self.__func_i
+        ))
         if form.exec_():  # TODO: optimize
             self.setGraphKey(form.f_val.value())
             self.updatePosition()
             self.__func_i = form.f_func.currentIndex()
             self.__move_tip()
 
-    def clean(self):
+    def suicide(self):
         """Clean self before deleting"""
-        self._root.msr_ptr_uids.remove(self.__uid)
+        # flush self data
+        self.__ss.msr_ptr[self.__uid][2] = self.__func_i
+        self.__ss.msr_ptr[self.__uid][1] = self.i
         self.parentPlot().removeItem(self.__tip)
-
-    @property
-    def state(self) -> State:
-        return self.State(
-            uid=self.__uid,
-            i=self.i
-        )
+        self.parentPlot().removeItem(self)
+        self._oscwin.msr_ptr_uids.remove(self.__uid)
+        self.__ss.msr_ptr[self.__uid][0] = None
 
 
 class LvlPtr(QCPItemStraightLine):
-    @dataclass
-    class State:
-        uid: int
-        y: float
-
     class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
             self.setColor(Qt.white)  # text
 
-    __sigraph: QObject
-    __root: QWidget
-    __signal: mycomtrade.AnalogSignal
+    __ss: 'AnalogSignalSuit'
+    __oscwin: 'ComtradeWidget'
     __uid: int  # uniq id
     __tip: _Tip
     __mult: float  # multiplier reduced<>real
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, sigraph: QObject, root: QWidget, signal: mycomtrade.AnalogSignal, uid: int, y: float):
-        super().__init__(sigraph.graph.parentPlot())
-        self.__sigraph = sigraph
-        self.__root = root
-        self.__signal = signal
+    def __init__(self, ss: 'AnalogSignalSuit', uid: int):
+        super().__init__(ss.graph.parentPlot())
+        self.__ss = ss
         self.__uid = uid
+        self.__oscwin = ss.oscwin
         self.__tip = self._Tip(self.parentPlot())
         # self.setPen(iosc.const.PEN_PTR_OMP)
         self.__set_color()
-        self.y_reduced = y
-        self.__mult = max(max(max(signal.value), 0), abs(min(0, min(signal.value))))  # multiplier rediced<>real
+        self.y_reduced = self.__ss.lvl_ptr[self.__uid][1]
+        self.__mult = max(max(self.__ss.signal.v_max, 0), abs(min(0, self.__ss.signal.v_min)))  # mult-r rediced<>real
         self.__slot_update_text()
-        self.__root.lvl_ptr_uids.add(self.__uid)
+        self.__ss.lvl_ptr[self.__uid][0] = self
+        self.__oscwin.lvl_ptr_uids.add(self.__uid)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
-        # self.__root.signal_chged_shift.connect(self.__slot_update_text)  # behavior undefined
-        self.__root.signal_chged_pors.connect(self.__slot_update_text)
+        # self.__oscwin.signal_chged_shift.connect(self.__slot_update_text)  # behavior undefined
+        self.__oscwin.signal_chged_pors.connect(self.__slot_update_text)
 
     @property
     def uid(self) -> int:
@@ -463,8 +454,8 @@ class LvlPtr(QCPItemStraightLine):
         :param y:
         :note: for  QCPItemLine: s/point1/start/, s/point2/end/
         """
-        self.point1.setCoords(self.__root.x_min, y)
-        self.point2.setCoords(self.__root.x_max, y)
+        self.point1.setCoords(self.__oscwin.osc.x_min, y)
+        self.point2.setCoords(self.__oscwin.osc.x_max, y)
         self.__tip.position.setCoords(0, self.y_reduced)  # FIXME: x = ?
         self.__tip.setPositionAlignment(Qt.AlignLeft | (Qt.AlignTop if self.y_reduced > 0 else Qt.AlignBottom))
 
@@ -478,7 +469,7 @@ class LvlPtr(QCPItemStraightLine):
 
     def __set_color(self):
         pen = QPen(iosc.const.PENSTYLE_PTR_LVL)
-        color = QColor.fromRgb(*self.__signal.rgb)
+        color = self.__ss.color
         pen.setColor(color)
         self.setPen(pen)
         self.__tip.setBrush(QBrush(color))  # rect
@@ -493,10 +484,10 @@ class LvlPtr(QCPItemStraightLine):
         :param y: Value to redice
         :return: porsed y
         """
-        return y * self.__signal.get_mult(self.__root.show_sec)
+        return y * self.__ss.signal.get_mult(self.__oscwin.show_sec)
 
     def __slot_update_text(self):
-        self.__tip.setText("L%d: %s" % (self.__uid, self.__root.sig2str(self.__signal, self.y_real)))
+        self.__tip.setText("L%d: %s" % (self.__uid, self.__ss.sig2str(self.y_real)))
         self.parentPlot().replot()  # TODO: don't to this on total repaint
 
     def mousePressEvent(self, event: QMouseEvent, _):  # rmb click start
@@ -520,27 +511,23 @@ class LvlPtr(QCPItemStraightLine):
         if chosen_action == action_edit:
             self.__edit_self()
         elif chosen_action == action_del:
-            self.__sigraph.del_ptr_lvl(self)
+            self.__ss.del_ptr_lvl(self.__uid)
 
     def __edit_self(self):
         # pors all values
         form = LvlPtrDialog((
             self.__y_pors(self.y_real),
-            self.__y_pors(min(self.__signal.value)),
-            self.__y_pors(max(self.__signal.value))
+            self.__y_pors(min(self.__ss.signal.value)),
+            self.__y_pors(max(self.__ss.signal.value))
         ))
         if form.exec_():
             # unpors back
-            self.y_real = form.f_val.value() / self.__signal.get_mult(self.__root.show_sec)
+            self.y_real = form.f_val.value() / self.__ss.signal.get_mult(self.__oscwin.show_sec)
             self.__slot_update_text()
 
-    def clean(self):
-        self.__root.lvl_ptr_uids.remove(self.__uid)
+    def suicide(self):
+        self.__ss.lvl_ptr[self.__uid][1] = self.y_reduced
         self.parentPlot().removeItem(self.__tip)
-
-    @property
-    def state(self) -> State:
-        return self.State(
-            uid=self.__uid,
-            y=self.y_reduced
-        )
+        self.parentPlot().removeItem(self)
+        self.__oscwin.lvl_ptr_uids.remove(self.__uid)
+        self.__ss.lvl_ptr[self.__uid][0] = None
