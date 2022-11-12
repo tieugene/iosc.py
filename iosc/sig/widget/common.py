@@ -23,7 +23,7 @@ PEN_STYLE = (Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)
 
 
 class SignalSuit(QObject):
-    _oscwin: 'ComtradeWidget'
+    oscwin: 'ComtradeWidget'
     signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]
     bar: Optional['SignalBar']
     num: Optional[int]  # order number in bar
@@ -34,7 +34,7 @@ class SignalSuit(QObject):
 
     def __init__(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal], oscwin: 'ComtradeWidget'):
         super().__init__()
-        self._oscwin = oscwin
+        self.oscwin = oscwin
         self.signal = signal
         self.bar = None
         self.num = None  # signal order number in bar
@@ -88,7 +88,7 @@ class SignalSuit(QObject):
         """Update scatter style on x-zoom change"""
         if self.graph:
             now = self.graph.scatterStyle().shape() != QCPScatterStyle.ssNone
-            need = self._oscwin.x_sample_width_px() >= iosc.const.X_SCATTER_MARK
+            need = self.oscwin.x_sample_width_px() >= iosc.const.X_SCATTER_MARK
             if now != need:
                 self.graph.setScatterStyle(QCPScatterStyle(
                     QCPScatterStyle.ssPlus if need else QCPScatterStyle.ssNone
@@ -124,15 +124,15 @@ class StatusSignalSuit(SignalSuit):
 
 class AnalogSignalSuit(SignalSuit):
     line_style: int
-    __msr_ptr: set
-    __lvl_ptr: set
+    msr_ptr: dict[int: list[Optional[MsrPtr], int, int]]  # uid: [obj, i, func_i]
+    lvl_ptr: dict[int: list[Optional[LvlPtr], float]]  # uid: [obj, y]
 
     def __init__(self, signal: mycomtrade.AnalogSignal, oscwin: 'ComtradeWidget'):
         self.line_style = 0
-        self.__msr_ptr = set()
-        self.__lvl_ptr = set()
+        self.msr_ptr = dict()
+        self.lvl_ptr = dict()
         super().__init__(signal, oscwin)
-        self._oscwin.signal_chged_shift.connect(self.__slot_reload_data)
+        self.oscwin.signal_chged_shift.connect(self.__slot_reload_data)
 
     @property
     def range_y(self) -> QCPRange:
@@ -153,9 +153,9 @@ class AnalogSignalSuit(SignalSuit):
         pen = QPen(PEN_STYLE[self.line_style])
         pen.setColor(self.color)
         self.graph.setPen(pen)
-        for ptr in self.__msr_ptr:
+        for ptr in self.msr_ptr:
             ptr.slot_set_color()
-        for ptr in self.__lvl_ptr:
+        for ptr in self.lvl_ptr:
             ptr.slot_set_color()
 
     def do_sig_property(self):
@@ -169,7 +169,7 @@ class AnalogSignalSuit(SignalSuit):
          - signal value
          - pors (global)
          - orig/shifted (global, indirect)"""
-        pors_y = y * self.signal.get_mult(self._oscwin.show_sec)
+        pors_y = y * self.signal.get_mult(self.oscwin.show_sec)
         uu = self.signal.uu_orig
         if abs(pors_y) < 1:
             pors_y *= 1000
@@ -186,8 +186,8 @@ class AnalogSignalSuit(SignalSuit):
          - selected function[func_i]
          - pors (global)
          - orig/shifted (global, indirect)"""
-        func = func_list[self._oscwin.viewas]
-        v = func(self.signal.value, i, self._oscwin.osc.spp)
+        func = func_list[self.oscwin.viewas]
+        v = func(self.signal.value, i, self.oscwin.osc.spp)
         if isinstance(v, complex):  # hrm1
             y = abs(v)
         else:
@@ -204,25 +204,31 @@ class AnalogSignalSuit(SignalSuit):
         self.graph.parentPlot().slot_rerange_y()
 
     def add_ptr_msr(self, uid: int, i: int):
-        """Add new MsrPtr"""
-        self.__msr_ptr.add(MsrPtr(self, self._oscwin, uid, i))  # TODO: embed itself
+        """Add new MsrPtr.
+        Call from ComtradeWidget."""
+        # self.msr_ptr.add(MsrPtr(self, self.oscwin, uid, i))  # TODO: embed itself
+        self.msr_ptr[uid] = [None, i, self.oscwin.viewas]
+        MsrPtr(self, uid)
 
-    def del_ptr_msr(self, ptr: MsrPtr):  # TODO: detach itself at all
+    def del_ptr_msr(self, uid: int):  # TODO: detach itself at all
         """Del MsrPtr.
         Call from MsrPtr context menu"""
+        ptr = self.msr_ptr[uid][0]
         ptr.suicide()
-        self.__msr_ptr.remove(ptr)
+        del ptr  # or ptr.deleteLater()
+        del self.msr_ptr[uid]
         self.graph.parentPlot().replot()
 
     def add_ptr_lvl(self, uid: int, y: Optional[float] = None):
-        self.__lvl_ptr.add(LvlPtr(self, self._oscwin, uid, y or self.range_y.upper))
+        """Add new LvlPtr to the ss.
+        Call from ComtradeWidget."""
+        self.lvl_ptr.add(LvlPtr(self, self.oscwin, uid, y or self.range_y.upper))
 
     def del_ptr_lvl(self, ptr: LvlPtr):
         """Del LvlPtr.
-        Call from LvlPtr context menu
-        """
+        Call from LvlPtr context menu."""
         ptr.suicide()
-        self.__lvl_ptr.remove(ptr)
+        self.lvl_ptr.remove(ptr)
         self.graph.parentPlot().replot()
 
 
@@ -355,7 +361,7 @@ class OneBarPlot(QCustomPlot):
         # self.xAxis.setTicks(True)  # default
         self.xAxis.setPadding(0)
         self.setFixedHeight(24)
-        # self.xAxis.setRange(self._oscwin.osc.x_min, self._oscwin.osc.x_max)
+        # self.xAxis.setRange(self.oscwin.osc.x_min, self.oscwin.osc.x_max)
 
     @property
     def _oscwin(self) -> 'ComtradeWidget':

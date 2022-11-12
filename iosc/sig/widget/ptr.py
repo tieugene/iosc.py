@@ -242,7 +242,7 @@ class MainPtr(_PowerPtr):
         super().__init__(graph, root)
         self.setPen(iosc.const.PEN_PTR_MAIN)
         self.slot_ptr_move(self._oscwin.main_ptr_i, False)
-        # print(self._oscwin.main_ptr_i)
+        # print(self.oscwin.main_ptr_i)
         self.signal_ptr_moved.connect(self._oscwin.slot_ptr_moved_main)
         self._oscwin.signal_ptr_moved_main.connect(self.slot_ptr_move)
 
@@ -274,7 +274,7 @@ class TmpPtr(_PowerPtr):
         self.setPen(iosc.const.PEN_PTR_TMP)
         self.__slot_ptr_move(uid, self._oscwin.tmp_ptr_i[uid], False)
         self.signal_ptr_moved_tmp.connect(self._oscwin.slot_ptr_moved_tmp)
-        # self.signal_ptr_del_tmp.connect(self._oscwin.slot_ptr_del_tmp)
+        # self.signal_ptr_del_tmp.connect(self.oscwin.slot_ptr_del_tmp)
         self.signal_ptr_edit_tmp.connect(self._oscwin.slot_ptr_edit_tmp)
         self._oscwin.signal_ptr_moved_tmp.connect(self.__slot_ptr_move)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
@@ -321,16 +321,17 @@ class MsrPtr(Ptr):
     __tip: _Tip
     signal_ptr_del_msr = pyqtSignal(int)
 
-    def __init__(self, ss: 'AnalogSignalSuit', root: 'ComtradeWidget', uid: int, i: int):
-        super().__init__(ss.graph, root)
+    def __init__(self, ss: 'AnalogSignalSuit', uid: int):
+        super().__init__(ss.graph, ss.oscwin)
         self.__ss = ss
         self.__uid = uid
-        self.__func_i = root.viewas
+        self.__func_i = self.__ss.msr_ptr[uid][2]
         self.__tip = self._Tip(ss.graph.parentPlot())
-        self.setGraphKey(self._oscwin.i2x(i))
+        self.setGraphKey(self._oscwin.i2x(self.__ss.msr_ptr[uid][1]))
         self.updatePosition()
         self.__set_color()
         self.__move_tip()
+        self.__ss.msr_ptr[uid][0] = self  # embed self into parent ss
         self._oscwin.msr_ptr_uids.add(uid)
         self.selectionChanged.connect(self.__slot_selection_chg)
         self._oscwin.signal_chged_shift.connect(self.__slot_update_text)
@@ -384,7 +385,7 @@ class MsrPtr(Ptr):
         if chosen_action == action_edit:
             self.__edit_self()
         elif chosen_action == action_del:
-            self.__ss.del_ptr_msr(self)
+            self.__ss.del_ptr_msr(self.__uid)
 
     def __edit_self(self):
         form = MsrPtrDialog((
@@ -401,9 +402,13 @@ class MsrPtr(Ptr):
 
     def suicide(self):
         """Clean self before deleting"""
-        self._oscwin.msr_ptr_uids.remove(self.__uid)
+        # flush self data
+        self.__ss.msr_ptr[self.__uid][2] = self.__func_i
+        self.__ss.msr_ptr[self.__uid][1] = self.i
         self.parentPlot().removeItem(self.__tip)
         self.parentPlot().removeItem(self)
+        self._oscwin.msr_ptr_uids.remove(self.__uid)
+        self.__ss.msr_ptr[self.__uid][0] = None
 
 
 class LvlPtr(QCPItemStraightLine):
