@@ -392,8 +392,8 @@ class ComtradeWidget(QWidget):
                 self.status_table.bar_insert().sig_add(StatusSignalSuit(sig, self))  # FIXME: default height
 
     def __do_file_close(self):  # FIXME: not closes tab
-        # self.parent().removeTab(self.__index)
-        self.close()
+        # self.close()  # close widget but not tab itself
+        self.parent().parent().removeTab(self.parent().indexOf(self))  # QStackedWidget.ComtradeTabWidget
 
     def __do_file_info(self):
         def tr(name: str, value: Any):

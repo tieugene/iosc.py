@@ -4,12 +4,11 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 
 - [ ] Y-zoom unstable (w/ scroll)
 - [ ] Y-zoom: reset for exact status-only bar
-- [ ] X-resize: too slow
 - [ ] _Bar height (init, hide, DnD)_
+- [ ] X-resize: too slow
 
 ## Todo:
 - [ ] `MyComtrade.__sanity_check()`
-- [ ] `ComtradeWidget.__do_file_close()`
 
 ## Done:
 - [x] z-ptr (bottom)
@@ -54,6 +53,7 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [x] Y-zoom indicator
   + [x] DnD: Clean/Restore MsrPtr/LvlPtr
   + [x] DnD: TmpPtr not restored on signal unjoin
+- [x] `ComtradeWidget.__do_file_close()`
 
 ## Samples:
 
