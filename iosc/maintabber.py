@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QGuiApplication
 from PyQt5.QtWidgets import QTabWidget, QMainWindow, QMessageBox
 
-from core.mycomtrade import MyComtrade
+from core.mycomtrade import MyComtrade, SanityChkError
 from sig.mainwidget import ComtradeWidget
 
 
@@ -28,6 +28,8 @@ class ComtradeTabWidget(QTabWidget):
             rec = MyComtrade(path)
         except struct.error as e:
             QMessageBox.critical(self, "Loading error", str(e))
+        except SanityChkError as e:
+            QMessageBox.critical(self, "Sanity check error", str(e))
         else:
             index = self.addTab(ComtradeWidget(rec, self), path.name)  # table width == 940 (CLI) | 100 (Open)
             self.setCurrentIndex(index)
