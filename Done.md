@@ -111,3 +111,5 @@ Behavior:
   + [x] DnD: Clean/Restore MsrPtr/LvlPtr
   + [x] DnD: TmpPtr not restored on signal unjoin
 - [x] `ComtradeWidget.__do_file_close()`
+- [x] #182: Y-zoom unstable
+- [x] #183: Y-zoom: reset for exact status-only bar

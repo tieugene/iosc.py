@@ -347,6 +347,8 @@ class SignalBar(QObject):
         if self.signals:
             for i, ss in enumerate(self.signals):
                 ss.num = i
+            if self.is_bool(True):
+                self.zoom_dy(0)  # reset y-zoom for status-only bar
             self.update_stealth()
         else:
             self.suicide()
