@@ -107,7 +107,7 @@ class StatusSignalSuit(SignalSuit):
 
     @property
     def _data_y(self) -> list:
-        return [v * 2/3 for v in self.signal.value]
+        return [v * 2 / 3 for v in self.signal.value]
 
     def _set_style(self):
         super()._set_style()
@@ -304,13 +304,14 @@ class SignalBar(QObject):
     def sig_count(self) -> int:
         return len(self.signals)
 
-    def is_bool(self, w_hidden: bool = False):
+    def is_bool(self, w_hidden: bool = False) -> Optional[bool]:
         """Whether bar contains status signals only"""
-        retvalue = True
-        for ss in self.signals:
-            if not ss.hidden or w_hidden:
-                retvalue &= ss.signal.is_bool
-        return retvalue
+        if self.signals:
+            retvalue = True
+            for ss in self.signals:
+                if not ss.hidden or w_hidden:
+                    retvalue &= ss.signal.is_bool
+            return retvalue
 
     def suicide(self):
         del self.table.bars[self.row]
@@ -335,8 +336,14 @@ class SignalBar(QObject):
             self.signal_zoom_y_changed.emit()
 
     def sig_add(self, ss: Union[StatusSignalSuit, AnalogSignalSuit]):
+        is_bool_b4 = self.is_bool(True)
         ss.embed(self, len(self.signals))
         self.signals.append(ss)
+        if is_bool_b4 is None:  # 1st signal
+            self.height = iosc.const.BAR_HEIGHT_D if ss.signal.is_bool else iosc.const.BAR_HEIGHT_A_DEFAULT
+        elif is_bool_b4 and not ss.signal.is_bool:  # Analog join to status-only
+            self.height = iosc.const.BAR_HEIGHT_A_DEFAULT
+        # else: do nothing
         self.update_stealth()
 
     def sig_move(self, i: int, other_bar: 'SignalBar'):
@@ -349,6 +356,7 @@ class SignalBar(QObject):
                 ss.num = i
             if self.is_bool(True):
                 self.zoom_dy(0)  # reset y-zoom for status-only bar
+                self.height = iosc.const.BAR_HEIGHT_D
             self.update_stealth()
         else:
             self.suicide()

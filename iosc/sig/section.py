@@ -195,9 +195,7 @@ class SignalBarTable(QTableWidget):
         self.setColumnWidth(0, x)
 
     def bar_insert(self, row: int = -1) -> SignalBar:
-        bar = SignalBar(self, row)
-        self.setRowHeight(bar.row, iosc.const.SIG_HEIGHT_MIN)
-        return bar
+        return SignalBar(self, row)
 
     def bar_move(self, row: int, other_bar: SignalBar):
         """Move self bar content to other"""
