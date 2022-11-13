@@ -113,3 +113,4 @@ Behavior:
 - [x] `ComtradeWidget.__do_file_close()`
 - [x] #182: Y-zoom unstable
 - [x] #183: Y-zoom: reset for exact status-only bar
+- [x] #184: Bar height (init, DnD)

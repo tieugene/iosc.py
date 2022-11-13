@@ -162,10 +162,12 @@ class MyComtrade(Wrapper):
         # nrates
         if (nrates := self._raw.cfg.nrates) != 1:
             raise SanityChkError(f"Oscillogramm must use excatly 1 sample rate.\nWe have {nrates}")
-        if (b4_is_ms := 1000 * (self._raw.trigger_time - self._raw.time[0])) < (b4_need_ms := 1000 / self._raw.frequency):
-            raise SanityChkError(f"Oscillogramm must starts at least {b4_need_ms:.1f} ms before trigger time.\nWe have {b4_is_ms:.1f}")
-        if (aftr_is_ms := 1000 * (self._raw.time[-1] - self._raw.trigger_time)) < (aftr_need_ms := 2000 / self._raw.frequency):
-            raise SanityChkError(f"Oscillogramm must ends at least {aftr_need_ms:.1f} ms after trigger time.\nWe have {aftr_is_ms:.1f}")
+        # short-L
+        # if (b4_is_ms := 1000 * (self._raw.trigger_time - self._raw.time[0])) < (b4_need_ms := 1000 / self._raw.frequency):
+        #    raise SanityChkError(f"Oscillogramm must starts at least {b4_need_ms:.1f} ms before trigger time.\nWe have {b4_is_ms:.1f}")
+        # short-R
+        # if (aftr_is_ms := 1000 * (self._raw.time[-1] - self._raw.trigger_time)) < (aftr_need_ms := 2000 / self._raw.frequency):
+        #    raise SanityChkError(f"Oscillogramm must ends at least {aftr_need_ms:.1f} ms after trigger time.\nWe have {aftr_is_ms:.1f}")
 
     def __setup(self):
         """Translate loaded data into app usable"""
