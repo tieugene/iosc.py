@@ -323,6 +323,7 @@ class SignalBar(QObject):
 
     def zoom_dy(self, dy: int):
         """Y-zoom button changed.
+        Call from BarCtrlWidget.ZoomButtonBox.
         :param dy: -1=decrease, 1=increase, 0=reset to 1
         """
         if dy:

@@ -62,6 +62,7 @@ class BarPlotWidget(QWidget):
 
         def __slot_zoom_changed(self):
             z = self.parent().bar.zoom_y
+            v0 = self.value()
             if z == 1:
                 self.setPageStep(iosc.const.Y_SCROLL_HEIGHT)
                 self.setMaximum(0)
@@ -75,6 +76,8 @@ class BarPlotWidget(QWidget):
                 self.setMaximum(iosc.const.Y_SCROLL_HEIGHT - p1)
                 self.setValue(v0 + round((p0 - p1) / 2))
                 self.setEnabled(True)
+            if self.value() == v0:
+                self.valueChanged.emit(self.value())  # force replot
 
     class BarPlot(QCustomPlot):
         _oscwin: 'ComtradeWidget'
@@ -151,9 +154,7 @@ class BarPlotWidget(QWidget):
                 super().mousePressEvent(event)  # and select it
 
         def slot_rerange_y(self):
-            """Refresh plot on YScroller move.
-            FIXME: something bad 1st time
-            """
+            """Refresh plot on YScroller move."""
             y_range = self.__y_range
             y_width = y_range[1] - y_range[0]
             ys_range = self.parent().ys.range_norm
