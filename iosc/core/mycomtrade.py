@@ -123,7 +123,7 @@ class AnalogSignal(Signal):
 
     def get_mult(self, ps: bool) -> float:
         """
-        Get multiplier
+        Get multiplier between pri/sec
         :param ps:
         :return: Multiplier
         """

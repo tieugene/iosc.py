@@ -15,7 +15,8 @@ SIG_ZOOM_BTN_WIDTH = 32
 # (moved)
 FONT_TOPBAR = QFont('mono', 8)  # font of timeline ticks labels
 FONT_DND = FONT_TOPBAR
-CURSOR_PTR = Qt.SplitHCursor
+CURSOR_PTR_V = Qt.SplitHCursor
+CURSOR_PTR_H = Qt.SplitVCursor
 COLOR_LABEL_Z = Qt.black
 BRUSH_LABEL_Z = QBrush(Qt.white)
 COLOR_LABEL_X = Qt.white  # top xPtr label font color
