@@ -1,6 +1,4 @@
-"""Signal wrappers, commmon things.
-TODO: StatusSignalSuit, AnalogSignalSuit.
-"""
+"""Signal wrappers, commmon things."""
 import cmath
 import math
 # 1. std
