@@ -432,9 +432,8 @@ class LvlPtr(QCPItemStraightLine):
         self.__tip = self._Tip(self.parentPlot())
         # self.setPen(iosc.const.PEN_PTR_OMP)
         self.__set_color()
-        self.y_reduced = self.__ss.lvl_ptr[self.__uid][1]
         self.__mult = max(max(self.__ss.signal.v_max, 0), abs(min(0, self.__ss.signal.v_min)))  # mult-r rediced<>real
-        self.__slot_update_text()
+        self.y_reduced = self.__ss.lvl_ptr[self.__uid][1]
         self.__ss.lvl_ptr[self.__uid][0] = self
         self.__oscwin.lvl_ptr_uids.add(self.__uid)
         self.selectionChanged.connect(self.__selection_chg)
@@ -456,6 +455,14 @@ class LvlPtr(QCPItemStraightLine):
         return self.__uid
 
     @property
+    def y_reduced_min(self) -> float:
+        return self.__ss.signal.v_min / self.__mult
+
+    @property
+    def y_reduced_max(self) -> float:
+        return self.__ss.signal.v_max / self.__mult
+
+    @property
     def y_reduced(self) -> float:
         return self.point1.coords().y()
 
@@ -469,6 +476,7 @@ class LvlPtr(QCPItemStraightLine):
         self.point2.setCoords(self.__oscwin.osc.x_max, y)
         self.__tip.position.setCoords(0, self.y_reduced)  # FIXME: x = ?
         self.__tip.setPositionAlignment(Qt.AlignLeft | (Qt.AlignTop if self.y_reduced > 0 else Qt.AlignBottom))
+        self.__slot_update_text()
 
     @property
     def y_real(self) -> float:
@@ -520,6 +528,20 @@ class LvlPtr(QCPItemStraightLine):
         else:
             event.ignore()
 
+    def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
+        """
+        :param event:
+        :param pos: Where mouse was pressed (mousePressEvent), not changing each step; unusual
+        :note: self.mouseMoveEvent() unusable because points to click position
+        """
+        if not self.selected():  # protection against 2click
+            event.ignore()
+            return
+        event.accept()
+        y_reduced_new = self.parentPlot().yAxis.pixelToCoord(event.pos().y())
+        if self.y_reduced_min <= y_reduced_new <= self.y_reduced_max:
+            self.y_reduced = y_reduced_new
+
     def __switch_cursor(self, selected: bool):
         if selected:
             self.__cursor = self.__oscwin.cursor()
@@ -547,13 +569,12 @@ class LvlPtr(QCPItemStraightLine):
         # pors all values
         form = LvlPtrDialog((
             self.__y_pors(self.y_real),
-            self.__y_pors(min(self.__ss.signal.value)),
-            self.__y_pors(max(self.__ss.signal.value))
+            self.__y_pors(self.__ss.signal.v_min),
+            self.__y_pors(self.__ss.signal.v_max)
         ))
         if form.exec_():
             # unpors back
             self.y_real = form.f_val.value() / self.__ss.signal.get_mult(self.__oscwin.show_sec)
-            self.__slot_update_text()
 
     def suicide(self):
         self.__ss.lvl_ptr[self.__uid][1] = self.y_reduced
