@@ -80,7 +80,7 @@ class Ptr(QCPItemTracer):
     def _switch_cursor(self, selected: bool):
         if selected:
             self.__cursor = self._oscwin.cursor()
-            cur = iosc.const.CURSOR_PTR
+            cur = iosc.const.CURSOR_PTR_V
         else:
             cur = self.__cursor
         self._oscwin.setCursor(cur)
@@ -416,6 +416,7 @@ class LvlPtr(QCPItemStraightLine):
             super().__init__(cp)
             self.setColor(Qt.white)  # text
 
+    __cursor: QCursor
     __ss: 'AnalogSignalSuit'
     __oscwin: 'ComtradeWidget'
     __uid: int  # uniq id
@@ -436,9 +437,19 @@ class LvlPtr(QCPItemStraightLine):
         self.__slot_update_text()
         self.__ss.lvl_ptr[self.__uid][0] = self
         self.__oscwin.lvl_ptr_uids.add(self.__uid)
+        self.selectionChanged.connect(self.__selection_chg)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
         # self.__oscwin.signal_chged_shift.connect(self.__slot_update_text)  # behavior undefined
         self.__oscwin.signal_chged_pors.connect(self.__slot_update_text)
+
+    @property
+    def selection(self) -> bool:
+        return self.selected()
+
+    @selection.setter
+    def selection(self, val: bool):
+        self.setSelected(val)
+        self.parentPlot().ptr_selected = val
 
     @property
     def uid(self) -> int:
@@ -490,17 +501,36 @@ class LvlPtr(QCPItemStraightLine):
         self.__tip.setText("L%d: %s" % (self.__uid, self.__ss.sig2str(self.y_real)))
         self.parentPlot().replot()  # TODO: don't to this on total repaint
 
-    def mousePressEvent(self, event: QMouseEvent, _):  # rmb click start
-        if event.button() == Qt.RightButton:
+    def mousePressEvent(self, event: QMouseEvent, _):
+        if event.button() == Qt.LeftButton:
             event.accept()
+            self.selection = True
+        elif event.button() == Qt.RightButton:
+            event.accept()  # for signal_rmb_clicked
         else:
             event.ignore()
 
-    def mouseReleaseEvent(self, event: QMouseEvent, _):  # rmb click end
-        if event.button() == Qt.RightButton:
+    def mouseReleaseEvent(self, event: QMouseEvent, _):
+        if event.button() == Qt.LeftButton:
+            if self.selection:
+                event.accept()
+                self.selection = False
+        elif event.button() == Qt.RightButton:
             self.signal_rmb_clicked.emit(event.pos())
         else:
             event.ignore()
+
+    def __switch_cursor(self, selected: bool):
+        if selected:
+            self.__cursor = self.__oscwin.cursor()
+            cur = iosc.const.CURSOR_PTR_H
+        else:
+            cur = self.__cursor
+        self.__oscwin.setCursor(cur)
+
+    def __selection_chg(self, selection: bool):
+        self.__switch_cursor(selection)
+        self.parentPlot().replot()  # update selection decoration
 
     def __slot_context_menu(self, pos: QPointF):
         context_menu = QMenu()
