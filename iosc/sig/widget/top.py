@@ -18,6 +18,7 @@ class PtrLabel(QCPItemText):
         self.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
         self.setFont(iosc.const.FONT_TOPBAR)
         self.setColor(iosc.const.COLOR_LABEL_X)  # text
+        self.setLayer("tips")
 
     def _mk_text(self, x: float):
         return "%.2f" % x

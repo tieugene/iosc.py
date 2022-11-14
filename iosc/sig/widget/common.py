@@ -398,6 +398,7 @@ class OneBarPlot(QCustomPlot):
         self.xAxis.setPadding(0)
         self.setFixedHeight(24)
         # self.xAxis.setRange(self.oscwin.osc.x_min, self.oscwin.osc.x_max)
+        self.addLayer("tips")  # default 6 layers (from bottom (0)): background>grid>main>axes>legend>overlay
 
     @property
     def _oscwin(self) -> 'ComtradeWidget':

@@ -1,11 +1,9 @@
 import datetime
 # 2. 3rd
 from PyQt5.QtCore import QMargins, Qt
-from PyQt5.QtWidgets import QWidget
-from QCustomPlot2 import QCustomPlot, QCPItemText
+from QCustomPlot2 import QCPItemText
 # 4. local
 import iosc.const
-from iosc.core import mycomtrade
 from iosc.sig.widget.common import OneBarPlot
 
 
@@ -20,6 +18,7 @@ class PtrLabel(QCPItemText):
         self.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
         self.setFont(iosc.const.FONT_TOPBAR)
         self.setColor(iosc.const.COLOR_LABEL_X)  # text
+        self.setLayer("tips")
 
     def _update_ptr(self, i: int):
         """Repaint/__move main ptr value label (%.2f)
@@ -65,6 +64,7 @@ class TimeStampsPlot(OneBarPlot):
     def __init__(self, parent: 'TimeStampsBar'):
         super().__init__(parent)
         self.xAxis.setTickLabels(False)
+        # self.xAxis.setTickLabelSide(QCPAxis.lsInside)
         # self.xAxis.setTicks(False)
         self.__set_zero()
         self.__main_ptr_label = PtrLabelMain(self)
