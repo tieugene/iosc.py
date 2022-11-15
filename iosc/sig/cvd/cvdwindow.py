@@ -8,24 +8,30 @@ from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBa
     QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget, QGraphicsEllipseItem, QGraphicsLineItem
 
 # x. consts
-RAD = 100  # Radius diagram
+RAD = 100  # Radius of diagram
 GRID_STEPS_C = 5  # Number of circular grid lines
 GRID_STEPS_R = 8  # Number of radial grid lines
 POINT_Z = QPoint(0, 0)  # Helper
 
 
 class CVDiagramObject(QGraphicsObject):
-    # TODO: subobject +
+    class GridC(QGraphicsEllipseItem):
+        def __init__(self, radius: int, parent: 'CVDiagramObject'):
+            super().__init__(-radius, -radius, 2 * radius, 2 * radius, parent)
+
+    class GridR(QGraphicsLineItem):
+        def __init__(self, angle: float, parent: 'CVDiagramObject'):
+            super().__init__(0, 0, RAD * math.sin(angle), RAD * math.cos(angle), parent)
+
     def __init__(self):
         super().__init__()
+        # grid
         pen = QPen(Qt.gray)
         pen.setCosmetic(True)  # don't change width on resizing
-        for i in range(GRID_STEPS_C):
-            __rad = RAD - RAD // GRID_STEPS_C * i
-            QGraphicsEllipseItem(-__rad, -__rad, 2 * __rad, 2 * __rad, self).setPen(pen)
-        for i in range(GRID_STEPS_R):
-            angle = i * math.radians(360 // GRID_STEPS_R)
-            QGraphicsLineItem(0, 0, RAD * math.sin(angle), RAD * math.cos(angle), self).setPen(pen)
+        for i in range(GRID_STEPS_C):  # - circular
+            self.GridC(RAD - RAD // GRID_STEPS_C * i, self).setPen(pen)
+        for i in range(GRID_STEPS_R):  # radial
+            self.GridR(i * math.radians(360 // GRID_STEPS_R), self).setPen(pen)
 
     def boundingRect(self):
         return self.childrenBoundingRect()
@@ -38,6 +44,7 @@ class CVDiagramView(QGraphicsView):
     circle: CVDiagramObject
 
     def __init__(self, parent: 'CVDWindow'):
+        # Howto (resize to content): scene.setSceneRect(scene.itemsBoundingRect()) <= QGraphicsScene::changed()
         super().__init__(parent)
         self.setScene(QGraphicsScene())
         # self.setMinimumSize(100, 100)

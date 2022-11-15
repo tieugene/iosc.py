@@ -2,6 +2,13 @@
 
 Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 
+- [ ] textitem (text, anchor, color, align(H|V))
+- [ ] &rdsh; axis label 
+- [ ] Vector (by signal: angle, value, color)
+  + [ ] line
+  + [ ] arrow
+  + [ ] label
+
 ## Vector diagram
 
 Variant (Circle):
@@ -26,5 +33,8 @@ Variant (Circle):
 - [QCPPolarGraph announce](https://www.qcustomplot.com/index.php/news)
 - [PyQt5 Tutorial](https://www.pythonguis.com/pyqt5-tutorial/)
 - [Another tutorial](https://www.bogotobogo.com/Qt/)
-- [Chart sample](https://github.com/DancingOnWater/GraphicsScenePlot)
-- &rdsh; [Dox of it](https://habr.com/ru/post/182614/)
+- Habr:
+  + [good](https://habr.com/ru/post/182142/)
+  + [bad1](https://habr.com/ru/post/182614/)
+  + [bad2](https://habr.com/ru/post/183432/)
+  + [code](https://github.com/DancingOnWater/GraphicsScenePlot)
