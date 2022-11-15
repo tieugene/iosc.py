@@ -6,8 +6,13 @@ from PyQt5.QtWidgets import QDialog, QTableWidget, QWidget, QAction, QVBoxLayout
     QGraphicsScene, QGraphicsEllipseItem
 
 
-class CVDiagram(QGraphicsView):
-    circle: QGraphicsEllipseItem
+class CVDiagramObject(QGraphicsEllipseItem):
+    def __init__(self, x, y, w, h, parent=None):
+        super().__init__(x, y, w, h, parent)
+
+
+class CVDiagramView(QGraphicsView):
+    circle: CVDiagramObject
 
     def __init__(self, parent: 'CVDWindow'):
         super().__init__(parent)
@@ -16,7 +21,8 @@ class CVDiagram(QGraphicsView):
         self.setViewportUpdateMode(QGraphicsView.BoundingRectViewportUpdate)
         self.setCacheMode(QGraphicsView.CacheBackground)
         self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
-        self.circle = self.scene().addEllipse(-50, -50, 100, 100)
+        self.circle = CVDiagramObject(-50, -50, 100, 100)
+        self.scene().addItem(self.circle)
 
     def resizeEvent(self, event: QResizeEvent):
         super().resizeEvent(event)
@@ -36,7 +42,7 @@ class CVTable(QTableWidget):
 class CVDWindow(QDialog):
     """Main CVD window."""
     toobar: QToolBar
-    diagram: CVDiagram
+    diagram: CVDiagramView
     table: CVTable
     action_settings: QAction
     action_select_ptr: QAction
@@ -52,7 +58,7 @@ class CVDWindow(QDialog):
 
     def __mk_widgets(self):
         self.toolbar = QToolBar(self)
-        self.diagram = CVDiagram(self)
+        self.diagram = CVDiagramView(self)
         self.table = CVTable(self)
 
     def __mk_layout(self):
