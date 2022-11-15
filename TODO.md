@@ -20,7 +20,9 @@ Variant (Circle):
 
 ### RTFMs:
 
-- Qt examples/widgets/windowsflags.py
+- PqyQt5/examples/:
+  + widgets/windowsflags.py
+  + graphicsview/diagramscene/py (gfx items)
 - [QCPPolarGraph announce](https://www.qcustomplot.com/index.php/news)
 - [PyQt5 Tutorial](https://www.pythonguis.com/pyqt5-tutorial/)
 - [Another tutorial](https://www.bogotobogo.com/Qt/)

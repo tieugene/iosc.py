@@ -1,21 +1,67 @@
 """Circular Vector Diagram"""
-from PyQt5.QtCore import Qt, QRectF
-from PyQt5.QtGui import QIcon, QResizeEvent, QPainter
+import math
+
+from PyQt5.QtCore import Qt, QRectF, QPoint, QPointF
+from PyQt5.QtGui import QIcon, QResizeEvent, QPainter, QPen, QColor
 # 2. 3rd
 from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView, \
-    QGraphicsScene, QGraphicsObject
+    QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget
+
+# x. consts
+RAD = 100  # Radius diagram
+GRID_STEPS_C = 5  # Number of circular grid lines
+GRID_STEPS_R = 8  # Number of radial grid lines
+POINT_Z = QPoint(0, 0)  # Helper
 
 
 class CVDiagramObject(QGraphicsObject):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    # TODO: subobject +
+    def __init__(self):
+        super().__init__()
+
+    def __draw_radial(self, painter: QPainter, angle: float, color: QColor = Qt.gray):
+        """Paint radial line"""
+        pen = QPen(Qt.gray)
+        pen.setCosmetic(True)
+        painter.setPen(pen)
+        endpoint = QPointF(RAD * math.sin(angle), RAD * math.cos(angle))
+        painter.drawLine(POINT_Z, endpoint)
+
+    def __draw_axis(self, painter: QPainter, cardir: int):
+        """Paint an orto axis:
+        - radial (grey)
+        - label (black)
+        :param cardir: Cardinal direction (0..3)
+        """
+        cardir %= 4  # to sure
+        self.__draw_radial(painter, cardir * math.radians(90))
+
+    def __draw_vector(self, painter: QPainter, angle: float):
+        """Paint signal vector:
+        - radial (color)
+        - arrow (color)
+        - label (color)
+        """
+        # endpoint =
+        self.__draw_radial(painter, angle)
 
     def boundingRect(self):
-        return QRectF(-50, -50, 100, 100)
+        # TODO: return self.childrenBoundingRect().adjusted(-55.0, -55.0, 55.0, 55.0)
+        return QRectF(-RAD, -RAD, 2*RAD, 2*RAD)
 
-    def paint(self, painter, option, widget):
-        painter.setPen(Qt.black)
-        painter.drawEllipse(-50, -50, 100, 100)
+    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
+        pen = QPen(Qt.gray)
+        pen.setCosmetic(True)  # don't change width on resizing
+        painter.setPen(pen)
+        # circular grid
+        for i in range(GRID_STEPS_C):
+            __rad = RAD - RAD // GRID_STEPS_C * i
+            painter.drawEllipse(POINT_Z, __rad, __rad)
+        # radial grid
+        for i in range(GRID_STEPS_R):
+            self.__draw_radial(painter, i * math.radians(360 // GRID_STEPS_R))
+        # NWSE labels
+        # painter.drawText()
 
 
 class CVDiagramView(QGraphicsView):
