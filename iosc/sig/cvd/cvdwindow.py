@@ -1,13 +1,26 @@
 """Circular Vector Diagram"""
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt, QRectF
+from PyQt5.QtGui import QIcon, QResizeEvent, QPainter
 # 2. 3rd
-from PyQt5.QtWidgets import QDialog, QTableWidget, QWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView
+from PyQt5.QtWidgets import QDialog, QTableWidget, QWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView, \
+    QGraphicsScene, QGraphicsEllipseItem
 
 
 class CVDiagram(QGraphicsView):
+    circle: QGraphicsEllipseItem
+
     def __init__(self, parent: 'CVDWindow'):
         super().__init__(parent)
+        self.setScene(QGraphicsScene())
+        # self.setMinimumSize(100, 100)
+        self.setViewportUpdateMode(QGraphicsView.BoundingRectViewportUpdate)
+        self.setCacheMode(QGraphicsView.CacheBackground)
+        self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
+        self.circle = self.scene().addEllipse(-50, -50, 100, 100)
+
+    def resizeEvent(self, event: QResizeEvent):
+        super().resizeEvent(event)
+        self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
 
 
 class CVTable(QTableWidget):
@@ -21,15 +34,7 @@ class CVTable(QTableWidget):
 
 
 class CVDWindow(QDialog):
-    """Main CVD window.
-    Buttons (custom toolbar):
-    - Window: close, expand/restore, menu
-    - menu:
-      + Settings
-      + Time:
-        * MainPtr
-        * Tx[]
-    """
+    """Main CVD window."""
     toobar: QToolBar
     diagram: CVDiagram
     table: CVTable
@@ -89,4 +94,5 @@ class CVDWindow(QDialog):
         ...
 
     def __do_select_ptr(self):
+        # Mainptr[, TmpPtr[]]
         ...
