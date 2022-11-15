@@ -2,13 +2,20 @@
 from PyQt5.QtCore import Qt, QRectF
 from PyQt5.QtGui import QIcon, QResizeEvent, QPainter
 # 2. 3rd
-from PyQt5.QtWidgets import QDialog, QTableWidget, QWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView, \
-    QGraphicsScene, QGraphicsEllipseItem
+from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView, \
+    QGraphicsScene, QGraphicsObject
 
 
-class CVDiagramObject(QGraphicsEllipseItem):
-    def __init__(self, x, y, w, h, parent=None):
-        super().__init__(x, y, w, h, parent)
+class CVDiagramObject(QGraphicsObject):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def boundingRect(self):
+        return QRectF(-50, -50, 100, 100)
+
+    def paint(self, painter, option, widget):
+        painter.setPen(Qt.black)
+        painter.drawEllipse(-50, -50, 100, 100)
 
 
 class CVDiagramView(QGraphicsView):
@@ -21,7 +28,7 @@ class CVDiagramView(QGraphicsView):
         self.setViewportUpdateMode(QGraphicsView.BoundingRectViewportUpdate)
         self.setCacheMode(QGraphicsView.CacheBackground)
         self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
-        self.circle = CVDiagramObject(-50, -50, 100, 100)
+        self.circle = CVDiagramObject()
         self.scene().addItem(self.circle)
 
     def resizeEvent(self, event: QResizeEvent):
