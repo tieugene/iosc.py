@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt, QRectF, QPoint, QPointF
 from PyQt5.QtGui import QIcon, QResizeEvent, QPainter, QPen, QColor
 # 2. 3rd
 from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView, \
-    QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget
+    QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget, QGraphicsEllipseItem, QGraphicsLineItem
 
 # x. consts
 RAD = 100  # Radius diagram
@@ -18,50 +18,20 @@ class CVDiagramObject(QGraphicsObject):
     # TODO: subobject +
     def __init__(self):
         super().__init__()
-
-    def __draw_radial(self, painter: QPainter, angle: float, color: QColor = Qt.gray):
-        """Paint radial line"""
-        pen = QPen(Qt.gray)
-        pen.setCosmetic(True)
-        painter.setPen(pen)
-        endpoint = QPointF(RAD * math.sin(angle), RAD * math.cos(angle))
-        painter.drawLine(POINT_Z, endpoint)
-
-    def __draw_axis(self, painter: QPainter, cardir: int):
-        """Paint an orto axis:
-        - radial (grey)
-        - label (black)
-        :param cardir: Cardinal direction (0..3)
-        """
-        cardir %= 4  # to sure
-        self.__draw_radial(painter, cardir * math.radians(90))
-
-    def __draw_vector(self, painter: QPainter, angle: float):
-        """Paint signal vector:
-        - radial (color)
-        - arrow (color)
-        - label (color)
-        """
-        # endpoint =
-        self.__draw_radial(painter, angle)
-
-    def boundingRect(self):
-        # TODO: return self.childrenBoundingRect().adjusted(-55.0, -55.0, 55.0, 55.0)
-        return QRectF(-RAD, -RAD, 2*RAD, 2*RAD)
-
-    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
         pen = QPen(Qt.gray)
         pen.setCosmetic(True)  # don't change width on resizing
-        painter.setPen(pen)
-        # circular grid
         for i in range(GRID_STEPS_C):
             __rad = RAD - RAD // GRID_STEPS_C * i
-            painter.drawEllipse(POINT_Z, __rad, __rad)
-        # radial grid
+            QGraphicsEllipseItem(-__rad, -__rad, 2 * __rad, 2 * __rad, self).setPen(pen)
         for i in range(GRID_STEPS_R):
-            self.__draw_radial(painter, i * math.radians(360 // GRID_STEPS_R))
-        # NWSE labels
-        # painter.drawText()
+            angle = i * math.radians(360 // GRID_STEPS_R)
+            QGraphicsLineItem(0, 0, RAD * math.sin(angle), RAD * math.cos(angle), self).setPen(pen)
+
+    def boundingRect(self):
+        return self.childrenBoundingRect()
+
+    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
+        ...  # auto
 
 
 class CVDiagramView(QGraphicsView):
