@@ -203,6 +203,7 @@ class CVTable(QTableWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setHorizontalHeaderLabels(TABLE_HEAD)
+        self.setSelectionMode(self.NoSelection)
         self.resizeRowsToContents()
 
     def reload_signals(self):
@@ -223,9 +224,8 @@ class CVTable(QTableWidget):
 
     def refresh_signals(self):
         """Refresh row values by ptr"""
-        i = self.__parent.parent().main_ptr_i
+        i = self.__parent.t_i
         for r, ss in enumerate(self.__parent.ss_used):
-            ...  # load signal harmonic values for specific Ptr.i; RTFM ss.sig2str_i
             v: complex = ss.hrm1(i)
             uu = ss.signal.raw2.uu
             self.item(r, 1).setText("%.1f %s" % (abs(v), uu))
@@ -256,6 +256,11 @@ class CVDWindow(QDialog):
         self.setWindowTitle("Vector Diagram")
         self.ss_used = list()
         self.ss_base = None
+
+    @property
+    def t_i(self):
+        """Current MainPtr.i"""
+        return self.parent().main_ptr_i
 
     def __mk_widgets(self):
         self.toolbar = QToolBar(self)

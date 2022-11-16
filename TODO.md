@@ -8,9 +8,16 @@ Current job: [0.3.1](https://github.com/tieugene/iosc.py/milestone/13)
   + [x] Arrow
   + [x] Vector = Arrow + Label
 - [x] Select signals
-- […] Table
-- [ ] Update table/diagram by signal (name, color) & ptr (angle, value)
+- […] Initial fill:
+    + [x] Table (name, color, values)
+    + [ ] Diagram (name, color, angle)
+- [ ] Update by MainPtr:
+    + [x] Table (values)
+    + [ ] Diagram (angle)
 - [ ] Select Ptr
+- [ ] Update by selected Ptr
+- [ ] Hide/Show
+- [ ] Update name, color
 
 ## Vector diagram
 
