@@ -11,9 +11,9 @@ Current job: [0.3.1](https://github.com/tieugene/iosc.py/milestone/13)
 - [x] Initial fill:
     + [x] Table (name, color, values)
     + [x] Diagram (name, color, angle)
-- [ ] Update by MainPtr:
-    + [x] Table (values)
-    + [ ] Diagram (angle)
+- […] Update by MainPtr:
+    + [ ] Table (values)
+    + [ ] Diagram (angle) < [ ] direct from ss
 - [ ] Select Ptr
 - [ ] Update by selected Ptr
 - [ ] Use base signal

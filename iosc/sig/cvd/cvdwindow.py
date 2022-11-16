@@ -201,7 +201,9 @@ class CVDiagramView(QGraphicsView):
         self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
 
     def reload_signals(self):
-        """Reload vectors from selected signals."""
+        """Reload vectors from selected signals.
+        TODO: AnalogSignalSuit<=>SigVector map
+        """
         pen = QPen()
         pen.setCosmetic(True)
         i = self.__parent.t_i
