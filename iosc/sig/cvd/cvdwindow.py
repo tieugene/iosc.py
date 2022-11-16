@@ -11,9 +11,9 @@ from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBa
 
 # x. consts
 RAD = 100  # Radius of diagram
-DRAD_AXIS_LABEL = 5
-ARROW_SIZE = 10
-ARROW_ANGLE = math.pi / 6
+DRAD_AXIS_LABEL = 0  # Distance from end of line to label margin
+ARROW_SIZE = 10  # Arrow sides length
+ARROW_ANGLE = math.pi / 6  # Arrow sides angle from main line
 GRID_STEPS_C = 5  # Number of circular grid lines
 GRID_STEPS_R = 8  # Number of radial grid lines
 POINT_Z = QPointF(0, 0)  # Helper
@@ -39,7 +39,7 @@ class CVDiagramObject(QGraphicsObject):
             super().__init__(0, 0, RAD * math.cos(angle), RAD * math.sin(angle), parent)
 
     class Label(QGraphicsTextItem):
-        def __init__(self, parent: 'CVDiagramObject', text: str, a: float, r: float, color: Optional[QColor] = None):
+        def __init__(self, parent: QGraphicsObject, text: str, a: float, r: float, color: Optional[QColor] = None):
             super().__init__(text, parent)
             self.setFont(QFont('mono', 8))
             if color is not None:
@@ -57,7 +57,7 @@ class CVDiagramObject(QGraphicsObject):
         __len: float
         __arrowHead: QPolygonF
 
-        def __init__(self, parent: 'CVDiagramObject', a: float, r: float):
+        def __init__(self, parent: QGraphicsObject, a: float, r: float):
             super().__init__(parent)
             self.__angle = a
             self.__len = r
@@ -88,6 +88,21 @@ class CVDiagramObject(QGraphicsObject):
             painter.drawLine(self.line())
             painter.drawPolyline(self.__arrowHead)
 
+    class SigVector(QGraphicsObject):
+        __arrow: 'CVDiagramObject.Arrow'
+        __label: 'CVDiagramObject.Label'
+
+        def __init__(self, parent: QGraphicsObject, text: str, a: float, r: float):
+            super().__init__(parent)
+            self.__arrow = CVDiagramObject.Arrow(self, a, r)
+            self.__label = CVDiagramObject.Label(self, text, a, r)
+
+        def boundingRect(self) -> QRectF:
+            return self.childrenBoundingRect()
+
+        def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
+            ...  # stub
+
     def __init__(self):
         super().__init__()
         # grid
@@ -103,9 +118,10 @@ class CVDiagramObject(QGraphicsObject):
         self.Label(self, "180°", math.pi / 2, RAD)
         self.Label(self, "-90°", math.pi, RAD)
         self.Label(self, "0°", -math.pi / 2, RAD)
-        # for i in range(12):  # test
-            # self.Label(self, f"L{i * 10}", math.pi / 6, RAD, QColor(Qt.black))
+        for i in range(12):  # test
+            # self.Label(self, f"L{i}", math.pi / 6, RAD, QColor(Qt.black))
             # self.Arrow(self, i * math.pi / 6, RAD * 2 / 3)
+            self.SigVector(self, f"L{i}", i * math.pi / 6, RAD * 2 / 3)
 
     def boundingRect(self) -> QRectF:
         return self.childrenBoundingRect()
