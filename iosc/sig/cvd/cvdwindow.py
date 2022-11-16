@@ -147,6 +147,12 @@ class CVDiagramObject(QGraphicsObject):
         def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
             ...  # stub
 
+        def set_color(self, c: QColor):
+            pen = self.__arrow.pen()
+            pen.setColor(c)  # FIXME: not works
+            self.__arrow.setPen(pen)  # FIXME: .setCosmetic(True)
+            self.__label.setDefaultTextColor(c)
+
     def __init__(self):
         super().__init__()
         # grid
@@ -162,10 +168,10 @@ class CVDiagramObject(QGraphicsObject):
         self.Label(self, "180°", math.pi / 2, RAD)
         self.Label(self, "-90°", math.pi, RAD)
         self.Label(self, "0°", -math.pi / 2, RAD)
-        for i in range(12):  # test
-            # self.Label(self, f"L{i}", math.pi / 6, RAD, QColor(Qt.black))
-            # self.Arrow(self, i * math.pi / 6, RAD * 2 / 3)
-            self.SigVector(self, f"L{i}", i * math.pi / 6, RAD * 2 / 3)
+        # for i in range(12):  # test
+        #    # self.Label(self, f"L{i}", math.pi / 6, RAD, QColor(Qt.black))
+        #    # self.Arrow(self, i * math.pi / 6, RAD * 2 / 3)
+        #    # self.SigVector(self, f"L{i}", i * math.pi / 6, RAD * 2 / 3)
 
     def boundingRect(self) -> QRectF:
         return self.childrenBoundingRect()
@@ -175,11 +181,13 @@ class CVDiagramObject(QGraphicsObject):
 
 
 class CVDiagramView(QGraphicsView):
+    __parent: 'CVDWindow'
     circle: CVDiagramObject
 
     def __init__(self, parent: 'CVDWindow'):
         # Howto (resize to content): scene.setSceneRect(scene.itemsBoundingRect()) <= QGraphicsScene::changed()
         super().__init__(parent)
+        self.__parent = parent
         self.setScene(QGraphicsScene())
         # self.setMinimumSize(100, 100)
         self.setViewportUpdateMode(QGraphicsView.BoundingRectViewportUpdate)
@@ -191,6 +199,18 @@ class CVDiagramView(QGraphicsView):
     def resizeEvent(self, event: QResizeEvent):
         super().resizeEvent(event)
         self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
+
+    def reload_signals(self):
+        """Reload vectors from selected signals."""
+        pen = QPen()
+        pen.setCosmetic(True)
+        i = self.__parent.t_i
+        for r, ss in enumerate(self.__parent.ss_used):
+            v: complex = ss.hrm1(i)
+            CVDiagramObject.SigVector(self.circle, ss.signal.sid, cmath.phase(v), RAD).set_color(ss.color)
+
+    def refresh_signals(self):
+        """Refresh row values by ptr"""
 
 
 class CVTable(QTableWidget):
@@ -207,8 +227,7 @@ class CVTable(QTableWidget):
         self.resizeRowsToContents()
 
     def reload_signals(self):
-        """Reload rows from selected signals.
-        """
+        """Reload rows from selected signals."""
         self.setRowCount(len(self.__parent.ss_used))  # all items can be None
         for r, ss in enumerate(self.__parent.ss_used):
             for c in range(self.columnCount()):
@@ -313,7 +332,7 @@ class CVDWindow(QDialog):
             self.ss_used = [self.__ass_list[i] for i in retvalue[0]]
             self.ss_base = self.__ass_list[retvalue[1]] if retvalue[1] is not None else None
             self.table.reload_signals()
-            # TODO: self.diagram.reload_signals()
+            self.diagram.reload_signals()
 
     def __do_select_ptr(self):
         # Mainptr[, TmpPtr[]]

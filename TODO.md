@@ -8,16 +8,18 @@ Current job: [0.3.1](https://github.com/tieugene/iosc.py/milestone/13)
   + [x] Arrow
   + [x] Vector = Arrow + Label
 - [x] Select signals
-- […] Initial fill:
+- [x] Initial fill:
     + [x] Table (name, color, values)
-    + [ ] Diagram (name, color, angle)
+    + [x] Diagram (name, color, angle)
 - [ ] Update by MainPtr:
     + [x] Table (values)
     + [ ] Diagram (angle)
 - [ ] Select Ptr
 - [ ] Update by selected Ptr
+- [ ] Use base signal
 - [ ] Hide/Show
 - [ ] Update name, color
+- [ ] FIXME: SigVector arrow color
 
 ## Vector diagram
 
