@@ -192,6 +192,7 @@ class CVDiagramView(QGraphicsView):
 
 class CVTable(QTableWidget):
     __parent: 'CVDWindow'
+
     def __init__(self, parent: 'CVDWindow'):
         super().__init__(parent)
         self.__parent = parent
@@ -201,14 +202,22 @@ class CVTable(QTableWidget):
         self.setHorizontalHeaderLabels(("Name", "Module", "Angle", "Re", "Im"))
         self.resizeRowsToContents()
 
-    def recreate_rows(self):
-        """Reload rows from selected signals"""
+    def reload_signals(self):
+        """Reload rows from selected signals.
+        """
         self.setRowCount(len(self.__parent.ss_used))  # all items can be None
         for r, ss in enumerate(self.__parent.ss_used):
             for c in range(self.columnCount()):
                 if self.item(r, c) is None:
                     self.setItem(r, c, QTableWidgetItem())
             self.item(r, 0).setCheckState(Qt.Checked)
+            self.item(r, 0).setText(ss.signal.sid)
+            self.item(r, 0).setForeground(ss.color)
+
+    def refresh_signals(self):
+        """Refresh row values by ptr"""
+        for c in range(self.rowCount()):
+            ...  # load signal harmonic values for specific Ptr.i
 
 
 class CVDWindow(QDialog):
@@ -284,7 +293,8 @@ class CVDWindow(QDialog):
             self.ss_used.clear()
             self.ss_used = [self.__ass_list[i] for i in retvalue[0]]
             self.ss_base = self.__ass_list[retvalue[1]] if retvalue[1] is not None else None
-            self.table.recreate_rows()
+            self.table.reload_signals()
+            # TODO: self.diagram.reload_signals()
 
     def __do_select_ptr(self):
         # Mainptr[, TmpPtr[]]
