@@ -2,8 +2,8 @@
 import math
 from typing import Optional
 
-from PyQt5.QtCore import Qt, QRectF, QPoint, QPointF
-from PyQt5.QtGui import QIcon, QResizeEvent, QPainter, QPen, QColor, QFont
+from PyQt5.QtCore import Qt, QRectF, QPoint, QPointF, QSizeF, QLineF
+from PyQt5.QtGui import QIcon, QResizeEvent, QPainter, QPen, QColor, QFont, QPolygonF
 # 2. 3rd
 from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView, \
     QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget, QGraphicsEllipseItem, QGraphicsLineItem, \
@@ -12,9 +12,11 @@ from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBa
 # x. consts
 RAD = 100  # Radius of diagram
 DRAD_AXIS_LABEL = 5
+ARROW_SIZE = 10
+ARROW_ANGLE = math.pi / 6
 GRID_STEPS_C = 5  # Number of circular grid lines
 GRID_STEPS_R = 8  # Number of radial grid lines
-POINT_Z = QPoint(0, 0)  # Helper
+POINT_Z = QPointF(0, 0)  # Helper
 SIN225 = math.sin(math.pi / 8)  # 22.5°
 
 
@@ -37,7 +39,7 @@ class CVDiagramObject(QGraphicsObject):
             super().__init__(0, 0, RAD * math.cos(angle), RAD * math.sin(angle), parent)
 
     class Label(QGraphicsTextItem):
-        def __init__(self, parent: 'CVDiagramObject', text: str, a: float, r: int, color: Optional[QColor] = None):
+        def __init__(self, parent: 'CVDiagramObject', text: str, a: float, r: float, color: Optional[QColor] = None):
             super().__init__(text, parent)
             self.setFont(QFont('mono', 8))
             if color is not None:
@@ -51,12 +53,40 @@ class CVDiagramObject(QGraphicsObject):
             ))
 
     class Arrow(QGraphicsLineItem):
-        def __init__(self, parent: 'CVDiagramObject', a: float, r: int):
-            e = QPointF(r * math.cos(a), r * math.sin(a))
-            super().__init__(super().__init__(0, 0, e.x(), e.y(), parent))
+        __angle: float
+        __len: float
+        __arrowHead: QPolygonF
+
+        def __init__(self, parent: 'CVDiagramObject', a: float, r: float):
+            super().__init__(parent)
+            self.__angle = a
+            self.__len = r
+            self.__arrowHead = QPolygonF()
+
+        def boundingRect(self):
+            xtra = self.pen().width() / 2 + ARROW_SIZE * math.sin(ARROW_ANGLE)
+            p1 = self.line().p1()
+            p2 = self.line().p2()
+            return QRectF(p1, QSizeF(p2.x() - p1.x(), p2.y() - p1.y())).normalized().adjusted(-xtra, -xtra, xtra, xtra)
+
+        def shape(self):
+            path = super().shape()
+            path.addPolyline(self.__arrowHead)
+            return path
 
         def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
-            super().paint(painter, option, widget)
+            # super().paint(painter, option, widget)
+            e = QPointF(self.__len * math.cos(self.__angle), self.__len * math.sin(self.__angle))
+            self.setLine(QLineF(POINT_Z, e))
+            arrow_l = self.line().p2() + QPointF(-math.cos(self.__angle + ARROW_ANGLE) * ARROW_SIZE,
+                                                 -math.sin(self.__angle + ARROW_ANGLE) * ARROW_SIZE)
+            arrow_r = self.line().p2() + QPointF(-math.cos(self.__angle - ARROW_ANGLE) * ARROW_SIZE,
+                                                 -math.sin(self.__angle - ARROW_ANGLE) * ARROW_SIZE)
+            self.__arrowHead.clear()
+            for point in [arrow_l, self.line().p2(), arrow_r]:
+                self.__arrowHead.append(point)
+            painter.drawLine(self.line())
+            painter.drawPolyline(self.__arrowHead)
 
     def __init__(self):
         super().__init__()
@@ -70,12 +100,12 @@ class CVDiagramObject(QGraphicsObject):
         # axes labels
         pen.setColor(Qt.black)
         self.Label(self, "90°", 0, RAD)
-        self.Label(self, "180°", math.radians(90), RAD)
-        self.Label(self, "-90°", math.radians(180), RAD)
-        self.Label(self, "0°", math.radians(-90), RAD)
-        # for i in range(36):
-        #    self.Label(self, f"L{i * 10}", i * math.radians(10), RAD, QColor(Qt.black))
-        self.Arrow(self, math.radians(30), RAD//2)
+        self.Label(self, "180°", math.pi / 2, RAD)
+        self.Label(self, "-90°", math.pi, RAD)
+        self.Label(self, "0°", -math.pi / 2, RAD)
+        # for i in range(12):  # test
+            # self.Label(self, f"L{i * 10}", math.pi / 6, RAD, QColor(Qt.black))
+            # self.Arrow(self, i * math.pi / 6, RAD * 2 / 3)
 
     def boundingRect(self) -> QRectF:
         return self.childrenBoundingRect()
