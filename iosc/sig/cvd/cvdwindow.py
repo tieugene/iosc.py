@@ -7,7 +7,7 @@ from PyQt5.QtGui import QIcon, QResizeEvent, QPainter, QPen, QColor, QFont, QPol
 # 2. 3rd
 from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView, \
     QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget, QGraphicsEllipseItem, QGraphicsLineItem, \
-    QGraphicsTextItem, QComboBox, QLabel
+    QGraphicsTextItem, QComboBox, QLabel, QTableWidgetItem
 
 from iosc.sig.widget.common import AnalogSignalSuit
 from iosc.sig.widget.dialog import SelectSignalsDialog
@@ -191,13 +191,24 @@ class CVDiagramView(QGraphicsView):
 
 
 class CVTable(QTableWidget):
+    __parent: 'CVDWindow'
     def __init__(self, parent: 'CVDWindow'):
         super().__init__(parent)
+        self.__parent = parent
         self.setColumnCount(6)
         self.horizontalHeader().setStretchLastSection(True)
         self.setVerticalScrollMode(self.ScrollPerPixel)
-        self.setHorizontalHeaderLabels(("№", "Name", "Module", "Angle", "Re", "Im"))
+        self.setHorizontalHeaderLabels(("Name", "Module", "Angle", "Re", "Im"))
         self.resizeRowsToContents()
+
+    def recreate_rows(self):
+        """Reload rows from selected signals"""
+        self.setRowCount(len(self.__parent.ss_used))  # all items can be None
+        for r, ss in enumerate(self.__parent.ss_used):
+            for c in range(self.columnCount()):
+                if self.item(r, c) is None:
+                    self.setItem(r, c, QTableWidgetItem())
+            self.item(r, 0).setCheckState(Qt.Checked)
 
 
 class CVDWindow(QDialog):
@@ -273,6 +284,7 @@ class CVDWindow(QDialog):
             self.ss_used.clear()
             self.ss_used = [self.__ass_list[i] for i in retvalue[0]]
             self.ss_base = self.__ass_list[retvalue[1]] if retvalue[1] is not None else None
+            self.table.recreate_rows()
 
     def __do_select_ptr(self):
         # Mainptr[, TmpPtr[]]
