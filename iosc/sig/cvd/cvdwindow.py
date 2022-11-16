@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBa
     QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget, QGraphicsEllipseItem, QGraphicsLineItem, \
     QGraphicsTextItem, QComboBox, QLabel
 
+from iosc.sig.widget.common import AnalogSignalSuit
 from iosc.sig.widget.dialog import SelectSignalsDialog
 
 # x. consts
@@ -36,7 +37,7 @@ class SelectCVDSignalsDialog(SelectSignalsDialog):
 
     def __init__(
             self,
-            ass_list: list['AnalogSignalSuit'],
+            ass_list: list[AnalogSignalSuit],
             ass_used: set[int],
             ass_base: Optional[int],
             parent=None
@@ -201,8 +202,9 @@ class CVTable(QTableWidget):
 
 class CVDWindow(QDialog):
     """Main CVD window."""
-    ss_used: list[int]
-    ss_base: Optional[int]
+    __ass_list: list[AnalogSignalSuit]  # just shortcut
+    ss_used: list[AnalogSignalSuit]
+    ss_base: Optional[AnalogSignalSuit]
     toobar: QToolBar
     diagram: CVDiagramView
     table: CVTable
@@ -212,6 +214,7 @@ class CVDWindow(QDialog):
 
     def __init__(self, parent: 'ComtradeWidget'):
         super().__init__(parent)
+        self.__ass_list = parent.ass_list
         self.__mk_widgets()
         self.__mk_layout()
         self.__mk_actions()
@@ -263,15 +266,13 @@ class CVDWindow(QDialog):
         self.toolbar.addAction(self.action_close)
 
     def __do_settings(self):
-        retvalue = SelectCVDSignalsDialog(self.parent().ass_list, set(self.ss_used), self.ss_base).execute()
+        ss_used_i = set([ss.signal.i for ss in self.ss_used])  # WARN: works if ss.signal.i <=> self.__ass_list[i]
+        ss_base_i = self.ss_base.signal.i if self.ss_base else None
+        retvalue = SelectCVDSignalsDialog(self.__ass_list, ss_used_i, ss_base_i).execute()
         if retvalue is not None:
-            print(retvalue)
-            self.ss_used = retvalue[0]
-            self.ss_base = retvalue[1]
-            # self.ss_used.clear()
-            # for i in ss_used_i:
-            #     self.ss_used.append(self.parent().ass_list[i])
-            # self.ss_base = self.parent().ass_list[ss_base_i] if ss_base_i is not None else None
+            self.ss_used.clear()
+            self.ss_used = [self.__ass_list[i] for i in retvalue[0]]
+            self.ss_base = self.__ass_list[retvalue[1]] if retvalue[1] is not None else None
 
     def __do_select_ptr(self):
         # Mainptr[, TmpPtr[]]

@@ -162,6 +162,7 @@ class SelectSignalsDialog(QDialog):
         self._mk_layout()
         self._mk_connections()
         self._set_data(ass_list, ass_used)
+        self.button_box.setFocus()
 
     def _mk_widgets(self):
         self.button_all = QPushButton("Select all", self)
