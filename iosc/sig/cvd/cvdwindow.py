@@ -2,7 +2,7 @@
 import math
 from typing import Optional
 
-from PyQt5.QtCore import Qt, QRectF, QPoint, QPointF, QSizeF, QLineF
+from PyQt5.QtCore import Qt, QRectF, QPointF, QSizeF, QLineF
 from PyQt5.QtGui import QIcon, QResizeEvent, QPainter, QPen, QColor, QFont, QPolygonF, QPixmap
 # 2. 3rd
 from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView, \
@@ -34,25 +34,39 @@ def sign(v: float):
 class SelectCVDSignalsDialog(SelectSignalsDialog):
     f_base_signal: QComboBox
 
-    def __init__(self, ass_list: list['AnalogSignalSuit'], parent=None):
-        super().__init__(ass_list, parent)
+    def __init__(
+            self,
+            ass_list: list['AnalogSignalSuit'],
+            ass_used: set[int],
+            ass_base: Optional[int],
+            parent=None
+    ):
+        super().__init__(ass_list, ass_used, parent)
         self.f_base_signal = QComboBox(self)
-        for ss in ass_list:
+        self.f_base_signal.addItem('---')
+        for i, ss in enumerate(ass_list):
             pixmap = QPixmap(16, 16)
             pixmap.fill(ss.color)
             self.f_base_signal.addItem(QIcon(pixmap), ss.signal.sid)
+        if ass_base is not None:
+            self.f_base_signal.setCurrentIndex(ass_base + 1)
         self.layout().insertWidget(2, QLabel("Base:", self))
         self.layout().insertWidget(3, self.f_base_signal)
-        # TODO: f_base_signal.setCurrentIndex(...)
 
-    def execute(self) -> tuple[list[int], Optional[int]]:
-        retlist = list()
+    def execute(self) -> Optional[tuple[list[int], Optional[int]]]:
+        """
+        :return: None if Cancel, list of selected items if ok
+        """
         if self.exec_():
+            retlist = list()
             for i in range(self.f_signals.count()):
-                if self.f_signals.item(i).isSelected():
+                if self.f_signals.item(i).checkState() == Qt.Checked:
                     retlist.append(i)
-        retval = self.f_base_signal.currentIndex()
-        return retlist, retval
+            if retval := self.f_base_signal.currentIndex():
+                retval -= 1
+            else:
+                retval = None
+            return retlist, retval
 
 
 class CVDiagramObject(QGraphicsObject):
@@ -187,7 +201,8 @@ class CVTable(QTableWidget):
 
 class CVDWindow(QDialog):
     """Main CVD window."""
-    using_ss: list['AnalogSignalSuit']
+    ss_used: list[int]
+    ss_base: Optional[int]
     toobar: QToolBar
     diagram: CVDiagramView
     table: CVTable
@@ -202,6 +217,8 @@ class CVDWindow(QDialog):
         self.__mk_actions()
         self.__mk_toolbar()
         self.setWindowTitle("Vector Diagram")
+        self.ss_used = list()
+        self.ss_base = None
 
     def __mk_widgets(self):
         self.toolbar = QToolBar(self)
@@ -246,10 +263,15 @@ class CVDWindow(QDialog):
         self.toolbar.addAction(self.action_close)
 
     def __do_settings(self):
-        # TODO: prepare already selected
-        SelectCVDSignalsDialog(self.parent().ass_list).execute()
-        #    for i in ss_selected:
-        #        ...
+        retvalue = SelectCVDSignalsDialog(self.parent().ass_list, set(self.ss_used), self.ss_base).execute()
+        if retvalue is not None:
+            print(retvalue)
+            self.ss_used = retvalue[0]
+            self.ss_base = retvalue[1]
+            # self.ss_used.clear()
+            # for i in ss_used_i:
+            #     self.ss_used.append(self.parent().ass_list[i])
+            # self.ss_base = self.parent().ass_list[ss_base_i] if ss_base_i is not None else None
 
     def __do_select_ptr(self):
         # Mainptr[, TmpPtr[]]

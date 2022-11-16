@@ -7,10 +7,10 @@ Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
   + [x] &rdsh; axis label
   + [x] Arrow
   + [x] Vector = Arrow + Label
-- Settings (select signals)
-- Table
-- Update table/diagram by signal (name, color) & ptr (angle, value)
-- Time
+- [x] Select signals
+- [ ] Table
+- [ ] Update table/diagram by signal (name, color) & ptr (angle, value)
+- [ ] Select Ptr
 
 ## Vector diagram
 

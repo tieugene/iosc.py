@@ -155,14 +155,15 @@ class SelectSignalsDialog(QDialog):
     buttons_select: QDialogButtonBox
     button_box: QDialogButtonBox
 
-    def __init__(self, ass_list: list['AnalogSignalSuit'], parent=None):
+    def __init__(self, ass_list: list['AnalogSignalSuit'], ass_used: set[int] = (), parent=None):
         super().__init__(parent)
         self.setWindowTitle("Select signals")
-        self._mk_widgets(ass_list)
+        self._mk_widgets()
         self._mk_layout()
         self._mk_connections()
+        self._set_data(ass_list, ass_used)
 
-    def _mk_widgets(self, ass_list: list['AnalogSignalSuit']):
+    def _mk_widgets(self):
         self.button_all = QPushButton("Select all", self)
         self.button_none = QPushButton("Clean", self)
         self.buttons_select = QDialogButtonBox()
@@ -171,11 +172,6 @@ class SelectSignalsDialog(QDialog):
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.f_signals = QListWidget()
         self.f_signals.setSelectionMode(self.f_signals.MultiSelection)
-        for ss in ass_list:
-            item = QListWidgetItem(ss.signal.sid, self.f_signals)
-            item.setFlags(item.flags() & (~Qt.ItemIsUserCheckable))
-            item.setCheckState(Qt.Unchecked)
-            item.setForeground(ss.color)
 
     def _mk_layout(self):
         self.setLayout(QVBoxLayout())
@@ -190,6 +186,17 @@ class SelectSignalsDialog(QDialog):
         self.buttons_select.rejected.connect(self.__slot_select_none)
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
+
+    def _set_data(self, ass_list: list['AnalogSignalSuit'], ass_used: set[int]):
+        for i, ss in enumerate(ass_list):
+            item = QListWidgetItem(ss.signal.sid, self.f_signals)
+            item.setForeground(ss.color)
+            item.setFlags(item.flags() & (~Qt.ItemIsUserCheckable))
+            if i in ass_used:
+                item.setCheckState(Qt.Checked)
+                item.setSelected(True)
+            else:
+                item.setCheckState(Qt.Unchecked)
 
     def __slot_selection_changed(self):
         for i in range(self.f_signals.count()):
@@ -215,7 +222,7 @@ class SelectSignalsDialog(QDialog):
         retvalue = list()
         if self.exec_():
             for i in range(self.f_signals.count()):
-                if self.f_signals.item(i).isSelected():
+                if self.f_signals.item(i).checkState() == Qt.Checked:
                     retvalue.append(i)
         return retvalue
 
