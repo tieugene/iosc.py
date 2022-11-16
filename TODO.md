@@ -2,11 +2,11 @@
 
 Current job: [0.3.0](https://github.com/tieugene/iosc.py/milestone/12)
 
-- [ ] textitem (text, anchor, color, align(H|V))
-- [ ] &rdsh; axis label 
+- [x] textitem (text, anchor, radius)
+- [x] &rdsh; axis label 
 - [ ] Vector (by signal: angle, value, color)
   + [ ] line
-  + [ ] arrow
+  + [ ] arrow &deg;
   + [ ] label
 
 ## Vector diagram

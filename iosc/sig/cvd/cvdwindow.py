@@ -1,27 +1,60 @@
 """Circular Vector Diagram"""
 import math
+from typing import Optional
 
 from PyQt5.QtCore import Qt, QRectF, QPoint, QPointF
-from PyQt5.QtGui import QIcon, QResizeEvent, QPainter, QPen, QColor
+from PyQt5.QtGui import QIcon, QResizeEvent, QPainter, QPen, QColor, QFont
 # 2. 3rd
 from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView, \
-    QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget, QGraphicsEllipseItem, QGraphicsLineItem
+    QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget, QGraphicsEllipseItem, QGraphicsLineItem, \
+    QGraphicsTextItem
 
 # x. consts
 RAD = 100  # Radius of diagram
+DRAD_AXIS_LABEL = 5
 GRID_STEPS_C = 5  # Number of circular grid lines
 GRID_STEPS_R = 8  # Number of radial grid lines
 POINT_Z = QPoint(0, 0)  # Helper
+SIN225 = math.sin(math.pi / 8)  # 22.5°
+
+
+def sign(v: float):
+    if abs(v) < SIN225:
+        return 0
+    elif v < 0:
+        return -1
+    else:
+        return 1
 
 
 class CVDiagramObject(QGraphicsObject):
     class GridC(QGraphicsEllipseItem):
-        def __init__(self, radius: int, parent: 'CVDiagramObject'):
+        def __init__(self, parent: 'CVDiagramObject', radius: int):
             super().__init__(-radius, -radius, 2 * radius, 2 * radius, parent)
 
     class GridR(QGraphicsLineItem):
-        def __init__(self, angle: float, parent: 'CVDiagramObject'):
-            super().__init__(0, 0, RAD * math.sin(angle), RAD * math.cos(angle), parent)
+        def __init__(self, parent: 'CVDiagramObject', angle: float):
+            super().__init__(0, 0, RAD * math.cos(angle), RAD * math.sin(angle), parent)
+
+    class Label(QGraphicsTextItem):
+        def __init__(
+                self,
+                parent: 'CVDiagramObject',
+                text: str,
+                angle: float,
+                radius: int,
+                color: Optional[QColor] = None):
+            super().__init__(text, parent)
+            self.setFont(QFont('mono', 8))
+            if color is not None:
+                self.setDefaultTextColor(color)
+            self.adjustSize()
+            x0_norm, y0_norm = math.cos(angle), math.sin(angle)
+            rect: QRectF = self.boundingRect()
+            self.setPos(QPointF(
+                radius * x0_norm + (sign(x0_norm) - 1) * rect.width() / 2,
+                radius * y0_norm + (sign(y0_norm) - 1) * rect.height() / 2
+            ))
 
     def __init__(self):
         super().__init__()
@@ -29,15 +62,23 @@ class CVDiagramObject(QGraphicsObject):
         pen = QPen(Qt.gray)
         pen.setCosmetic(True)  # don't change width on resizing
         for i in range(GRID_STEPS_C):  # - circular
-            self.GridC(RAD - RAD // GRID_STEPS_C * i, self).setPen(pen)
-        for i in range(GRID_STEPS_R):  # radial
-            self.GridR(i * math.radians(360 // GRID_STEPS_R), self).setPen(pen)
+            self.GridC(self, RAD - RAD // GRID_STEPS_C * i).setPen(pen)
+        for i in range(GRID_STEPS_R):  # - radial
+            self.GridR(self, i * math.radians(360 // GRID_STEPS_R)).setPen(pen)
+        # axes labels
+        pen.setColor(Qt.black)
+        self.Label(self, "90°", 0, RAD + DRAD_AXIS_LABEL)
+        self.Label(self, "180°", math.radians(90), RAD + DRAD_AXIS_LABEL)
+        self.Label(self, "-90°", math.radians(180), RAD + DRAD_AXIS_LABEL)
+        self.Label(self, "0°", math.radians(-90), RAD + DRAD_AXIS_LABEL)
+        # for i in range(36):
+        #    self.Label(self, f"L{i * 10}", i * math.radians(10), RAD, QColor(Qt.black))
 
-    def boundingRect(self):
+    def boundingRect(self) -> QRectF:
         return self.childrenBoundingRect()
 
     def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
-        ...  # auto
+        ...  # stub
 
 
 class CVDiagramView(QGraphicsView):
