@@ -1,4 +1,5 @@
 """Circular Vector Diagram"""
+import cmath
 import math
 from typing import Optional
 
@@ -9,6 +10,7 @@ from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBa
     QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget, QGraphicsEllipseItem, QGraphicsLineItem, \
     QGraphicsTextItem, QComboBox, QLabel, QTableWidgetItem
 
+from iosc.core.sigfunc import hrm1
 from iosc.sig.widget.common import AnalogSignalSuit
 from iosc.sig.widget.dialog import SelectSignalsDialog
 
@@ -21,6 +23,7 @@ GRID_STEPS_C = 5  # Number of circular grid lines
 GRID_STEPS_R = 8  # Number of radial grid lines
 POINT_Z = QPointF(0, 0)  # Helper
 SIN225 = math.sin(math.pi / 8)  # 22.5°
+TABLE_HEAD = ("Name", "Module", "Angle", "Re", "Im")
 
 
 def sign(v: float):
@@ -196,10 +199,10 @@ class CVTable(QTableWidget):
     def __init__(self, parent: 'CVDWindow'):
         super().__init__(parent)
         self.__parent = parent
-        self.setColumnCount(6)
+        self.setColumnCount(len(TABLE_HEAD))
         self.horizontalHeader().setStretchLastSection(True)
         self.setVerticalScrollMode(self.ScrollPerPixel)
-        self.setHorizontalHeaderLabels(("Name", "Module", "Angle", "Re", "Im"))
+        self.setHorizontalHeaderLabels(TABLE_HEAD)
         self.resizeRowsToContents()
 
     def reload_signals(self):
@@ -210,14 +213,25 @@ class CVTable(QTableWidget):
             for c in range(self.columnCount()):
                 if self.item(r, c) is None:
                     self.setItem(r, c, QTableWidgetItem())
+                    if c:
+                        self.item(r, c).setTextAlignment(Qt.AlignRight)
             self.item(r, 0).setCheckState(Qt.Checked)
             self.item(r, 0).setText(ss.signal.sid)
             self.item(r, 0).setForeground(ss.color)
+        self.refresh_signals()
+        self.resizeColumnsToContents()
 
     def refresh_signals(self):
         """Refresh row values by ptr"""
-        for c in range(self.rowCount()):
-            ...  # load signal harmonic values for specific Ptr.i
+        i = self.__parent.parent().main_ptr_i
+        for r, ss in enumerate(self.__parent.ss_used):
+            ...  # load signal harmonic values for specific Ptr.i; RTFM ss.sig2str_i
+            v: complex = ss.hrm1(i)
+            uu = ss.signal.raw2.uu
+            self.item(r, 1).setText("%.1f %s" % (abs(v), uu))
+            self.item(r, 2).setText("%.1f°" % math.degrees(cmath.phase(v)))
+            self.item(r, 3).setText("%.1f %s" % (v.real, uu))
+            self.item(r, 4).setText("%.1f %s" % (v.imag, uu))
 
 
 class CVDWindow(QDialog):

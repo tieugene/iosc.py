@@ -11,7 +11,7 @@ from QCustomPlot2 import QCPGraph, QCPScatterStyle, QCustomPlot, QCPRange
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.core.sigfunc import func_list
+from iosc.core.sigfunc import func_list, hrm1
 from iosc.sig.widget.ctrl import BarCtrlWidget, StatusSignalLabel, AnalogSignalLabel
 from iosc.sig.widget.chart import BarPlotWidget
 from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
@@ -221,6 +221,15 @@ class AnalogSignalSuit(SignalSuit):
             return "%s / %.3f°" % (y_str, math.degrees(cmath.phase(v)))
         else:
             return y_str
+
+    def hrm1(self, i: int) -> complex:
+        """
+        Harmonic #1 of the signal.
+        Used by CVD.
+        :param i: Point of x-axis
+        :return: Complex value of 1st harmonic
+        """
+        return hrm1(self.signal.value, i, self.oscwin.osc.spp)
 
     def __slot_reload_data(self):
         self._set_data()
