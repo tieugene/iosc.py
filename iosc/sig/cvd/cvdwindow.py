@@ -3,11 +3,13 @@ import math
 from typing import Optional
 
 from PyQt5.QtCore import Qt, QRectF, QPoint, QPointF, QSizeF, QLineF
-from PyQt5.QtGui import QIcon, QResizeEvent, QPainter, QPen, QColor, QFont, QPolygonF
+from PyQt5.QtGui import QIcon, QResizeEvent, QPainter, QPen, QColor, QFont, QPolygonF, QPixmap
 # 2. 3rd
 from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView, \
     QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget, QGraphicsEllipseItem, QGraphicsLineItem, \
-    QGraphicsTextItem
+    QGraphicsTextItem, QComboBox, QLabel
+
+from iosc.sig.widget.dialog import SelectSignalsDialog
 
 # x. consts
 RAD = 100  # Radius of diagram
@@ -27,6 +29,30 @@ def sign(v: float):
         return -1
     else:
         return 1
+
+
+class SelectCVDSignalsDialog(SelectSignalsDialog):
+    f_base_signal: QComboBox
+
+    def __init__(self, ass_list: list['AnalogSignalSuit'], parent=None):
+        super().__init__(ass_list, parent)
+        self.f_base_signal = QComboBox(self)
+        for ss in ass_list:
+            pixmap = QPixmap(16, 16)
+            pixmap.fill(ss.color)
+            self.f_base_signal.addItem(QIcon(pixmap), ss.signal.sid)
+        self.layout().insertWidget(2, QLabel("Base:", self))
+        self.layout().insertWidget(3, self.f_base_signal)
+        # TODO: f_base_signal.setCurrentIndex(...)
+
+    def execute(self) -> tuple[list[int], Optional[int]]:
+        retlist = list()
+        if self.exec_():
+            for i in range(self.f_signals.count()):
+                if self.f_signals.item(i).isSelected():
+                    retlist.append(i)
+        retval = self.f_base_signal.currentIndex()
+        return retlist, retval
 
 
 class CVDiagramObject(QGraphicsObject):
@@ -71,7 +97,7 @@ class CVDiagramObject(QGraphicsObject):
 
         def shape(self):
             path = super().shape()
-            path.addPolyline(self.__arrowHead)
+            path.addPolygon(self.__arrowHead)
             return path
 
         def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
@@ -161,6 +187,7 @@ class CVTable(QTableWidget):
 
 class CVDWindow(QDialog):
     """Main CVD window."""
+    using_ss: list['AnalogSignalSuit']
     toobar: QToolBar
     diagram: CVDiagramView
     table: CVTable
@@ -201,6 +228,7 @@ class CVDWindow(QDialog):
         self.action_settings = QAction(QIcon.fromTheme("document-properties"),
                                        "&Settings",
                                        self,
+                                       shortcut="Ctrl+S",
                                        triggered=self.__do_settings)
         self.action_select_ptr = QAction(QIcon.fromTheme("go-jump"),
                                          "&Pointer",
@@ -209,6 +237,7 @@ class CVDWindow(QDialog):
         self.action_close = QAction(QIcon.fromTheme("window-close"),
                                     "&Close",
                                     self,
+                                    shortcut="Ctrl+W",
                                     triggered=self.close)
 
     def __mk_toolbar(self):
@@ -217,7 +246,10 @@ class CVDWindow(QDialog):
         self.toolbar.addAction(self.action_close)
 
     def __do_settings(self):
-        ...
+        # TODO: prepare already selected
+        SelectCVDSignalsDialog(self.parent().ass_list).execute()
+        #    for i in ss_selected:
+        #        ...
 
     def __do_select_ptr(self):
         # Mainptr[, TmpPtr[]]

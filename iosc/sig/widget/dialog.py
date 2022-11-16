@@ -158,7 +158,11 @@ class SelectSignalsDialog(QDialog):
     def __init__(self, ass_list: list['AnalogSignalSuit'], parent=None):
         super().__init__(parent)
         self.setWindowTitle("Select signals")
-        # 1. set widgets
+        self._mk_widgets(ass_list)
+        self._mk_layout()
+        self._mk_connections()
+
+    def _mk_widgets(self, ass_list: list['AnalogSignalSuit']):
         self.button_all = QPushButton("Select all", self)
         self.button_none = QPushButton("Clean", self)
         self.buttons_select = QDialogButtonBox()
@@ -172,13 +176,15 @@ class SelectSignalsDialog(QDialog):
             item.setFlags(item.flags() & (~Qt.ItemIsUserCheckable))
             item.setCheckState(Qt.Unchecked)
             item.setForeground(ss.color)
-        # 3. set layout
+
+    def _mk_layout(self):
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(self.buttons_select)
         self.layout().addWidget(self.f_signals)
         self.layout().addWidget(self.button_box)
         # layout.setVerticalSpacing(0)
-        # 4. set signals
+
+    def _mk_connections(self):
         self.f_signals.itemSelectionChanged.connect(self.__slot_selection_changed)
         self.buttons_select.accepted.connect(self.__slot_select_all)
         self.buttons_select.rejected.connect(self.__slot_select_none)
