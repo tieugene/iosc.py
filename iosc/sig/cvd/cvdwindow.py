@@ -10,7 +10,6 @@ from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBa
     QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget, QGraphicsEllipseItem, QGraphicsLineItem, \
     QGraphicsTextItem, QComboBox, QLabel, QTableWidgetItem
 
-from iosc.core.sigfunc import hrm1
 from iosc.sig.widget.common import AnalogSignalSuit
 from iosc.sig.widget.dialog import SelectSignalsDialog
 
@@ -42,22 +41,21 @@ class SelectCVDSignalsDialog(SelectSignalsDialog):
             self,
             ass_list: list[AnalogSignalSuit],
             ass_used: set[int],
-            ass_base: Optional[int],
+            ass_base: int = 0,
             parent=None
     ):
         super().__init__(ass_list, ass_used, parent)
         self.f_base_signal = QComboBox(self)
-        self.f_base_signal.addItem('---')
         for i, ss in enumerate(ass_list):
             pixmap = QPixmap(16, 16)
             pixmap.fill(ss.color)
             self.f_base_signal.addItem(QIcon(pixmap), ss.signal.sid)
         if ass_base is not None:
-            self.f_base_signal.setCurrentIndex(ass_base + 1)
+            self.f_base_signal.setCurrentIndex(ass_base)
         self.layout().insertWidget(2, QLabel("Base:", self))
         self.layout().insertWidget(3, self.f_base_signal)
 
-    def execute(self) -> Optional[tuple[list[int], Optional[int]]]:
+    def execute(self) -> Optional[tuple[list[int], int]]:
         """
         :return: None if Cancel, list of selected items if ok
         """
@@ -66,10 +64,7 @@ class SelectCVDSignalsDialog(SelectSignalsDialog):
             for i in range(self.f_signals.count()):
                 if self.f_signals.item(i).checkState() == Qt.Checked:
                     retlist.append(i)
-            if retval := self.f_base_signal.currentIndex():
-                retval -= 1
-            else:
-                retval = None
+            retval = self.f_base_signal.currentIndex()
             return retlist, retval
 
 
@@ -259,7 +254,7 @@ class CVDWindow(QDialog):
     """Main CVD window."""
     __ass_list: list[AnalogSignalSuit]  # just shortcut
     ss_used: list[AnalogSignalSuit]
-    ss_base: Optional[AnalogSignalSuit]
+    ss_base: AnalogSignalSuit
     toobar: QToolBar
     diagram: CVDiagramView
     table: CVTable
@@ -276,7 +271,7 @@ class CVDWindow(QDialog):
         self.__mk_toolbar()
         self.setWindowTitle("Vector Diagram")
         self.ss_used = list()
-        self.ss_base = None
+        self.ss_base = parent.ass_list[0]
 
     @property
     def t_i(self):
@@ -327,12 +322,12 @@ class CVDWindow(QDialog):
 
     def __do_settings(self):
         ss_used_i = set([ss.signal.i for ss in self.ss_used])  # WARN: works if ss.signal.i <=> self.__ass_list[i]
-        ss_base_i = self.ss_base.signal.i if self.ss_base else None
+        ss_base_i = self.ss_base.signal.i
         retvalue = SelectCVDSignalsDialog(self.__ass_list, ss_used_i, ss_base_i).execute()
         if retvalue is not None:
             self.ss_used.clear()
             self.ss_used = [self.__ass_list[i] for i in retvalue[0]]
-            self.ss_base = self.__ass_list[retvalue[1]] if retvalue[1] is not None else None
+            self.ss_base = self.__ass_list[retvalue[1]]
             self.table.reload_signals()
             self.diagram.reload_signals()
 
