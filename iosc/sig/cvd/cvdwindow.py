@@ -300,7 +300,7 @@ class CVDWindow(QDialog):
     __ass_list: list[AnalogSignalSuit]  # just shortcut
     ss_used: list[AnalogSignalSuit]
     ss_base: AnalogSignalSuit
-    toobar: QToolBar
+    toolbar: QToolBar
     diagram: CVDiagramView
     table: CVTable
     action_settings: QAction
@@ -310,13 +310,14 @@ class CVDWindow(QDialog):
     def __init__(self, parent: 'ComtradeWidget'):
         super().__init__(parent)
         self.__ass_list = parent.ass_list
+        self.ss_used = list()
+        self.ss_base = parent.ass_list[0]
         self.__mk_widgets()
         self.__mk_layout()
         self.__mk_actions()
         self.__mk_toolbar()
         self.setWindowTitle("Vector Diagram")
-        self.ss_used = list()
-        self.ss_base = parent.ass_list[0]
+        parent.signal_ptr_moved_main.connect(self.__slot_ptr_moved)
 
     @property
     def t_i(self):
@@ -379,3 +380,6 @@ class CVDWindow(QDialog):
     def __do_select_ptr(self):
         # Mainptr[, TmpPtr[]]
         ...
+
+    def __slot_ptr_moved(self):
+        self.table.refresh_signals()
