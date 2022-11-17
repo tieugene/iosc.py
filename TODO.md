@@ -15,7 +15,7 @@ Current job: [0.3.1](https://github.com/tieugene/iosc.py/milestone/13)
   + [x] Table (values)
   + [x] Diagram (angle)
 * […] Align angle to:
-  + [ ] North
+  + [x] North
   + [ ] Base signal
 - [ ] Select Ptr
 - [ ] Update by selected Ptr

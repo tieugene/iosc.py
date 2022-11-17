@@ -179,12 +179,12 @@ class CVDiagramObject(QGraphicsObject):
             ...  # stub
 
         def __get_angle(self) -> float:
-            return cmath.phase(self.__ss.hrm1(self.__parent.cvdview.cvdwin.t_i))
+            return cmath.phase(self.__ss.hrm1(self.__parent.cvdview.cvdwin.t_i)) - math.pi / 2
 
         def update_angle(self):
             a = self.__get_angle()
             self.__arrow.set_angle(a)
-            self.__label.set_angle(a)
+            self.__label.set_angle(a)  # ? refreshes arrow ?
 
         def update_color(self):
             self.__arrow.set_color(self.__ss.color)
