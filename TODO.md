@@ -14,10 +14,10 @@ Current job: [0.3.1](https://github.com/tieugene/iosc.py/milestone/13)
 - [x] Update by MainPtr:
   + [x] Table (values)
   + [x] Diagram (angle)
-* […] Align angle to:
+* [x] Align angle to:
   + [x] North
-  + [ ] Base signal
-- [ ] Select Ptr
+  + [x] Base signal
+- […] Select Ptr
 - [ ] Update by selected Ptr
 - [ ] Use base signal
 - [ ] Hide/Show

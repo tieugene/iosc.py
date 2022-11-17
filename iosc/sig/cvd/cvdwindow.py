@@ -179,7 +179,10 @@ class CVDiagramObject(QGraphicsObject):
             ...  # stub
 
         def __get_angle(self) -> float:
-            return cmath.phase(self.__ss.hrm1(self.__parent.cvdview.cvdwin.t_i)) - math.pi / 2
+            return\
+                cmath.phase(self.__ss.hrm1(self.__parent.cvdview.cvdwin.t_i))\
+                - self.__parent.cvdview.cvdwin.get_base_angle()\
+                - math.pi / 2
 
         def update_angle(self):
             a = self.__get_angle()
@@ -336,6 +339,9 @@ class CVDWindow(QDialog):
     def t_i(self):
         """Current MainPtr.i"""
         return self.parent().main_ptr_i
+
+    def get_base_angle(self) -> float:
+        return cmath.phase(self.ss_base.hrm1(self.t_i))
 
     def __mk_widgets(self):
         self.toolbar = QToolBar(self)
