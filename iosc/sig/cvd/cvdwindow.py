@@ -14,7 +14,7 @@ from iosc.sig.widget.common import AnalogSignalSuit
 from iosc.sig.widget.dialog import SelectSignalsDialog
 
 # x. consts
-RAD = 100  # Radius of diagram
+RAD = 100  # Radius of chart
 DRAD_AXIS_LABEL = 0  # Distance from end of line to label margin
 ARROW_SIZE = 10  # Arrow sides length
 ARROW_ANGLE = math.pi / 6  # Arrow sides angle from main line
@@ -83,27 +83,28 @@ class CVDiagramObject(QGraphicsObject):
 
         def __init__(self, parent: QGraphicsObject, text: str, a: float, r: float, color: Optional[QColor] = None):
             super().__init__(text, parent)
-            self.__angle = a
             self.__len = r
             self.setFont(QFont('mono', 8))
             if color is not None:
-                self.setDefaultTextColor(color)
+                self.set_color(color)
             self.adjustSize()
+            self.set_angle(a)
+
+        def set_angle(self, a: float):
+            ...  # TODO:
+            self.__angle = a
             x0_norm, y0_norm = math.cos(a), math.sin(a)
             rect: QRectF = self.boundingRect()
             self.setPos(QPointF(
-                (r + DRAD_AXIS_LABEL) * x0_norm + (sign(x0_norm) - 1) * rect.width() / 2,
-                (r + DRAD_AXIS_LABEL) * y0_norm + (sign(y0_norm) - 1) * rect.height() / 2
+                (self.__len + DRAD_AXIS_LABEL) * x0_norm + (sign(x0_norm) - 1) * rect.width() / 2,
+                (self.__len + DRAD_AXIS_LABEL) * y0_norm + (sign(y0_norm) - 1) * rect.height() / 2
             ))
 
-        def set_angle(self):
-            ...  # TODO:
+        def set_color(self, c: QColor):
+            self.setDefaultTextColor(c)
 
-        def set_color(self):
-            ...  # TODO:
-
-        def set_text(self):
-            ...  # TODO:
+        def set_text(self, t: str):
+            self.setPlainText(t)
 
     class Arrow(QGraphicsLineItem):
         __angle: float
@@ -147,22 +148,25 @@ class CVDiagramObject(QGraphicsObject):
             painter.drawLine(self.line())
             painter.drawPolyline(self.__arrowHead)
 
-        def set_angle(self):
+        def set_angle(self, a: float):
+            self.__angle = a
             ...  # TODO:
 
-        def set_color(self):
-            ...  # TODO:
+        def set_color(self, c: QColor):
+            self.__color = c
+            ...  # TODO
 
     class SigVector(QGraphicsObject):
+        __parent: 'CVDiagramObject'
         __ss: AnalogSignalSuit
         __arrow: 'CVDiagramObject.Arrow'
         __label: 'CVDiagramObject.Label'
 
         def __init__(self, parent: 'CVDiagramObject', ss: AnalogSignalSuit):
             super().__init__(parent)
+            self.__parent = parent
             self.__ss = ss
-            v = self.__ss.hrm1(parent.cvdview.cvdwin.t_i)
-            angle = cmath.phase(v)
+            angle = self.__get_angle()
             pen = QPen(self.__ss.color)
             pen.setCosmetic(True)
             self.__arrow = CVDiagramObject.Arrow(self, angle, RAD, self.__ss.color)
@@ -174,16 +178,20 @@ class CVDiagramObject(QGraphicsObject):
         def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
             ...  # stub
 
-        def set_angle(self):
-            self.__arrow.set_angle()
-            self.__label.set_angle()
+        def __get_angle(self) -> float:
+            return cmath.phase(self.__ss.hrm1(self.__parent.cvdview.cvdwin.t_i))
 
-        def set_color(self):
-            self.__arrow.set_color()
-            self.__label.set_color()
+        def update_angle(self):
+            a = self.__get_angle()
+            self.__arrow.set_angle(a)
+            self.__label.set_angle(a)
 
-        def set_text(self):
-            self.__label.set_text()
+        def update_color(self):
+            self.__arrow.set_color(self.__ss.color)
+            self.__label.set_color(self.__ss.color)
+
+        def update_text(self):
+            self.__label.set_text(self.__ss.signal.sid)
 
     cvdview: 'CVDiagramView'
     sv_list: list[SigVector]
@@ -222,6 +230,10 @@ class CVDiagramObject(QGraphicsObject):
         """Add signal vector"""
         self.sv_list.append(self.SigVector(self, ss))
 
+    def sv_refresh(self):
+        for sv in self.sv_list:
+            sv.update_angle()
+
 
 class CVDiagramView(QGraphicsView):
     cvdwin: 'CVDWindow'
@@ -253,6 +265,7 @@ class CVDiagramView(QGraphicsView):
 
     def refresh_signals(self):
         """Refresh row values by ptr"""
+        self.circle.sv_refresh()
 
 
 class CVTable(QTableWidget):
@@ -301,7 +314,7 @@ class CVDWindow(QDialog):
     ss_used: list[AnalogSignalSuit]
     ss_base: AnalogSignalSuit
     toolbar: QToolBar
-    diagram: CVDiagramView
+    chart: CVDiagramView
     table: CVTable
     action_settings: QAction
     action_select_ptr: QAction
@@ -326,7 +339,7 @@ class CVDWindow(QDialog):
 
     def __mk_widgets(self):
         self.toolbar = QToolBar(self)
-        self.diagram = CVDiagramView(self)
+        self.chart = CVDiagramView(self)
         self.table = CVTable(self)
 
     def __mk_layout(self):
@@ -337,7 +350,7 @@ class CVDWindow(QDialog):
         """
         splitter = QSplitter(Qt.Vertical, self)
         splitter.setStyleSheet("QSplitter::handle{background: grey;}")
-        splitter.addWidget(self.diagram)
+        splitter.addWidget(self.chart)
         splitter.addWidget(self.table)
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
@@ -374,12 +387,13 @@ class CVDWindow(QDialog):
             self.ss_used.clear()
             self.ss_used = [self.__ass_list[i] for i in retvalue[0]]
             self.ss_base = self.__ass_list[retvalue[1]]
+            self.chart.reload_signals()
             self.table.reload_signals()
-            self.diagram.reload_signals()
 
     def __do_select_ptr(self):
         # Mainptr[, TmpPtr[]]
         ...
 
     def __slot_ptr_moved(self):
+        self.chart.refresh_signals()
         self.table.refresh_signals()

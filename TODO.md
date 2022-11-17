@@ -9,11 +9,14 @@ Current job: [0.3.1](https://github.com/tieugene/iosc.py/milestone/13)
   + [x] Vector = Arrow + Label
 - [x] Select signals
 - [x] Initial fill:
-    + [x] Table (name, color, values)
-    + [x] Diagram (name, color, angle)
-- […] Update by MainPtr:
-    + [ ] Table (values)
-    + [ ] Diagram (angle) < [ ] direct from ss
+  + [x] Table (name, color, values)
+  + [x] Diagram (name, color, angle)
+- [x] Update by MainPtr:
+  + [x] Table (values)
+  + [x] Diagram (angle)
+* […] Align angle to:
+  + [ ] North
+  + [ ] Base signal
 - [ ] Select Ptr
 - [ ] Update by selected Ptr
 - [ ] Use base signal

@@ -277,7 +277,7 @@ class ComtradeWidget(QWidget):
         self.action_ptr_add_lvl = QAction("Add level pointers",
                                           self,
                                           triggered=self.__do_ptr_add_lvl)
-        self.action_vector_diagram = QAction("Vector diagram",
+        self.action_vector_diagram = QAction("Vector chart",
                                              self,
                                              shortcut="Ctrl+V",
                                              triggered=self.__do_vector_diagram)
