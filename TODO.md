@@ -2,13 +2,6 @@
 
 Current job: [0.3.1. CVD](https://github.com/tieugene/iosc.py/issues/190)
 
-- [x] TmpPtr:
-  + [x] Select
-  + [x] Chg TmpPtrs:
-    * [x] Add: add to list
-    * [x] Del: switch to MainPtr
-  * [x] Switch
-  + [x] Update by selected TmpPtr
 - [ ] Hide/Show signals
 - [ ] Update name, color
 - [ ] CVD on/off

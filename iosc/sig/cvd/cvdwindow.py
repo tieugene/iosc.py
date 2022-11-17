@@ -316,19 +316,23 @@ class CVDiagramView(QGraphicsView):
 
 class CVTable(QTableWidget):
     __parent: 'CVDWindow'
+    __trace_items: bool  # process item changing
 
     def __init__(self, parent: 'CVDWindow'):
         super().__init__(parent)
         self.__parent = parent
+        self.__trace_items = False
         self.setColumnCount(len(TABLE_HEAD))
         self.horizontalHeader().setStretchLastSection(True)
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setHorizontalHeaderLabels(TABLE_HEAD)
         self.setSelectionMode(self.NoSelection)
         self.resizeRowsToContents()
+        self.itemChanged.connect(self.__slot_item_chgd)
 
     def reload_signals(self):
         """Reload rows from selected signals."""
+        self.__trace_items = False
         self.setRowCount(len(self.__parent.ss_used))  # all items can be None
         for r, ss in enumerate(self.__parent.ss_used):
             for c in range(self.columnCount()):
@@ -344,6 +348,7 @@ class CVTable(QTableWidget):
 
     def refresh_signals(self):
         """Refresh row values by ptr"""
+        self.__trace_items = False
         i = self.__parent.t_i
         for r, ss in enumerate(self.__parent.ss_used):
             v: complex = ss.hrm1(i)
@@ -352,6 +357,11 @@ class CVTable(QTableWidget):
             self.item(r, 2).setText("%.1f°" % math.degrees(cmath.phase(v)))
             self.item(r, 3).setText("%.1f %s" % (v.real, uu))
             self.item(r, 4).setText("%.1f %s" % (v.imag, uu))
+        self.__trace_items = True
+
+    def __slot_item_chgd(self, item: QTableWidgetItem):
+        if self.__trace_items and item.column() == 0:
+            print("Item changed:", item.row())
 
 
 class CVDWindow(QDialog):
