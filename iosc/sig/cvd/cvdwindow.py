@@ -8,7 +8,7 @@ from PyQt5.QtGui import QIcon, QResizeEvent, QPainter, QPen, QColor, QFont, QPol
 # 2. 3rd
 from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView, \
     QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget, QGraphicsEllipseItem, QGraphicsLineItem, \
-    QGraphicsTextItem, QComboBox, QLabel, QTableWidgetItem
+    QGraphicsTextItem, QComboBox, QLabel, QTableWidgetItem, QActionGroup, QToolButton, QMenu
 
 from iosc.sig.widget.common import AnalogSignalSuit
 from iosc.sig.widget.dialog import SelectSignalsDialog
@@ -32,6 +32,49 @@ def sign(v: float):
         return -1
     else:
         return 1
+
+
+class PtrSwitcher(QActionGroup):
+    tb: QToolButton
+
+    def __init__(self, parent: 'CVDiagramObject'):
+        super().__init__(parent)
+        self.tb = QToolButton(parent)
+        self.tb.setPopupMode(QToolButton.MenuButtonPopup)
+        self.tb.setMenu(QMenu())
+        # Main ptr
+        a0 = QAction(QIcon.fromTheme("go-jump"), "Main", parent, checkable=True)
+        a0.setData(0)
+        a0.setChecked(True)
+        self.addAction(a0)
+        self.tb.menu().addAction(a0)
+        self.tb.setDefaultAction(a0)
+        # tmp ptrs
+        for uid in parent.parent().tmp_ptr_i.keys():
+            self.__slot_add(uid)
+        # connections
+        self.triggered.connect(self.__slot_switch)
+        parent.parent().signal_ptr_add_tmp.connect(self.__slot_add)
+        parent.parent().signal_ptr_del_tmp.connect(self.__slot_del)
+
+    def __slot_switch(self, a: QAction):
+        self.tb.setDefaultAction(a)
+        self.parent().slot_ptr_switch(a.data())
+
+    def __slot_add(self, uid: int):
+        a = self.addAction(QAction(f"T{uid}", self.parent(), checkable=True))
+        a.setData(uid)
+        self.tb.menu().addAction(a)
+
+    def __slot_del(self, uid: int):
+        reset: bool = False
+        for a in self.actions():
+            if a.data() == uid:
+                reset = a.isChecked()
+                self.removeAction(a)
+        if reset:
+            self.actions()[0].setChecked(True)
+            self.__slot_switch(self.actions()[0])
 
 
 class SelectCVDSignalsDialog(SelectSignalsDialog):
@@ -179,9 +222,9 @@ class CVDiagramObject(QGraphicsObject):
             ...  # stub
 
         def __get_angle(self) -> float:
-            return\
-                cmath.phase(self.__ss.hrm1(self.__parent.cvdview.cvdwin.t_i))\
-                - self.__parent.cvdview.cvdwin.get_base_angle()\
+            return \
+                cmath.phase(self.__ss.hrm1(self.__parent.cvdview.cvdwin.t_i)) \
+                - self.__parent.cvdview.cvdwin.get_base_angle() \
                 - math.pi / 2
 
         def update_angle(self):
@@ -313,6 +356,7 @@ class CVTable(QTableWidget):
 
 class CVDWindow(QDialog):
     """Main CVD window."""
+    __ptr_uid: int
     __ass_list: list[AnalogSignalSuit]  # just shortcut
     ss_used: list[AnalogSignalSuit]
     ss_base: AnalogSignalSuit
@@ -320,11 +364,12 @@ class CVDWindow(QDialog):
     chart: CVDiagramView
     table: CVTable
     action_settings: QAction
-    action_select_ptr: QAction
+    action_ptr: PtrSwitcher
     action_close: QAction
 
     def __init__(self, parent: 'ComtradeWidget'):
         super().__init__(parent)
+        self.__ptr_uid = 0  # MainPtr
         self.__ass_list = parent.ass_list
         self.ss_used = list()
         self.ss_base = parent.ass_list[0]
@@ -333,7 +378,8 @@ class CVDWindow(QDialog):
         self.__mk_actions()
         self.__mk_toolbar()
         self.setWindowTitle("Vector Diagram")
-        parent.signal_ptr_moved_main.connect(self.__slot_ptr_moved)
+        parent.signal_ptr_moved_main.connect(self.__slot_ptr_moved_main)
+        parent.signal_ptr_moved_tmp.connect(self.__slot_ptr_moved_tmp)
 
     @property
     def t_i(self):
@@ -370,24 +416,17 @@ class CVDWindow(QDialog):
                                        self,
                                        shortcut="Ctrl+S",
                                        triggered=self.__do_settings)
-        self.action_select_ptr = QAction(QIcon.fromTheme("go-jump"),
-                                         "&Pointer",
-                                         self,
-                                         triggered=self.__do_select_ptr)
         self.action_close = QAction(QIcon.fromTheme("window-close"),
                                     "&Close",
                                     self,
                                     shortcut="Ctrl+W",
                                     triggered=self.close)
+        self.action_ptr = PtrSwitcher(self)
 
     def __mk_toolbar(self):
         self.toolbar.addAction(self.action_settings)
-        self.toolbar.addAction(self.action_select_ptr)
+        self.toolbar.addWidget(self.action_ptr.tb)
         self.toolbar.addAction(self.action_close)
-
-    def __slot_ptr_moved(self):
-        self.chart.refresh_signals()
-        self.table.refresh_signals()
 
     def __do_settings(self):
         ss_used_i = set([ss.signal.i for ss in self.ss_used])  # WARN: works if ss.signal.i <=> self.__ass_list[i]
@@ -400,6 +439,15 @@ class CVDWindow(QDialog):
             self.chart.reload_signals()
             self.table.reload_signals()
 
-    def __do_select_ptr(self):
+    def __slot_ptr_moved_main(self):
+        self.chart.refresh_signals()
+        self.table.refresh_signals()
+
+    def __slot_ptr_moved_tmp(self):
+        self.chart.refresh_signals()
+        self.table.refresh_signals()
+
+    def slot_ptr_switch(self, uid: int):
+        # FIXME: skip if not changed
         # Mainptr[, TmpPtr[]]
-        ...
+        print("New ptr selected: ", uid)
