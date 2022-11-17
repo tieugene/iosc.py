@@ -78,8 +78,13 @@ class CVDiagramObject(QGraphicsObject):
             super().__init__(0, 0, RAD * math.cos(angle), RAD * math.sin(angle), parent)
 
     class Label(QGraphicsTextItem):
+        __angle: float
+        __len: float
+
         def __init__(self, parent: QGraphicsObject, text: str, a: float, r: float, color: Optional[QColor] = None):
             super().__init__(text, parent)
+            self.__angle = a
+            self.__len = r
             self.setFont(QFont('mono', 8))
             if color is not None:
                 self.setDefaultTextColor(color)
@@ -94,12 +99,14 @@ class CVDiagramObject(QGraphicsObject):
     class Arrow(QGraphicsLineItem):
         __angle: float
         __len: float
+        __color: QColor
         __arrowHead: QPolygonF
 
-        def __init__(self, parent: QGraphicsObject, a: float, r: float):
+        def __init__(self, parent: QGraphicsObject, a: float, r: float, color: Optional[QColor] = None):
             super().__init__(parent)
             self.__angle = a
             self.__len = r
+            self.__color = color
             self.__arrowHead = QPolygonF()
 
         def boundingRect(self):
@@ -124,17 +131,27 @@ class CVDiagramObject(QGraphicsObject):
             self.__arrowHead.clear()
             for point in [arrow_l, self.line().p2(), arrow_r]:
                 self.__arrowHead.append(point)
+            if self.__color:
+                pen = QPen(self.__color)
+                pen.setCosmetic(True)
+                painter.setPen(pen)
             painter.drawLine(self.line())
             painter.drawPolyline(self.__arrowHead)
 
     class SigVector(QGraphicsObject):
+        __ss: AnalogSignalSuit
         __arrow: 'CVDiagramObject.Arrow'
         __label: 'CVDiagramObject.Label'
 
-        def __init__(self, parent: QGraphicsObject, text: str, a: float, r: float):
+        def __init__(self, parent: 'CVDiagramObject', ss: AnalogSignalSuit):
             super().__init__(parent)
-            self.__arrow = CVDiagramObject.Arrow(self, a, r)
-            self.__label = CVDiagramObject.Label(self, text, a, r)
+            self.__ss = ss
+            v = self.__ss.hrm1(parent.cvdview.cvdwin.t_i)
+            angle = cmath.phase(v)
+            pen = QPen(self.__ss.color)
+            pen.setCosmetic(True)
+            self.__arrow = CVDiagramObject.Arrow(self, angle, RAD, self.__ss.color)
+            self.__label = CVDiagramObject.Label(self, self.__ss.signal.sid, angle, RAD, self.__ss.color)
 
         def boundingRect(self) -> QRectF:
             return self.childrenBoundingRect()
@@ -142,14 +159,13 @@ class CVDiagramObject(QGraphicsObject):
         def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
             ...  # stub
 
-        def set_color(self, c: QColor):
-            pen = self.__arrow.pen()
-            pen.setColor(c)  # FIXME: not works
-            self.__arrow.setPen(pen)  # FIXME: .setCosmetic(True)
-            self.__label.setDefaultTextColor(c)
+    cvdview: 'CVDiagramView'
+    sv_list: list[SigVector]
 
-    def __init__(self):
+    def __init__(self, cvdview: 'CVDiagramView'):
         super().__init__()
+        self.cvdview = cvdview
+        self.sv_list = list()
         # grid
         pen = QPen(Qt.gray)
         pen.setCosmetic(True)  # don't change width on resizing
@@ -174,21 +190,31 @@ class CVDiagramObject(QGraphicsObject):
     def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
         ...  # stub
 
+    def sv_clean(self):
+        """Clean signal vectors"""
+        for sv in self.sv_list:
+            sv.deleteLater()
+        self.sv_list.clear()
+
+    def sv_add(self, ss: AnalogSignalSuit):
+        """Add signal vector"""
+        self.sv_list.append(self.SigVector(self, ss))
+
 
 class CVDiagramView(QGraphicsView):
-    __parent: 'CVDWindow'
+    cvdwin: 'CVDWindow'
     circle: CVDiagramObject
 
     def __init__(self, parent: 'CVDWindow'):
         # Howto (resize to content): scene.setSceneRect(scene.itemsBoundingRect()) <= QGraphicsScene::changed()
         super().__init__(parent)
-        self.__parent = parent
+        self.cvdwin = parent
         self.setScene(QGraphicsScene())
         # self.setMinimumSize(100, 100)
         self.setViewportUpdateMode(QGraphicsView.BoundingRectViewportUpdate)
         self.setCacheMode(QGraphicsView.CacheBackground)
         self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
-        self.circle = CVDiagramObject()
+        self.circle = CVDiagramObject(self)
         self.scene().addItem(self.circle)
 
     def resizeEvent(self, event: QResizeEvent):
@@ -199,12 +225,9 @@ class CVDiagramView(QGraphicsView):
         """Reload vectors from selected signals.
         TODO: AnalogSignalSuit<=>SigVector map
         """
-        pen = QPen()
-        pen.setCosmetic(True)
-        i = self.__parent.t_i
-        for r, ss in enumerate(self.__parent.ss_used):
-            v: complex = ss.hrm1(i)
-            CVDiagramObject.SigVector(self.circle, ss.signal.sid, cmath.phase(v), RAD).set_color(ss.color)
+        self.circle.sv_clean()
+        for r, ss in enumerate(self.cvdwin.ss_used):
+            self.circle.sv_add(ss)
 
     def refresh_signals(self):
         """Refresh row values by ptr"""
