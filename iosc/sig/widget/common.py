@@ -29,6 +29,7 @@ class SignalSuit(QObject):
     graph: Optional[QCPGraph]
     _hidden: bool
     color: QColor
+    signal_chg_color = pyqtSignal(QColor)
 
     def __init__(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal], oscwin: 'ComtradeWidget'):
         super().__init__()
@@ -64,6 +65,7 @@ class SignalSuit(QObject):
     def _set_style(self):
         if self._label:
             self._label.set_color()
+        self.signal_chg_color.emit(self.color)  # Rx by: CVD
 
     def embed(self, bar: 'SignalBar', num: int):
         self.bar = bar

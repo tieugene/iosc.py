@@ -2,9 +2,8 @@
 
 Current job: [0.3.1. CVD](https://github.com/tieugene/iosc.py/issues/190)
 
-- [ ] Update name, color
-- [ ] CVD on/off
-- [ ] Split by modules
+- [ ] CVD window on/off (FIXME: not closed on OScWin closed)
+- [ ] _Split by modules_
 
 ## Vector diagram
 

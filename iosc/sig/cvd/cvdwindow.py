@@ -146,9 +146,6 @@ class CVDiagramObject(QGraphicsObject):
         def set_color(self, c: QColor):
             self.setDefaultTextColor(c)
 
-        def set_text(self, t: str):
-            self.setPlainText(t)
-
     class Arrow(QGraphicsLineItem):
         __angle: float
         __len: float
@@ -193,11 +190,9 @@ class CVDiagramObject(QGraphicsObject):
 
         def set_angle(self, a: float):
             self.__angle = a
-            ...  # TODO:
 
-        def set_color(self, c: QColor):
+        def set_color(self, c: QColor):  # FIXME: repaint?
             self.__color = c
-            ...  # TODO
 
     class SigVector(QGraphicsObject):
         __parent: 'CVDiagramObject'
@@ -214,6 +209,7 @@ class CVDiagramObject(QGraphicsObject):
             pen.setCosmetic(True)
             self.__arrow = CVDiagramObject.Arrow(self, angle, RAD, self.__ss.color)
             self.__label = CVDiagramObject.Label(self, self.__ss.signal.sid, angle, RAD, self.__ss.color)
+            self.__ss.signal_chg_color.connect(self.__slot_update_color)
 
         def boundingRect(self) -> QRectF:
             return self.childrenBoundingRect()
@@ -227,17 +223,14 @@ class CVDiagramObject(QGraphicsObject):
                 - self.__parent.cvdview.cvdwin.get_base_angle() \
                 - math.pi / 2
 
+        def __slot_update_color(self):
+            self.__arrow.set_color(self.__ss.color)
+            self.__label.set_color(self.__ss.color)
+
         def update_angle(self):
             a = self.__get_angle()
             self.__arrow.set_angle(a)
             self.__label.set_angle(a)  # ? refreshes arrow ?
-
-        def update_color(self):
-            self.__arrow.set_color(self.__ss.color)
-            self.__label.set_color(self.__ss.color)
-
-        def update_text(self):
-            self.__label.set_text(self.__ss.signal.sid)
 
     cvdview: 'CVDiagramView'
     sv_list: list[SigVector]

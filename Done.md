@@ -140,3 +140,4 @@ Behavior:
   * [x] Switch
   + [x] Update by selected TmpPtr
 - [x] Hide/Show signals
+- [x] Update signal colors
