@@ -96,6 +96,15 @@ class CVDiagramObject(QGraphicsObject):
                 (r + DRAD_AXIS_LABEL) * y0_norm + (sign(y0_norm) - 1) * rect.height() / 2
             ))
 
+        def set_angle(self):
+            ...  # TODO:
+
+        def set_color(self):
+            ...  # TODO:
+
+        def set_text(self):
+            ...  # TODO:
+
     class Arrow(QGraphicsLineItem):
         __angle: float
         __len: float
@@ -138,6 +147,12 @@ class CVDiagramObject(QGraphicsObject):
             painter.drawLine(self.line())
             painter.drawPolyline(self.__arrowHead)
 
+        def set_angle(self):
+            ...  # TODO:
+
+        def set_color(self):
+            ...  # TODO:
+
     class SigVector(QGraphicsObject):
         __ss: AnalogSignalSuit
         __arrow: 'CVDiagramObject.Arrow'
@@ -159,6 +174,17 @@ class CVDiagramObject(QGraphicsObject):
         def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
             ...  # stub
 
+        def set_angle(self):
+            self.__arrow.set_angle()
+            self.__label.set_angle()
+
+        def set_color(self):
+            self.__arrow.set_color()
+            self.__label.set_color()
+
+        def set_text(self):
+            self.__label.set_text()
+
     cvdview: 'CVDiagramView'
     sv_list: list[SigVector]
 
@@ -179,10 +205,6 @@ class CVDiagramObject(QGraphicsObject):
         self.Label(self, "180°", math.pi / 2, RAD)
         self.Label(self, "-90°", math.pi, RAD)
         self.Label(self, "0°", -math.pi / 2, RAD)
-        # for i in range(12):  # test
-        #    # self.Label(self, f"L{i}", math.pi / 6, RAD, QColor(Qt.black))
-        #    # self.Arrow(self, i * math.pi / 6, RAD * 2 / 3)
-        #    # self.SigVector(self, f"L{i}", i * math.pi / 6, RAD * 2 / 3)
 
     def boundingRect(self) -> QRectF:
         return self.childrenBoundingRect()
