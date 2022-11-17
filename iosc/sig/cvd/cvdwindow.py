@@ -357,6 +357,7 @@ class CVTable(QTableWidget):
 class CVDWindow(QDialog):
     """Main CVD window."""
     __ptr_uid: int
+    __i: int
     __ass_list: list[AnalogSignalSuit]  # just shortcut
     ss_used: list[AnalogSignalSuit]
     ss_base: AnalogSignalSuit
@@ -370,6 +371,7 @@ class CVDWindow(QDialog):
     def __init__(self, parent: 'ComtradeWidget'):
         super().__init__(parent)
         self.__ptr_uid = 0  # MainPtr
+        self.__i = parent.main_ptr_i
         self.__ass_list = parent.ass_list
         self.ss_used = list()
         self.ss_base = parent.ass_list[0]
@@ -384,7 +386,7 @@ class CVDWindow(QDialog):
     @property
     def t_i(self):
         """Current MainPtr.i"""
-        return self.parent().main_ptr_i
+        return self.__i
 
     def get_base_angle(self) -> float:
         return cmath.phase(self.ss_base.hrm1(self.t_i))
@@ -439,15 +441,20 @@ class CVDWindow(QDialog):
             self.chart.reload_signals()
             self.table.reload_signals()
 
-    def __slot_ptr_moved_main(self):
+    def __slot_ptr_moved(self, i: int):
+        self.__i = i
         self.chart.refresh_signals()
         self.table.refresh_signals()
 
-    def __slot_ptr_moved_tmp(self):
-        self.chart.refresh_signals()
-        self.table.refresh_signals()
+    def __slot_ptr_moved_main(self, i: int):
+        if self.__ptr_uid == 0:
+            self.__slot_ptr_moved(i)  # Plan B: get from parent
+
+    def __slot_ptr_moved_tmp(self, uid: int, i: int):
+        if self.__ptr_uid == uid:
+            self.__slot_ptr_moved(i)  # Plan B: get from parent
 
     def slot_ptr_switch(self, uid: int):
-        # FIXME: skip if not changed
-        # Mainptr[, TmpPtr[]]
-        print("New ptr selected: ", uid)
+        if uid != self.__ptr_uid:  # skip if not changed
+            self.__ptr_uid = uid
+            self.__slot_ptr_moved(self.parent().tmp_ptr_i[uid] if uid else self.parent().main_ptr_i)

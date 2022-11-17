@@ -132,3 +132,10 @@ Behavior:
 * [x] Align angle to:
   + [x] North
   + [x] Base signal
+- [x] TmpPtr:
+  + [x] Select
+  + [x] Chg TmpPtrs:
+    * [x] Add: add to list
+    * [x] Del: switch to MainPtr
+  * [x] Switch
+  + [x] Update by selected TmpPtr
