@@ -2,7 +2,6 @@
 
 Current job: [0.3.1. CVD](https://github.com/tieugene/iosc.py/issues/190)
 
-- [ ] Hide/Show signals
 - [ ] Update name, color
 - [ ] CVD on/off
 - [ ] Split by modules

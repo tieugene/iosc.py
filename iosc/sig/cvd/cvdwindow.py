@@ -280,10 +280,13 @@ class CVDiagramObject(QGraphicsObject):
         for sv in self.sv_list:
             sv.update_angle()
 
+    def sv_show(self, i: int, show: bool):
+        self.sv_list[i].setVisible(show)
+
 
 class CVDiagramView(QGraphicsView):
-    cvdwin: 'CVDWindow'
-    circle: CVDiagramObject
+    cvdwin: 'CVDWindow'  # uplink
+    circle: CVDiagramObject  # downlink
 
     def __init__(self, parent: 'CVDWindow'):
         # Howto (resize to content): scene.setSceneRect(scene.itemsBoundingRect()) <= QGraphicsScene::changed()
@@ -361,7 +364,7 @@ class CVTable(QTableWidget):
 
     def __slot_item_chgd(self, item: QTableWidgetItem):
         if self.__trace_items and item.column() == 0:
-            print("Item changed:", item.row())
+            self.__parent.chart.circle.sv_show(item.row(), item.checkState() == Qt.Checked)
 
 
 class CVDWindow(QDialog):

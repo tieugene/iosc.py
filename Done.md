@@ -139,3 +139,4 @@ Behavior:
     * [x] Del: switch to MainPtr
   * [x] Switch
   + [x] Update by selected TmpPtr
+- [x] Hide/Show signals
