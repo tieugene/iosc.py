@@ -385,6 +385,10 @@ class CVDWindow(QDialog):
         self.toolbar.addAction(self.action_select_ptr)
         self.toolbar.addAction(self.action_close)
 
+    def __slot_ptr_moved(self):
+        self.chart.refresh_signals()
+        self.table.refresh_signals()
+
     def __do_settings(self):
         ss_used_i = set([ss.signal.i for ss in self.ss_used])  # WARN: works if ss.signal.i <=> self.__ass_list[i]
         ss_base_i = self.ss_base.signal.i
@@ -399,7 +403,3 @@ class CVDWindow(QDialog):
     def __do_select_ptr(self):
         # Mainptr[, TmpPtr[]]
         ...
-
-    def __slot_ptr_moved(self):
-        self.chart.refresh_signals()
-        self.table.refresh_signals()

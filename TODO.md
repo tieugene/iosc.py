@@ -1,28 +1,18 @@
 # TODO
 
-Current job: [0.3.1](https://github.com/tieugene/iosc.py/milestone/13)
+Current job: [0.3.1. CVD](https://github.com/tieugene/iosc.py/issues/190)
 
-- [x] Diagram:
-  + [x] textitem (text, anchor, radius)
-  + [x] &rdsh; axis label
-  + [x] Arrow
-  + [x] Vector = Arrow + Label
-- [x] Select signals
-- [x] Initial fill:
-  + [x] Table (name, color, values)
-  + [x] Diagram (name, color, angle)
-- [x] Update by MainPtr:
-  + [x] Table (values)
-  + [x] Diagram (angle)
-* [x] Align angle to:
-  + [x] North
-  + [x] Base signal
-- […] Select Ptr
-- [ ] Update by selected Ptr
-- [ ] Use base signal
-- [ ] Hide/Show
+- […] TmpPtr:
+  + [ ] Select
+  + [ ] Update by selected TmpPtr
+  + [ ] Chg TmpPtrs:
+    * [ ] Add: add to list
+    * [ ] Del: switch to MainPtr
+    * [ ] Upd: do nothing
+- [ ] Hide/Show signals
 - [ ] Update name, color
-- [ ] FIXME: SigVector arrow color
+- [ ] CVD on/off
+- [ ] Split by modules
 
 ## Vector diagram
 
@@ -46,10 +36,4 @@ Variant (Circle):
   + widgets/windowsflags.py
   + graphicsview/diagramscene/py (gfx items)
 - [QCPPolarGraph announce](https://www.qcustomplot.com/index.php/news)
-- [PyQt5 Tutorial](https://www.pythonguis.com/pyqt5-tutorial/)
-- [Another tutorial](https://www.bogotobogo.com/Qt/)
-- Habr:
-  + [good](https://habr.com/ru/post/182142/)
-  + [bad1](https://habr.com/ru/post/182614/)
-  + [bad2](https://habr.com/ru/post/183432/)
-  + [code](https://github.com/DancingOnWater/GraphicsScenePlot)
+- [Notes](Notes.md)

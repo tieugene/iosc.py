@@ -99,6 +99,7 @@ Src:
 
 - [PyQt5 Tutorial](https://www.pythonguis.com/pyqt5-tutorial/)
 - [Another tutorial](https://www.bogotobogo.com/Qt/)
+- [Qt](https://evileg.com/ru/knowledge/qt/):
 
 ### CVD
 
