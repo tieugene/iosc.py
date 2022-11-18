@@ -8,7 +8,7 @@ from PyQt5.QtGui import QIcon, QResizeEvent, QPainter, QPen, QColor, QFont, QPol
 # 2. 3rd
 from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView, \
     QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget, QGraphicsEllipseItem, QGraphicsLineItem, \
-    QGraphicsTextItem, QComboBox, QLabel, QTableWidgetItem, QActionGroup, QToolButton, QMenu
+    QGraphicsTextItem, QComboBox, QLabel, QTableWidgetItem, QActionGroup, QToolButton, QMenu, QSizePolicy
 
 from iosc.sig.widget.common import AnalogSignalSuit
 from iosc.sig.widget.dialog import SelectSignalsDialog
@@ -428,12 +428,16 @@ class CVDWindow(QDialog):
                                     "&Close",
                                     self,
                                     shortcut="Ctrl+W",
-                                    triggered=self.close)
+                                    triggered=self.parent().action_vector_diagram.trigger)
         self.action_ptr = PtrSwitcher(self)
 
     def __mk_toolbar(self):
+        spacer = QWidget(self)
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        spacer.setVisible(True)
         self.toolbar.addAction(self.action_settings)
         self.toolbar.addWidget(self.action_ptr.tb)
+        self.toolbar.addWidget(spacer)
         self.toolbar.addAction(self.action_close)
 
     def __do_settings(self):

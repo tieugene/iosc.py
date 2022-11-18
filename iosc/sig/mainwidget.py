@@ -2,10 +2,10 @@
 RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
 import pathlib
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QCloseEvent
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QMenuBar, QToolBar, QAction, QMessageBox, \
     QFileDialog, QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
@@ -21,7 +21,7 @@ from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
 
 class ComtradeWidget(QWidget):
     """Main osc window."""
-    # inner cons
+    # inner vars
     osc: mycomtrade.MyComtrade
     col_ctrl_width: int
     # inner vars
@@ -72,6 +72,7 @@ class ComtradeWidget(QWidget):
     status_table: SignalBarTable
     timestamps_bar: TimeStampsBar
     xscroll_bar: XScroller
+    cvdwin: Optional[CVDWindow]
     # signals
     signal_chged_pors = pyqtSignal()  # recalc ASignalCtrlView on ...
     signal_chged_shift = pyqtSignal()  # refresh ASignal*View on switching original/shifted
@@ -169,6 +170,7 @@ class ComtradeWidget(QWidget):
         self.status_table = SignalBarTable(self)
         self.timestamps_bar = TimeStampsBar(self)
         self.xscroll_bar = XScroller(self)
+        self.cvdwin = None
 
     def __mk_layout(self):
         self.setLayout(QVBoxLayout())
@@ -280,6 +282,7 @@ class ComtradeWidget(QWidget):
         self.action_vector_diagram = QAction("Vector chart",
                                              self,
                                              shortcut="Ctrl+V",
+                                             checkable=True,
                                              triggered=self.__do_vector_diagram)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
@@ -469,8 +472,10 @@ class ComtradeWidget(QWidget):
                 uid = max(self.lvl_ptr_uids) + 1 if self.lvl_ptr_uids else 1
                 self.ass_list[i].add_ptr_lvl(uid)
 
-    def __do_vector_diagram(self):
-        CVDWindow(self).show()
+    def __do_vector_diagram(self, checked: bool):
+        if not self.cvdwin:
+            self.cvdwin = CVDWindow(self)
+        self.cvdwin.setVisible(checked)
 
     def resize_col_ctrl(self, dx: int):
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:

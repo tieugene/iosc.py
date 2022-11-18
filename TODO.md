@@ -2,7 +2,8 @@
 
 Current job: [0.3.1. CVD](https://github.com/tieugene/iosc.py/issues/190)
 
-- [ ] CVD window on/off (FIXME: not closed on OScWin closed)
+- [ ] CVD window on/off
+- [ ] FIXME: close CVD on OscWindow close
 - [ ] _Split by modules_
 
 ## Vector diagram
