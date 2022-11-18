@@ -152,3 +152,4 @@ Behavior:
 - [x] Update by ptr
 - [x] Update signal colors
 - [x] Split by modules
+- [x] Fixed: Signal adding only
