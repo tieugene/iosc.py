@@ -1,21 +1,19 @@
 """Signal tab widget
 RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
-import cmath
-import math
 import pathlib
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QCloseEvent
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QMenuBar, QToolBar, QAction, QMessageBox, \
     QFileDialog, QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.core.sigfunc import func_list
 from iosc.icon import svg_icon, ESvgSrc
 from iosc.core.convtrade import convert, ConvertError
+from iosc.sig.cvd.cvdwindow import CVDWindow
 from iosc.sig.section import TimeAxisBar, SignalBarTable, TimeStampsBar, XScroller
 from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit
 from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
@@ -23,7 +21,7 @@ from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
 
 class ComtradeWidget(QWidget):
     """Main osc window."""
-    # inner cons
+    # inner vars
     osc: mycomtrade.MyComtrade
     col_ctrl_width: int
     # inner vars
@@ -64,6 +62,7 @@ class ComtradeWidget(QWidget):
     action_ptr_add_tmp: QAction
     action_ptr_add_msr: QAction
     action_ptr_add_lvl: QAction
+    action_vector_diagram: QAction
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
@@ -73,6 +72,7 @@ class ComtradeWidget(QWidget):
     status_table: SignalBarTable
     timestamps_bar: TimeStampsBar
     xscroll_bar: XScroller
+    cvdwin: Optional[CVDWindow]
     # signals
     signal_chged_pors = pyqtSignal()  # recalc ASignalCtrlView on ...
     signal_chged_shift = pyqtSignal()  # refresh ASignal*View on switching original/shifted
@@ -170,6 +170,7 @@ class ComtradeWidget(QWidget):
         self.status_table = SignalBarTable(self)
         self.timestamps_bar = TimeStampsBar(self)
         self.xscroll_bar = XScroller(self)
+        self.cvdwin = None
 
     def __mk_layout(self):
         self.setLayout(QVBoxLayout())
@@ -215,98 +216,74 @@ class ComtradeWidget(QWidget):
         self.action_resize_y_in = QAction(svg_icon(ESvgSrc.VZoomIn),
                                           "Y-Resize +",
                                           self,
-                                          statusTip="Vertical resize (greater)",
                                           triggered=self.__do_resize_y_all_inc)
         self.action_resize_y_out = QAction(svg_icon(ESvgSrc.VZoomOut),
                                            "Y-Resize -",
                                            self,
-                                           statusTip="Vertical resize (smaller)",
                                            triggered=self.__do_resize_y_all_dec)
         self.action_zoom_x_in = QAction(svg_icon(ESvgSrc.HZoomIn),
                                         "X-Zoom in",
                                         self,
-                                        statusTip="Horizontal zoom in",
                                         triggered=self.__do_xzoom_in)
         self.action_zoom_x_out = QAction(svg_icon(ESvgSrc.HZoomOut),
                                          "X-Zoom out",
                                          self,
-                                         statusTip="Horizontal zoom out",
                                          triggered=self.__do_xzoom_out)
         self.action_unhide = QAction(QIcon.fromTheme("edit-undo"),
                                      "&Unhide all",
                                      self,
-                                     statusTip="Show hidden channels",
                                      triggered=self.__do_unhide)
         self.action_shift_not = QAction(svg_icon(ESvgSrc.ShiftOrig),
                                         "&Original",
                                         self,
-                                        checkable=True,
-                                        statusTip="Use original signal")
+                                        checkable=True)
         self.action_shift_yes = QAction(svg_icon(ESvgSrc.ShiftCentered),
                                         "&Centered",
                                         self,
-                                        checkable=True,
-                                        statusTip="Use shifted signal")
+                                        checkable=True)
         self.action_pors_pri = QAction(svg_icon(ESvgSrc.PorsP),
                                        "&Pri",
                                        self,
-                                       checkable=True,
-                                       statusTip="Show primary signal value")
+                                       checkable=True)
         self.action_pors_sec = QAction(svg_icon(ESvgSrc.PorsS),
                                        "&Sec",
                                        self,
-                                       checkable=True,
-                                       statusTip="Show secondary signal values")
-        self.action_viewas_is = QAction(QIcon(),
-                                        "As &is",
+                                       checkable=True)
+        self.action_viewas_is = QAction("As &is",
                                         self,
-                                        checkable=True,
-                                        statusTip="Show current signal value")
-        self.action_viewas_mid = QAction(QIcon(),
-                                         "&Mid",
+                                        checkable=True)
+        self.action_viewas_mid = QAction("&Mid",
                                          self,
-                                         checkable=True,
-                                         statusTip="Show running middle of current signal value")
-        self.action_viewas_eff = QAction(QIcon(),
-                                         "&Eff",
+                                         checkable=True)
+        self.action_viewas_eff = QAction("&Eff",
                                          self,
-                                         checkable=True,
-                                         statusTip="Show RMS of current signal value")
-        self.action_viewas_hrm1 = QAction(QIcon(),
-                                          "Hrm &1",
+                                         checkable=True)
+        self.action_viewas_hrm1 = QAction("Hrm &1",
                                           self,
-                                          checkable=True,
-                                          statusTip="Show harmonic #1 of signal value")
-        self.action_viewas_hrm2 = QAction(QIcon(),
-                                          "Hrm &2",
+                                          checkable=True)
+        self.action_viewas_hrm2 = QAction("Hrm &2",
                                           self,
-                                          checkable=True,
-                                          statusTip="Show harmonic #2 of signal value")
-        self.action_viewas_hrm3 = QAction(QIcon(),
-                                          "Hrm &3",
+                                          checkable=True)
+        self.action_viewas_hrm3 = QAction("Hrm &3",
                                           self,
-                                          checkable=True,
-                                          statusTip="Show harmonic #3 of signal value")
-        self.action_viewas_hrm5 = QAction(QIcon(),
-                                          "Hrm &5",
+                                          checkable=True)
+        self.action_viewas_hrm5 = QAction("Hrm &5",
                                           self,
-                                          checkable=True,
-                                          statusTip="Show harmonic #5 of signal value")
-        self.action_ptr_add_tmp = QAction(QIcon(),
-                                          "Add temporary pointer",
+                                          checkable=True)
+        self.action_ptr_add_tmp = QAction("Add temporary pointer",
                                           self,
-                                          statusTip="Add temporary pointer into current position",
                                           triggered=self.__do_ptr_add_tmp)
-        self.action_ptr_add_msr = QAction(QIcon(),
-                                          "Add measure pointers",
+        self.action_ptr_add_msr = QAction("Add measure pointers",
                                           self,
-                                          statusTip="Add measure pointers into current position",
                                           triggered=self.__do_ptr_add_msr)
-        self.action_ptr_add_lvl = QAction(QIcon(),
-                                          "Add level pointers",
+        self.action_ptr_add_lvl = QAction("Add level pointers",
                                           self,
-                                          statusTip="Add level pointers into current position",
                                           triggered=self.__do_ptr_add_lvl)
+        self.action_vector_diagram = QAction("Vector chart",
+                                             self,
+                                             shortcut="Ctrl+V",
+                                             checkable=True,
+                                             triggered=self.__do_vector_diagram)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
         self.action_shift.addAction(self.action_shift_yes)
@@ -354,6 +331,8 @@ class ComtradeWidget(QWidget):
         menu_ptr.addAction(self.action_ptr_add_tmp)
         menu_ptr.addAction(self.action_ptr_add_msr)
         menu_ptr.addAction(self.action_ptr_add_lvl)
+        menu_tools = self.menubar.addMenu("&Tools")
+        menu_tools.addAction(self.action_vector_diagram)
 
     def __mk_toolbar(self):
         # prepare
@@ -393,7 +372,7 @@ class ComtradeWidget(QWidget):
 
     def __do_file_close(self):  # FIXME: not closes tab
         # self.close()  # close widget but not tab itself
-        self.parent().parent().removeTab(self.parent().indexOf(self))  # QStackedWidget.ComtradeTabWidget
+        self.parent().parent().slot_tab_close(self.parent().indexOf(self))  # QStackedWidget.ComtradeTabWidget
 
     def __do_file_info(self):
         def tr(name: str, value: Any):
@@ -493,6 +472,11 @@ class ComtradeWidget(QWidget):
                 uid = max(self.lvl_ptr_uids) + 1 if self.lvl_ptr_uids else 1
                 self.ass_list[i].add_ptr_lvl(uid)
 
+    def __do_vector_diagram(self, checked: bool):
+        if not self.cvdwin:
+            self.cvdwin = CVDWindow(self)
+        self.cvdwin.setVisible(checked)
+
     def resize_col_ctrl(self, dx: int):
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:
             self.col_ctrl_width += dx
@@ -538,3 +522,9 @@ class ComtradeWidget(QWidget):
         if form.exec_():
             self.timeaxis_bar.plot.set_tmp_ptr_name(uid, form.f_name.text())
             self.signal_ptr_moved_tmp.emit(uid, self.x2i(form.f_val.value()))
+
+    def closeEvent(self, event: QCloseEvent):
+        if self.cvdwin:
+            print("Close children")
+            self.cvdwin.deleteLater()
+        super().closeEvent(event)

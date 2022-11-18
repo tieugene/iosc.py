@@ -41,13 +41,19 @@ class Wrapper:
 
 class Signal(Wrapper):
     """Signal base."""
+    _i_: int
     _is_bool: bool
     _raw2: Channel
     _value: np.array  # list of values
 
-    def __init__(self, raw: Comtrade, raw2: Channel):
+    def __init__(self, raw: Comtrade, raw2: Channel, i: int):
         super().__init__(raw)
+        self.__i = i
         self._raw2 = raw2
+
+    @property
+    def i(self) -> int:
+        return self.__i
 
     @property
     def raw2(self) -> Channel:
@@ -70,7 +76,7 @@ class StatusSignal(Signal):
     _is_bool = True
 
     def __init__(self, raw: Comtrade, i: int):
-        super().__init__(raw, raw.cfg.status_channels[i])
+        super().__init__(raw, raw.cfg.status_channels[i], i)
         self._value = self._raw.status[i]
 
     @property
@@ -85,7 +91,7 @@ class AnalogSignal(Signal):
     __value_shifted: np.array
 
     def __init__(self, raw: Comtrade, i: int):
-        super().__init__(raw, raw.cfg.analog_channels[i])
+        super().__init__(raw, raw.cfg.analog_channels[i], i)
         self._value = self._raw.analog[i]
         self.__value_shifted = self._value - np.average(self._value)
         # pri/sec multipliers

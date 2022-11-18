@@ -3,9 +3,11 @@
 from typing import Optional, Union
 # 2. 3rd
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QPixmap, QIcon
 from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QPushButton, QColorDialog, QLineEdit, \
-    QInputDialog, QWidget, QDoubleSpinBox, QListWidget, QVBoxLayout, QListWidgetItem
+    QInputDialog, QWidget, QDoubleSpinBox, QListWidget, QVBoxLayout, QListWidgetItem, QLabel
+
+
 # 3. local
 
 
@@ -155,10 +157,16 @@ class SelectSignalsDialog(QDialog):
     buttons_select: QDialogButtonBox
     button_box: QDialogButtonBox
 
-    def __init__(self, ass_list: list['AnalogSignalSuit'], parent=None):
+    def __init__(self, ass_list: list['AnalogSignalSuit'], ass_used: set[int] = (), parent=None):
         super().__init__(parent)
         self.setWindowTitle("Select signals")
-        # 1. set widgets
+        self._mk_widgets()
+        self._mk_layout()
+        self._mk_connections()
+        self._set_data(ass_list, ass_used)
+        self.button_box.setFocus()
+
+    def _mk_widgets(self):
         self.button_all = QPushButton("Select all", self)
         self.button_none = QPushButton("Clean", self)
         self.buttons_select = QDialogButtonBox()
@@ -167,23 +175,31 @@ class SelectSignalsDialog(QDialog):
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.f_signals = QListWidget()
         self.f_signals.setSelectionMode(self.f_signals.MultiSelection)
-        for ss in ass_list:
-            item = QListWidgetItem(ss.signal.sid, self.f_signals)
-            item.setFlags(item.flags() & (~Qt.ItemIsUserCheckable))
-            item.setCheckState(Qt.Unchecked)
-            item.setForeground(ss.color)
-        # 3. set layout
+
+    def _mk_layout(self):
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(self.buttons_select)
         self.layout().addWidget(self.f_signals)
         self.layout().addWidget(self.button_box)
         # layout.setVerticalSpacing(0)
-        # 4. set signals
+
+    def _mk_connections(self):
         self.f_signals.itemSelectionChanged.connect(self.__slot_selection_changed)
         self.buttons_select.accepted.connect(self.__slot_select_all)
         self.buttons_select.rejected.connect(self.__slot_select_none)
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
+
+    def _set_data(self, ass_list: list['AnalogSignalSuit'], ass_used: set[int]):
+        for i, ss in enumerate(ass_list):
+            item = QListWidgetItem(ss.signal.sid, self.f_signals)
+            item.setForeground(ss.color)
+            item.setFlags(item.flags() & (~Qt.ItemIsUserCheckable))
+            if i in ass_used:
+                item.setCheckState(Qt.Checked)
+                item.setSelected(True)
+            else:
+                item.setCheckState(Qt.Unchecked)
 
     def __slot_selection_changed(self):
         for i in range(self.f_signals.count()):
@@ -209,9 +225,44 @@ class SelectSignalsDialog(QDialog):
         retvalue = list()
         if self.exec_():
             for i in range(self.f_signals.count()):
-                if self.f_signals.item(i).isSelected():
+                if self.f_signals.item(i).checkState() == Qt.Checked:
                     retvalue.append(i)
         return retvalue
+
+
+class SelectCVDSignalsDialog(SelectSignalsDialog):
+    """Select signals to show and base signal"""
+    f_base_signal: QComboBox
+
+    def __init__(
+            self,
+            ass_list: list['AnalogSignalSuit'],
+            ass_used: set[int],
+            ass_base: int = 0,
+            parent=None
+    ):
+        super().__init__(ass_list, ass_used, parent)
+        self.f_base_signal = QComboBox(self)
+        for i, ss in enumerate(ass_list):
+            pixmap = QPixmap(16, 16)
+            pixmap.fill(ss.color)
+            self.f_base_signal.addItem(QIcon(pixmap), ss.signal.sid)
+        if ass_base is not None:
+            self.f_base_signal.setCurrentIndex(ass_base)
+        self.layout().insertWidget(2, QLabel("Base:", self))
+        self.layout().insertWidget(3, self.f_base_signal)
+
+    def execute(self) -> Optional[tuple[list[int], int]]:
+        """
+        :return: None if Cancel, list of selected items if ok
+        """
+        if self.exec_():
+            retlist = list()
+            for i in range(self.f_signals.count()):
+                if self.f_signals.item(i).checkState() == Qt.Checked:
+                    retlist.append(i)
+            retval = self.f_base_signal.currentIndex()
+            return retlist, retval
 
 
 class MsrPtrDialog(QDialog):

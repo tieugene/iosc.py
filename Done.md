@@ -114,3 +114,33 @@ Behavior:
 - [x] #182: Y-zoom unstable
 - [x] #183: Y-zoom: reset for exact status-only bar
 - [x] #184: Bar height (init, DnD)
+
+## 0.3.1:
+### CVD
+- [x] Diagram:
+  + [x] textitem (text, anchor, radius)
+  + [x] &rdsh; axis label
+  + [x] Arrow
+  + [x] Vector = Arrow + Label
+- [x] Select signals
+- [x] Initial fill:
+  + [x] Table (name, color, values)
+  + [x] Diagram (name, color, angle)
+- [x] Update by MainPtr:
+  + [x] Table (values)
+  + [x] Diagram (angle)
+* [x] Align angle to:
+  + [x] North
+  + [x] Base signal
+- [x] TmpPtr:
+  + [x] Select
+  + [x] Chg TmpPtrs:
+    * [x] Add: add to list
+    * [x] Del: switch to MainPtr
+  * [x] Switch
+  + [x] Update by selected TmpPtr
+- [x] Hide/Show signals
+- [x] Update signal colors
+- [x] CVD window on/off
+- [x] close CVD on OscWindow close
+- [x] Split by modules

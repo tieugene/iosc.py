@@ -94,3 +94,21 @@ Src:
   + SPP: 12
   + Sample width, ms: 1.(6)
   + Z-point: &numero;49
+
+## RTFM
+
+- [PyQt5 Tutorial](https://www.pythonguis.com/pyqt5-tutorial/)
+- [Another tutorial](https://www.bogotobogo.com/Qt/)
+- [Qt](https://evileg.com/ru/knowledge/qt/):
+
+### CVD
+
+- PqyQt5/examples/:
+  + widgets/windowsflags.py
+  + graphicsview/diagramscene/py (gfx items)
+- [QCPPolarGraph announce](https://www.qcustomplot.com/index.php/news)
+- Habr:
+  + [good](https://habr.com/ru/post/182142/)
+  + [bad1](https://habr.com/ru/post/182614/)
+  + [bad2](https://habr.com/ru/post/183432/)
+  + [code](https://github.com/DancingOnWater/GraphicsScenePlot)
