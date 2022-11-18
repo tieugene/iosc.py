@@ -143,3 +143,4 @@ Behavior:
 - [x] Update signal colors
 - [x] CVD window on/off
 - [x] close CVD on OscWindow close
+- [x] Split by modules

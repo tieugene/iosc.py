@@ -1,363 +1,16 @@
 """Circular Vector Diagram"""
 import cmath
-import math
-from typing import Optional
 
-from PyQt5.QtCore import Qt, QRectF, QPointF, QSizeF, QLineF
-from PyQt5.QtGui import QIcon, QResizeEvent, QPainter, QPen, QColor, QFont, QPolygonF, QPixmap
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 # 2. 3rd
-from PyQt5.QtWidgets import QDialog, QTableWidget, QAction, QVBoxLayout, QToolBar, QSplitter, QGraphicsView, \
-    QGraphicsScene, QGraphicsObject, QStyleOptionGraphicsItem, QWidget, QGraphicsEllipseItem, QGraphicsLineItem, \
-    QGraphicsTextItem, QComboBox, QLabel, QTableWidgetItem, QActionGroup, QToolButton, QMenu, QSizePolicy
-
+from PyQt5.QtWidgets import QDialog, QAction, QVBoxLayout, QToolBar, QSplitter, QWidget, QSizePolicy
+# 3. local
+from iosc.sig.cvd.cvdtable import CVDTable
+from iosc.sig.cvd.cvdwidget import CVDiagramView
+from iosc.sig.cvd.ptrswitcher import PtrSwitcher
 from iosc.sig.widget.common import AnalogSignalSuit
-from iosc.sig.widget.dialog import SelectSignalsDialog
-
-# x. consts
-RAD = 100  # Radius of chart
-DRAD_AXIS_LABEL = 0  # Distance from end of line to label margin
-ARROW_SIZE = 10  # Arrow sides length
-ARROW_ANGLE = math.pi / 6  # Arrow sides angle from main line
-GRID_STEPS_C = 5  # Number of circular grid lines
-GRID_STEPS_R = 8  # Number of radial grid lines
-POINT_Z = QPointF(0, 0)  # Helper
-SIN225 = math.sin(math.pi / 8)  # 22.5°
-TABLE_HEAD = ("Name", "Module", "Angle", "Re", "Im")
-
-
-def sign(v: float):
-    if abs(v) < SIN225:
-        return 0
-    elif v < 0:
-        return -1
-    else:
-        return 1
-
-
-class PtrSwitcher(QActionGroup):
-    tb: QToolButton
-
-    def __init__(self, parent: 'CVDiagramObject'):
-        super().__init__(parent)
-        self.tb = QToolButton(parent)
-        self.tb.setPopupMode(QToolButton.MenuButtonPopup)
-        self.tb.setMenu(QMenu())
-        # Main ptr
-        a0 = QAction(QIcon.fromTheme("go-jump"), "Main", parent, checkable=True)
-        a0.setData(0)
-        a0.setChecked(True)
-        self.addAction(a0)
-        self.tb.menu().addAction(a0)
-        self.tb.setDefaultAction(a0)
-        # tmp ptrs
-        for uid in parent.parent().tmp_ptr_i.keys():
-            self.__slot_add(uid)
-        # connections
-        self.triggered.connect(self.__slot_switch)
-        parent.parent().signal_ptr_add_tmp.connect(self.__slot_add)
-        parent.parent().signal_ptr_del_tmp.connect(self.__slot_del)
-
-    def __slot_switch(self, a: QAction):
-        self.tb.setDefaultAction(a)
-        self.parent().slot_ptr_switch(a.data())
-
-    def __slot_add(self, uid: int):
-        a = self.addAction(QAction(f"T{uid}", self.parent(), checkable=True))
-        a.setData(uid)
-        self.tb.menu().addAction(a)
-
-    def __slot_del(self, uid: int):
-        reset: bool = False
-        for a in self.actions():
-            if a.data() == uid:
-                reset = a.isChecked()
-                self.removeAction(a)
-        if reset:
-            self.actions()[0].setChecked(True)
-            self.__slot_switch(self.actions()[0])
-
-
-class SelectCVDSignalsDialog(SelectSignalsDialog):
-    f_base_signal: QComboBox
-
-    def __init__(
-            self,
-            ass_list: list[AnalogSignalSuit],
-            ass_used: set[int],
-            ass_base: int = 0,
-            parent=None
-    ):
-        super().__init__(ass_list, ass_used, parent)
-        self.f_base_signal = QComboBox(self)
-        for i, ss in enumerate(ass_list):
-            pixmap = QPixmap(16, 16)
-            pixmap.fill(ss.color)
-            self.f_base_signal.addItem(QIcon(pixmap), ss.signal.sid)
-        if ass_base is not None:
-            self.f_base_signal.setCurrentIndex(ass_base)
-        self.layout().insertWidget(2, QLabel("Base:", self))
-        self.layout().insertWidget(3, self.f_base_signal)
-
-    def execute(self) -> Optional[tuple[list[int], int]]:
-        """
-        :return: None if Cancel, list of selected items if ok
-        """
-        if self.exec_():
-            retlist = list()
-            for i in range(self.f_signals.count()):
-                if self.f_signals.item(i).checkState() == Qt.Checked:
-                    retlist.append(i)
-            retval = self.f_base_signal.currentIndex()
-            return retlist, retval
-
-
-class CVDiagramObject(QGraphicsObject):
-    class GridC(QGraphicsEllipseItem):
-        def __init__(self, parent: 'CVDiagramObject', radius: int):
-            super().__init__(-radius, -radius, 2 * radius, 2 * radius, parent)
-
-    class GridR(QGraphicsLineItem):
-        def __init__(self, parent: 'CVDiagramObject', angle: float):
-            super().__init__(0, 0, RAD * math.cos(angle), RAD * math.sin(angle), parent)
-
-    class Label(QGraphicsTextItem):
-        __angle: float
-        __len: float
-
-        def __init__(self, parent: QGraphicsObject, text: str, a: float, r: float, color: Optional[QColor] = None):
-            super().__init__(text, parent)
-            self.__len = r
-            self.setFont(QFont('mono', 8))
-            if color is not None:
-                self.set_color(color)
-            self.adjustSize()
-            self.set_angle(a)
-
-        def set_angle(self, a: float):
-            ...  # TODO:
-            self.__angle = a
-            x0_norm, y0_norm = math.cos(a), math.sin(a)
-            rect: QRectF = self.boundingRect()
-            self.setPos(QPointF(
-                (self.__len + DRAD_AXIS_LABEL) * x0_norm + (sign(x0_norm) - 1) * rect.width() / 2,
-                (self.__len + DRAD_AXIS_LABEL) * y0_norm + (sign(y0_norm) - 1) * rect.height() / 2
-            ))
-
-        def set_color(self, c: QColor):
-            self.setDefaultTextColor(c)
-
-    class Arrow(QGraphicsLineItem):
-        __angle: float
-        __len: float
-        __color: QColor
-        __arrowHead: QPolygonF
-
-        def __init__(self, parent: QGraphicsObject, a: float, r: float, color: Optional[QColor] = None):
-            super().__init__(parent)
-            self.__angle = a
-            self.__len = r
-            self.__color = color
-            self.__arrowHead = QPolygonF()
-
-        def boundingRect(self):
-            xtra = self.pen().width() / 2 + ARROW_SIZE * math.sin(ARROW_ANGLE)
-            p1 = self.line().p1()
-            p2 = self.line().p2()
-            return QRectF(p1, QSizeF(p2.x() - p1.x(), p2.y() - p1.y())).normalized().adjusted(-xtra, -xtra, xtra, xtra)
-
-        def shape(self):
-            path = super().shape()
-            path.addPolygon(self.__arrowHead)
-            return path
-
-        def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
-            # super().paint(painter, option, widget)
-            e = QPointF(self.__len * math.cos(self.__angle), self.__len * math.sin(self.__angle))
-            self.setLine(QLineF(POINT_Z, e))
-            arrow_l = self.line().p2() + QPointF(-math.cos(self.__angle + ARROW_ANGLE) * ARROW_SIZE,
-                                                 -math.sin(self.__angle + ARROW_ANGLE) * ARROW_SIZE)
-            arrow_r = self.line().p2() + QPointF(-math.cos(self.__angle - ARROW_ANGLE) * ARROW_SIZE,
-                                                 -math.sin(self.__angle - ARROW_ANGLE) * ARROW_SIZE)
-            self.__arrowHead.clear()
-            for point in [arrow_l, self.line().p2(), arrow_r]:
-                self.__arrowHead.append(point)
-            if self.__color:
-                pen = QPen(self.__color)
-                pen.setCosmetic(True)
-                painter.setPen(pen)
-            painter.drawLine(self.line())
-            painter.drawPolyline(self.__arrowHead)
-
-        def set_angle(self, a: float):
-            self.__angle = a
-
-        def set_color(self, c: QColor):  # FIXME: repaint?
-            self.__color = c
-
-    class SigVector(QGraphicsObject):
-        __parent: 'CVDiagramObject'
-        __ss: AnalogSignalSuit
-        __arrow: 'CVDiagramObject.Arrow'
-        __label: 'CVDiagramObject.Label'
-
-        def __init__(self, parent: 'CVDiagramObject', ss: AnalogSignalSuit):
-            super().__init__(parent)
-            self.__parent = parent
-            self.__ss = ss
-            angle = self.__get_angle()
-            pen = QPen(self.__ss.color)
-            pen.setCosmetic(True)
-            self.__arrow = CVDiagramObject.Arrow(self, angle, RAD, self.__ss.color)
-            self.__label = CVDiagramObject.Label(self, self.__ss.signal.sid, angle, RAD, self.__ss.color)
-            self.__ss.signal_chg_color.connect(self.__slot_update_color)
-
-        def boundingRect(self) -> QRectF:
-            return self.childrenBoundingRect()
-
-        def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
-            ...  # stub
-
-        def __get_angle(self) -> float:
-            return \
-                cmath.phase(self.__ss.hrm1(self.__parent.cvdview.cvdwin.t_i)) \
-                - self.__parent.cvdview.cvdwin.get_base_angle() \
-                - math.pi / 2
-
-        def __slot_update_color(self):
-            self.__arrow.set_color(self.__ss.color)
-            self.__label.set_color(self.__ss.color)
-
-        def update_angle(self):
-            a = self.__get_angle()
-            self.__arrow.set_angle(a)
-            self.__label.set_angle(a)  # ? refreshes arrow ?
-
-    cvdview: 'CVDiagramView'
-    sv_list: list[SigVector]
-
-    def __init__(self, cvdview: 'CVDiagramView'):
-        super().__init__()
-        self.cvdview = cvdview
-        self.sv_list = list()
-        # grid
-        pen = QPen(Qt.gray)
-        pen.setCosmetic(True)  # don't change width on resizing
-        for i in range(GRID_STEPS_C):  # - circular
-            self.GridC(self, RAD - RAD // GRID_STEPS_C * i).setPen(pen)
-        for i in range(GRID_STEPS_R):  # - radial
-            self.GridR(self, i * math.radians(360 // GRID_STEPS_R)).setPen(pen)
-        # axes labels
-        pen.setColor(Qt.black)
-        self.Label(self, "90°", 0, RAD)
-        self.Label(self, "180°", math.pi / 2, RAD)
-        self.Label(self, "-90°", math.pi, RAD)
-        self.Label(self, "0°", -math.pi / 2, RAD)
-
-    def boundingRect(self) -> QRectF:
-        return self.childrenBoundingRect()
-
-    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
-        ...  # stub
-
-    def sv_clean(self):
-        """Clean signal vectors"""
-        for sv in self.sv_list:
-            sv.deleteLater()
-        self.sv_list.clear()
-
-    def sv_add(self, ss: AnalogSignalSuit):
-        """Add signal vector"""
-        self.sv_list.append(self.SigVector(self, ss))
-
-    def sv_refresh(self):
-        for sv in self.sv_list:
-            sv.update_angle()
-
-    def sv_show(self, i: int, show: bool):
-        self.sv_list[i].setVisible(show)
-
-
-class CVDiagramView(QGraphicsView):
-    cvdwin: 'CVDWindow'  # uplink
-    circle: CVDiagramObject  # downlink
-
-    def __init__(self, parent: 'CVDWindow'):
-        # Howto (resize to content): scene.setSceneRect(scene.itemsBoundingRect()) <= QGraphicsScene::changed()
-        super().__init__(parent)
-        self.cvdwin = parent
-        self.setScene(QGraphicsScene())
-        # self.setMinimumSize(100, 100)
-        self.setViewportUpdateMode(QGraphicsView.BoundingRectViewportUpdate)
-        self.setCacheMode(QGraphicsView.CacheBackground)
-        self.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
-        self.circle = CVDiagramObject(self)
-        self.scene().addItem(self.circle)
-
-    def resizeEvent(self, event: QResizeEvent):
-        super().resizeEvent(event)
-        self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
-
-    def reload_signals(self):
-        """Reload vectors from selected signals.
-        TODO: AnalogSignalSuit<=>SigVector map
-        """
-        self.circle.sv_clean()
-        for r, ss in enumerate(self.cvdwin.ss_used):
-            self.circle.sv_add(ss)
-
-    def refresh_signals(self):
-        """Refresh row values by ptr"""
-        self.circle.sv_refresh()
-
-
-class CVTable(QTableWidget):
-    __parent: 'CVDWindow'
-    __trace_items: bool  # process item changing
-
-    def __init__(self, parent: 'CVDWindow'):
-        super().__init__(parent)
-        self.__parent = parent
-        self.__trace_items = False
-        self.setColumnCount(len(TABLE_HEAD))
-        self.horizontalHeader().setStretchLastSection(True)
-        self.setVerticalScrollMode(self.ScrollPerPixel)
-        self.setHorizontalHeaderLabels(TABLE_HEAD)
-        self.setSelectionMode(self.NoSelection)
-        self.resizeRowsToContents()
-        self.itemChanged.connect(self.__slot_item_chgd)
-
-    def reload_signals(self):
-        """Reload rows from selected signals."""
-        self.__trace_items = False
-        self.setRowCount(len(self.__parent.ss_used))  # all items can be None
-        for r, ss in enumerate(self.__parent.ss_used):
-            for c in range(self.columnCount()):
-                if self.item(r, c) is None:
-                    self.setItem(r, c, QTableWidgetItem())
-                    if c:
-                        self.item(r, c).setTextAlignment(Qt.AlignRight)
-            self.item(r, 0).setCheckState(Qt.Checked)
-            self.item(r, 0).setText(ss.signal.sid)
-            self.item(r, 0).setForeground(ss.color)
-        self.refresh_signals()
-        self.resizeColumnsToContents()
-
-    def refresh_signals(self):
-        """Refresh row values by ptr"""
-        self.__trace_items = False
-        i = self.__parent.t_i
-        for r, ss in enumerate(self.__parent.ss_used):
-            v: complex = ss.hrm1(i)
-            uu = ss.signal.raw2.uu
-            self.item(r, 1).setText("%.1f %s" % (abs(v), uu))
-            self.item(r, 2).setText("%.1f°" % math.degrees(cmath.phase(v)))
-            self.item(r, 3).setText("%.1f %s" % (v.real, uu))
-            self.item(r, 4).setText("%.1f %s" % (v.imag, uu))
-        self.__trace_items = True
-
-    def __slot_item_chgd(self, item: QTableWidgetItem):
-        if self.__trace_items and item.column() == 0:
-            self.__parent.chart.circle.sv_show(item.row(), item.checkState() == Qt.Checked)
+from iosc.sig.widget.dialog import SelectCVDSignalsDialog
 
 
 class CVDWindow(QDialog):
@@ -369,7 +22,7 @@ class CVDWindow(QDialog):
     ss_base: AnalogSignalSuit
     toolbar: QToolBar
     chart: CVDiagramView
-    table: CVTable
+    table: CVDTable
     action_settings: QAction
     action_ptr: PtrSwitcher
     action_close: QAction
@@ -401,7 +54,7 @@ class CVDWindow(QDialog):
     def __mk_widgets(self):
         self.toolbar = QToolBar(self)
         self.chart = CVDiagramView(self)
-        self.table = CVTable(self)
+        self.table = CVDTable(self)
 
     def __mk_layout(self):
         """Layout:
@@ -421,14 +74,14 @@ class CVDWindow(QDialog):
 
     def __mk_actions(self):
         self.action_settings = QAction(QIcon.fromTheme("document-properties"),
-                                       "&Settings",
+                                       "&Select signals",
                                        self,
                                        shortcut="Ctrl+S",
                                        triggered=self.__do_settings)
         self.action_close = QAction(QIcon.fromTheme("window-close"),
                                     "&Close",
                                     self,
-                                    shortcut="Ctrl+W",
+                                    shortcut="Ctrl+V",
                                     triggered=self.parent().action_vector_diagram.trigger)
         self.action_ptr = PtrSwitcher(self)
 

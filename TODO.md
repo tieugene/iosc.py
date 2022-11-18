@@ -2,7 +2,6 @@
 
 Current job: [0.3.1. CVD](https://github.com/tieugene/iosc.py/issues/190)
 
-- [ ] _Split by modules_
 - [ ] FIXME: hide/show CVD on ComtradeTabWidget tab switch
 
 ## Vector diagram
