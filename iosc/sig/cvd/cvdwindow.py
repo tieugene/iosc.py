@@ -386,6 +386,7 @@ class CVDWindow(QDialog):
         self.__mk_actions()
         self.__mk_toolbar()
         self.setWindowTitle("Vector Diagram")
+        # self.setWindowFlag(Qt.Dialog)
         parent.signal_ptr_moved_main.connect(self.__slot_ptr_moved_main)
         parent.signal_ptr_moved_tmp.connect(self.__slot_ptr_moved_tmp)
 

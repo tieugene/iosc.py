@@ -2,9 +2,8 @@
 
 Current job: [0.3.1. CVD](https://github.com/tieugene/iosc.py/issues/190)
 
-- [ ] CVD window on/off
-- [ ] FIXME: close CVD on OscWindow close
 - [ ] _Split by modules_
+- [ ] FIXME: hide/show CVD on ComtradeTabWidget tab switch
 
 ## Vector diagram
 

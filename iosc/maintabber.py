@@ -14,7 +14,7 @@ class ComtradeTabWidget(QTabWidget):
     def __init__(self, parent: QMainWindow):
         super().__init__(parent)
         self.setTabsClosable(True)
-        self.tabCloseRequested.connect(self.__slot_tab_close)
+        self.tabCloseRequested.connect(self.slot_tab_close)
         # self.tabBar().setSelectionBehaviorOnRemove(QTabBar.SelectPreviousTab)
 
     def add_chart_tab(self, path: pathlib.Path):
@@ -37,9 +37,10 @@ class ComtradeTabWidget(QTabWidget):
         finally:
             QGuiApplication.restoreOverrideCursor()
 
-    def __slot_tab_close(self, index):
+    def slot_tab_close(self, index):
         max_tabs = int(MAIN_TAB)
         if index >= max_tabs and self.count() >= (max_tabs + 1):  # main tab unclosable
+            self.widget(index).close()
             self.removeTab(index)
 
 

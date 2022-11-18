@@ -142,3 +142,4 @@ Behavior:
 - [x] Hide/Show signals
 - [x] Update signal colors
 - [x] CVD window on/off
+- [x] close CVD on OscWindow close

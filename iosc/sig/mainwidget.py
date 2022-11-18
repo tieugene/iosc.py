@@ -372,7 +372,7 @@ class ComtradeWidget(QWidget):
 
     def __do_file_close(self):  # FIXME: not closes tab
         # self.close()  # close widget but not tab itself
-        self.parent().parent().removeTab(self.parent().indexOf(self))  # QStackedWidget.ComtradeTabWidget
+        self.parent().parent().slot_tab_close(self.parent().indexOf(self))  # QStackedWidget.ComtradeTabWidget
 
     def __do_file_info(self):
         def tr(name: str, value: Any):
@@ -522,3 +522,9 @@ class ComtradeWidget(QWidget):
         if form.exec_():
             self.timeaxis_bar.plot.set_tmp_ptr_name(uid, form.f_name.text())
             self.signal_ptr_moved_tmp.emit(uid, self.x2i(form.f_val.value()))
+
+    def closeEvent(self, event: QCloseEvent):
+        if self.cvdwin:
+            print("Close children")
+            self.cvdwin.deleteLater()
+        super().closeEvent(event)
