@@ -50,7 +50,7 @@ class CVDWindow(QDialog):
         return self.__i
 
     def get_base_angle(self) -> float:
-        return cmath.phase(self.ss_base.hrm1(self.t_i))
+        return cmath.phase(self.ss_base.hrm(1, self.t_i))
 
     def __mk_widgets(self):
         self.toolbar = QToolBar(self)

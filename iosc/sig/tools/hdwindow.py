@@ -4,7 +4,7 @@ from typing import Optional
 
 # 1. std
 # 2. 3rd
-from PyQt5.QtCore import Qt, QMargins
+from PyQt5.QtCore import Qt, QMargins, pyqtSignal
 from PyQt5.QtGui import QIcon, QColor, QFont
 from PyQt5.QtWidgets import QDialog, QToolBar, QAction, QScrollArea, QVBoxLayout, QWidget, QSizePolicy, QLabel, \
     QHBoxLayout, QFrame
@@ -40,50 +40,58 @@ class SignalHarmBar(QWidget):
         def set_text(self, text: str):
             self.subj.setText(text)
 
+        def set_color(self, color: QColor):
+            self.setStyleSheet("background-color: %s" % color2style(color))
+
     class _Space(QFrame):
-        def __init__(self, parent: 'SignalHarmBar', color: Optional[QColor] = None):
+        def __init__(self, parent: 'SignalHarmBar'):
             super().__init__(parent)
-            if color:
-                self.set_color(color)
 
         def set_color(self, color: QColor):
             self.setStyleSheet("background-color: %s" % color2style(color))
 
+    h_no: int
     title: _Text
     indic: _Space
     legend: _Text
     pad: _Space
     """One harmonic row"""
-    def __init__(self, ss: AnalogSignalSuit, hrm_no: int, parent: 'SignalBar'):
+    def __init__(self, h_no: int, parent: 'SignalBar'):
         """
-        :param ss: Signal about
-        :param hrm_no: Harmonic order number (1..5)
+        :param h_no: Harmonic number
         :param parent: Subj
         """
         super().__init__(parent)
+        self.h_no = h_no
         # self.setStyleSheet("border: 1px dotted black")
         self.setLayout(QHBoxLayout())
         # 1. mk widgets
         # - title
         self.title = self._Text(self)
         self.title.setFixedWidth(WIDTH_HRM_TITLE)
-        self.title.set_text(f"{hrm_no}: {hrm_no * 50} Гц")
+        self.title.set_text(f"{h_no}: {h_no * 50} Гц")  # FIXME: use ss.signal.frequency
         self.layout().addWidget(self.title)
         self.layout().setStretchFactor(self.title, 0)
         # - indicator
-        self.indic = self._Space(self, ss.color)
+        self.indic = self._Space(self)
         self.layout().addWidget(self.indic)
-        # self.layout().setStretchFactor(self.indic, val)  # TODO:
         # - percentage
         self.legend = self._Text(self)
         self.layout().addWidget(self.legend)
         self.title.setFixedWidth(WIDTH_HRM_LEGEND)
-        # set value
-        # self.layout().setStretchFactor(self.legend, 0)
+        self.layout().setStretchFactor(self.legend, 0)
         # - pad
-        self.indic = self._Space(self)
-        self.layout().addWidget(self.indic)
-        # self.layout().setStretchFactor(self.indic, 100 - val)
+        self.pad = self._Space(self)
+        self.layout().addWidget(self.pad)
+
+    def set_value(self, v: int):
+        self.legend.set_text(f"{v}%")
+        self.layout().setStretchFactor(self.indic, v)
+        self.layout().setStretchFactor(self.pad, 100 - v)
+
+    def set_color(self, color: QColor):
+        self.title.set_color(color)
+        self.indic.set_color(color)
 
 
 class SignalTitleBar(QWidget):
@@ -92,43 +100,60 @@ class SignalTitleBar(QWidget):
         self.setLayout(QHBoxLayout())
         self.layout().addWidget(QLabel(text, self))
         self.layout().addStretch(0)
-        self.setStyleSheet("background-color: %s" % color2style(color))
+        self.set_color(color)
 
     def set_color(self, color: QColor):
-        ...
+        self.setStyleSheet("background-color: %s" % color2style(color))
 
 
 class SignalBar(QWidget):
     """One signal's row."""
+    __ss: AnalogSignalSuit
     title: SignalTitleBar
     harm: list[SignalHarmBar]
 
     def __init__(self, ss: AnalogSignalSuit, parent: 'HDTable'):
         super().__init__(parent)
+        self.__ss = ss
         self.title = SignalTitleBar(ss.signal.sid, ss.color, self)
         self.harm = list()
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(self.title)
         for i in (1, 2, 3, 5):
-            hrm = SignalHarmBar(ss, i, self)
+            hrm = SignalHarmBar(i, self)
             self.harm.append(hrm)
             self.layout().addWidget(hrm)
+        parent.hdwin.signal_ptr_moved.connect(self.__slot_ptr_moved)
+        ss.signal_chg_color.connect(self.__slot_set_color)
+
+    def __slot_ptr_moved(self, i: int):
+        # FIXME: chk h1 = 0
+        i = self.parent().hdwin.t_i
+        h1 = abs(self.__ss.hrm(1, i))
+        self.harm[0].set_value(100)
+        self.harm[1].set_value(round(abs(self.__ss.hrm(2, i))/h1 * 100))
+        self.harm[2].set_value(round(abs(self.__ss.hrm(3, i))/h1 * 100))
+        self.harm[3].set_value(round(abs(self.__ss.hrm(5, i))/h1 * 100))
+
+    def __slot_set_color(self):
+        for w in self.layout().children():
+            w.set_color(self.__ss.color)
 
 
 class HDTable(QWidget):
-    __parent: 'HDWindow'  # functional parent
+    hdwin: 'HDWindow'  # functional parent
 
     def __init__(self, parent: 'HDWindow'):
         super().__init__(parent)
-        self.__parent = parent
+        self.hdwin = parent
         self.setStyleSheet("border: 1px solid red")
         self.setLayout(QVBoxLayout())
-        self.layout().addStretch(0)
+        # self.layout().addStretch(0)
 
     def reload_signals(self):
         self.layout().children().clear()
-        if self.__parent.ss_used:
-            for ss in self.__parent.ss_used:
+        if self.hdwin.ss_used:
+            for ss in self.hdwin.ss_used:
                 self.layout().addWidget(SignalBar(ss, self))
             self.layout().addStretch(0)
 
@@ -145,6 +170,7 @@ class HDWindow(QDialog):
     action_settings: QAction
     action_ptr: PtrSwitcher
     action_close: QAction
+    signal_ptr_moved = pyqtSignal(int)
 
     def __init__(self, parent: 'ComtradeWidget'):
         super().__init__(parent)
@@ -158,6 +184,8 @@ class HDWindow(QDialog):
         self.__mk_toolbar()
         self.setWindowTitle("Harmonic Diagram")
         # self.setWindowFlag(Qt.Dialog)
+        parent.signal_ptr_moved_main.connect(self.__slot_ptr_moved_main)
+        parent.signal_ptr_moved_tmp.connect(self.__slot_ptr_moved_tmp)
 
     @property
     def t_i(self):
@@ -210,7 +238,7 @@ class HDWindow(QDialog):
 
     def __slot_ptr_moved(self, i: int):
         self.__i = i
-        self.table.refresh_signals()
+        self.signal_ptr_moved.emit(i)
 
     def __slot_ptr_moved_main(self, i: int):
         if self.__ptr_uid == 0:

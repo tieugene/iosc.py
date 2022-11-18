@@ -11,13 +11,14 @@ from QCustomPlot2 import QCPGraph, QCPScatterStyle, QCustomPlot, QCPRange
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.core.sigfunc import func_list, hrm1
+from iosc.core.sigfunc import func_list, hrm1, hrm5, hrm3, hrm2
 from iosc.sig.widget.ctrl import BarCtrlWidget, StatusSignalLabel, AnalogSignalLabel
 from iosc.sig.widget.chart import BarPlotWidget
 from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
 from iosc.sig.widget.ptr import MsrPtr, LvlPtr
 
 PEN_STYLE = (Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)
+HRM_N2F = {1: hrm1, 2: hrm2, 3: hrm3, 5: hrm5}
 
 
 class SignalSuit(QObject):
@@ -224,14 +225,15 @@ class AnalogSignalSuit(SignalSuit):
         else:
             return y_str
 
-    def hrm1(self, i: int) -> complex:
+    def hrm(self, hrm_no: int, t_i: int) -> complex:
         """
         Harmonic #1 of the signal.
         Used by CVD.
-        :param i: Point of x-axis
+        :param hrm_no: Harmonic no (1, 2, 3, 5)
+        :param t_i: Point of x-axis
         :return: Complex value of 1st harmonic
         """
-        return hrm1(self.signal.value, i, self.oscwin.osc.spp)
+        return HRM_N2F[hrm_no](self.signal.value, t_i, self.oscwin.osc.spp)
 
     def __slot_reload_data(self):
         self._set_data()

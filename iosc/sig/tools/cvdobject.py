@@ -137,7 +137,7 @@ class CVDiagramObject(QGraphicsObject):
 
         def __get_angle(self) -> float:
             return \
-                cmath.phase(self.__ss.hrm1(self.__parent.cvdview.cvdwin.t_i)) \
+                cmath.phase(self.__ss.hrm(1, self.__parent.cvdview.cvdwin.t_i)) \
                 - self.__parent.cvdview.cvdwin.get_base_angle() \
                 - math.pi / 2
 
