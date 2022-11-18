@@ -44,7 +44,7 @@ class CVDTable(QTableWidget):
         self.__trace_items = False
         i = self.__parent.t_i
         for r, ss in enumerate(self.__parent.ss_used):
-            v: complex = ss.hrm1(i)
+            v: complex = ss.hrm(1, i)
             uu = ss.signal.raw2.uu
             self.item(r, 1).setText("%.1f %s" % (abs(v), uu))
             self.item(r, 2).setText("%.1f°" % math.degrees(cmath.phase(v)))

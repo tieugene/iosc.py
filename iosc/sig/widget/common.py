@@ -24,7 +24,7 @@ HRM_N2F = {1: hrm1, 2: hrm2, 3: hrm3, 5: hrm5}
 class SignalSuit(QObject):
     oscwin: 'ComtradeWidget'
     signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]
-    bar: Optional['SignalBar']
+    bar: Optional['HDBar']
     num: Optional[int]  # order number in bar
     _label: Optional[Union[StatusSignalLabel, AnalogSignalLabel]]
     graph: Optional[QCPGraph]
@@ -68,7 +68,7 @@ class SignalSuit(QObject):
             self._label.set_color()
         self.signal_chg_color.emit(self.color)  # Rx by: CVD
 
-    def embed(self, bar: 'SignalBar', num: int):
+    def embed(self, bar: 'HDBar', num: int):
         self.bar = bar
         self.num = num
         self._label = self.bar.ctrl.sig_add(self)
@@ -167,7 +167,7 @@ class AnalogSignalSuit(SignalSuit):
             self._set_style()
             self.graph.parentPlot().replot()
 
-    def embed(self, bar: 'SignalBar', num: int):
+    def embed(self, bar: 'HDBar', num: int):
         super().embed(bar, num)
         for uid in self.msr_ptr.keys():
             MsrPtr(self, uid)
@@ -357,7 +357,7 @@ class SignalBar(QObject):
         # else: do nothing
         self.update_stealth()
 
-    def sig_move(self, i: int, other_bar: 'SignalBar'):
+    def sig_move(self, i: int, other_bar: 'HDBar'):
         ss = self.signals[i]
         del self.signals[i]
         ss.detach()

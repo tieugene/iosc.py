@@ -151,3 +151,4 @@ Behavior:
 - [x] Initial fill (name, color, values)
 - [x] Update by ptr
 - [x] Update signal colors
+- [x] Split by modules
