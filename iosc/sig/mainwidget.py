@@ -289,10 +289,10 @@ class ComtradeWidget(QWidget):
                                              checkable=True,
                                              triggered=self.__do_vector_diagram)
         self.action_harmonic_diagram = QAction("Harmonic chart",
-                                             self,
-                                             shortcut="Ctrl+H",
-                                             checkable=True,
-                                             triggered=self.__do_harmonic_diagram)
+                                               self,
+                                               shortcut="Ctrl+H",
+                                               checkable=True,
+                                               triggered=self.__do_harmonic_diagram)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
         self.action_shift.addAction(self.action_shift_yes)

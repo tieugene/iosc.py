@@ -146,3 +146,8 @@ Behavior:
 - [x] Split by modules
 
 ### HD
+- [x] Select signals
+- [x] &gt;100%
+- [x] Initial fill (name, color, values)
+- [x] Update by ptr
+- [x] Update signal colors

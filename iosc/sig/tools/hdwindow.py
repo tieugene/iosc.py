@@ -1,10 +1,8 @@
 """Harminic Diagram (HD).
 Main window."""
-from typing import Optional
-
 # 1. std
 # 2. 3rd
-from PyQt5.QtCore import Qt, QMargins, pyqtSignal
+from PyQt5.QtCore import QMargins, pyqtSignal
 from PyQt5.QtGui import QIcon, QColor, QFont
 from PyQt5.QtWidgets import QDialog, QToolBar, QAction, QScrollArea, QVBoxLayout, QWidget, QSizePolicy, QLabel, \
     QHBoxLayout, QFrame
@@ -14,9 +12,8 @@ from iosc.sig.widget.common import AnalogSignalSuit
 from iosc.sig.widget.dialog import SelectSignalsDialog
 # x. const
 FONT_STD = QFont('mono', 8)
-WIDTH_HRM_TITLE = 75
+WIDTH_HRM_TITLE = 70
 WIDTH_HRM_LEGEND = 35
-HRM_VAL = (100, 50, 25, 12, 6, 3, 1, 0)
 
 
 def color2style(c: QColor) -> str:
@@ -40,9 +37,6 @@ class SignalHarmBar(QWidget):
         def set_text(self, text: str):
             self.subj.setText(text)
 
-        def set_color(self, color: QColor):
-            self.setStyleSheet("background-color: %s" % color2style(color))
-
     class _Space(QFrame):
         def __init__(self, parent: 'SignalHarmBar'):
             super().__init__(parent)
@@ -65,6 +59,8 @@ class SignalHarmBar(QWidget):
         self.h_no = h_no
         # self.setStyleSheet("border: 1px dotted black")
         self.setLayout(QHBoxLayout())
+        self.layout().setContentsMargins(QMargins())
+        self.layout().setSpacing(0)
         # 1. mk widgets
         # - title
         self.title = self._Text(self)
@@ -77,20 +73,19 @@ class SignalHarmBar(QWidget):
         self.layout().addWidget(self.indic)
         # - percentage
         self.legend = self._Text(self)
+        self.legend.setFixedWidth(WIDTH_HRM_LEGEND)
         self.layout().addWidget(self.legend)
-        self.title.setFixedWidth(WIDTH_HRM_LEGEND)
         self.layout().setStretchFactor(self.legend, 0)
         # - pad
         self.pad = self._Space(self)
         self.layout().addWidget(self.pad)
 
-    def set_value(self, v: int):
+    def set_value(self, v: int, v_max: int):
         self.legend.set_text(f"{v}%")
         self.layout().setStretchFactor(self.indic, v)
-        self.layout().setStretchFactor(self.pad, 100 - v)
+        self.layout().setStretchFactor(self.pad, v_max - v)
 
     def set_color(self, color: QColor):
-        self.title.set_color(color)
         self.indic.set_color(color)
 
 
@@ -123,21 +118,29 @@ class SignalBar(QWidget):
             hrm = SignalHarmBar(i, self)
             self.harm.append(hrm)
             self.layout().addWidget(hrm)
+        self.__slot_set_color()
+        self.__slot_ptr_moved(self.parent().hdwin.t_i)
         parent.hdwin.signal_ptr_moved.connect(self.__slot_ptr_moved)
         ss.signal_chg_color.connect(self.__slot_set_color)
 
-    def __slot_ptr_moved(self, i: int):
+    def __slot_ptr_moved(self, t_i: int):
         # FIXME: chk h1 = 0
-        i = self.parent().hdwin.t_i
-        h1 = abs(self.__ss.hrm(1, i))
-        self.harm[0].set_value(100)
-        self.harm[1].set_value(round(abs(self.__ss.hrm(2, i))/h1 * 100))
-        self.harm[2].set_value(round(abs(self.__ss.hrm(3, i))/h1 * 100))
-        self.harm[3].set_value(round(abs(self.__ss.hrm(5, i))/h1 * 100))
+        # t_i = self.parent().hdwin.t_i  # current pint
+        # - get all values
+        v = [abs(self.__ss.hrm(h.h_no, t_i)) for h in self.harm]
+        # - calc max
+        v_max = round(100 * max(v)/v[0])
+        # - paint them
+        self.harm[0].set_value(100, v_max)
+        self.harm[1].set_value(round(100 * v[1]/v[0]), v_max)
+        self.harm[2].set_value(round(100 * v[2]/v[0]), v_max)
+        self.harm[3].set_value(round(100 * v[3]/v[0]), v_max)
 
     def __slot_set_color(self):
-        for w in self.layout().children():
-            w.set_color(self.__ss.color)
+        c = self.__ss.color
+        self.title.set_color(c)
+        for h in self.harm:
+            h.set_color(c)
 
 
 class HDTable(QWidget):
@@ -146,9 +149,8 @@ class HDTable(QWidget):
     def __init__(self, parent: 'HDWindow'):
         super().__init__(parent)
         self.hdwin = parent
-        self.setStyleSheet("border: 1px solid red")
+        # self.setStyleSheet("border: 1px solid red")
         self.setLayout(QVBoxLayout())
-        # self.layout().addStretch(0)
 
     def reload_signals(self):
         self.layout().children().clear()
