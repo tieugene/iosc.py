@@ -2,7 +2,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QResizeEvent
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene
 
-from iosc.sig.cvd.cvdobject import CVDiagramObject
+from iosc.sig.tools.cvdobject import CVDiagramObject
 
 
 class CVDiagramView(QGraphicsView):

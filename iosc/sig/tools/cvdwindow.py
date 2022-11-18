@@ -1,14 +1,15 @@
-"""Circular Vector Diagram"""
+"""Circular Vector Diagram (CVD).
+Main window."""
+# 1. std
 import cmath
-
+# 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
-# 2. 3rd
 from PyQt5.QtWidgets import QDialog, QAction, QVBoxLayout, QToolBar, QSplitter, QWidget, QSizePolicy
 # 3. local
-from iosc.sig.cvd.cvdtable import CVDTable
-from iosc.sig.cvd.cvdwidget import CVDiagramView
-from iosc.sig.cvd.ptrswitcher import PtrSwitcher
+from iosc.sig.tools.cvdtable import CVDTable
+from iosc.sig.tools.cvdwidget import CVDiagramView
+from iosc.sig.tools.ptrswitcher import PtrSwitcher
 from iosc.sig.widget.common import AnalogSignalSuit
 from iosc.sig.widget.dialog import SelectCVDSignalsDialog
 

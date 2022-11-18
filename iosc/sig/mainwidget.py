@@ -13,8 +13,9 @@ import iosc.const
 from iosc.core import mycomtrade
 from iosc.icon import svg_icon, ESvgSrc
 from iosc.core.convtrade import convert, ConvertError
-from iosc.sig.cvd.cvdwindow import CVDWindow
+from iosc.sig.tools.cvdwindow import CVDWindow
 from iosc.sig.section import TimeAxisBar, SignalBarTable, TimeStampsBar, XScroller
+from iosc.sig.tools.hdwindow import HDWindow
 from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit
 from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
 
@@ -63,6 +64,7 @@ class ComtradeWidget(QWidget):
     action_ptr_add_msr: QAction
     action_ptr_add_lvl: QAction
     action_vector_diagram: QAction
+    action_harmonic_diagram: QAction
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
@@ -73,6 +75,7 @@ class ComtradeWidget(QWidget):
     timestamps_bar: TimeStampsBar
     xscroll_bar: XScroller
     cvdwin: Optional[CVDWindow]
+    hdwin: Optional[HDWindow]
     # signals
     signal_chged_pors = pyqtSignal()  # recalc ASignalCtrlView on ...
     signal_chged_shift = pyqtSignal()  # refresh ASignal*View on switching original/shifted
@@ -171,6 +174,7 @@ class ComtradeWidget(QWidget):
         self.timestamps_bar = TimeStampsBar(self)
         self.xscroll_bar = XScroller(self)
         self.cvdwin = None
+        self.hdwin = None
 
     def __mk_layout(self):
         self.setLayout(QVBoxLayout())
@@ -284,6 +288,11 @@ class ComtradeWidget(QWidget):
                                              shortcut="Ctrl+V",
                                              checkable=True,
                                              triggered=self.__do_vector_diagram)
+        self.action_harmonic_diagram = QAction("Harmonic chart",
+                                             self,
+                                             shortcut="Ctrl+H",
+                                             checkable=True,
+                                             triggered=self.__do_harmonic_diagram)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
         self.action_shift.addAction(self.action_shift_yes)
@@ -333,6 +342,7 @@ class ComtradeWidget(QWidget):
         menu_ptr.addAction(self.action_ptr_add_lvl)
         menu_tools = self.menubar.addMenu("&Tools")
         menu_tools.addAction(self.action_vector_diagram)
+        menu_tools.addAction(self.action_harmonic_diagram)
 
     def __mk_toolbar(self):
         # prepare
@@ -477,6 +487,11 @@ class ComtradeWidget(QWidget):
             self.cvdwin = CVDWindow(self)
         self.cvdwin.setVisible(checked)
 
+    def __do_harmonic_diagram(self, checked: bool):
+        if not self.hdwin:
+            self.hdwin = HDWindow(self)
+        self.hdwin.setVisible(checked)
+
     def resize_col_ctrl(self, dx: int):
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:
             self.col_ctrl_width += dx
@@ -525,6 +540,7 @@ class ComtradeWidget(QWidget):
 
     def closeEvent(self, event: QCloseEvent):
         if self.cvdwin:
-            print("Close children")
             self.cvdwin.deleteLater()
+        if self.hdwin:
+            self.hdwin.deleteLater()
         super().closeEvent(event)
