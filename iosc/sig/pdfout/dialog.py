@@ -1,4 +1,5 @@
 """PDF print preview."""
+from PyQt5.QtGui import QIcon
 from PyQt5.QtPrintSupport import QPrintPreviewDialog, QPrinter
 from PyQt5.QtWidgets import QToolBar, QToolButton, QMenu, QAction, QActionGroup
 # 3. local
@@ -35,8 +36,8 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
             self.__actions_to_print.addAction(QAction(s, self, checkable=True, )).setData(i)
 
     def __mk_custom_menu(self):
-        # FIXME: add icon or text
         self.__tb_to_print = QToolButton(self)
+        self.__tb_to_print.setIcon(QIcon.fromTheme("emblem-important"))  # or SP_ToolBarVerticalExtensionButton
         self.__tb_to_print.setPopupMode(QToolButton.MenuButtonPopup)
         self.__tb_to_print.setMenu(QMenu())
         self.__tb_to_print.menu().addActions(self.__actions_to_print.actions())

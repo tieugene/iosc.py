@@ -1,4 +1,3 @@
-from PyQt5.QtGui import QPagedPaintDevice
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QAction
 
@@ -12,10 +11,7 @@ class PrintRender(QGraphicsView):
         self.setScene(QGraphicsScene())
 
     def set_to_print(self, a: QAction):
-        i = a.data()
-        v = a.isChecked()
-        # print("Set #", i, "=>", v)
-        self.__to_print[i] = v
+        self.__to_print[a.data()] = a.isChecked()
 
     def print_(self, printer: QPrinter) -> None:
         ...
