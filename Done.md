@@ -153,3 +153,4 @@ Behavior:
 - [x] Update signal colors
 - [x] Split by modules
 - [x] Fixed: Signal adding only
+- [ ] Fixed: Select ss => Cancel == deselect all

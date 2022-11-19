@@ -221,13 +221,13 @@ class SelectSignalsDialog(QDialog):
     def __slot_select_none(self):
         self.__select(False)
 
-    def execute(self) -> list[int]:
-        retvalue = list()
+    def execute(self) -> Optional[list[int]]:
         if self.exec_():
+            retvalue = list()
             for i in range(self.f_signals.count()):
                 if self.f_signals.item(i).checkState() == Qt.Checked:
                     retvalue.append(i)
-        return retvalue
+            return retvalue
 
 
 class SelectCVDSignalsDialog(SelectSignalsDialog):
