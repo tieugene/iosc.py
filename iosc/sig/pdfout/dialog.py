@@ -1,5 +1,5 @@
 """PDF print preview."""
-from PyQt5.QtPrintSupport import QPrintPreviewDialog
+from PyQt5.QtPrintSupport import QPrintPreviewDialog, QPrinter
 
 
 class PDFOutPreviewDialog(QPrintPreviewDialog):
@@ -7,5 +7,5 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
     - Color/black (QCheckBox)
     - What to print (4 x Checkboxes)
     """
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, printer: QPrinter, parent='ComtradeWidget'):
+        super().__init__(printer, parent)

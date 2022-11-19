@@ -5,7 +5,8 @@ import pathlib
 from typing import Any, Dict, Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QCloseEvent
+from PyQt5.QtGui import QIcon, QCloseEvent, QPagedPaintDevice
+from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QMenuBar, QToolBar, QAction, QMessageBox, \
     QFileDialog, QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
@@ -14,6 +15,7 @@ from iosc.core import mycomtrade
 from iosc.icon import svg_icon, ESvgSrc
 from iosc.core.convtrade import convert, ConvertError
 from iosc.sig.pdfout.dialog import PDFOutPreviewDialog
+from iosc.sig.pdfout.render import PrintRender
 from iosc.sig.tools.cvdwindow import CVDWindow
 from iosc.sig.widget.section import TimeAxisBar, SignalBarTable, TimeStampsBar, XScroller
 from iosc.sig.tools.hdwindow import HDWindow
@@ -222,6 +224,7 @@ class ComtradeWidget(QWidget):
         self.action_pdfout = QAction(svg_icon(ESvgSrc.PDF),
                                      "&Print...",
                                      self,
+                                     shortcut="Ctrl+P",
                                      triggered=self.__do_file_pdfout)
         self.action_resize_y_in = QAction(svg_icon(ESvgSrc.VZoomIn),
                                           "Y-Resize +",
@@ -432,8 +435,10 @@ class ComtradeWidget(QWidget):
 
     def __do_file_pdfout(self):
         """Print to PDF"""
-        if PDFOutPreviewDialog().exec_():
-            ...
+        printer = QPrinter(QPrinter.HighResolution)
+        preview = PDFOutPreviewDialog(printer, self)
+        preview.paintRequested.connect(self.__print_preview)
+        preview.exec_()
 
     def __do_unhide(self):
         self.signal_unhide_all.emit()
@@ -556,3 +561,6 @@ class ComtradeWidget(QWidget):
         if self.hdwin:
             self.hdwin.deleteLater()
         super().closeEvent(event)
+
+    def __print_preview(self, printer: QPagedPaintDevice) -> None:
+        PrintRender(self).print_(printer)
