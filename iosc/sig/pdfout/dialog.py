@@ -9,3 +9,4 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
     """
     def __init__(self, printer: QPrinter, parent='ComtradeWidget'):
         super().__init__(printer, parent)
+        self.paintRequested.connect(parent.pdfout.print_)

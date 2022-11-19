@@ -80,6 +80,9 @@ class ComtradeWidget(QWidget):
     xscroll_bar: XScroller
     cvdwin: Optional[CVDWindow]
     hdwin: Optional[HDWindow]
+    __printer: QPrinter
+    pdfout: PrintRender
+    print_preview: PDFOutPreviewDialog
     # signals
     signal_chged_pors = pyqtSignal()  # recalc ASignalCtrlView on ...
     signal_chged_shift = pyqtSignal()  # refresh ASignal*View on switching original/shifted
@@ -179,6 +182,9 @@ class ComtradeWidget(QWidget):
         self.xscroll_bar = XScroller(self)
         self.cvdwin = None
         self.hdwin = None
+        self.pdfout = PrintRender(self)
+        self.__printer = QPrinter(QPrinter.HighResolution)
+        self.print_preview = PDFOutPreviewDialog(self.__printer, self)
 
     def __mk_layout(self):
         self.setLayout(QVBoxLayout())
@@ -225,7 +231,7 @@ class ComtradeWidget(QWidget):
                                      "&Print...",
                                      self,
                                      shortcut="Ctrl+P",
-                                     triggered=self.__do_file_pdfout)
+                                     triggered=self.print_preview.exec_)
         self.action_resize_y_in = QAction(svg_icon(ESvgSrc.VZoomIn),
                                           "Y-Resize +",
                                           self,
@@ -433,13 +439,6 @@ class ComtradeWidget(QWidget):
             except ConvertError as e:
                 QMessageBox.critical(self, "Converting error", str(e))
 
-    def __do_file_pdfout(self):
-        """Print to PDF"""
-        printer = QPrinter(QPrinter.HighResolution)
-        preview = PDFOutPreviewDialog(printer, self)
-        preview.paintRequested.connect(self.__print_preview)
-        preview.exec_()
-
     def __do_unhide(self):
         self.signal_unhide_all.emit()
 
@@ -561,6 +560,3 @@ class ComtradeWidget(QWidget):
         if self.hdwin:
             self.hdwin.deleteLater()
         super().closeEvent(event)
-
-    def __print_preview(self, printer: QPagedPaintDevice) -> None:
-        PrintRender(self).print_(printer)

@@ -10,4 +10,4 @@ class PrintRender(QGraphicsView):
     def print_(self, printer: QPagedPaintDevice) -> None:
         print("Printing started...")
         # recalc/transform, split
-        # self.render()
+        # use self.render()
