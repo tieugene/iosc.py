@@ -7,6 +7,7 @@ from PyQt5.QtGui import QColor, QFont, QPolygonF, QPainter, QPen
 from PyQt5.QtWidgets import QGraphicsObject, QGraphicsEllipseItem, QGraphicsLineItem, QGraphicsTextItem, \
     QStyleOptionGraphicsItem, QWidget
 
+from iosc.sig.tools.util import sign_b2n
 from iosc.sig.widget.common import AnalogSignalSuit
 
 # x. consts
@@ -18,15 +19,6 @@ GRID_STEPS_C = 5  # Number of circular grid lines
 GRID_STEPS_R = 8  # Number of radial grid lines
 POINT_Z = QPointF(0, 0)  # Helper
 SIN225 = math.sin(math.pi / 8)  # 22.5°
-
-
-def sign(v: float):
-    if abs(v) < SIN225:
-        return 0
-    elif v < 0:
-        return -1
-    else:
-        return 1
 
 
 class CVDiagramObject(QGraphicsObject):
@@ -57,8 +49,8 @@ class CVDiagramObject(QGraphicsObject):
             x0_norm, y0_norm = math.cos(a), math.sin(a)
             rect: QRectF = self.boundingRect()
             self.setPos(QPointF(
-                (self.__len + DRAD_AXIS_LABEL) * x0_norm + (sign(x0_norm) - 1) * rect.width() / 2,
-                (self.__len + DRAD_AXIS_LABEL) * y0_norm + (sign(y0_norm) - 1) * rect.height() / 2
+                (self.__len + DRAD_AXIS_LABEL) * x0_norm + (sign_b2n(x0_norm, SIN225) - 1) * rect.width() / 2,
+                (self.__len + DRAD_AXIS_LABEL) * y0_norm + (sign_b2n(y0_norm, SIN225) - 1) * rect.height() / 2
             ))
 
         def set_color(self, c: QColor):
@@ -137,7 +129,7 @@ class CVDiagramObject(QGraphicsObject):
 
         def __get_angle(self) -> float:
             return \
-                cmath.phase(self.__ss.hrm1(self.__parent.cvdview.cvdwin.t_i)) \
+                cmath.phase(self.__ss.hrm(1, self.__parent.cvdview.cvdwin.t_i)) \
                 - self.__parent.cvdview.cvdwin.get_base_angle() \
                 - math.pi / 2
 

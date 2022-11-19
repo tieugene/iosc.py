@@ -13,7 +13,7 @@ from iosc.sig.widget.ptr import MainPtr, TmpPtr, SCPtr
 
 class EScatter(IntEnum):
     N = 0  # none
-    P = 1  # plus sign
+    P = 1  # plus sign_b2n
     D = 2  # digit
 
 
@@ -196,13 +196,13 @@ class BarPlotWidget(QWidget):
             del self._tmp_ptr[uid]
             self.replot()
 
-    bar: 'SignalBar'
+    bar: 'HDBar'
     ys: YScroller
     yzlabel: YZLabel
     plot: BarPlot
     hline: HLine
 
-    def __init__(self, bar: 'SignalBar'):
+    def __init__(self, bar: 'HDBar'):
         super().__init__()
         self.bar = bar
         self.ys = self.YScroller(self)

@@ -1,13 +1,13 @@
+from typing import Union
+
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QActionGroup, QToolButton, QMenu, QAction
-
-from iosc.sig.cvd.cvdobject import CVDiagramObject
 
 
 class PtrSwitcher(QActionGroup):
     tb: QToolButton
 
-    def __init__(self, parent: 'CVDiagramObject'):
+    def __init__(self, parent: Union['CVDWindow', 'HDWindow']):
         super().__init__(parent)
         self.tb = QToolButton(parent)
         self.tb.setPopupMode(QToolButton.MenuButtonPopup)

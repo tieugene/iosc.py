@@ -79,7 +79,7 @@ class BarCtrlWidget(QWidget):
                 return __pix
 
             def _mk_mime() -> QMimeData:
-                bar: 'SignalBar' = self.parent().bar
+                bar: 'HDBar' = self.parent().bar
                 return bar.table.mimeData([bar.table.item(bar.row, 0)])
 
             drag = QDrag(self)
@@ -203,13 +203,13 @@ class BarCtrlWidget(QWidget):
             """accepted() == True, x() = Δx."""
             self.__oscwin.resize_col_ctrl(event.x())
 
-    bar: 'SignalBar'
+    bar: 'HDBar'
     anc: Anchor
     lst: SignalLabelList
     zbx: ZoomButtonBox
     hline: HLine
 
-    def __init__(self, bar: 'SignalBar'):
+    def __init__(self, bar: 'HDBar'):
         super().__init__()  # parent will be QWidget
         self.bar = bar
         self.anc = self.Anchor(self)

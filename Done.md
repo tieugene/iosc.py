@@ -144,3 +144,13 @@ Behavior:
 - [x] CVD window on/off
 - [x] close CVD on OscWindow close
 - [x] Split by modules
+
+### HD
+- [x] Select signals
+- [x] &gt;100%
+- [x] Initial fill (name, color, values)
+- [x] Update by ptr
+- [x] Update signal colors
+- [x] Split by modules
+- [x] Fixed: Signal adding only
+- [ ] Fixed: Select ss => Cancel == deselect all
