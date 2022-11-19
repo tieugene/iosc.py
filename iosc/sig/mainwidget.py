@@ -13,6 +13,7 @@ import iosc.const
 from iosc.core import mycomtrade
 from iosc.icon import svg_icon, ESvgSrc
 from iosc.core.convtrade import convert, ConvertError
+from iosc.sig.pdfout.dialog import PDFOutPreviewDialog
 from iosc.sig.tools.cvdwindow import CVDWindow
 from iosc.sig.widget.section import TimeAxisBar, SignalBarTable, TimeStampsBar, XScroller
 from iosc.sig.tools.hdwindow import HDWindow
@@ -41,6 +42,7 @@ class ComtradeWidget(QWidget):
     action_close: QAction
     action_info: QAction
     action_convert: QAction
+    action_pdfout: QAction
     action_resize_y_in: QAction
     action_resize_y_out: QAction
     action_zoom_x_in: QAction
@@ -217,6 +219,10 @@ class ComtradeWidget(QWidget):
                                       self,
                                       shortcut="Ctrl+S",
                                       triggered=self.__do_file_convert)
+        self.action_pdfout = QAction(svg_icon(ESvgSrc.PDF),
+                                     "&Print...",
+                                     self,
+                                     triggered=self.__do_file_pdfout)
         self.action_resize_y_in = QAction(svg_icon(ESvgSrc.VZoomIn),
                                           "Y-Resize +",
                                           self,
@@ -314,6 +320,7 @@ class ComtradeWidget(QWidget):
         menu_file = self.menubar.addMenu("&File")
         menu_file.addAction(self.action_info)
         menu_file.addAction(self.action_convert)
+        menu_file.addAction(self.action_pdfout)
         menu_file.addAction(self.action_close)
         menu_view = self.menubar.addMenu("&View")
         menu_view.addAction(self.action_resize_y_in)
@@ -422,6 +429,11 @@ class ComtradeWidget(QWidget):
                 convert(pathlib.Path(self.osc.raw.cfg.filepath), pathlib.Path(fn[0]))
             except ConvertError as e:
                 QMessageBox.critical(self, "Converting error", str(e))
+
+    def __do_file_pdfout(self):
+        """Print to PDF"""
+        if PDFOutPreviewDialog().exec_():
+            ...
 
     def __do_unhide(self):
         self.signal_unhide_all.emit()
