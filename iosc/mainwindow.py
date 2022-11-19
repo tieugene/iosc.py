@@ -1,5 +1,5 @@
 """Main GUI"""
-__version__ = '0.3.0-rc0'
+__version__ = '0.3.1'
 # 1. std
 import pathlib
 import sys
