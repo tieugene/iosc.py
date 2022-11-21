@@ -16,6 +16,28 @@ W_COL0 = 112  # W of 1st column
 MAIN_FONT = QFont('Source Code Pro', 8)  # 14x6 "dots"
 
 
+class HeaderItem(QGraphicsTextItem):
+    def __init__(self, osc: mycomtrade.MyComtrade, parent=None):
+        super().__init__(
+            f"{osc.path.name}"  # +14 = 22
+            f"\nStart time: {osc.raw.start_timestamp.isoformat()}"  # +14 = 36
+            f"\nDevice: {osc.raw.rec_dev_id}, Place: {osc.raw.station_name}",  # +14 = 50
+            parent
+        )
+        self.setFont(MAIN_FONT)
+
+
+class TableItem(QGraphicsRectItem):
+    def __init__(self, w: int, h: int, parent=None):
+        # 2. border
+        super().__init__(0, 0, w, h - 0.5, parent)
+        # 2. columns separator
+        QGraphicsLineItem(W_COL0, 0, W_COL0, h - 0.5, self)
+        # 3. bottom strikeout
+        QGraphicsLineItem(0, h - H_SCALE, w, h - H_SCALE, self)
+        # 4. TODO: grid
+
+
 class PrintRender(QGraphicsView):
     __to_print: list[bool]
 
@@ -35,6 +57,7 @@ class PrintRender(QGraphicsView):
         - printer.pageLayout().orientation() (QPageLayout::Portrait/Landscape)
         - self.parent().xscroll_bar.{norm_min,norm_max}
         :param printer: Where to draw to
+        # FIXME: clean on replot (?)
         # TODO: while(signals) plot | pagebreak
         """
         # xsb = self.parent().xscroll_bar
@@ -44,40 +67,15 @@ class PrintRender(QGraphicsView):
         else:
             w_all, h_all = A4[1], A4[0]
         # fill
-        self.scene().addItem(h := self.__mk_header())
+        # - header
+        self.scene().addItem(h := HeaderItem(self.parent().osc))
         y = round(h.boundingRect().height())
-        self.scene().addItem(t := self.__mk_table(w_all, h_all - y))
+        # - table
+        self.scene().addItem(t := TableItem(w_all, h_all - y))
         t.setPos(0, y)
+        # - signals
         # self.__mk_signals (for...)
         # output (TODO: scale, page break)
         print(self.scene().itemsBoundingRect().height())  # 670.5
         # self.render(QPainter(printer))  # Plan A. Sizes: dst: printer.pageSize(), src: self.viewport().rect()
         self.scene().render(QPainter(printer))  # Sizes: dst: printer.pageSize(), src: self.scene().sceneRect()
-
-    def __mk_header(self) -> QGraphicsTextItem:
-        # H: 50 (76 adjusted); independent on out format, page size
-        # Draw from TL corner
-        osc: mycomtrade.MyComtrade = self.parent().osc
-        item = QGraphicsTextItem(  # 8
-            f"{osc.path.name}"  # +14 = 22
-            f"\nStart time: {osc.raw.start_timestamp.isoformat()}"  # +14 = 36
-            f"\nDevice: {osc.raw.rec_dev_id}, Place: {osc.raw.station_name}"  # +14 = 50
-        )
-        item.setFont(MAIN_FONT)
-        # item.adjustSize()  # wraps text
-        return item
-
-    def __mk_table(self, w: int, h: int) -> QGraphicsRectItem:
-        # 1. border
-        item = QGraphicsRectItem(0, 0, w, h - 0.5)
-        # 2. columns separator
-        QGraphicsLineItem(W_COL0, 0, W_COL0, h - 0.5, item)
-        # 3. bottom strikeout
-        QGraphicsLineItem(0, h - H_SCALE, w, h - H_SCALE, item)
-        # 3. grid (= vlines + bottom digits)
-        # TODO:
-        # 4. _ptrs_
-        return item
-
-    def __test(self, y: float):
-        ...
