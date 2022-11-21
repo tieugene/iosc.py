@@ -2,17 +2,22 @@
 
 Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
 
+- [ ] Paging
+- [ ] Analog/Binary switch
+
+## Layout:
+
 - [x] Header
 - [ ] Table:
   + [x] Border
   + [x] Bottom line (upper digits)
   + [ ] Grid (lines + digits)
 - [ ] Rows:
-  + [ ] Label
+  + [x] Label
   + [ ] Plot:
     * [ ] zero
     * [ ] graph(pos: point, size: rect(width(x0..x1), height(px)))
-  + [ ] Underline
+  + [x] Underline
 
 Note: 1 dot = 0.254mm (0.01"); A4 - 10mm = 190x277mm = 748x1130 dots
 - 1130 = 42+12+6x176+20 (head+gap+signals+footer)

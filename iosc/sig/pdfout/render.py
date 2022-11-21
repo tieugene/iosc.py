@@ -1,5 +1,6 @@
 """
 1 dot = .1"
+TODO: just resize items on page change
 """
 from PyQt5.QtCore import QRectF
 # 2. 3rd
@@ -16,6 +17,7 @@ A4 = (748, 1130)  # (w, h) of A4 - 10mm margins in "dots" (0.01")
 H_ASIG = (176, 112)  # H of analog signal
 H_SCALE = 20
 W_COL0 = 112  # W of 1st column
+X_COL0 = 5  # X-offset of signal label
 MAIN_FONT = QFont('Source Code Pro', 8)  # 14x6 "dots"
 
 
@@ -38,12 +40,38 @@ class TableItem(QGraphicsRectItem):
         # 4. TODO: grid
 
 
-class SignalItem(QGraphicsItem):
-    __signal: mycomtrade.Signal
+class SignalPlotItem(QGraphicsItem):
 
-    def __init__(self, signal: mycomtrade.Signal, parent=None):
+    def __init__(self, parent='SignalItem'):
         super().__init__(parent)
+        QGraphicsLineItem(0, 0, parent.w - W_COL0, parent.h, self)  # stub
+
+    def boundingRect(self) -> QRectF:
+        return self.childrenBoundingRect()
+
+    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
+        ...  # stub
+
+
+class SignalItem(QGraphicsItem):
+    w: float
+    h: float
+    __signal: mycomtrade.Signal
+    __plot: SignalPlotItem
+
+    def __init__(self, w: int, h: int, signal: mycomtrade.Signal, parent=None):
+        super().__init__(parent)
+        self.w = w
+        self.h = h
         self.__signal = signal
+        # 1. name
+        label = QGraphicsSimpleTextItem(signal.sid, self)
+        label.setPos(5, h/2)
+        # 2. plot
+        self.__plot = SignalPlotItem(self)
+        self.__plot.setPos(W_COL0, 0)
+        # 3. underscore
+        QGraphicsLineItem(0, h, w, h, self)
 
     def boundingRect(self) -> QRectF:
         return self.childrenBoundingRect()  # H == plot height, W = underscore
@@ -67,11 +95,7 @@ class PrintRender(QGraphicsView):
     def print_(self, printer: QPrinter):
         """
         Use printer.pageRect(QPrinter.Millimeter/DevicePixel).
-        Use:
-        - printer.pageLayout().orientation() (QPageLayout::Portrait/Landscape)
-        - self.parent().xscroll_bar.{norm_min,norm_max}
         :param printer: Where to draw to
-        # FIXME: clean on replot (?)
         # TODO: while(signals) plot | pagebreak
         """
         self.scene().clear()
@@ -90,8 +114,10 @@ class PrintRender(QGraphicsView):
         self.scene().addItem(t := TableItem(w_all, h_all - y))
         t.setPos(0, y)
         # - signals
-        for signal in osc.y:
-            s_item = SignalItem(signal)
+        for signal in osc.y[:6]:
+            self.scene().addItem(s := SignalItem(w_all, H_ASIG[0], signal))
+            s.setPos(0, y)
+            y += H_ASIG[0]
         # output
         print(self.scene().itemsBoundingRect().height())  # 670.5
         self.scene().setSceneRect(self.scene().itemsBoundingRect())
