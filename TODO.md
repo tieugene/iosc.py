@@ -2,7 +2,10 @@
 
 Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
 
-- [ ] Paging
+- [ ] Try scene w/o view
+- [ ] Paging:
+  + 1 view, 1 scene, multi header/footer, shift (too complex)
+  + 1 view, N scenes
 - [ ] Analog/Binary switch
 
 ## Layout:
@@ -46,7 +49,7 @@ Dst: ([X0..X1, ]sig(=>Y*), dst_size:rect) -> QGfxObject:
   - ~~`textedit.py`~~ (preview; QTextEdit().print_())
 - [Print to PDF](https://wiki.qt.io/Exporting_a_document_to_PDF)
 - QPdfWriter: &hellip;
-- [FAQ](https://www.qtcentre.org/threads/47972-Render-QGraphicsScene-to-a-QPrinter-to-export-PDF)
+- [QGraphicsScene &rArr; QPrinter](https://www.qtcentre.org/threads/47972-Render-QGraphicsScene-to-a-QPrinter-to-export-PDF)
 - [FAQ 2](https://stackoverflow.com/questions/35034953/printing-qgraphicsscene-cuts-objects-in-half)
 
 ## Find:
@@ -61,3 +64,23 @@ Dst: ([X0..X1, ]sig(=>Y*), dst_size:rect) -> QGfxObject:
     * QPagedPaintDevice
       - QPdfWriter
       - QPrinter
+
+## Analog:
+
+Печатает:
+
+- _Весь_ сигнал (в ширину; отсюда и "печатать имена сигналов на каждой странице)
+- Печатает совмещенные, как на экране
+- По высоте количество как на экране как если на весь экран
+- Масштаб неизвестен:
+  + Альбом - по горизонтали - как если на весь экран, по вертикали - пропорционально
+  + Портрет - хез (типа по вертикали так же, по горизонтали обрезает справа)
+
+Мы себе:
+- Горизонтально: сколько на экране, столько и на бумаге (!)
+- Вертикально - порпорционально, как на экране
+- Печатать bars
+- весь сигнал от начала до конца.
+- &rdsh; wide scene + shift + рамочка сверху
+
+Но это не точно.

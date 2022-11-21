@@ -80,7 +80,7 @@ class SignalItem(QGraphicsItem):
         ...  # stub
 
 
-class PrintRender(QGraphicsView):
+class PrintRender(QGraphicsView):  # TODO: just scene container; can be replaced with QObject
     __to_print: list[bool]
 
     def __init__(self, parent='ComtradeWidget'):
@@ -114,7 +114,7 @@ class PrintRender(QGraphicsView):
         self.scene().addItem(t := TableItem(w_all, h_all - y))
         t.setPos(0, y)
         # - signals
-        for signal in osc.y[:6]:
+        for signal in osc.y[:6]:  # TODO: a) signal.height = h, b) h = signal.height()
             self.scene().addItem(s := SignalItem(w_all, H_ASIG[0], signal))
             s.setPos(0, y)
             y += H_ASIG[0]
@@ -122,4 +122,7 @@ class PrintRender(QGraphicsView):
         print(self.scene().itemsBoundingRect().height())  # 670.5
         self.scene().setSceneRect(self.scene().itemsBoundingRect())
         # self.render(QPainter(printer))  # Plan A. Sizes: dst: printer.pageSize(), src: self.viewport().rect()
-        self.scene().render(QPainter(printer))  # Sizes: dst: printer.pageSize(), src: self.scene().sceneRect()
+        painter = QPainter(printer)
+        self.scene().render(painter)  # Sizes: dst: printer.pageSize(), src: self.scene().sceneRect()
+        printer.newPage()
+        self.scene().render(painter)
