@@ -15,8 +15,8 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
   + [ ] Underline
 
 Note: 1 dot = 0.254mm (0.01"); A4 - 10mm = 190x277mm = 748x1130 dots
-- 1130 = 54+20+6x176
-- 748 = 56+20+6x112
+- 1130 = 42+12+6x176+20 (head+gap+signals+footer)
+- 748 = 42+14+6x112+20
 
 ## Plot.graph:
 
