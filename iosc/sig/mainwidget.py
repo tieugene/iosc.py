@@ -184,6 +184,7 @@ class ComtradeWidget(QWidget):
         self.hdwin = None
         self.pdfout = PrintRender(self)
         self.__printer = QPrinter(QPrinter.HighResolution)
+        self.__printer.setOutputFormat(QPrinter.PdfFormat)
         self.print_preview = PDFOutPreviewDialog(self.__printer, self.pdfout, self)
 
     def __mk_layout(self):

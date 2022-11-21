@@ -1,12 +1,13 @@
 """PDF print preview."""
-from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import QMargins
+from PyQt5.QtGui import QIcon, QPageLayout
 from PyQt5.QtPrintSupport import QPrintPreviewDialog, QPrinter
 from PyQt5.QtWidgets import QToolBar, QToolButton, QMenu, QAction, QActionGroup
 # 3. local
 from iosc.sig.pdfout.render import PrintRender
 # x. const
 TO_PRINT = (
-    "Print b/w",
+    "Print b/w",  # RTFM: QPrinter::setColorMode()
     "Print signal names",
     "Print scale coefficient",
     "Print pointers",
@@ -26,7 +27,7 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
         self.__mk_custom_menu()
         self.findChildren(QToolBar)[0].addWidget(self.__tb_to_print)
         # connections
-        self.__actions_to_print.triggered.connect(self.__render.set_to_print)
+        self.__actions_to_print.triggered.connect(self.__render.slot_set_to_print)
         self.paintRequested.connect(self.__render.print_)
 
     def __mk_actions(self):
@@ -41,3 +42,7 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
         self.__tb_to_print.setPopupMode(QToolButton.MenuButtonPopup)
         self.__tb_to_print.setMenu(QMenu())
         self.__tb_to_print.menu().addActions(self.__actions_to_print.actions())
+
+    def exec_(self):
+        self.printer().setPageMargins(10, 10, 10, 10, QPrinter.Millimeter)  # FIXME: tmp
+        return super().exec_()
