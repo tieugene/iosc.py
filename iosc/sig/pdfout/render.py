@@ -6,11 +6,11 @@ from PyQt5.QtCore import QRectF
 # 2. 3rd
 from PyQt5.QtGui import QPainter, QFont, QPageLayout
 from PyQt5.QtPrintSupport import QPrinter
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QAction, QGraphicsTextItem, QGraphicsRectItem, \
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QAction, QGraphicsRectItem, \
     QGraphicsLineItem, QGraphicsSimpleTextItem, QGraphicsItem, QWidget, QStyleOptionGraphicsItem
 # 3. local
 from iosc.core import mycomtrade
-from iosc.sig.widget.common import AnalogSignalSuit
+from iosc.sig.pdfout.bar import SignalBarPrnItem
 
 # x. const
 A4 = (748, 1130)  # (w, h) of A4 - 10mm margins in "dots" (0.01")
@@ -114,10 +114,17 @@ class PrintRender(QGraphicsView):  # TODO: just scene container; can be replaced
         self.scene().addItem(t := TableItem(w_all, h_all - y))
         t.setPos(0, y)
         # - signals
-        for signal in osc.y[:6]:  # TODO: a) signal.height = h, b) h = signal.height()
-            self.scene().addItem(s := SignalItem(w_all, H_ASIG[0], signal))
-            s.setPos(0, y)
-            y += H_ASIG[0]
+        for bar in self.parent().analog_table.bars[:1]:  # TODO: a) signal.height = h, b) h = signal.height()
+            if not bar.hidden:
+                item = SignalBarPrnItem(bar, False)  # FIXME: hidden
+                item.setPos(0, y)
+                self.scene().addItem(item)
+                y += item.boundingRect().height()
+                self.scene().addItem(QGraphicsLineItem(0, y, item.boundingRect().width(), y))
+                y += 1
+                # self.scene().addItem(s := SignalItem(w_all, H_ASIG[0], signal))
+                # s.setPos(0, y)
+                # y += H_ASIG[0]
         # output
         print(self.scene().itemsBoundingRect().height())  # 670.5
         self.scene().setSceneRect(self.scene().itemsBoundingRect())

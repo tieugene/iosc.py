@@ -1,6 +1,5 @@
 """PDF print preview."""
-from PyQt5.QtCore import QMargins
-from PyQt5.QtGui import QIcon, QPageLayout
+from PyQt5.QtGui import QIcon
 from PyQt5.QtPrintSupport import QPrintPreviewDialog, QPrinter
 from PyQt5.QtWidgets import QToolBar, QToolButton, QMenu, QAction, QActionGroup
 # 3. local
@@ -8,7 +7,7 @@ from iosc.sig.pdfout.render import PrintRender
 # x. const
 TO_PRINT = (
     "Print b/w",  # RTFM: QPrinter::setColorMode()
-    "Print signal names",
+    "Print signal names",  # depricated
     "Print scale coefficient",
     "Print pointers",
     "Print signal values at main pointer"

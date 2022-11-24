@@ -22,9 +22,11 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
     * [ ] graph(pos: point, size: rect(width(x0..x1), height(px)))
   + [x] Underline
 
-Note: 1 dot = 0.254mm (0.01"); A4 - 10mm = 190x277mm = 748x1130 dots
-- 1130 = 42+12+6x176+20 (head+gap+signals+footer)
-- 748 = 42+14+6x112+20
+Note:
+- 1 dot = 0.254mm (0.01")
+- A4 - 10mm = 190x277mm = 748x1130 dots:
+  + 1130 = 42+12+6x176+20 (head+gap+signals+footer)
+  + 748 = 42+14+6x112+20
 
 ## Plot.graph:
 
@@ -78,9 +80,32 @@ Dst: ([X0..X1, ]sig(=>Y*), dst_size:rect) -> QGfxObject:
 
 Мы себе:
 - Горизонтально: сколько на экране, столько и на бумаге (!)
-- Вертикально - порпорционально, как на экране
+- Вертикально - пропорционально, как на экране
 - Печатать bars
-- весь сигнал от начала до конца.
+- весь сигнал от начала до конца (?)
 - &rdsh; wide scene + shift + рамочка сверху
 
 Но это не точно.
+
+## 20221122:
+- Берем с экрана ширины надписи в кол0 (это будет ширина кол0) и кол1. Это будет ширина в dots.
+- Берем из printer ширину и высоту pagesize. Это будут пропорции.  
+- Набиваем bar'ами высоту до пропорции
+- Bar рендерим как есть (toPainter()) (?)
+
+## Q&A:
+- Интервал: a) "как на экране" (ТЗ); ~~"все" (Аналог)~~
+- ~~С высотой непонятно вообще~~ сказано 6/24, значит 6/24
+
+## 20221124:
+- Рисуют SignalBar и SignalSuit
+- H-size: fixed (portrait/landscape)
+- W-size:
+  + labels: fixed (100)
+  + plot: fixed (1000)
+- then transform:
+  + header: h: skip, w: cut
+  + rows: resize:
+    + labels: cut
+    + plot: resize
+  + footer: h: skip, w: resize
