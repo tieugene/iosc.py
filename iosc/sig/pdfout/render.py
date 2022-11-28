@@ -40,46 +40,6 @@ class TableItem(QGraphicsRectItem):
         # 4. TODO: grid
 
 
-class SignalPlotItem(QGraphicsItem):
-
-    def __init__(self, parent='SignalItem'):
-        super().__init__(parent)
-        QGraphicsLineItem(0, 0, parent.w - W_COL0, parent.h, self)  # stub
-
-    def boundingRect(self) -> QRectF:
-        return self.childrenBoundingRect()
-
-    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
-        ...  # stub
-
-
-class SignalItem(QGraphicsItem):
-    w: float
-    h: float
-    __signal: mycomtrade.Signal
-    __plot: SignalPlotItem
-
-    def __init__(self, w: int, h: int, signal: mycomtrade.Signal, parent=None):
-        super().__init__(parent)
-        self.w = w
-        self.h = h
-        self.__signal = signal
-        # 1. name
-        label = QGraphicsSimpleTextItem(signal.sid, self)
-        label.setPos(5, h/2)
-        # 2. plot
-        self.__plot = SignalPlotItem(self)
-        self.__plot.setPos(W_COL0, 0)
-        # 3. underscore
-        QGraphicsLineItem(0, h, w, h, self)
-
-    def boundingRect(self) -> QRectF:
-        return self.childrenBoundingRect()  # H == plot height, W = underscore
-
-    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
-        ...  # stub
-
-
 class PrintRender(QGraphicsView):  # TODO: just scene container; can be replaced with QObject
     __to_print: list[bool]
 

@@ -24,7 +24,8 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
 
 Note:
 - 1 dot = 0.254mm (0.01")
-- A4 - 10mm = 190x277mm = 748x1130 dots:
+- A4 - 210×297mm = 827×1170 dots
+- A4 - 10mm = 190×277mm = 748×1130 dots:
   + 1130 = 42+12+6x176+20 (head+gap+signals+footer)
   + 748 = 42+14+6x112+20
 
@@ -109,3 +110,34 @@ Dst: ([X0..X1, ]sig(=>Y*), dst_size:rect) -> QGfxObject:
     + labels: cut
     + plot: resize
   + footer: h: skip, w: resize
+&deg;
+
+RTFM:
+- QSplineSeries
+- [spline](https://www.toptal.com/c-plus-plus/rounded-corners-bezier-curves-qpainter)
+- **QGraphicsGridLayout**
+- [disable transform](https://stackoverflow.com/questions/1222914/qgraphicsview-and-qgraphicsitem-don%C2%B4t-scale-item-when-scaling-the-view-rect)
+- [Scene border](https://www.qtcentre.org/threads/13814-how-to-enable-borders-in-QGraphicsScene)
+
+## 20221126. Ideas (tmp.py):
+
+- [x] TextItem: += rect (cut, border). Ok
+- [x] find: TextItem setClip. Ok
+- [x] ~try fill graph bg (== cut labels)~
+- [ ] TextItem.paint: transform (freeze v-size (header, footer)
+- [ ] GraphItem.paint: transform (resize, stretchfactor)
+- [ ] Scene: add grid
+- [ ] try anchor layout (fix header/footer)
+- [ ] FIXME: remove margins of QGraphicsItem (see _pure)
+
+## 20221127.
+
+Сделать *полностью* резиновый дизайно *сейчас* сложно (freeze).
+Поэтому делать 2 predefined дизайна (landscape/portrait) + IgnoreAspectRation + небольшой запас для резины:
+
+- [ ] Основа - pure item
+- [ ] grid - hand made
+- [ ] размеры - ~200×287~ ~2×3~ 748×1130
+- [x] label cut: on init
+- [ ] bottom bar
+- [ ] Anchor layout

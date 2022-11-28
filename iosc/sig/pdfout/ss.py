@@ -41,10 +41,9 @@ class SignalSuitPrnGraphItem(QGraphicsPathItem):  # TODO: B-signal: Polygon?
     def __init__(self, ss: 'SignalSuit', parent: 'SignalBarPlotPrnItem' = None):
         super().__init__(parent)  # TODO: add value on to_print
         self.__ss = ss
-        self.setPen(ss.color)  # FIXME: style
         points = mk_sin(176, 720, 12)
         pg = QPolygonF([QPointF(p[0], p[1]) for p in points])
         pp = QPainterPath()
-        pp.addPolygon(pg)
+        pp.addPolygon(pg)  # TODO: spline
         self.setPath(pp)
-        # self.setPath()
+        self.setPen(ss.color)  # FIXME: style
