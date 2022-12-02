@@ -1,5 +1,5 @@
 """PDF print preview."""
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPageLayout
 from PyQt5.QtPrintSupport import QPrintPreviewDialog, QPrinter
 from PyQt5.QtWidgets import QToolBar, QToolButton, QMenu, QAction, QActionGroup
 # 3. local
@@ -43,5 +43,6 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
         self.__tb_to_print.menu().addActions(self.__actions_to_print.actions())
 
     def exec_(self):
-        self.printer().setPageMargins(10, 10, 10, 10, QPrinter.Millimeter)  # FIXME: tmp
+        self.printer().setPageMargins(10, 10, 10, 10, QPageLayout.Unit.Millimeter)
+        # Todo: landscape
         return super().exec_()
