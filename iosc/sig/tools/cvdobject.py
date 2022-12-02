@@ -158,9 +158,9 @@ class CVDiagramObject(QGraphicsObject):
             self.GridR(self, i * math.radians(360 // GRID_STEPS_R)).setPen(pen)
         # axes labels
         pen.setColor(Qt.black)
-        self.Label(self, "90°", 0, RAD)
+        self.Label(self, "-90°", 0, RAD)
         self.Label(self, "180°", math.pi / 2, RAD)
-        self.Label(self, "-90°", math.pi, RAD)
+        self.Label(self, "+90°", math.pi, RAD)
         self.Label(self, "0°", -math.pi / 2, RAD)
 
     def boundingRect(self) -> QRectF:
