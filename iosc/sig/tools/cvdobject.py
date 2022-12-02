@@ -1,3 +1,8 @@
+"""Diagram itself.
+Warnings:
+- in Qt Y grows from top to bottom (mirrored).
+- in electricity 0° is in top (+90° from ordinar)
+"""
 import cmath
 import math
 from typing import Optional
@@ -44,9 +49,8 @@ class CVDiagramObject(QGraphicsObject):
             self.set_angle(a)
 
         def set_angle(self, a: float):
-            ...  # TODO:
             self.__angle = a
-            x0_norm, y0_norm = math.cos(a), math.sin(a)
+            x0_norm, y0_norm = math.cos(a), -math.sin(a)
             rect: QRectF = self.boundingRect()
             self.setPos(QPointF(
                 (self.__len + DRAD_AXIS_LABEL) * x0_norm + (sign_b2n(x0_norm, SIN225) - 1) * rect.width() / 2,
@@ -82,12 +86,12 @@ class CVDiagramObject(QGraphicsObject):
 
         def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
             # super().paint(painter, option, widget)
-            e = QPointF(self.__len * math.cos(self.__angle), self.__len * math.sin(self.__angle))
+            e = QPointF(self.__len * math.cos(self.__angle), -self.__len * math.sin(self.__angle))
             self.setLine(QLineF(POINT_Z, e))
             arrow_l = self.line().p2() + QPointF(-math.cos(self.__angle + ARROW_ANGLE) * ARROW_SIZE,
-                                                 -math.sin(self.__angle + ARROW_ANGLE) * ARROW_SIZE)
+                                                 math.sin(self.__angle + ARROW_ANGLE) * ARROW_SIZE)
             arrow_r = self.line().p2() + QPointF(-math.cos(self.__angle - ARROW_ANGLE) * ARROW_SIZE,
-                                                 -math.sin(self.__angle - ARROW_ANGLE) * ARROW_SIZE)
+                                                 math.sin(self.__angle - ARROW_ANGLE) * ARROW_SIZE)
             self.__arrowHead.clear()
             for point in [arrow_l, self.line().p2(), arrow_r]:
                 self.__arrowHead.append(point)
@@ -128,10 +132,14 @@ class CVDiagramObject(QGraphicsObject):
             ...  # stub
 
         def __get_angle(self) -> float:
+            """
+            Grt signal angle (rad)
+            :return: Shifted signal angle (real + π/2)
+            """
             return \
                 cmath.phase(self.__ss.hrm(1, self.__parent.cvdview.cvdwin.t_i)) \
                 - self.__parent.cvdview.cvdwin.get_base_angle() \
-                - math.pi / 2
+                + math.pi / 2
 
         def __slot_update_color(self):
             self.__arrow.set_color(self.__ss.color)
@@ -158,10 +166,10 @@ class CVDiagramObject(QGraphicsObject):
             self.GridR(self, i * math.radians(360 // GRID_STEPS_R)).setPen(pen)
         # axes labels
         pen.setColor(Qt.black)
-        self.Label(self, "90°", 0, RAD)
-        self.Label(self, "180°", math.pi / 2, RAD)
-        self.Label(self, "-90°", math.pi, RAD)
-        self.Label(self, "0°", -math.pi / 2, RAD)
+        self.Label(self, "-90°", 0, RAD)
+        self.Label(self, "0°", math.pi / 2, RAD)
+        self.Label(self, "+90°", math.pi, RAD)
+        self.Label(self, "180°", -math.pi / 2, RAD)
 
     def boundingRect(self) -> QRectF:
         return self.childrenBoundingRect()
