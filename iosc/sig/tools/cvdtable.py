@@ -41,13 +41,22 @@ class CVDTable(QTableWidget):
 
     def refresh_signals(self):
         """Refresh row values by ptr"""
+        def __norm_angle(a: float):
+            """Normalize angle (-235>+45)"""
+            if a < -180:
+                return a + 180
+            elif a > 180:
+                return a - 180
+            else:
+                return a
+
         self.__trace_items = False
         i = self.__parent.t_i
         for r, ss in enumerate(self.__parent.ss_used):
             v: complex = ss.hrm(1, i)
             uu = ss.signal.raw2.uu
             self.item(r, 1).setText("%.1f %s" % (abs(v), uu))
-            self.item(r, 2).setText("%.1f°" % math.degrees(cmath.phase(v)))
+            self.item(r, 2).setText("%.1f°" % __norm_angle(math.degrees(cmath.phase(v)-self.__parent.get_base_angle())))
             self.item(r, 3).setText("%.1f %s" % (v.real, uu))
             self.item(r, 4).setText("%.1f %s" % (v.imag, uu))
         self.__trace_items = True
