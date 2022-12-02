@@ -42,11 +42,11 @@ class CVDTable(QTableWidget):
     def refresh_signals(self):
         """Refresh row values by ptr"""
         def __norm_angle(a: float):
-            """Normalize angle (-235>+45)"""
+            """Normalize angle (-235>+45), deg"""
             if a < -180:
-                return a + 180
+                return 360 + a
             elif a > 180:
-                return a - 180
+                return 360 - a
             else:
                 return a
 
