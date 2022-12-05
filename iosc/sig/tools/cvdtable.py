@@ -2,7 +2,7 @@ import cmath
 import math
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 
 TABLE_HEAD = ("Name", "Module", "Angle", "Re", "Im")
 
@@ -17,6 +17,7 @@ class CVDTable(QTableWidget):
         self.__trace_items = False
         self.setColumnCount(len(TABLE_HEAD))
         self.horizontalHeader().setStretchLastSection(True)
+        self.horizontalHeader().setSectionResizeMode(len(TABLE_HEAD)-1, QHeaderView.Stretch)
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setHorizontalHeaderLabels(TABLE_HEAD)
         self.setSelectionMode(self.NoSelection)
