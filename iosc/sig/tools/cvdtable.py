@@ -44,9 +44,9 @@ class CVDTable(QTableWidget):
         def __norm_angle(a: float):
             """Normalize angle (-235>+45), deg"""
             if a < -180:
-                return 360 + a
+                return a + 360
             elif a > 180:
-                return 360 - a
+                return a - 360
             else:
                 return a
 
