@@ -2,25 +2,12 @@
 
 Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
 
-- [ ] Try scene w/o view
-- [ ] Paging:
-  + 1 view, 1 scene, multi header/footer, shift (too complex)
-  + 1 view, N scenes
-- [ ] Analog/Binary switch
-
-## Layout:
-
-- [x] Header
-- [ ] Table:
-  + [x] Border
-  + [x] Bottom line (upper digits)
-  + [ ] Grid (lines + digits)
-- [ ] Rows:
-  + [x] Label
-  + [ ] Plot:
-    * [ ] zero
-    * [ ] graph(pos: point, size: rect(width(x0..x1), height(px)))
-  + [x] Underline
+- [ ] Canvas:
+  + [ ] Header
+  + [ ] Grid
+  + [ ] Ptrs
+- [ ] Payload (rows):
+  + [ ] ...
 
 Note:
 - 1 dot = 0.254mm (0.01")

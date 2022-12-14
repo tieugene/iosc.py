@@ -1,4 +1,5 @@
 """Main print preview dialog"""
+from PyQt5.QtCore import Qt
 # 2. 3rd
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QActionGroup, QToolButton, QToolBar, QAction, QStyle, QMenu
@@ -23,19 +24,16 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
     def __mk_actions(self):
         self.__actions_to_print = QActionGroup(self)
         self.__actions_to_print.setExclusive(False)
-        self.__actions_to_print.addAction(QAction(
-            "Print values",
-            self,
-            checkable=True,
-            toggled=self.__slot_set_2lines
-        ))
+        self.__actions_to_print.addAction(QAction("…values", self, checkable=True, toggled=self.__slot_option_values))
+        self.__actions_to_print.addAction(QAction("…pointers", self, checkable=True, toggled=self.__slot_option_ptrs))
 
     def __mk_custom_menu(self):
         self.__tb_to_print = QToolButton(self)
+        self.__tb_to_print.setArrowType(Qt.ArrowType.DownArrow)
+        self.__tb_to_print.setText("Print…")
         self.__tb_to_print.setIcon(QIcon.fromTheme(
-            "emblem-important",
-            self.style().standardIcon(QStyle.StandardPixmap.SP_ToolBarVerticalExtensionButton)
-        ))
+            "emblem-important", self.style().standardIcon(QStyle.StandardPixmap.SP_DialogYesButton)
+            ))
         self.__tb_to_print.setPopupMode(QToolButton.MenuButtonPopup)
         self.__tb_to_print.setMenu(QMenu())
         self.__tb_to_print.menu().addActions(self.__actions_to_print.actions())
@@ -47,8 +45,12 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
         if (wdg := self.findChild(QPrintPreviewWidget)) is not None:
             wdg.updatePreview()
 
-    def __slot_set_2lines(self, v: bool):
-        self.printer().option_2lines = v
+    def __slot_option_values(self, v: bool):
+        self.printer().option_values = v
+        self.__repreview()
+
+    def __slot_option_ptrs(self, v: bool):
+        self.printer().option_ptrs = v
         self.__repreview()
 
     def exec_(self):

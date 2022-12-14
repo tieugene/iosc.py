@@ -12,9 +12,9 @@ from iosc.sig.widget.common import SignalBarList
 
 
 class HeaderItem(RectTextItem):
-    __plot: 'PlotBase'
+    __plot: 'PlotPrint'
 
-    def __init__(self, plot: 'PlotBase'):
+    def __init__(self, plot: 'PlotPrint'):
         super().__init__(ClipedPlainTextItem(HEADER_TXT))
         self.__plot = plot
         self.update_size()
@@ -34,12 +34,12 @@ class TableCanvas(GroupItem):
     """
 
     class GridItem(GroupItem):
-        __plot: 'PlotBase'
+        __plot: 'PlotPrint'
         __x: float
         __line: QGraphicsLineItem
         __text: TCPlainTextItem
 
-        def __init__(self, x: float, num: int, plot: 'PlotBase'):
+        def __init__(self, x: float, num: int, plot: 'PlotPrint'):
             super().__init__()
             self.__x = x
             self.__plot = plot
@@ -56,14 +56,14 @@ class TableCanvas(GroupItem):
             self.__line.setLine(x, H_HEADER, x, y)
             self.__text.setPos(x, y)
 
-    __plot: 'PlotBase'
+    __plot: 'PlotPrint'
     __header: HeaderItem
     __frame: QGraphicsRectItem  # external border; TODO: clip all inners (header, tic labels) by this
     __colsep: QGraphicsLineItem  # columns separator
     __btmsep: QGraphicsLineItem  # bottom separator
     __grid: List[GridItem]  # tics (v-line+label)
 
-    def __init__(self, plot: 'PlotBase'):
+    def __init__(self, plot: 'PlotPrint'):
         super().__init__()
         self.__plot = plot
         self.__header = HeaderItem(plot)
@@ -100,15 +100,15 @@ class TableCanvas(GroupItem):
 
 class TablePayload(GroupItem):
     """Just rows with underlines.
-    Used in: PlotScene > … > View/Print
+    Used in: PlotScene > … > Print
     """
     __rowitem: list[RowItem]
 
-    def __init__(self, bslist: SignalBarList, plot: 'PlotBase'):
+    def __init__(self, bslist: SignalBarList, plot: 'PlotPrint'):
         super().__init__()
         self.__rowitem = list()
-        return   # FIXME: stub
         y = 0
+        return
         for bs in bslist:
             item = RowItem(bs, plot)
             item.setY(y)
@@ -117,7 +117,8 @@ class TablePayload(GroupItem):
             self.addToGroup(self.__rowitem[-1])
 
     def update_sizes(self):
-        y = self.__rowitem[0].boundingRect().y()
+        # y = self.__rowitem[0].boundingRect().y()
+        y = H_HEADER
         for item in self.__rowitem:
             item.update_size()
             item.setY(y)
@@ -129,11 +130,11 @@ class TablePayload(GroupItem):
 
 
 class PlotScene(QGraphicsScene):
-    """Used in: PlotBase > PlotView/PrintView"""
+    """Used in: PlotPrint > PrintView"""
     __canvas: TableCanvas
     __payload: TablePayload
 
-    def __init__(self, bslist: SignalBarList, plot: 'PlotBase'):
+    def __init__(self, bslist: SignalBarList, plot: 'PlotPrint'):
         super().__init__()
         self.__canvas = TableCanvas(plot)
         self.__payload = TablePayload(bslist, plot)

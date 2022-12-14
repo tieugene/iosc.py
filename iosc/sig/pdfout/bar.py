@@ -158,12 +158,12 @@ class BarGraphItem(GroupItem):
 class RowItem(GroupItem):
     """Used in: TablePayload > … > View/Print"""
     __bs: SignalBar
-    __plot: 'PlotBase'  # ref to father
+    __plot: 'PlotPrint'  # ref to father
     __label: BarLabelItem  # left side
     __graph: BarGraphItem  # right side
     __uline: QGraphicsLineItem  # underline
 
-    def __init__(self, bs: SignalBar, plot: 'PlotBase'):
+    def __init__(self, bs: SignalBar, plot: 'PlotPrint'):
         super().__init__()
         self.__bs = bs
         self.__plot = plot

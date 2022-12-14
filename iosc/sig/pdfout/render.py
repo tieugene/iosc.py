@@ -11,16 +11,18 @@ from .pdfprinter import PdfPrinter
 from iosc.sig.widget.common import SignalBarList, SignalBar
 
 
-class PlotBase(GraphViewBase):
-    """Used in: PlotView, PlotPrint"""
+class PlotPrint(GraphViewBase):
+    """:todo: just scene container; can be replaced with QObject?"""
     _portrait: bool
     _prn_values: bool
+    _prn_ptrs: bool
     _scene: List[PlotScene]
 
     def __init__(self, bslist: SignalBarList):
         super().__init__()
         self._portrait = PORTRAIT
         self._prn_values = False
+        self._prn_ptrs = False
         self._scene = list()
         i0 = 0
         for k in self.__data_split(bslist):
@@ -34,6 +36,10 @@ class PlotBase(GraphViewBase):
     @property
     def prn_values(self) -> bool:
         return self._prn_values
+
+    @property
+    def prn_ptrs(self) -> bool:
+        return self._prn_ptrs
 
     @property
     def w_full(self) -> int:
@@ -60,18 +66,24 @@ class PlotBase(GraphViewBase):
     def scene_count(self) -> int:
         return len(self._scene)
 
-    def slot_set_portrait(self, v: bool):
+    def __set_portrait(self, v: bool):
         if self._portrait ^ v:
             self._portrait = v
             for scene in self._scene:
                 scene.update_sizes()
             # self.slot_reset_size()  # optional
 
-    def _slot_set_prn_values(self, v: bool):
+    def __set_prn_values(self, v: bool):
         if self._prn_values ^ v:
             self._prn_values = v
             for scene in self._scene:
                 scene.update_labels()
+
+    def __set_prn_ptrs(self, v: bool):
+        if self._prn_ptrs ^ v:
+            self._prn_ptrs = v
+            for scene in self._scene:
+                ...  # TODO:
 
     def __data_split(self, __sblist: SignalBarList) -> List[int]:
         """Split data to scene pieces.
@@ -90,22 +102,15 @@ class PlotBase(GraphViewBase):
         retvalue.append(cur_num)
         return retvalue
 
-
-class PlotPrint(PlotBase):
-    """
-    :todo: just scene container; can be replaced with QObject?
-    """
-    def __init__(self, sblist: SignalBarList):
-        super().__init__(sblist)
-
     def slot_paint_request(self, printer: PdfPrinter):
         """
         Call _B4_ show dialog
         Use printer.pageRect(QPrinter.Millimeter/DevicePixel).
         :param printer: Where to draw to
         """
-        self.slot_set_portrait(printer.orientation() == QPrinter.Orientation.Portrait)
-        self._slot_set_prn_values(printer.option_2lines)
+        self.__set_portrait(printer.orientation() == QPrinter.Orientation.Portrait)
+        self.__set_prn_values(printer.option_values)
+        self.__set_prn_ptrs(printer.option_ptrs)
         painter = QPainter(printer)
         self._scene[0].render(painter)  # Sizes: dst: printer.pageSize(), src: self.scene().sceneRect()
         for scene in self._scene[1:]:

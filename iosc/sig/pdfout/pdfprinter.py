@@ -4,11 +4,13 @@ from .const import PORTRAIT
 
 
 class PdfPrinter(QPrinter):
-    option_2lines: bool
+    option_values: bool
+    option_ptrs: bool
 
     def __init__(self):
         super().__init__(QPrinter.PrinterMode.HighResolution)
-        self.option_2lines = False
+        self.option_values = False
+        self.option_ptrs = False
         self.setOutputFormat(QPrinter.OutputFormat.PdfFormat)
         self.setResolution(100)
         self.setPageMargins(10, 10, 10, 10, QPrinter.Unit.Millimeter)
