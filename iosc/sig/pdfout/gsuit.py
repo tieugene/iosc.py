@@ -111,13 +111,13 @@ class TablePayload(GroupItem):
     """
     __rowitem: list[RowItem]
 
-    def __init__(self, bslist: SignalBarList, plot: 'PlotPrint'):
+    def __init__(self, sblist: SignalBarList, plot: 'PlotPrint'):
         super().__init__()
         self.__rowitem = list()
         y = 0
-        return
-        for bs in bslist:
-            item = RowItem(bs, plot)
+        # return  # stub
+        for sb in sblist:
+            item = RowItem(sb, plot)
             item.setY(y)
             y += item.boundingRect().height()
             self.__rowitem.append(item)

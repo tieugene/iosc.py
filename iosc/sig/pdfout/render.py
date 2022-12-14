@@ -1,5 +1,5 @@
 # 1. std
-from typing import List
+from typing import List, Tuple
 # 2. 3rd
 from PyQt5.QtGui import QPainter
 from PyQt5.QtPrintSupport import QPrinter
@@ -16,6 +16,7 @@ class PlotPrint(GraphViewBase):
     _portrait: bool
     _prn_values: bool
     _prn_ptrs: bool
+    __i_range: Tuple[int, int]  # Range of samples to print out
     _scene: List[PlotScene]
 
     def __init__(self, oscwin: 'ComtradeWidget'):
@@ -23,6 +24,10 @@ class PlotPrint(GraphViewBase):
         self._portrait = PORTRAIT
         self._prn_values = False
         self._prn_ptrs = False
+        self.__i_range = (
+            round(oscwin.xscroll_bar.norm_min * (oscwin.osc.raw.total_samples - 1)),
+            round(oscwin.xscroll_bar.norm_max * (oscwin.osc.raw.total_samples - 1))
+        )
         self._scene = list()
         sblist = oscwin.analog_table.bars  # FIXME: += status_table
         i0 = 0
@@ -41,6 +46,10 @@ class PlotPrint(GraphViewBase):
     @property
     def prn_ptrs(self) -> bool:
         return self._prn_ptrs
+
+    @property
+    def i_range(self) -> Tuple[int, int]:
+        return self.__i_range
 
     @property
     def w_full(self) -> int:

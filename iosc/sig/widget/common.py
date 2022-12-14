@@ -97,6 +97,12 @@ class SignalSuit(QObject):
     def _data_y(self) -> list:
         return []  # stub
 
+    def get_label_html(self, with_values: bool = False) -> Optional[str]:
+        """HTML-compatible label"""
+        if self._label:
+            txt = self._label.text().split('\n')
+            return '<br/>'.join(txt) if with_values else txt[0]
+
     def _set_data(self):
         self.graph.setData(self.bar.table.oscwin.osc.x, self._data_y, True)
 

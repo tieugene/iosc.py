@@ -2,13 +2,15 @@
 
 Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
 
-- [ ] Get i-slice
+- [x] Get i-slice  
 - [ ] Canvas:
   + [x] Header
-  + [ ] Grid
+  + [ ] Grid *(oscwin.xscroll_bar.norm_… × &hellip;)*
   + [ ] Ptrs
 - [ ] Payload (rows):
-  + [ ] &hellip;
+  + [x] Label
+  + [ ] Graph
+- [ ] FIXME: Header.pors not switching
 
 Note:
 - 1 dot = 0.254mm (0.01")
