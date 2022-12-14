@@ -5,20 +5,23 @@ from typing import List
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsLineItem, QGraphicsRectItem, QGraphicsItem
 # 3. local
-from .const import W_LABEL, H_HEADER, H_BOTTOM, HEADER_TXT, SAMPLES, TICS
+from .const import W_LABEL, H_HEADER, H_BOTTOM, SAMPLES, TICS
 from .gitem import ThinPen, RectTextItem, ClipedPlainTextItem, GroupItem, TCPlainTextItem
 from .bar import RowItem
 from iosc.sig.widget.common import SignalBarList
+# x. const
+PORS_TEXT = ('Primary', 'Secondary')
 
 
 class HeaderItem(RectTextItem):
+    """:fixme: pors test not changing"""
     __plot: 'PlotPrint'
 
     def __init__(self, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):
         super().__init__(ClipedPlainTextItem(
             f"{oscwin.osc.path}"
             f"\nStation ID: {oscwin.osc.raw.rec_dev_id}, Station name: {oscwin.osc.raw.station_name}"
-            f"\nSomething else"
+            f"\n{PORS_TEXT[int(oscwin.show_sec)]} values"
         ))
         self.__plot = plot
         self.update_size()

@@ -57,6 +57,8 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
         """Exec print dialog from Print action activated until Esc (0) or 'OK' (print) pressed."""
         rndr = PlotPrint(self.__parent)  # FIXME: += status_table
         self.paintRequested.connect(rndr.slot_paint_request)
-        return super().exec_()
+        retvalue = super().exec_()
         # self.paintRequested.disconnect(rndr.slot_paint_request)  # not required
         # rndr.deleteLater()  # or `del rndr`; not required
+        # del rndr
+        return retvalue

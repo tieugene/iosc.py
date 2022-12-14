@@ -2,6 +2,7 @@
 
 Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
 
+- [ ] Get i-slice
 - [ ] Canvas:
   + [x] Header
   + [ ] Grid
