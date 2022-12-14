@@ -1,95 +1,114 @@
-"""
-1 dot = .1"
-TODO: just resize items on page change
-"""
-from PyQt5.QtCore import QRectF
+# 1. std
+from typing import List
 # 2. 3rd
-from PyQt5.QtGui import QPainter, QFont, QPageLayout
+from PyQt5.QtGui import QPainter
 from PyQt5.QtPrintSupport import QPrinter
-from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QAction, QGraphicsRectItem, \
-    QGraphicsLineItem, QGraphicsSimpleTextItem, QGraphicsItem, QWidget, QStyleOptionGraphicsItem
 # 3. local
-from iosc.core import mycomtrade
-from iosc.sig.pdfout.bar import SignalBarPrnItem
-
-# x. const
-A4 = (748, 1130)  # (w, h) of A4 - 10mm margins in "dots" (0.01")
-H_ASIG = (176, 112)  # H of analog signal
-H_SCALE = 20
-W_COL0 = 112  # W of 1st column
-X_COL0 = 5  # X-offset of signal label
-MAIN_FONT = QFont('Source Code Pro', 8)  # 14x6 "dots"
+from .const import PORTRAIT, W_PAGE, H_ROW_BASE, H_HEADER, H_BOTTOM
+from .gitem import GraphViewBase
+from .gsuit import PlotScene
+from .pdfprinter import PdfPrinter
+from iosc.sig.widget.common import SignalBarList, SignalBar
 
 
-class HeaderItem(QGraphicsSimpleTextItem):
-    def __init__(self, osc: mycomtrade.MyComtrade, parent=None):
-        super().__init__(  # 14 dots per line
-            f"{osc.path.name}"
-            f"\nStart time: {osc.raw.start_timestamp.isoformat()}"
-            f"\nDevice: {osc.raw.rec_dev_id}, Place: {osc.raw.station_name}",
-            parent
-        )
-        self.setFont(MAIN_FONT)
+class PlotBase(GraphViewBase):
+    """Used in: PlotView, PlotPrint"""
+    _portrait: bool
+    _prn_values: bool
+    _scene: List[PlotScene]
 
+    def __init__(self, bslist: SignalBarList):
+        super().__init__()
+        self._portrait = PORTRAIT
+        self._prn_values = False
+        self._scene = list()
+        i0 = 0
+        for k in self.__data_split(bslist):
+            self._scene.append(PlotScene(bslist[i0:i0 + k], self))
+            i0 += k
 
-class TableItem(QGraphicsRectItem):
-    def __init__(self, w: int, h: int, parent=None):
-        super().__init__(0, 0, w, h - 0.5, parent)  # 1. border
-        QGraphicsLineItem(W_COL0, 0, W_COL0, h - 0.5, self)  # 2. columns separator
-        QGraphicsLineItem(0, h - H_SCALE, w, h - H_SCALE, self)  # 3. underscore
-        # 4. TODO: grid
+    @property
+    def portrait(self) -> bool:
+        return self._portrait
 
+    @property
+    def prn_values(self) -> bool:
+        return self._prn_values
 
-class PrintRender(QGraphicsView):  # TODO: just scene container; can be replaced with QObject
-    __to_print: list[bool]
+    @property
+    def w_full(self) -> int:
+        """Current full table width"""
+        return W_PAGE[int(self.portrait)]
 
-    def __init__(self, parent='ComtradeWidget'):
-        super().__init__(parent)
-        self.__to_print = [False] * 5
-        self.setScene(QGraphicsScene())
+    @property
+    def h_full(self) -> int:
+        """Current full table width"""
+        return W_PAGE[1 - int(self.portrait)]
 
-    def slot_set_to_print(self, a: QAction):
-        """Slot """
-        self.__to_print[a.data()] = a.isChecked()
-
-    def print_(self, printer: QPrinter):
+    def h_row(self, sb: SignalBar) -> int:  # FIXME:
+        """Row height as f(sb.is_bool, sb.h[default], self.portrait).
+        - if is_bool: exact H_ROW_BASE
+        - else: defined or 4 × H_ROW_BASE
+        - finally × 1.5 if portrait
+        :todo: cache it
         """
+        lp_mult = 1.5 if self.portrait else 1  # multiplier for landscape/portrait
+        h_base = H_ROW_BASE if sb.is_bool else sb.height or H_ROW_BASE * 4  # 28/112, 42/168
+        return round(h_base * lp_mult)
+
+    @property
+    def scene_count(self) -> int:
+        return len(self._scene)
+
+    def slot_set_portrait(self, v: bool):
+        if self._portrait ^ v:
+            self._portrait = v
+            for scene in self._scene:
+                scene.update_sizes()
+            # self.slot_reset_size()  # optional
+
+    def _slot_set_prn_values(self, v: bool):
+        if self._prn_values ^ v:
+            self._prn_values = v
+            for scene in self._scene:
+                scene.update_labels()
+
+    def __data_split(self, __sblist: SignalBarList) -> List[int]:
+        """Split data to scene pieces.
+        :return: list of bar numbers
+        """
+        retvalue = list()
+        h_barlist_max = W_PAGE[1] - H_HEADER - H_BOTTOM  # max v-space for bars
+        cur_num = cur_height = 0  # heigth of current piece in basic (B) units
+        for i, bs in enumerate(__sblist):
+            h = self.h_row(bs)
+            if cur_height + h > h_barlist_max:  # analog?
+                retvalue.append(cur_num)
+                cur_num = cur_height = 0
+            cur_num += 1
+            cur_height += h
+        retvalue.append(cur_num)
+        return retvalue
+
+
+class PlotPrint(PlotBase):
+    """
+    :todo: just scene container; can be replaced with QObject?
+    """
+    def __init__(self, sblist: SignalBarList):
+        super().__init__(sblist)
+
+    def slot_paint_request(self, printer: PdfPrinter):
+        """
+        Call _B4_ show dialog
         Use printer.pageRect(QPrinter.Millimeter/DevicePixel).
         :param printer: Where to draw to
-        # TODO: while(signals) plot | pagebreak
         """
-        self.scene().clear()
-        # xsb = self.parent().xscroll_bar
-        # print(xsb.norm_min, xsb.norm_max)
-        if printer.pageLayout().orientation() == QPageLayout.Portrait:
-            w_all, h_all = A4[0], A4[1]
-        else:
-            w_all, h_all = A4[1], A4[0]
-        # fill
-        osc: mycomtrade.MyComtrade = self.parent().osc
-        # - header
-        self.scene().addItem(h := HeaderItem(osc))
-        y = round(h.boundingRect().height())
-        # - table
-        self.scene().addItem(t := TableItem(w_all, h_all - y))
-        t.setPos(0, y)
-        # - signals
-        for bar in self.parent().analog_table.bars[:1]:  # TODO: a) signal.height = h, b) h = signal.height()
-            if not bar.hidden:
-                item = SignalBarPrnItem(bar, False)  # FIXME: hidden
-                item.setPos(0, y)
-                self.scene().addItem(item)
-                y += item.boundingRect().height()
-                self.scene().addItem(QGraphicsLineItem(0, y, item.boundingRect().width(), y))
-                y += 1
-                # self.scene().addItem(s := SignalItem(w_all, H_ASIG[0], signal))
-                # s.setPos(0, y)
-                # y += H_ASIG[0]
-        # output
-        print(self.scene().itemsBoundingRect().height())  # 670.5
-        self.scene().setSceneRect(self.scene().itemsBoundingRect())
-        # self.render(QPainter(printer))  # Plan A. Sizes: dst: printer.pageSize(), src: self.viewport().rect()
+        self.slot_set_portrait(printer.orientation() == QPrinter.Orientation.Portrait)
+        self._slot_set_prn_values(printer.option_2lines)
         painter = QPainter(printer)
-        self.scene().render(painter)  # Sizes: dst: printer.pageSize(), src: self.scene().sceneRect()
-        printer.newPage()
-        self.scene().render(painter)
+        self._scene[0].render(painter)  # Sizes: dst: printer.pageSize(), src: self.scene().sceneRect()
+        for scene in self._scene[1:]:
+            printer.newPage()
+            scene.render(painter)
+        painter.end()

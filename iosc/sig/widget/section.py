@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QScrollBar, QLab
 from QCustomPlot2 import QCustomPlot
 # 3. local
 import iosc.const
-from iosc.sig.widget.common import SignalBar
+from iosc.sig.widget.common import SignalBar, SignalBarList
 from iosc.sig.widget.ctrl import BarCtrlWidget
 from iosc.sig.widget.top import TimeAxisPlot
 from iosc.sig.widget.bottom import TimeStampsPlot
@@ -77,7 +77,7 @@ class SignalBarTable(QTableWidget):
             super().drawPrimitive(element, option, painter, widget)
 
     oscwin: 'ComtradeWidget'
-    bars: list[SignalBar]
+    bars: SignalBarList
 
     def __init__(self, oscwin: 'ComtradeWidget'):
         super().__init__()  # Parent will be QSplitter

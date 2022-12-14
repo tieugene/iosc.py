@@ -1,10 +1,10 @@
 """Signal wrappers, commmon things.
 TODO: move up (../
 """
+# 1. std
+from typing import Optional, Union, List
 import cmath
 import math
-# 1. std
-from typing import Optional, Union
 # 2. 3rd
 from PyQt5.QtCore import QObject, pyqtSignal, QMargins, Qt
 from PyQt5.QtGui import QPen, QColor, QBrush
@@ -428,3 +428,6 @@ class SignalBar(QObject):
         self.ctrl.update_statusonly()
         self.gfx.update_statusonly()
         # TODO: update row height
+
+
+SignalBarList = List[SignalBar]  # custom type

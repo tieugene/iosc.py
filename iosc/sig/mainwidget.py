@@ -15,7 +15,7 @@ from iosc.core import mycomtrade
 from iosc.icon import svg_icon, ESvgSrc
 from iosc.core.convtrade import convert, ConvertError
 from iosc.sig.pdfout.dialog import PDFOutPreviewDialog
-from iosc.sig.pdfout.render import PrintRender
+from iosc.sig.pdfout.pdfprinter import PdfPrinter
 from iosc.sig.tools.cvdwindow import CVDWindow
 from iosc.sig.widget.section import TimeAxisBar, SignalBarTable, TimeStampsBar, XScroller
 from iosc.sig.tools.hdwindow import HDWindow
@@ -80,9 +80,8 @@ class ComtradeWidget(QWidget):
     xscroll_bar: XScroller
     cvdwin: Optional[CVDWindow]
     hdwin: Optional[HDWindow]
-    __printer: QPrinter
-    pdfout: PrintRender
-    print_preview: PDFOutPreviewDialog
+    __printer: PdfPrinter
+    __print_preview: PDFOutPreviewDialog
     # signals
     signal_chged_pors = pyqtSignal()  # recalc ASignalCtrlView on ...
     signal_chged_shift = pyqtSignal()  # refresh ASignal*View on switching original/shifted
@@ -182,10 +181,8 @@ class ComtradeWidget(QWidget):
         self.xscroll_bar = XScroller(self)
         self.cvdwin = None
         self.hdwin = None
-        self.pdfout = PrintRender(self)
-        self.__printer = QPrinter(QPrinter.HighResolution)
-        self.__printer.setOutputFormat(QPrinter.PdfFormat)
-        self.print_preview = PDFOutPreviewDialog(self.__printer, self.pdfout, self)
+        self.__printer = PdfPrinter()
+        self.__print_preview = PDFOutPreviewDialog(self.__printer, self)
 
     def __mk_layout(self):
         self.setLayout(QVBoxLayout())
@@ -232,7 +229,7 @@ class ComtradeWidget(QWidget):
                                      "&Print...",
                                      self,
                                      shortcut="Ctrl+P",
-                                     triggered=self.print_preview.exec_)
+                                     triggered=self.__print_preview.exec_)
         self.action_resize_y_in = QAction(svg_icon(ESvgSrc.VZoomIn),
                                           "Y-Resize +",
                                           self,
