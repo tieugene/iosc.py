@@ -14,8 +14,12 @@ from iosc.sig.widget.common import SignalBarList
 class HeaderItem(RectTextItem):
     __plot: 'PlotPrint'
 
-    def __init__(self, plot: 'PlotPrint'):
-        super().__init__(ClipedPlainTextItem(HEADER_TXT))
+    def __init__(self, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):
+        super().__init__(ClipedPlainTextItem(
+            f"{oscwin.osc.path}"
+            f"\nStation ID: {oscwin.osc.raw.rec_dev_id}, Station name: {oscwin.osc.raw.station_name}"
+            f"\nSomething else"
+        ))
         self.__plot = plot
         self.update_size()
 
@@ -63,10 +67,10 @@ class TableCanvas(GroupItem):
     __btmsep: QGraphicsLineItem  # bottom separator
     __grid: List[GridItem]  # tics (v-line+label)
 
-    def __init__(self, plot: 'PlotPrint'):
+    def __init__(self, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):
         super().__init__()
         self.__plot = plot
-        self.__header = HeaderItem(plot)
+        self.__header = HeaderItem(oscwin, plot)
         pen = ThinPen(Qt.GlobalColor.gray)
         self.__frame = QGraphicsRectItem()
         self.__frame.setPen(pen)
@@ -134,10 +138,10 @@ class PlotScene(QGraphicsScene):
     __canvas: TableCanvas
     __payload: TablePayload
 
-    def __init__(self, bslist: SignalBarList, plot: 'PlotPrint'):
+    def __init__(self, sblist: SignalBarList, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):
         super().__init__()
-        self.__canvas = TableCanvas(plot)
-        self.__payload = TablePayload(bslist, plot)
+        self.__canvas = TableCanvas(oscwin, plot)
+        self.__payload = TablePayload(sblist, plot)
         self.__payload.setY(H_HEADER)
         self.addItem(self.__canvas)
         self.addItem(self.__payload)

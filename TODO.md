@@ -3,11 +3,11 @@
 Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
 
 - [ ] Canvas:
-  + [ ] Header
+  + [x] Header
   + [ ] Grid
   + [ ] Ptrs
 - [ ] Payload (rows):
-  + [ ] ...
+  + [ ] &hellip;
 
 Note:
 - 1 dot = 0.254mm (0.01")
@@ -99,7 +99,7 @@ Dst: ([X0..X1, ]sig(=>Y*), dst_size:rect) -> QGfxObject:
   + footer: h: skip, w: resize
 &deg;
 
-RTFM:
+## RTFM:
 - QSplineSeries
 - [spline](https://www.toptal.com/c-plus-plus/rounded-corners-bezier-curves-qpainter)
 - **QGraphicsGridLayout**

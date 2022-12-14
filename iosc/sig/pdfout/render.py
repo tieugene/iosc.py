@@ -18,15 +18,16 @@ class PlotPrint(GraphViewBase):
     _prn_ptrs: bool
     _scene: List[PlotScene]
 
-    def __init__(self, bslist: SignalBarList):
+    def __init__(self, oscwin: 'ComtradeWidget'):
         super().__init__()
         self._portrait = PORTRAIT
         self._prn_values = False
         self._prn_ptrs = False
         self._scene = list()
+        sblist = oscwin.analog_table.bars  # FIXME: += status_table
         i0 = 0
-        for k in self.__data_split(bslist):
-            self._scene.append(PlotScene(bslist[i0:i0 + k], self))
+        for k in self.__data_split(sblist):
+            self._scene.append(PlotScene(sblist[i0:i0 + k], oscwin, self))
             i0 += k
 
     @property
