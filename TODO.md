@@ -7,10 +7,11 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
   + [x] Header
   + [ ] Grid *(oscwin.xscroll_bar.norm_… × &hellip;)*
   + [ ] Ptrs
-- [ ] Payload (rows):
+- [x] Payload (rows):
   + [x] Label
-  + [ ] Graph
+  + [x] Graph
 - [ ] FIXME: Header.pors not switching
+- [ ] FIXME: bar.is_bool labels too low
 
 Note:
 - 1 dot = 0.254mm (0.01")

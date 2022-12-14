@@ -29,7 +29,7 @@ class PlotPrint(GraphViewBase):
             round(oscwin.xscroll_bar.norm_max * (oscwin.osc.raw.total_samples - 1))
         )
         self._scene = list()
-        sblist = oscwin.analog_table.bars  # FIXME: += status_table
+        sblist = oscwin.analog_table.bars + oscwin.status_table.bars
         i0 = 0
         for k in self.__data_split(sblist):
             self._scene.append(PlotScene(sblist[i0:i0 + k], oscwin, self))
@@ -69,7 +69,7 @@ class PlotPrint(GraphViewBase):
         :todo: cache it
         """
         lp_mult = 1.5 if self.portrait else 1  # multiplier for landscape/portrait
-        h_base = H_ROW_BASE if sb.is_bool else sb.height or H_ROW_BASE * 4  # 28/112, 42/168
+        h_base = H_ROW_BASE if sb.is_bool() else sb.height or H_ROW_BASE * 4  # 28/112, 42/168
         return round(h_base * lp_mult)
 
     @property
