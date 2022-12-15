@@ -34,6 +34,7 @@ class HeaderItem(RectTextItem):
 
 
 class VItem(GroupItem):
+    """Vertical line for TableCanvas"""
     _plot: 'PlotPrint'
     _line: QGraphicsLineItem
     _text: TCPlainTextItem
@@ -86,9 +87,10 @@ class TableCanvas(GroupItem):
 
         def __init__(self, i: int, color: Qt.GlobalColor, plot: 'PlotPrint', pen_style: Qt.PenStyle = None):
             """
-            :param x: Normalized X-position, 0..1
-            :param label: Text to label
+            :param i: Xindex of pointer
+            :param color: Subj
             :param plot: Parent plot
+            :param pen_style: Subj
             """
             super().__init__(color, plot)
             self.__i = i

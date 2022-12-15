@@ -12,12 +12,14 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
   + [x] Graph
   + [ ] Ptrs (Msr, Lvl)
 - [ ] FIXME:
-  + [ ] 2x __init__
+  + [x] Separate custom print options buttons
+  + [ ] Ptrs on/off
   + [ ] i_range expand
+  + [ ] bar.is_bool labels too low (? html style ?)
   + [ ] Extra (left) grid items
   + [ ] Header.pors not switching
-  + [ ] bar.is_bool labels too low (? html style ?)
-  + [ ] Separate custom print options buttons
+  + [ ] 2x __init__
+  + [ ] Signal sanity check
 
 Note:
 - 1 dot = 0.254mm (0.01")
@@ -48,24 +50,11 @@ Dst: ([X0..X1, ]sig(=>Y*), dst_size:rect) -> QGfxObject:
   - ~~`orderform.py`~~ (print only, to pdf; QTextEdit().print_()
   - ~~`textedit.py`~~ (preview; QTextEdit().print_())
 - [Print to PDF](https://wiki.qt.io/Exporting_a_document_to_PDF)
-- QPdfWriter: &hellip;
+- QPdfWriter:
 - [QGraphicsScene &rArr; QPrinter](https://www.qtcentre.org/threads/47972-Render-QGraphicsScene-to-a-QPrinter-to-export-PDF)
 - [FAQ 2](https://stackoverflow.com/questions/35034953/printing-qgraphicsscene-cuts-objects-in-half)
 
-## Find:
-- [x] Custom QPrintPreviewDialog(): QPrintPreviewDialog().findChildren()
-- [x] Split QLayout|QGRaphicsScene by pages: QPrinter().pageRect()
-- [ ] QPdfWriter(QPaint) sample
-- [ ] QGraphicsView.render() + page break (printer.newPage())
-
-## Classes:
-- QPainter:
-  + QPaintDevice
-    * QPagedPaintDevice
-      - QPdfWriter
-      - QPrinter
-
-## Analog:
+## Analog&trade;:
 
 Печатает:
 
@@ -85,30 +74,6 @@ Dst: ([X0..X1, ]sig(=>Y*), dst_size:rect) -> QGfxObject:
 
 Но это не точно.
 
-## 20221122:
-- Берем с экрана ширины надписи в кол0 (это будет ширина кол0) и кол1. Это будет ширина в dots.
-- Берем из printer ширину и высоту pagesize. Это будут пропорции.  
-- Набиваем bar'ами высоту до пропорции
-- Bar рендерим как есть (toPainter()) (?)
-
-## Q&A:
-- Интервал: a) "как на экране" (ТЗ); ~~"все" (Аналог)~~
-- ~~С высотой непонятно вообще~~ сказано 6/24, значит 6/24
-
-## 20221124:
-- Рисуют SignalBar и SignalSuit
-- H-size: fixed (portrait/landscape)
-- W-size:
-  + labels: fixed (100)
-  + plot: fixed (1000)
-- then transform:
-  + header: h: skip, w: cut
-  + rows: resize:
-    + labels: cut
-    + plot: resize
-  + footer: h: skip, w: resize
-&deg;
-
 ## RTFM:
 - QSplineSeries
 - [spline](https://www.toptal.com/c-plus-plus/rounded-corners-bezier-curves-qpainter)
@@ -116,7 +81,3 @@ Dst: ([X0..X1, ]sig(=>Y*), dst_size:rect) -> QGfxObject:
 - [disable transform](https://stackoverflow.com/questions/1222914/qgraphicsview-and-qgraphicsitem-don%C2%B4t-scale-item-when-scaling-the-view-rect)
 - [Scene border](https://www.qtcentre.org/threads/13814-how-to-enable-borders-in-QGraphicsScene)
 - [Tic align](https://www.qtcentre.org/threads/51168-QGraphicsTextItem-center-based-coordinates)
-
-## 20221214
-
-Grid: берем t0..tmax и по модулю step

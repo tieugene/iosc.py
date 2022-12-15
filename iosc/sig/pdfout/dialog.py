@@ -11,6 +11,8 @@ from .render import PlotPrint
 
 class PDFOutPreviewDialog(QPrintPreviewDialog):
     __parent: 'ComtradeWidget'
+    __act_opt_values: QAction
+    __act_opt_ptrs: QAction
     __actions_to_print: QActionGroup
     __tb_to_print: QToolButton
 
@@ -18,25 +20,31 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
         super().__init__(__printer)
         self.__parent = parent
         self.__mk_actions()
-        self.__mk_custom_menu()
-        self.findChildren(QToolBar)[0].addWidget(self.__tb_to_print)
+        root_tb: QToolBar = self.findChildren(QToolBar)[0]
+        root_tb.addAction(self.__act_opt_values)
+        root_tb.addAction(self.__act_opt_ptrs)
 
     def __mk_actions(self):
-        self.__actions_to_print = QActionGroup(self)
-        self.__actions_to_print.setExclusive(False)
-        self.__actions_to_print.addAction(QAction("…values", self, checkable=True, toggled=self.__slot_option_values))
-        self.__actions_to_print.addAction(QAction("…pointers", self, checkable=True, toggled=self.__slot_option_ptrs))
-
-    def __mk_custom_menu(self):
-        self.__tb_to_print = QToolButton(self)
-        self.__tb_to_print.setArrowType(Qt.ArrowType.DownArrow)
-        self.__tb_to_print.setText("Print…")
-        self.__tb_to_print.setIcon(QIcon.fromTheme(
-            "emblem-important", self.style().standardIcon(QStyle.StandardPixmap.SP_DialogYesButton)
-            ))
-        self.__tb_to_print.setPopupMode(QToolButton.MenuButtonPopup)
-        self.__tb_to_print.setMenu(QMenu())
-        self.__tb_to_print.menu().addActions(self.__actions_to_print.actions())
+        self.__act_opt_values = QAction(
+            QIcon.fromTheme(
+                "list-add",
+                self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogDetailedView)
+            ),
+            "Print values",
+            self,
+            checkable=True,
+            toggled=self.__slot_option_values
+        )
+        self.__act_opt_ptrs = QAction(
+            QIcon.fromTheme(
+                "insert-link",
+                self.style().standardIcon(QStyle.StandardPixmap.SP_FileLinkIcon)
+            ),
+            "Print pointers",
+            self,
+            checkable=True,
+            toggled=self.__slot_option_ptrs
+        )
 
     def __repreview(self):
         """Update preview.
