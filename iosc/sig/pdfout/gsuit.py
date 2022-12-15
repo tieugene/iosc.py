@@ -150,8 +150,8 @@ class TableCanvas(GroupItem):
         t0: float = oscwin.osc.x[i_range[0]] * 1000  # μs, 1st sample position (e.g. -81666.(6))
         t1: float = oscwin.osc.x[i_range[1]] * 1000  # μs, last sample position (e.g. 116666.(6))
         t_size: float = t1 - t0
-        x_us: int = math.ceil(t0 / x_step) * 100000  # μs, 1st grid position
-        # print(t0, t1, x_step, x_us)
+        x_us: int = math.ceil(t0 / x_step) * x_step  # μs, 1st grid position against xz
+        # print(t0, t1, x_us, x_step)
         while x_us < t1:
             x_norm = (x_us - t0) / t_size
             num = str(x_us // 1000) if x_step > 1000 else "%.1f" % (x_us / 1000)

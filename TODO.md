@@ -15,9 +15,9 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
   + [x] Separate custom print options buttons
   + [x] i_range expand
   + [x] Ptrs on/off (global)
-  + [ ] Extra (left) grid items
+  + [?] Extra (left) grid items
   + [ ] bar.is_bool labels too low (? html style ?)
-  + [ ] Header.pors not switching
+  + [ ] Not refreshed (Header.pors, grid step)
   + [ ] 2x __init__
   + [ ] Signal sanity check
 
