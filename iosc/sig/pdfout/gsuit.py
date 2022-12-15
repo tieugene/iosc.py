@@ -6,7 +6,7 @@ from typing import List
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsLineItem, QGraphicsRectItem, QGraphicsItem
 # 3. local
-from .const import W_LABEL, H_HEADER, H_BOTTOM, TICS
+from .const import W_LABEL, H_HEADER, H_BOTTOM
 from .gitem import ThinPen, RectTextItem, ClipedPlainTextItem, GroupItem, TCPlainTextItem
 from .bar import RowItem
 from iosc.sig.widget.common import SignalBarList
@@ -96,13 +96,6 @@ class TableCanvas(GroupItem):
         self.__mk_grid(oscwin)
         # go
         self.update_sizes()
-
-    def __mk_grid_(self, _):
-        self.__grid = list()
-        for x, num in TICS.items():
-            self.__grid.append(self.GridItem(x, num, self.__plot))
-            self.__grid[-1].setParentItem(self.__frame)
-            self.addToGroup(self.__grid[-1])
 
     def __mk_grid(self, oscwin: 'ComtradeWidget'):
         """

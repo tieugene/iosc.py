@@ -12,6 +12,7 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
   + [x] Graph
   + [ ] Ptrs (Msr, Lvl)
 - [ ] FIXME:
+  + [ ] i_range expand
   + [ ] Extra (left) grid items
   + [ ] Header.pors not switching
   + [ ] bar.is_bool labels too low (? html style ?)
