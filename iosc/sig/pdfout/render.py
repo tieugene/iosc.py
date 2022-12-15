@@ -25,11 +25,10 @@ class PlotPrint(GraphViewBase):
         self._portrait = PORTRAIT
         self._prn_values = False
         self._prn_ptrs = False
-        self.__i_range = (  # FIXME: round => floor+ceil
+        self.__i_range = (
             math.floor(oscwin.xscroll_bar.norm_min * (oscwin.osc.raw.total_samples - 1)),
             math.ceil(oscwin.xscroll_bar.norm_max * (oscwin.osc.raw.total_samples - 1))
         )
-        # print("I_Range: ", self.__i_range)
         self._scene = list()
         sblist = oscwin.analog_table.bars + oscwin.status_table.bars
         i0 = 0

@@ -234,7 +234,7 @@ class ComtradeWidget(QWidget):
                                      "&Print...",
                                      self,
                                      shortcut="Ctrl+P",
-                                     triggered=self.__print_preview.exec_)
+                                     triggered=self.__print_preview.open)
         self.action_resize_y_in = QAction(svg_icon(ESvgSrc.VZoomIn),
                                           "Y-Resize +",
                                           self,
