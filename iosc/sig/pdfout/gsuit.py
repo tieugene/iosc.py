@@ -98,6 +98,7 @@ class TableCanvas(GroupItem):
                 pen = self._line.pen()
                 pen.setStyle(pen_style)
                 self._line.setPen(pen)
+            self.update_visibility()
 
         def update_size(self):
             x = W_LABEL +\
@@ -106,6 +107,9 @@ class TableCanvas(GroupItem):
                 / (self._plot.i_range[1] - self._plot.i_range[0])
             y = self._plot.h_full - H_BOTTOM
             self._line.setLine(x, H_HEADER, x, y)
+
+        def update_visibility(self):
+            self.setVisible(self._plot.prn_ptrs)
 
     __plot: 'PlotPrint'
     __header: HeaderItem
@@ -183,6 +187,10 @@ class TableCanvas(GroupItem):
         for p in self.__ptrs:
             p.update_size()
 
+    def update_ptrs_vosibility(self):
+        for p in self.__ptrs:
+            p.update_visibility()
+
 
 class TablePayload(GroupItem):
     """Just rows with underlines.
@@ -235,3 +243,6 @@ class PlotScene(QGraphicsScene):
 
     def update_labels(self):
         self.__payload.update_labels()
+
+    def update_ptrs_vosibility(self):
+        self.__canvas.update_ptrs_vosibility()

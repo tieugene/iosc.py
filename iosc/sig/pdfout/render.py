@@ -29,7 +29,7 @@ class PlotPrint(GraphViewBase):
             math.floor(oscwin.xscroll_bar.norm_min * (oscwin.osc.raw.total_samples - 1)),
             math.ceil(oscwin.xscroll_bar.norm_max * (oscwin.osc.raw.total_samples - 1))
         )
-        print("I_Range: ", self.__i_range)
+        # print("I_Range: ", self.__i_range)
         self._scene = list()
         sblist = oscwin.analog_table.bars + oscwin.status_table.bars
         i0 = 0
@@ -95,7 +95,7 @@ class PlotPrint(GraphViewBase):
         if self._prn_ptrs ^ v:
             self._prn_ptrs = v
             for scene in self._scene:
-                ...  # TODO:
+                scene.update_ptrs_vosibility()
 
     def __data_split(self, __sblist: SignalBarList) -> List[int]:
         """Split data to scene pieces.

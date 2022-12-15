@@ -14,7 +14,7 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
 - [ ] FIXME:
   + [x] Separate custom print options buttons
   + [x] i_range expand
-  + [ ] Ptrs on/off
+  + [x] Ptrs on/off (global)
   + [ ] Extra (left) grid items
   + [ ] bar.is_bool labels too low (? html style ?)
   + [ ] Header.pors not switching
