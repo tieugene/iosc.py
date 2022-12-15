@@ -13,10 +13,10 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
   + [ ] Ptrs (Msr, Lvl)
 - [ ] FIXME:
   + [x] Separate custom print options buttons
+  + [x] i_range expand
   + [ ] Ptrs on/off
-  + [ ] i_range expand
-  + [ ] bar.is_bool labels too low (? html style ?)
   + [ ] Extra (left) grid items
+  + [ ] bar.is_bool labels too low (? html style ?)
   + [ ] Header.pors not switching
   + [ ] 2x __init__
   + [ ] Signal sanity check
