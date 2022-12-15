@@ -119,13 +119,18 @@ class ComtradeWidget(QWidget):
         self.__update_xzoom_actions()
         self.__mk_connections()
 
+    def x_px_width_us(self) -> int:
+        """Current px width, μs"""
+        return iosc.const.X_PX_WIDTH_uS[self.x_zoom]
+
     # property
     def x_width_px(self) -> int:
-        return round(self.osc.x_size * 1000 / iosc.const.X_PX_WIDTH_uS[self.x_zoom])
+        """Current graph width, px (?)"""
+        return round(self.osc.x_size * 1000 / self.x_px_width_us())
 
     # property
     def x_sample_width_px(self) -> int:
-        """Current width of samples interval in px"""
+        """Current width of samples interval, px"""
         return round(self.x_width_px() / self.osc.raw.total_samples)
 
     @property

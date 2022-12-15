@@ -192,6 +192,9 @@ class MyComtrade(Wrapper):
         __chk_nrate()
         __chk_gap_l()
         __chk_gap_r()
+        # TODO: xz == ±½ sample
+        # TODO: samples == ±½ sample
+        # TODO: no null
 
     def __setup(self):
         """Translate loaded data into app usable"""
@@ -203,15 +206,15 @@ class MyComtrade(Wrapper):
             self.y.append(StatusSignal(self._raw, i))
 
     @property
-    def x_min(self) -> float:
+    def x_min(self) -> float:  # mS
         return self.x[0]
 
     @property
-    def x_max(self) -> float:
+    def x_max(self) -> float:  # mS
         return self.x[-1]
 
     @property
-    def x_size(self) -> float:
+    def x_size(self) -> float:  # mS
         return self.x[-1] - self.x[0]
 
     @property

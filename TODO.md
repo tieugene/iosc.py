@@ -5,13 +5,16 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
 - [x] Get i-slice  
 - [ ] Canvas:
   + [x] Header
-  + [ ] Grid *(oscwin.xscroll_bar.norm_… × &hellip;)*
-  + [ ] Ptrs
-- [x] Payload (rows):
+  + [x] Grid
+  + [ ] Ptrs (main, OMP, tmp)
+- [ ] Payload (rows):
   + [x] Label
   + [x] Graph
-- [ ] FIXME: Header.pors not switching
-- [ ] FIXME: bar.is_bool labels too low
+  + [ ] Ptrs (Msr, Lvl)
+- [ ] FIXME:
+  + [ ] Extra (left) grid items
+  + [ ] Header.pors not switching
+  + [ ] bar.is_bool labels too low (? html style ?)
 
 Note:
 - 1 dot = 0.254mm (0.01")
@@ -110,3 +113,7 @@ Dst: ([X0..X1, ]sig(=>Y*), dst_size:rect) -> QGfxObject:
 - [disable transform](https://stackoverflow.com/questions/1222914/qgraphicsview-and-qgraphicsitem-don%C2%B4t-scale-item-when-scaling-the-view-rect)
 - [Scene border](https://www.qtcentre.org/threads/13814-how-to-enable-borders-in-QGraphicsScene)
 - [Tic align](https://www.qtcentre.org/threads/51168-QGraphicsTextItem-center-based-coordinates)
+
+## 20221214
+
+Grid: берем t0..tmax и по модулю step

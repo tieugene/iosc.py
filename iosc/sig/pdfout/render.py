@@ -24,7 +24,7 @@ class PlotPrint(GraphViewBase):
         self._portrait = PORTRAIT
         self._prn_values = False
         self._prn_ptrs = False
-        self.__i_range = (
+        self.__i_range = (  # FIXME: round => floor+ceil
             round(oscwin.xscroll_bar.norm_min * (oscwin.osc.raw.total_samples - 1)),
             round(oscwin.xscroll_bar.norm_max * (oscwin.osc.raw.total_samples - 1))
         )

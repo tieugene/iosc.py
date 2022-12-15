@@ -1,11 +1,12 @@
 """Graphics things (application dependent)"""
+import math
 # 1. std
 from typing import List
 # 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsLineItem, QGraphicsRectItem, QGraphicsItem
 # 3. local
-from .const import W_LABEL, H_HEADER, H_BOTTOM, SAMPLES, TICS
+from .const import W_LABEL, H_HEADER, H_BOTTOM, TICS
 from .gitem import ThinPen, RectTextItem, ClipedPlainTextItem, GroupItem, TCPlainTextItem
 from .bar import RowItem
 from iosc.sig.widget.common import SignalBarList
@@ -46,19 +47,24 @@ class TableCanvas(GroupItem):
         __line: QGraphicsLineItem
         __text: TCPlainTextItem
 
-        def __init__(self, x: float, num: int, plot: 'PlotPrint'):
+        def __init__(self, x: float, num: str, plot: 'PlotPrint'):
+            """
+            :param x: Normalized X-position, 0..1
+            :param num: Text to label
+            :param plot: Parent plot
+            """
             super().__init__()
             self.__x = x
             self.__plot = plot
             self.__line = QGraphicsLineItem()
             self.__line.setPen(ThinPen(Qt.GlobalColor.lightGray))
-            self.__text = TCPlainTextItem(str(num))
+            self.__text = TCPlainTextItem(num)
             # layout
             self.addToGroup(self.__line)
             self.addToGroup(self.__text)
 
         def update_size(self):
-            x = W_LABEL + (self.__plot.w_full - W_LABEL) * self.__x / SAMPLES
+            x = W_LABEL + (self.__plot.w_full - W_LABEL) * self.__x
             y = self.__plot.h_full - H_BOTTOM
             self.__line.setLine(x, H_HEADER, x, y)
             self.__text.setPos(x, y)
@@ -87,14 +93,38 @@ class TableCanvas(GroupItem):
         self.addToGroup(self.__frame)
         self.addToGroup(self.__colsep)
         self.addToGroup(self.__btmsep)
-        # grid
-        self.__grid = list()
-        for x, num in TICS.items():
-            self.__grid.append(self.GridItem(x, num, plot))
-            self.addToGroup(self.__grid[-1])
-            self.__grid[-1].setParentItem(self.__frame)
+        self.__mk_grid(oscwin)
         # go
         self.update_sizes()
+
+    def __mk_grid_(self, _):
+        self.__grid = list()
+        for x, num in TICS.items():
+            self.__grid.append(self.GridItem(x, num, self.__plot))
+            self.__grid[-1].setParentItem(self.__frame)
+            self.addToGroup(self.__grid[-1])
+
+    def __mk_grid(self, oscwin: 'ComtradeWidget'):
+        """
+        - get T0 (agains 0)
+        - get Tmax (against 0)
+        - get step
+        """
+        x_step: int = oscwin.x_px_width_us() * 100  # μs, grid step (1..1000 * 100, e.g. 1000)
+        i_range = self.__plot.i_range
+        t0: float = oscwin.osc.x[i_range[0]] * 1000  # μs, 1st sample position (e.g. -81666.(6))
+        t1: float = oscwin.osc.x[i_range[1]] * 1000  # μs, last sample position (e.g. 116666.(6))
+        t_size: float = t1 - t0
+        x_us: int = math.ceil(t0 / x_step) * 100000  # μs, 1st grid position
+        # print(t0, t1, x_step, x_us)
+        self.__grid = list()
+        while x_us < t1:
+            x_norm = (x_us - t0) / t_size
+            num = str(x_us // 1000) if x_step > 1000 else "%.1f" % (x_us / 1000)
+            self.__grid.append(self.GridItem(x_norm, num, self.__plot))
+            self.__grid[-1].setParentItem(self.__frame)
+            self.addToGroup(self.__grid[-1])
+            x_us += x_step
 
     def update_sizes(self):
         self.__header.update_size()
