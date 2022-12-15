@@ -16,7 +16,7 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
   + [x] i_range expand
   + [x] Ptrs on/off (global)
   + [?] Extra (left) grid items
-  + [ ] bar.is_bool labels too low (? html style ?)
+  + [?] bar.is_bool labels too low (? html style ?)
   + [ ] Not refreshed (Header.pors, grid step)
   + [ ] 2x __init__
   + [ ] Signal sanity check
