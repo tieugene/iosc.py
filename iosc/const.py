@@ -28,6 +28,8 @@ BRUSH_PTR_MAIN = QBrush(COLOR_PTR_MAIN)  # top MainPtr label bg color
 BRUSH_PTR_TMP = QBrush(COLOR_PTR_TMP)  # top MainPtr label bg color
 BRUSH_D = QBrush(Qt.DiagCrossPattern)
 PENSTYLE_PTR_TMP = Qt.PenStyle.DashLine
+PENSTYLE_PTR_MSR = Qt.PenStyle.DashLine  # MsrPtr pen style
+PENSTYLE_PTR_LVL = Qt.PenStyle.DashLine  # LVlPtr pen style
 PEN_NONE = QPen(QColor(255, 255, 255, 0))
 PEN_ZERO = QPen(Qt.GlobalColor.black)
 PEN_DND = PEN_ZERO
@@ -35,8 +37,6 @@ PEN_PTR_OLD = QPen(QBrush(COLOR_PTR_OLD), 1, PENSTYLE_PTR_TMP)  # Main/TmpPtr ol
 PEN_PTR_MAIN = QPen(BRUSH_PTR_MAIN, 1)  # MainPtr pen
 PEN_PTR_TMP = QPen(BRUSH_PTR_TMP, 1, Qt.PenStyle.DashLine)  # TmpPtr pen
 PEN_PTR_OMP = QPen(QBrush(COLOR_PTR_OMP), 1)  # OMP SCPtr pen
-PENSTYLE_PTR_MSR = Qt.DashLine  # MsrPtr pen style
-PENSTYLE_PTR_LVL = Qt.DashLine  # LVlPtr pen style
 RECT_PTR_HEIGHT = 20
 TICK_COUNT = 20
 Y_PAD = 0.1  # upper and lower Y-padding; 0.1 == 10%

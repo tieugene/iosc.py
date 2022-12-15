@@ -9,14 +9,44 @@ from PyQt5.QtWidgets import QGraphicsPathItem, QGraphicsPolygonItem, QGraphicsLi
 from .const import H_B_MULT, W_LABEL, H_ROW_GAP
 from .gitem import ThinPen, RectTextItem, ClipedRichTextItem, GroupItem
 from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit, SignalBar
+from ...const import PENSTYLE_PTR_MSR, PENSTYLE_PTR_LVL
+
 # x. const
 IntX2 = Tuple[int, int]
+
+
+class MsrPtrItem(QGraphicsLineItem):
+    __x: float
+
+    def __init__(self, x: float, color: QColor, parent: 'AGraphItem'):
+        super().__init__(parent)
+        self.__x = x
+        self.setPen(ThinPen(color, PENSTYLE_PTR_MSR))
+
+    def set_size(self, s: QSizeF):
+        x = s.width() * self.__x
+        self.setLine(x, 0, x, s.height())
+
+
+class LvlPtrItem(QGraphicsLineItem):
+    __y: float
+
+    def __init__(self, y: float, color: QColor, parent: 'AGraphItem'):
+        super().__init__(parent)
+        self.__y = y
+        self.setPen(ThinPen(color, PENSTYLE_PTR_LVL))
+
+    def set_size(self, s: QSizeF):
+        y = s.height() * self.__y
+        self.setLine(0, y, s.width(), y)
 
 
 class AGraphItem(QGraphicsPathItem):
     ymin: float  # Adjusted normalized min
     ymax: float  # Adjusted normalized min
     __nvalue: List[float]  # normalized values slice
+    __mptrs: List[MsrPtrItem]
+    __lptrs: List[LvlPtrItem]
 
     def __init__(self, ss: AnalogSignalSuit, i_range: IntX2):
         super().__init__()
@@ -31,6 +61,13 @@ class AGraphItem(QGraphicsPathItem):
         # default: x=0..SAMPLES, y=(-1..0)..(0..1)
         pp.addPolygon(QPolygonF([QPointF(x, -y) for x, y in enumerate(self.__nvalue)]))
         self.setPath(pp)
+        self.__mptrs = list()
+        for mptr in ss.msr_ptr.values():
+            if i_range[0] <= (i := mptr[0].i) <= i_range[1]:
+                self.__mptrs.append(MsrPtrItem((i - i_range[0]) / (i_range[1] - i_range[0]), ss.color, self))
+        self.__lptrs = list()
+        for lptr in ss.lvl_ptr.values():
+            self.__lptrs.append(LvlPtrItem(lptr[0].y_reduced, ss.color, self))
 
     def set_size(self, s: QSizeF, ymax: float):
         """
@@ -44,8 +81,11 @@ class AGraphItem(QGraphicsPathItem):
         pp = self.path()
         for i, y in enumerate(self.__nvalue):
             pp.setElementPositionAt(i, i * kx, (ymax - y) * ky)
-            # Неправильно. ky = ymax/(ymax - ymin) (как для y0line)
         self.setPath(pp)
+        for mptr in self.__mptrs:
+            mptr.set_size(s)
+        for lptr in self.__lptrs:
+            lptr.set_size(s)
 
 
 class BGraphItem(QGraphicsPolygonItem):
@@ -109,7 +149,7 @@ class BarLabelItem(RectTextItem):
 
 class BarGraphItem(GroupItem):
     """Graph part of signal bar.
-    Used in: RowItem > … > View/Print
+    Used in: RowItem > … > Print
     """
     __graph: List[Union[AGraphItem, BGraphItem]]
     __y0line: QGraphicsLineItem  # Y=0 line
@@ -124,19 +164,18 @@ class BarGraphItem(GroupItem):
         self.__is_bool = True
         for d in sb.signals:
             self.__graph.append(BGraphItem(d, i_range) if d.signal.is_bool else AGraphItem(d, i_range))
-            self.__is_bool &= d.signal.is_bool
             self.addToGroup(self.__graph[-1])
             self.__ymin = min(self.__ymin, self.__graph[-1].ymin)
             self.__ymax = max(self.__ymax, self.__graph[-1].ymax)
+            self.__is_bool &= d.signal.is_bool
         if not self.__is_bool:
             self.__y0line = QGraphicsLineItem()
             self.__y0line.setPen(ThinPen(Qt.GlobalColor.gray, Qt.PenStyle.DotLine))
-            # self.__y0line.setLine(0, 0, SAMPLES, 0)
             self.addToGroup(self.__y0line)
         self.setY(H_ROW_GAP)
 
     def set_size(self, s: QSize):
-        """Used in: View/Print.
+        """
         :todo: chk pen width
         """
         h_norm = self.__ymax - self.__ymin  # normalized height, ≥ 1

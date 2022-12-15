@@ -285,7 +285,10 @@ class AnalogSignalSuit(SignalSuit):
 
     def add_ptr_msr(self, uid: int, i: int):
         """Add new MsrPtr.
-        Call from ComtradeWidget."""
+        Call from ComtradeWidget.
+        :param uid: Uniq (throuh app) id
+        :param i: X-index
+        """
         self.msr_ptr[uid] = [None, i, self.oscwin.viewas]
         MsrPtr(self, uid)
 
