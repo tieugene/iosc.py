@@ -28,6 +28,7 @@ class PlotPrint(GraphViewBase):
             round(oscwin.xscroll_bar.norm_min * (oscwin.osc.raw.total_samples - 1)),
             round(oscwin.xscroll_bar.norm_max * (oscwin.osc.raw.total_samples - 1))
         )
+        # print("I_Range: ", self.__i_range)
         self._scene = list()
         sblist = oscwin.analog_table.bars + oscwin.status_table.bars
         i0 = 0

@@ -192,8 +192,9 @@ class MyComtrade(Wrapper):
         __chk_nrate()
         __chk_gap_l()
         __chk_gap_r()
-        # TODO: xz == ±½ sample
-        # TODO: samples == ±½ sample
+        # TODO: rate == odd(50/60Hz)
+        # TODO: xz == sample ±½
+        # TODO: Δ samples == ±½ sample
         # TODO: no null
 
     def __setup(self):

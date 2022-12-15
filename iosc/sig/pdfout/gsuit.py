@@ -10,6 +10,8 @@ from .const import W_LABEL, H_HEADER, H_BOTTOM
 from .gitem import ThinPen, RectTextItem, ClipedPlainTextItem, GroupItem, TCPlainTextItem
 from .bar import RowItem
 from iosc.sig.widget.common import SignalBarList
+from ...const import COLOR_PTR_MAIN, COLOR_PTR_OMP, COLOR_PTR_TMP, PENSTYLE_PTR_TMP
+
 # x. const
 PORS_TEXT = ('Primary', 'Secondary')
 
@@ -31,6 +33,22 @@ class HeaderItem(RectTextItem):
         self.set_width(self.__plot.w_full)
 
 
+class VItem(GroupItem):
+    _plot: 'PlotPrint'
+    _line: QGraphicsLineItem
+    _text: TCPlainTextItem
+
+    def __init__(self, color: Qt.GlobalColor, plot: 'PlotPrint'):
+        """
+        :param plot: Parent plot
+        """
+        super().__init__()
+        self._plot = plot
+        self._line = QGraphicsLineItem()
+        self._line.setPen(ThinPen(color))
+        self.addToGroup(self._line)
+
+
 class TableCanvas(GroupItem):
     """Table frame with:
     - header
@@ -39,35 +57,53 @@ class TableCanvas(GroupItem):
     - bottom underline
     - bottom scale
     - grid
+    - ptrs (main, SC, tmp)
     """
 
-    class GridItem(GroupItem):
-        __plot: 'PlotPrint'
+    class GridItem(VItem):
         __x: float
-        __line: QGraphicsLineItem
         __text: TCPlainTextItem
 
-        def __init__(self, x: float, num: str, plot: 'PlotPrint'):
+        def __init__(self, x: float, label: str, plot: 'PlotPrint'):
             """
             :param x: Normalized X-position, 0..1
-            :param num: Text to label
+            :param label: Text to label
             :param plot: Parent plot
             """
-            super().__init__()
+            super().__init__(Qt.GlobalColor.lightGray, plot)
             self.__x = x
-            self.__plot = plot
-            self.__line = QGraphicsLineItem()
-            self.__line.setPen(ThinPen(Qt.GlobalColor.lightGray))
-            self.__text = TCPlainTextItem(num)
-            # layout
-            self.addToGroup(self.__line)
+            self.__text = TCPlainTextItem(label)
             self.addToGroup(self.__text)
 
         def update_size(self):
-            x = W_LABEL + (self.__plot.w_full - W_LABEL) * self.__x
-            y = self.__plot.h_full - H_BOTTOM
-            self.__line.setLine(x, H_HEADER, x, y)
+            x = W_LABEL + (self._plot.w_full - W_LABEL) * self.__x
+            y = self._plot.h_full - H_BOTTOM
+            self._line.setLine(x, H_HEADER, x, y)
             self.__text.setPos(x, y)
+
+    class PtrItem(VItem):
+        __i: int
+
+        def __init__(self, i: int, color: Qt.GlobalColor, plot: 'PlotPrint', pen_style: Qt.PenStyle = None):
+            """
+            :param x: Normalized X-position, 0..1
+            :param label: Text to label
+            :param plot: Parent plot
+            """
+            super().__init__(color, plot)
+            self.__i = i
+            if pen_style is not None:
+                pen = self._line.pen()
+                pen.setStyle(pen_style)
+                self._line.setPen(pen)
+
+        def update_size(self):
+            x = W_LABEL +\
+                (self._plot.w_full - W_LABEL)\
+                * (self.__i - self._plot.i_range[0])\
+                / (self._plot.i_range[1] - self._plot.i_range[0])
+            y = self._plot.h_full - H_BOTTOM
+            self._line.setLine(x, H_HEADER, x, y)
 
     __plot: 'PlotPrint'
     __header: HeaderItem
@@ -75,6 +111,7 @@ class TableCanvas(GroupItem):
     __colsep: QGraphicsLineItem  # columns separator
     __btmsep: QGraphicsLineItem  # bottom separator
     __grid: List[GridItem]  # tics (v-line+label)
+    __ptrs: List[PtrItem]  # pointers
 
     def __init__(self, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):
         super().__init__()
@@ -88,21 +125,20 @@ class TableCanvas(GroupItem):
         self.__colsep.setPen(pen)
         self.__btmsep = QGraphicsLineItem()
         self.__btmsep.setPen(pen)
+        self.__grid = list()
+        self.__ptrs = list()
         # layout
         self.addToGroup(self.__header)
         self.addToGroup(self.__frame)
         self.addToGroup(self.__colsep)
         self.addToGroup(self.__btmsep)
         self.__mk_grid(oscwin)
+        self.__mk_ptrs(oscwin)
         # go
         self.update_sizes()
 
     def __mk_grid(self, oscwin: 'ComtradeWidget'):
-        """
-        - get T0 (agains 0)
-        - get Tmax (against 0)
-        - get step
-        """
+        """Create grid items"""
         x_step: int = oscwin.x_px_width_us() * 100  # μs, grid step (1..1000 * 100, e.g. 1000)
         i_range = self.__plot.i_range
         t0: float = oscwin.osc.x[i_range[0]] * 1000  # μs, 1st sample position (e.g. -81666.(6))
@@ -110,7 +146,6 @@ class TableCanvas(GroupItem):
         t_size: float = t1 - t0
         x_us: int = math.ceil(t0 / x_step) * 100000  # μs, 1st grid position
         # print(t0, t1, x_step, x_us)
-        self.__grid = list()
         while x_us < t1:
             x_norm = (x_us - t0) / t_size
             num = str(x_us // 1000) if x_step > 1000 else "%.1f" % (x_us / 1000)
@@ -119,6 +154,23 @@ class TableCanvas(GroupItem):
             self.addToGroup(self.__grid[-1])
             x_us += x_step
 
+    def __mk_ptrs(self, oscwin: 'ComtradeWidget'):
+        """Create ponters (main, SC, tmp[])"""
+        def __helper(__item):
+            self.__ptrs.append(__item)
+            self.__ptrs[-1].setParentItem(self.__frame)
+            self.addToGroup(self.__ptrs[-1])
+        i_range = self.__plot.i_range
+        if i_range[0] <= (i := oscwin.main_ptr_i) <= i_range[1]:  # 1. MainPtr
+            __helper(self.PtrItem(i, COLOR_PTR_MAIN, self.__plot))
+        if i_range[0] <= (i := oscwin.sc_ptr_i) <= i_range[1]:  # 2. OMP ptrs
+            __helper(self.PtrItem(i, COLOR_PTR_OMP, self.__plot))
+        if i_range[0] <= (i := i - (oscwin.omp_width * oscwin.osc.spp)) <= i_range[1]:
+            __helper(self.PtrItem(i, COLOR_PTR_OMP, self.__plot))
+        for i in oscwin.tmp_ptr_i.values():  # 3. TmpPtr[]
+            if i_range[0] <= i <= i_range[1]:
+                __helper(self.PtrItem(i, COLOR_PTR_TMP, self.__plot, PENSTYLE_PTR_TMP))
+
     def update_sizes(self):
         self.__header.update_size()
         self.__frame.setRect(0, H_HEADER, self.__plot.w_full, self.__plot.h_full - H_HEADER)
@@ -126,6 +178,8 @@ class TableCanvas(GroupItem):
         self.__btmsep.setLine(0, self.__plot.h_full - H_BOTTOM, self.__plot.w_full, self.__plot.h_full - H_BOTTOM)
         for g in self.__grid:
             g.update_size()
+        for p in self.__ptrs:
+            p.update_size()
 
 
 class TablePayload(GroupItem):
@@ -142,9 +196,9 @@ class TablePayload(GroupItem):
         for sb in sblist:
             item = RowItem(sb, plot)
             item.setY(y)
-            y += item.boundingRect().height()
             self.__rowitem.append(item)
             self.addToGroup(self.__rowitem[-1])
+            y += item.boundingRect().height()
 
     def update_sizes(self):
         # y = self.__rowitem[0].boundingRect().y()

@@ -3,19 +3,21 @@
 Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
 
 - [x] Get i-slice  
-- [ ] Canvas:
+- [x] Canvas:
   + [x] Header
   + [x] Grid
-  + [ ] Ptrs (main, OMP, tmp)
+  + [x] Ptrs (main, OMP, tmp)
 - [ ] Payload (rows):
   + [x] Label
   + [x] Graph
   + [ ] Ptrs (Msr, Lvl)
 - [ ] FIXME:
+  + [ ] 2x __init__
   + [ ] i_range expand
   + [ ] Extra (left) grid items
   + [ ] Header.pors not switching
   + [ ] bar.is_bool labels too low (? html style ?)
+  + [ ] Separate custom print options buttons
 
 Note:
 - 1 dot = 0.254mm (0.01")

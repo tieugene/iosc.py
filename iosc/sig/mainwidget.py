@@ -142,7 +142,7 @@ class ComtradeWidget(QWidget):
         return self.i2x(self.__main_ptr_i)
 
     @property
-    def sc_ptr_i(self) -> int:
+    def sc_ptr_i(self) -> int:  # Position of master (left) SC pointer
         return self.__sc_ptr_i
 
     @property
@@ -154,7 +154,7 @@ class ComtradeWidget(QWidget):
         return self.__tmp_ptr_i
 
     @property
-    def omp_width(self) -> int:
+    def omp_width(self) -> int:  # Distance between SC pointers, periods
         return self.__omp_width
 
     @omp_width.setter
