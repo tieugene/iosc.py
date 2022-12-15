@@ -11,6 +11,7 @@ import numpy as np
 from .comtrade import Comtrade, Channel
 
 # x. const
+ERR_DSC_FREQ = "Oscillogramm freq. must be 50 or 60 Hz.\nWe have %d"
 ERR_DSC_NRATES = "Oscillogramm must use excatly 1 sample rate.\nWe have %d"
 ERR_DSC_RATE_ODD = "Rate freq. must be devided by line freq.\nWe have %d/%d"
 ERR_DSC_GAPL = "Oscillogramm must starts at least %.3f ms before trigger time.\nWe have %.3f"
@@ -172,6 +173,11 @@ class MyComtrade(Wrapper):
         :return:
         """
 
+        def __chk_freq():
+            """Check freq = 50/60"""
+            if self._raw.cfg.frequency not in {50, 60}:
+                raise SanityChkError(ERR_DSC_FREQ % self._raw.cfg.frequency)
+
         def __chk_nrate():  # nrates
             """Check that only 1 rate"""
             if (nrates := self._raw.cfg.nrates) != 1:
@@ -198,6 +204,7 @@ class MyComtrade(Wrapper):
             if __gap_real < __gap_min:
                 raise SanityChkError(ERR_DSC_GAPR % (__gap_min * 1000, __gap_real * 1000))
 
+        __chk_freq()
         __chk_nrate()
         __chk_rate_odd()
         __chk_gap_l()
