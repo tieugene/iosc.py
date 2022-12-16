@@ -121,8 +121,9 @@ def __bin2ascii(sfile: pathlib.Path, dfile: pathlib.Path, rev: ComtradeRev, ch_n
                 out_list.append(str(v))
             # select | int | bitstring | cut | pad left | list
             # IndexError: string index out of range
-            out_list.extend(  # FIXME: skip empty 0D ('new-osc.cfg')
-                list(bin(int.from_bytes(line[8 + ch_num[1] * 2:], 'little'))[2:][-ch_num[2]:].rjust(ch_num[2], '0')))
+            if ch_num[2]:  # skip empty 0D (e.g. 'new-osc.cfg')
+                out_list.extend(  # FIXME: skip empty 0D ('new-osc.cfg')
+                    list(bin(int.from_bytes(line[8 + ch_num[1] * 2:], 'little'))[2:][-ch_num[2]:].rjust(ch_num[2], '0')))
             print(','.join(out_list), file=outfile, end="\r\n")
 
 
