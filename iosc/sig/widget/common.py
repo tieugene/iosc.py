@@ -1,8 +1,10 @@
-"""Signal wrappers, commmon things."""
+"""Signal wrappers, commmon things.
+TODO: move up (../
+"""
+# 1. std
+from typing import Optional, Union, List
 import cmath
 import math
-# 1. std
-from typing import Optional, Union
 # 2. 3rd
 from PyQt5.QtCore import QObject, pyqtSignal, QMargins, Qt
 from PyQt5.QtGui import QPen, QColor, QBrush
@@ -19,6 +21,41 @@ from iosc.sig.widget.ptr import MsrPtr, LvlPtr
 
 PEN_STYLE = (Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)
 HRM_N2F = {1: hrm1, 2: hrm2, 3: hrm3, 5: hrm5}
+
+
+class OneBarPlot(QCustomPlot):
+    """Parent for top and bottom bars plots"""
+
+    def __init__(self, parent: QWidget):
+        super().__init__(parent)
+        ar = self.axisRect(0)
+        ar.setMinimumMargins(QMargins())  # the best
+        ar.removeAxis(self.yAxis)
+        ar.removeAxis(self.xAxis2)
+        ar.removeAxis(self.yAxis2)
+        self.xAxis.grid().setVisible(False)
+        # self.xAxis.setTickLabels(True)  # default
+        # self.xAxis.setTicks(True)  # default
+        self.xAxis.setPadding(0)
+        self.setFixedHeight(24)
+        # self.xAxis.setRange(self.oscwin.osc.x_min, self.oscwin.osc.x_max)
+        self.addLayer("tips")  # default 6 layers (from bottom (0)): background>grid>main>axes>legend>overlay
+
+    @property
+    def _oscwin(self) -> 'ComtradeWidget':
+        return self.parent().parent()
+
+    def slot_rerange(self):
+        x_coords = self._oscwin.osc.x
+        x_width = self._oscwin.osc.x_size
+        self.xAxis.setRange(
+            x_coords[0] + self._oscwin.xscroll_bar.norm_min * x_width,
+            x_coords[0] + self._oscwin.xscroll_bar.norm_max * x_width,
+        )
+
+    def slot_rerange_force(self):
+        self.slot_rerange()
+        self.replot()
 
 
 class SignalSuit(QObject):
@@ -59,6 +96,12 @@ class SignalSuit(QObject):
     @property
     def _data_y(self) -> list:
         return []  # stub
+
+    def get_label_html(self, with_values: bool = False) -> Optional[str]:
+        """HTML-compatible label"""
+        if self._label:
+            txt = self._label.text().split('\n')
+            return '<br/>'.join(txt) if with_values else txt[0]
 
     def _set_data(self):
         self.graph.setData(self.bar.table.oscwin.osc.x, self._data_y, True)
@@ -242,7 +285,10 @@ class AnalogSignalSuit(SignalSuit):
 
     def add_ptr_msr(self, uid: int, i: int):
         """Add new MsrPtr.
-        Call from ComtradeWidget."""
+        Call from ComtradeWidget.
+        :param uid: Uniq (throuh app) id
+        :param i: X-index
+        """
         self.msr_ptr[uid] = [None, i, self.oscwin.viewas]
         MsrPtr(self, uid)
 
@@ -393,36 +439,4 @@ class SignalBar(QObject):
         # TODO: update row height
 
 
-class OneBarPlot(QCustomPlot):
-    """Parent for top and bottom bars plots"""
-
-    def __init__(self, parent: QWidget):
-        super().__init__(parent)
-        ar = self.axisRect(0)
-        ar.setMinimumMargins(QMargins())  # the best
-        ar.removeAxis(self.yAxis)
-        ar.removeAxis(self.xAxis2)
-        ar.removeAxis(self.yAxis2)
-        self.xAxis.grid().setVisible(False)
-        # self.xAxis.setTickLabels(True)  # default
-        # self.xAxis.setTicks(True)  # default
-        self.xAxis.setPadding(0)
-        self.setFixedHeight(24)
-        # self.xAxis.setRange(self.oscwin.osc.x_min, self.oscwin.osc.x_max)
-        self.addLayer("tips")  # default 6 layers (from bottom (0)): background>grid>main>axes>legend>overlay
-
-    @property
-    def _oscwin(self) -> 'ComtradeWidget':
-        return self.parent().parent()
-
-    def slot_rerange(self):
-        x_coords = self._oscwin.osc.x
-        x_width = self._oscwin.osc.x_size
-        self.xAxis.setRange(
-            x_coords[0] + self._oscwin.xscroll_bar.norm_min * x_width,
-            x_coords[0] + self._oscwin.xscroll_bar.norm_max * x_width,
-        )
-
-    def slot_rerange_force(self):
-        self.slot_rerange()
-        self.replot()
+SignalBarList = List[SignalBar]  # custom type

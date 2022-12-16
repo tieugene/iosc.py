@@ -11,7 +11,9 @@ import numpy as np
 from .comtrade import Comtrade, Channel
 
 # x. const
+ERR_DSC_FREQ = "Oscillogramm freq. must be 50 or 60 Hz.\nWe have %d"
 ERR_DSC_NRATES = "Oscillogramm must use excatly 1 sample rate.\nWe have %d"
+ERR_DSC_RATE_ODD = "Rate freq. must be devided by line freq.\nWe have %d/%d"
 ERR_DSC_GAPL = "Oscillogramm must starts at least %.3f ms before trigger time.\nWe have %.3f"
 ERR_DSC_GAPR = "Oscillogramm must ends at least %.3f ms after trigger time.\nWe have %.3f"
 
@@ -171,11 +173,23 @@ class MyComtrade(Wrapper):
         :return:
         """
 
+        def __chk_freq():
+            """Check freq = 50/60"""
+            if self._raw.cfg.frequency not in {50, 60}:
+                raise SanityChkError(ERR_DSC_FREQ % self._raw.cfg.frequency)
+
         def __chk_nrate():  # nrates
+            """Check that only 1 rate"""
             if (nrates := self._raw.cfg.nrates) != 1:
                 raise SanityChkError(ERR_DSC_NRATES % nrates)
 
+        def __chk_rate_odd():
+            """Check that rate is deviding by main freq"""
+            if self.rate % self._raw.cfg.frequency:
+                raise SanityChkError(ERR_DSC_RATE_ODD % (self.rate, self._raw.cfg.frequency))
+
         def __chk_gap_l():
+            """Check that OMP fits (left sife)"""
             # FIXME: _sample.bad/short_L/live/R001_124-2014_05_26_05_09_46.cfg
             # __gap_real: float = (self._raw.trigger_timestamp - self._raw.start_timestamp).total_seconds()
             __gap_real = self._raw.trigger_time - self._raw.time[0]
@@ -184,14 +198,20 @@ class MyComtrade(Wrapper):
                 raise SanityChkError(ERR_DSC_GAPL % (__gap_min * 1000, __gap_real * 1000))
 
         def __chk_gap_r():
+            """Check that OMP fits (right sife)"""
             __gap_real = self._raw.time[-1] - self._raw.trigger_time
             __gap_min = 2 / self._raw.frequency
             if __gap_real < __gap_min:
                 raise SanityChkError(ERR_DSC_GAPR % (__gap_min * 1000, __gap_real * 1000))
 
+        __chk_freq()
         __chk_nrate()
+        __chk_rate_odd()
         __chk_gap_l()
         __chk_gap_r()
+        # TODO: xz == sample ±½
+        # TODO: Δ samples == ±½ sample
+        # TODO: no null
 
     def __setup(self):
         """Translate loaded data into app usable"""
@@ -203,15 +223,15 @@ class MyComtrade(Wrapper):
             self.y.append(StatusSignal(self._raw, i))
 
     @property
-    def x_min(self) -> float:
+    def x_min(self) -> float:  # mS
         return self.x[0]
 
     @property
-    def x_max(self) -> float:
+    def x_max(self) -> float:  # mS
         return self.x[-1]
 
     @property
-    def x_size(self) -> float:
+    def x_size(self) -> float:  # mS
         return self.x[-1] - self.x[0]
 
     @property

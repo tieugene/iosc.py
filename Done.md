@@ -153,4 +153,7 @@ Behavior:
 - [x] Update signal colors
 - [x] Split by modules
 - [x] Fixed: Signal adding only
-- [ ] Fixed: Select ss => Cancel == deselect all
+- [x] Fixed: Select ss => Cancel == deselect all
+
+## 0.3.2:
+- [x] 5 x Checkbox injected into prin preview dialog
