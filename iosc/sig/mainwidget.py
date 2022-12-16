@@ -5,7 +5,8 @@ import pathlib
 from typing import Any, Dict, Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QCloseEvent
+from PyQt5.QtGui import QIcon, QCloseEvent, QPagedPaintDevice
+from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QMenuBar, QToolBar, QAction, QMessageBox, \
     QFileDialog, QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
@@ -13,8 +14,10 @@ import iosc.const
 from iosc.core import mycomtrade
 from iosc.icon import svg_icon, ESvgSrc
 from iosc.core.convtrade import convert, ConvertError
+from iosc.sig.pdfout.dialog import PDFOutPreviewDialog
+from iosc.sig.pdfout.pdfprinter import PdfPrinter
 from iosc.sig.tools.cvdwindow import CVDWindow
-from iosc.sig.section import TimeAxisBar, SignalBarTable, TimeStampsBar, XScroller
+from iosc.sig.widget.section import TimeAxisBar, SignalBarTable, TimeStampsBar, XScroller
 from iosc.sig.tools.hdwindow import HDWindow
 from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit
 from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
@@ -41,6 +44,7 @@ class ComtradeWidget(QWidget):
     action_close: QAction
     action_info: QAction
     action_convert: QAction
+    action_pdfout: QAction
     action_resize_y_in: QAction
     action_resize_y_out: QAction
     action_zoom_x_in: QAction
@@ -76,6 +80,8 @@ class ComtradeWidget(QWidget):
     xscroll_bar: XScroller
     cvdwin: Optional[CVDWindow]
     hdwin: Optional[HDWindow]
+    __printer: PdfPrinter
+    __print_preview: PDFOutPreviewDialog
     # signals
     signal_chged_pors = pyqtSignal()  # recalc ASignalCtrlView on ...
     signal_chged_shift = pyqtSignal()  # refresh ASignal*View on switching original/shifted
@@ -113,13 +119,18 @@ class ComtradeWidget(QWidget):
         self.__update_xzoom_actions()
         self.__mk_connections()
 
+    def x_px_width_us(self) -> int:
+        """Current px width, μs"""
+        return iosc.const.X_PX_WIDTH_uS[self.x_zoom]
+
     # property
     def x_width_px(self) -> int:
-        return round(self.osc.x_size * 1000 / iosc.const.X_PX_WIDTH_uS[self.x_zoom])
+        """Current graph width, px (?)"""
+        return round(self.osc.x_size * 1000 / self.x_px_width_us())
 
     # property
     def x_sample_width_px(self) -> int:
-        """Current width of samples interval in px"""
+        """Current width of samples interval, px"""
         return round(self.x_width_px() / self.osc.raw.total_samples)
 
     @property
@@ -131,7 +142,7 @@ class ComtradeWidget(QWidget):
         return self.i2x(self.__main_ptr_i)
 
     @property
-    def sc_ptr_i(self) -> int:
+    def sc_ptr_i(self) -> int:  # Position of master (left) SC pointer
         return self.__sc_ptr_i
 
     @property
@@ -143,7 +154,7 @@ class ComtradeWidget(QWidget):
         return self.__tmp_ptr_i
 
     @property
-    def omp_width(self) -> int:
+    def omp_width(self) -> int:  # Distance between SC pointers, periods
         return self.__omp_width
 
     @omp_width.setter
@@ -175,6 +186,8 @@ class ComtradeWidget(QWidget):
         self.xscroll_bar = XScroller(self)
         self.cvdwin = None
         self.hdwin = None
+        self.__printer = PdfPrinter()
+        self.__print_preview = PDFOutPreviewDialog(self.__printer, self)
 
     def __mk_layout(self):
         self.setLayout(QVBoxLayout())
@@ -217,6 +230,11 @@ class ComtradeWidget(QWidget):
                                       self,
                                       shortcut="Ctrl+S",
                                       triggered=self.__do_file_convert)
+        self.action_pdfout = QAction(svg_icon(ESvgSrc.PDF),
+                                     "&Print...",
+                                     self,
+                                     shortcut="Ctrl+P",
+                                     triggered=self.__print_preview.open)
         self.action_resize_y_in = QAction(svg_icon(ESvgSrc.VZoomIn),
                                           "Y-Resize +",
                                           self,
@@ -314,6 +332,7 @@ class ComtradeWidget(QWidget):
         menu_file = self.menubar.addMenu("&File")
         menu_file.addAction(self.action_info)
         menu_file.addAction(self.action_convert)
+        menu_file.addAction(self.action_pdfout)
         menu_file.addAction(self.action_close)
         menu_view = self.menubar.addMenu("&View")
         menu_view.addAction(self.action_resize_y_in)

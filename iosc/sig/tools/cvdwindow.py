@@ -11,7 +11,7 @@ from iosc.sig.tools.cvdtable import CVDTable
 from iosc.sig.tools.cvdwidget import CVDiagramView
 from iosc.sig.tools.ptrswitcher import PtrSwitcher
 from iosc.sig.widget.common import AnalogSignalSuit
-from iosc.sig.widget.dialog import SelectCVDSignalsDialog
+from iosc.sig.tools.cvddialog import SelectCVDSignalsDialog
 
 
 class CVDWindow(QDialog):

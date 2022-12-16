@@ -464,6 +464,7 @@ class LvlPtr(QCPItemStraightLine):
 
     @property
     def y_reduced(self) -> float:
+        """Adjusted (-1..1) Y value"""
         return self.point1.coords().y()
 
     @y_reduced.setter
