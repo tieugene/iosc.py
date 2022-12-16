@@ -19,8 +19,3 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
 - [disable transform](https://stackoverflow.com/questions/1222914/qgraphicsview-and-qgraphicsitem-don%C2%B4t-scale-item-when-scaling-the-view-rect)
 - [Scene border](https://www.qtcentre.org/threads/13814-how-to-enable-borders-in-QGraphicsScene)
 - [Tic align](https://www.qtcentre.org/threads/51168-QGraphicsTextItem-center-based-coordinates)
-
-## ...
-- show() == setVisible(True)
-- hide() == setVisible(False)
-- 
