@@ -40,6 +40,7 @@ class HDWindow(QDialog):
         # self.setWindowFlag(Qt.Dialog)
         parent.signal_ptr_moved_main.connect(self.__slot_ptr_moved_main)
         parent.signal_ptr_moved_tmp.connect(self.__slot_ptr_moved_tmp)
+        self.finished.connect(self.__slot_post_close)
 
     @property
     def t_i(self):
@@ -70,7 +71,7 @@ class HDWindow(QDialog):
                                     "&Close",
                                     self,
                                     shortcut="Ctrl+H",
-                                    triggered=self.parent().action_harmonic_diagram.trigger)
+                                    triggered=self.close)
         self.action_ptr = PtrSwitcher(self)
 
     def __mk_toolbar(self):
@@ -106,3 +107,6 @@ class HDWindow(QDialog):
         if uid != self.__ptr_uid:  # skip if not changed
             self.__ptr_uid = uid
             self.__slot_ptr_moved(self.parent().tmp_ptr_i[uid] if uid else self.parent().main_ptr_i)
+
+    def __slot_post_close(self):
+        self.parent().action_harmonic_diagram.setEnabled(True)

@@ -5,7 +5,7 @@ import pathlib
 from typing import Any, Dict, Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QCloseEvent
+from PyQt5.QtGui import QIcon, QCloseEvent, QHideEvent, QShowEvent
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QMenuBar, QToolBar, QAction, QMessageBox, QFileDialog,\
     QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
@@ -77,8 +77,8 @@ class ComtradeWidget(QWidget):
     status_table: SignalBarTable
     timestamps_bar: TimeStampsBar
     xscroll_bar: XScroller
-    cvdwin: Optional[CVDWindow]
-    hdwin: Optional[HDWindow]
+    cvdwin: Optional[CVDWindow]  # TODO: List[CVDWindow]
+    hdwin: Optional[HDWindow]  # TODO: List[HDWindow]
     __printer: PdfPrinter
     __print_preview: PDFOutPreviewDialog
     # signals
@@ -303,12 +303,10 @@ class ComtradeWidget(QWidget):
         self.action_vector_diagram = QAction("Vector chart",
                                              self,
                                              shortcut="Ctrl+V",
-                                             checkable=True,
                                              triggered=self.__do_vector_diagram)
         self.action_harmonic_diagram = QAction("Harmonic chart",
                                                self,
                                                shortcut="Ctrl+H",
-                                               checkable=True,
                                                triggered=self.__do_harmonic_diagram)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
@@ -500,15 +498,17 @@ class ComtradeWidget(QWidget):
                 uid = max(self.lvl_ptr_uids) + 1 if self.lvl_ptr_uids else 1
                 self.ass_list[i].add_ptr_lvl(uid)
 
-    def __do_vector_diagram(self, checked: bool):
+    def __do_vector_diagram(self):
         if not self.cvdwin:
             self.cvdwin = CVDWindow(self)
-        self.cvdwin.setVisible(checked)
+        self.action_vector_diagram.setEnabled(False)
+        self.cvdwin.show()
 
     def __do_harmonic_diagram(self, checked: bool):
         if not self.hdwin:
             self.hdwin = HDWindow(self)
-        self.hdwin.setVisible(checked)
+        self.action_harmonic_diagram.setEnabled(False)
+        self.hdwin.show()
 
     def resize_col_ctrl(self, dx: int):
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:
@@ -555,6 +555,20 @@ class ComtradeWidget(QWidget):
         if form.exec_():
             self.timeaxis_bar.plot.set_tmp_ptr_name(uid, form.f_name.text())
             self.signal_ptr_moved_tmp.emit(uid, self.x2i(form.f_val.value()))
+
+    def hideEvent(self, event: QHideEvent):
+        super().hideEvent(event)
+        if self.cvdwin and self.cvdwin.isVisible():
+            self.cvdwin.hide()
+        if self.hdwin and self.hdwin.isVisible():
+            self.hdwin.hide()
+
+    def showEvent(self, event: QShowEvent):
+        super().showEvent(event)
+        if not self.action_vector_diagram.isEnabled():  # == CVD opened
+            self.cvdwin.show()
+        if not self.action_harmonic_diagram.isEnabled():  # == HD opened
+            self.hdwin.show()
 
     def closeEvent(self, event: QCloseEvent):
         if self.cvdwin:
