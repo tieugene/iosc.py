@@ -19,6 +19,7 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
   + [x] bar.is_bool labels too low (? html style ?)
   + [x] Not refreshed (exec_ \[>slot_paint_request\])
   + [x] Ptrs on/off (local)
+  + [ ] Modal prn dialog
   + [ ] Signal sanity check
 
 ## Samples:

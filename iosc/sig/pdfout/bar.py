@@ -27,6 +27,9 @@ class MsrPtrItem(QGraphicsLineItem):
         x = s.width() * self.__x
         self.setLine(x, 0, x, s.height())
 
+    def update_visibility(self, v: bool):
+        self.setVisible(v)
+
 
 class LvlPtrItem(QGraphicsLineItem):
     __y: float
@@ -39,6 +42,9 @@ class LvlPtrItem(QGraphicsLineItem):
     def set_size(self, s: QSizeF):
         y = s.height() * self.__y
         self.setLine(0, y, s.width(), y)
+
+    def update_visibility(self, v: bool):
+        self.setVisible(v)
 
 
 class AGraphItem(QGraphicsPathItem):
@@ -86,6 +92,12 @@ class AGraphItem(QGraphicsPathItem):
             mptr.set_size(s)
         for lptr in self.__lptrs:
             lptr.set_size(s)
+
+    def update_ptrs_visibility(self, v: bool):
+        for mptr in self.__mptrs:
+            mptr.update_visibility(v)
+        for lptr in self.__lptrs:
+            lptr.update_visibility(v)
 
 
 class BGraphItem(QGraphicsPolygonItem):
@@ -186,6 +198,11 @@ class BarGraphItem(GroupItem):
             y0px = self.__ymax / h_norm * (s.height() - H_ROW_GAP * 2)
             self.__y0line.setLine(0, y0px, s.width(), y0px)
 
+    def update_ptrs_visibility(self, v: bool):
+        for gi in self.__graph:
+            if isinstance(gi, AGraphItem):
+                gi.update_ptrs_visibility(v)
+
 
 class RowItem(GroupItem):
     """Used in: TablePayload > … > View/Print"""
@@ -207,6 +224,7 @@ class RowItem(GroupItem):
         self.__label.set_width(W_LABEL)
         self.__graph.setX(W_LABEL + 1)
         self.update_size()
+        self.update_ptrs_visibility()
         self.addToGroup(self.__label)
         self.addToGroup(self.__graph)
         self.addToGroup(self.__uline)
@@ -220,3 +238,6 @@ class RowItem(GroupItem):
 
     def update_labels(self):
         self.__label.update_text(self.__plot.prn_values)
+
+    def update_ptrs_visibility(self):
+        self.__graph.update_ptrs_visibility(self.__plot.prn_ptrs)

@@ -94,7 +94,7 @@ class PlotPrint(GraphViewBase):
         if self._prn_ptrs ^ v:
             self._prn_ptrs = v
             for scene in self._scene:
-                scene.update_ptrs_vosibility()
+                scene.update_ptrs_visibility()
 
     def __data_split(self, __sblist: SignalBarList) -> List[int]:
         """Split data to scene pieces.

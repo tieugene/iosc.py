@@ -187,7 +187,7 @@ class TableCanvas(GroupItem):
         for p in self.__ptrs:
             p.update_size()
 
-    def update_ptrs_vosibility(self):
+    def update_ptrs_visibility(self):
         for p in self.__ptrs:
             p.update_visibility()
 
@@ -218,6 +218,10 @@ class TablePayload(GroupItem):
             item.setY(y)
             y += item.boundingRect().height()
 
+    def update_ptrs_visibility(self):
+        for item in self.__rowitem:
+            item.update_ptrs_visibility()
+
     def update_labels(self):
         for item in self.__rowitem:
             item.update_labels()
@@ -244,5 +248,6 @@ class PlotScene(QGraphicsScene):
     def update_labels(self):
         self.__payload.update_labels()
 
-    def update_ptrs_vosibility(self):
-        self.__canvas.update_ptrs_vosibility()
+    def update_ptrs_visibility(self):
+        self.__canvas.update_ptrs_visibility()
+        self.__payload.update_ptrs_visibility()
