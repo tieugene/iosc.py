@@ -20,7 +20,7 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
     __actions_to_print: QActionGroup
 
     def __init__(self, __printer: PdfPrinter, parent: 'ComtradeWidget'):
-        super().__init__(__printer)
+        super().__init__(__printer, parent)
         self.__parent = parent
         self.__render = None
         self.__1stime = True
@@ -29,6 +29,7 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
         root_tb.addAction(self.__act_opt_values)
         root_tb.addAction(self.__act_opt_ptrs)
         self.finished.connect(self.clean_up)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
 
     def __mk_actions(self):
         self.__act_opt_values = QAction(
