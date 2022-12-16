@@ -23,7 +23,7 @@ class HeaderItem(RectTextItem):
         super().__init__(ClipedPlainTextItem(
             f"{oscwin.osc.path}"
             f"\nStation ID: {oscwin.osc.raw.rec_dev_id}, Station name: {oscwin.osc.raw.station_name}"
-            f"\n{PORS_TEXT[int(oscwin.show_sec)]} values"
+            f"\n{PORS_TEXT[int(oscwin.show_sec)]} values, Trigger time: {oscwin.osc.raw.trigger_timestamp}"
         ))
         self.__plot = plot
         self.update_size()
