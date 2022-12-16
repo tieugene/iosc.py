@@ -168,10 +168,11 @@ class TableCanvas(GroupItem):
         i_range = self.__plot.i_range
         if i_range[0] <= (i := oscwin.main_ptr_i) <= i_range[1]:  # 1. MainPtr
             __helper(self.PtrItem(i, COLOR_PTR_MAIN, self.__plot))
-        if i_range[0] <= (i := oscwin.sc_ptr_i) <= i_range[1]:  # 2. OMP ptrs
-            __helper(self.PtrItem(i, COLOR_PTR_OMP, self.__plot))
-        if i_range[0] <= (i := i - (oscwin.omp_width * oscwin.osc.spp)) <= i_range[1]:
-            __helper(self.PtrItem(i, COLOR_PTR_OMP, self.__plot))
+        if oscwin.sc_ptr_i:
+            if i_range[0] <= (i := oscwin.sc_ptr_i) <= i_range[1]:  # 2. OMP ptrs
+                __helper(self.PtrItem(i, COLOR_PTR_OMP, self.__plot))
+            if i_range[0] <= (i := i - (oscwin.omp_width * oscwin.osc.spp)) <= i_range[1]:
+                __helper(self.PtrItem(i, COLOR_PTR_OMP, self.__plot))
         for i in oscwin.tmp_ptr_i.values():  # 3. TmpPtr[]
             if i_range[0] <= i <= i_range[1]:
                 __helper(self.PtrItem(i, COLOR_PTR_TMP, self.__plot, PENSTYLE_PTR_TMP))

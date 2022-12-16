@@ -1,5 +1,7 @@
 # 1. std
 from enum import IntEnum
+from typing import Optional
+
 # 2. 3rd
 from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtGui import QMouseEvent
@@ -82,7 +84,7 @@ class BarPlotWidget(QWidget):
     class BarPlot(QCustomPlot):
         _oscwin: 'ComtradeWidget'
         _main_ptr: MainPtr
-        _sc_ptr: SCPtr
+        _sc_ptr: Optional[SCPtr]
         _tmp_ptr: dict[int, TmpPtr]
         ptr_selected: bool
 
@@ -93,7 +95,7 @@ class BarPlotWidget(QWidget):
             self.__decorate()
             self.__set_data()
             self._main_ptr = MainPtr(self.graph(0), self._oscwin)  # after graph()
-            self._sc_ptr = SCPtr(self.graph(0), self._oscwin)
+            self._sc_ptr = SCPtr(self.graph(0), self._oscwin) if self._oscwin.sc_ptr_i else None
             self._tmp_ptr = dict()  # FIXME: load existing
             for uid in self._oscwin.tmp_ptr_i.keys():
                 self._slot_ptr_add_tmp(uid)
