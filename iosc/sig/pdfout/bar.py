@@ -32,31 +32,28 @@ class MsrPtrItem(QGraphicsLineItem):
 
 
 class LvlPtrItem(QGraphicsLineItem):
-    __y: float
+    y: float
 
     def __init__(self, y: float, color: QColor, parent: 'AGraphItem'):
         super().__init__(parent)
-        self.__y = y
+        self.y = y
+        print("Lvl:", y)
         self.setPen(ThinPen(color, PENSTYLE_PTR_LVL))
-
-    def set_size(self, s: QSizeF):
-        y = s.height() * self.__y
-        self.setLine(0, y, s.width(), y)
 
     def update_visibility(self, v: bool):
         self.setVisible(v)
 
 
 class AGraphItem(QGraphicsPathItem):
-    ymin: float  # Adjusted normalized min
+    ymin: float  # Adjusted normalized min (-1..0 ... 0..1)
     ymax: float  # Adjusted normalized min
     __nvalue: List[float]  # normalized values slice
-    __mptrs: List[MsrPtrItem]
-    __lptrs: List[LvlPtrItem]
+    msr_ptr: List[MsrPtrItem]
+    lvl_ptr: List[LvlPtrItem]
 
     def __init__(self, ss: AnalogSignalSuit, i_range: IntX2):
         super().__init__()
-        amin = min(0.0, ss.signal.v_min)
+        amin = min(0.0, ss.signal.v_min)  # adjusted absolute value
         amax = max(0.0, ss.signal.v_max)
         asize = amax - amin
         self.ymin = amin/asize
@@ -67,13 +64,13 @@ class AGraphItem(QGraphicsPathItem):
         # default: x=0..SAMPLES, y=(-1..0)..(0..1)
         pp.addPolygon(QPolygonF([QPointF(x, -y) for x, y in enumerate(self.__nvalue)]))
         self.setPath(pp)
-        self.__mptrs = list()
+        self.msr_ptr = list()
         for mptr in ss.msr_ptr.values():
             if i_range[0] <= (i := mptr[0].i) <= i_range[1]:
-                self.__mptrs.append(MsrPtrItem((i - i_range[0]) / (i_range[1] - i_range[0]), ss.color, self))
-        self.__lptrs = list()
+                self.msr_ptr.append(MsrPtrItem((i - i_range[0]) / (i_range[1] - i_range[0]), ss.color, self))
+        self.lvl_ptr = list()
         for lptr in ss.lvl_ptr.values():
-            self.__lptrs.append(LvlPtrItem(lptr[0].y_reduced, ss.color, self))
+            self.lvl_ptr.append(LvlPtrItem(lptr[0].y_reduced / 2, ss.color, self))  # FIXME: y
 
     def set_size(self, s: QSizeF, ymax: float):
         """
@@ -88,15 +85,16 @@ class AGraphItem(QGraphicsPathItem):
         for i, y in enumerate(self.__nvalue):
             pp.setElementPositionAt(i, i * kx, (ymax - y) * ky)
         self.setPath(pp)
-        for mptr in self.__mptrs:
+        for mptr in self.msr_ptr:
             mptr.set_size(s)
-        for lptr in self.__lptrs:
-            lptr.set_size(s)
+        for lptr in self.lvl_ptr:
+            y = (ymax - lptr.y) * ky
+            lptr.setLine(0, y, s.width(), y)
 
     def update_ptrs_visibility(self, v: bool):
-        for mptr in self.__mptrs:
+        for mptr in self.msr_ptr:
             mptr.update_visibility(v)
-        for lptr in self.__lptrs:
+        for lptr in self.lvl_ptr:
             lptr.update_visibility(v)
 
 
@@ -180,6 +178,11 @@ class BarGraphItem(GroupItem):
             self.__ymin = min(self.__ymin, self.__graph[-1].ymin)
             self.__ymax = max(self.__ymax, self.__graph[-1].ymax)
             self.__is_bool &= d.signal.is_bool
+            # if not d.signal.is_bool:
+            #    for mptr in self.__graph[-1].msr_ptr:
+            #        self.addToGroup(mptr)
+            #    for lptr in self.__graph[-1].lvl_ptr:
+            #        self.addToGroup(lptr)
         if not self.__is_bool:
             self.__y0line = QGraphicsLineItem()
             self.__y0line.setPen(ThinPen(Qt.GlobalColor.gray, Qt.PenStyle.DotLine))
@@ -187,9 +190,6 @@ class BarGraphItem(GroupItem):
         self.setY(H_ROW_GAP)
 
     def set_size(self, s: QSize):
-        """
-        :todo: chk pen width
-        """
         h_norm = self.__ymax - self.__ymin  # normalized height, ≥ 1
         s_local = QSizeF(s.width(), (s.height() - H_ROW_GAP * 2) / h_norm)
         for gi in self.__graph:
