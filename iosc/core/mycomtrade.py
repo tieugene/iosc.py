@@ -2,7 +2,7 @@
 :todo: exceptions
 """
 # 1. std
-from typing import Union
+from typing import Union, Optional
 import pathlib
 # 2. 3rd
 import chardet
@@ -166,6 +166,22 @@ class MyComtrade(Wrapper):
         else:
             self._raw.load(str(self.path))
 
+    def chk_gap_l(self) -> Optional[str]:
+        """Check that OMP fits (left sife)"""
+        # FIXME: _sample.bad/short_L/live/R001_124-2014_05_26_05_09_46.cfg
+        # __gap_real: float = (self._raw.trigger_timestamp - self._raw.start_timestamp).total_seconds()
+        __gap_real = self._raw.trigger_time - self._raw.time[0]
+        __gap_min: float = 1 / self._raw.frequency
+        if __gap_real < __gap_min:
+            return ERR_DSC_GAPL % (__gap_min * 1000, __gap_real * 1000)
+
+    def chk_gap_r(self) -> Optional[str]:
+        """Check that OMP fits (right sife)"""
+        __gap_real = self._raw.time[-1] - self._raw.trigger_time
+        __gap_min = 2 / self._raw.frequency
+        if __gap_real < __gap_min:
+            return ERR_DSC_GAPR % (__gap_min * 1000, __gap_real * 1000)
+
     def __sanity_check(self):
         """
         - rates (1, raw.total_samples, ?frequency)
@@ -173,42 +189,31 @@ class MyComtrade(Wrapper):
         :return:
         """
 
-        def __chk_freq():
+        def __chk_freq() -> Optional[str]:
             """Check freq = 50/60"""
             if self._raw.cfg.frequency not in {50, 60}:
-                raise SanityChkError(ERR_DSC_FREQ % self._raw.cfg.frequency)
+                return ERR_DSC_FREQ % self._raw.cfg.frequency
 
-        def __chk_nrate():  # nrates
+        def __chk_nrate() -> Optional[str]:  # nrates
             """Check that only 1 rate"""
             if (nrates := self._raw.cfg.nrates) != 1:
-                raise SanityChkError(ERR_DSC_NRATES % nrates)
+                return ERR_DSC_NRATES % nrates
 
-        def __chk_rate_odd():
+        def __chk_rate_odd() -> Optional[str]:
             """Check that rate is deviding by main freq"""
             if self.rate % self._raw.cfg.frequency:
-                raise SanityChkError(ERR_DSC_RATE_ODD % (self.rate, self._raw.cfg.frequency))
+                return ERR_DSC_RATE_ODD % (self.rate, self._raw.cfg.frequency)
 
-        def __chk_gap_l():
-            """Check that OMP fits (left sife)"""
-            # FIXME: _sample.bad/short_L/live/R001_124-2014_05_26_05_09_46.cfg
-            # __gap_real: float = (self._raw.trigger_timestamp - self._raw.start_timestamp).total_seconds()
-            __gap_real = self._raw.trigger_time - self._raw.time[0]
-            __gap_min: float = 1 / self._raw.frequency
-            if __gap_real < __gap_min:
-                raise SanityChkError(ERR_DSC_GAPL % (__gap_min * 1000, __gap_real * 1000))
-
-        def __chk_gap_r():
-            """Check that OMP fits (right sife)"""
-            __gap_real = self._raw.time[-1] - self._raw.trigger_time
-            __gap_min = 2 / self._raw.frequency
-            if __gap_real < __gap_min:
-                raise SanityChkError(ERR_DSC_GAPR % (__gap_min * 1000, __gap_real * 1000))
-
-        __chk_freq()
-        __chk_nrate()
-        __chk_rate_odd()
-        __chk_gap_l()
-        __chk_gap_r()
+        if e := __chk_freq():
+            raise SanityChkError(e)
+        if e := __chk_nrate():
+            raise SanityChkError(e)
+        if e := __chk_rate_odd():
+            raise SanityChkError(e)
+        # if e := self.chk_gap_l():
+        #    raise SanityChkError(e)
+        # if e := self.chk_gap_r():
+        #    raise SanityChkError(e)
         # TODO: xz == sample ±½
         # TODO: Δ samples == ±½ sample
         # TODO: no null

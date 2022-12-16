@@ -29,11 +29,11 @@ class ComtradeWidget(QWidget):
     col_ctrl_width: int
     # inner vars
     __main_ptr_i: int  # current Main Ptr index in source arrays
-    __sc_ptr_i: int  # current OMP SC Ptr index in source arrays
+    __sc_ptr_i: Optional[int]  # current OMP SC Ptr index in source arrays
     __tmp_ptr_i: dict[int, int]  # current Tmp Ptr indexes in source arrays: ptr_uid => x_idx
     msr_ptr_uids: set[int]  # MsrPtr uids
     lvl_ptr_uids: set[int]  # LvlPtr uids
-    __omp_width: int  # distance from OMP PR and SC pointers, periods
+    __omp_width: Optional[int]  # distance from OMP PR and SC pointers, periods
     __shifted: bool  # original/shifted selector
     x_zoom: int
     show_sec: bool  # pri/sec selector
@@ -99,11 +99,14 @@ class ComtradeWidget(QWidget):
         self.osc = osc
         self.col_ctrl_width = iosc.const.COL0_WIDTH_INIT
         self.__main_ptr_i = self.x2i(0.0)  # default: Z (Osc1: 600)
-        self.__sc_ptr_i = self.__main_ptr_i + 2 * self.osc.spp
+        if osc.chk_gap_l() or osc.chk_gap_r():
+            self.__sc_ptr_i = self.__omp_width = None
+        else:
+            self.__sc_ptr_i = self.__main_ptr_i + 2 * self.osc.spp
+            self.__omp_width = 3
         self.__tmp_ptr_i = dict()
         self.msr_ptr_uids = set()
         self.lvl_ptr_uids = set()
-        self.__omp_width = 3
         self.__shifted = False
         self.x_zoom = len(iosc.const.X_PX_WIDTH_uS) - 1  # initial: max
         self.show_sec = True
@@ -141,19 +144,20 @@ class ComtradeWidget(QWidget):
         return self.i2x(self.__main_ptr_i)
 
     @property
-    def sc_ptr_i(self) -> int:  # Position of master (left) SC pointer
+    def sc_ptr_i(self) -> Optional[int]:  # Position of master (left) SC pointer
         return self.__sc_ptr_i
 
     @property
-    def sc_ptr_x(self) -> float:
-        return self.i2x(self.__sc_ptr_i)
+    def sc_ptr_x(self) -> Optional[float]:
+        if self.__sc_ptr_i:
+            return self.i2x(self.__sc_ptr_i)
 
     @property
     def tmp_ptr_i(self) -> Dict[int, int]:
         return self.__tmp_ptr_i
 
     @property
-    def omp_width(self) -> int:  # Distance between SC pointers, periods
+    def omp_width(self) -> Optional[int]:  # Distance between SC pointers, periods
         return self.__omp_width
 
     @omp_width.setter
@@ -504,7 +508,7 @@ class ComtradeWidget(QWidget):
         self.action_vector_diagram.setEnabled(False)
         self.cvdwin.show()
 
-    def __do_harmonic_diagram(self, checked: bool):
+    def __do_harmonic_diagram(self):
         if not self.hdwin:
             self.hdwin = HDWindow(self)
         self.action_harmonic_diagram.setEnabled(False)
