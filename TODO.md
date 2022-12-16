@@ -2,25 +2,6 @@
 
 Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
 
-- [x] Get i-slice
-- [x] Canvas:
-  + [x] Header
-  + [x] Grid
-  + [x] Ptrs (main, OMP, tmp)
-- [x] Payload (rows):
-  + [x] Label
-  + [x] Graph
-  + [x] Ptrs (Msr, Lvl)
-- [x] FIXME:
-  + [x] Separate custom print options buttons
-  + [x] i_range expand
-  + [x] Ptrs on/off (global)
-  + [x] Extra (left) grid items
-  + [x] bar.is_bool labels too low (? html style ?)
-  + [x] Not refreshed (exec_ \[>slot_paint_request\])
-  + [x] Ptrs on/off (local)
-  + [x] Modal prn dialog
-
 ## Samples:
 - QPrint:
   - `itemviews/spreadseet/spreadsheet.py` (preview; QTableView().render(printer)
@@ -38,3 +19,8 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
 - [disable transform](https://stackoverflow.com/questions/1222914/qgraphicsview-and-qgraphicsitem-don%C2%B4t-scale-item-when-scaling-the-view-rect)
 - [Scene border](https://www.qtcentre.org/threads/13814-how-to-enable-borders-in-QGraphicsScene)
 - [Tic align](https://www.qtcentre.org/threads/51168-QGraphicsTextItem-center-based-coordinates)
+
+## ...
+- show() == setVisible(True)
+- hide() == setVisible(False)
+- 

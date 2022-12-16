@@ -77,8 +77,8 @@ class ComtradeWidget(QWidget):
     status_table: SignalBarTable
     timestamps_bar: TimeStampsBar
     xscroll_bar: XScroller
-    cvdwin: Optional[CVDWindow]
-    hdwin: Optional[HDWindow]
+    cvdwin: Optional[CVDWindow]  # TODO: List[CVDWindow]
+    hdwin: Optional[HDWindow]  # TODO: List[HDWindow]
     __printer: PdfPrinter
     __print_preview: PDFOutPreviewDialog
     # signals
@@ -303,7 +303,6 @@ class ComtradeWidget(QWidget):
         self.action_vector_diagram = QAction("Vector chart",
                                              self,
                                              shortcut="Ctrl+V",
-                                             checkable=True,
                                              triggered=self.__do_vector_diagram)
         self.action_harmonic_diagram = QAction("Harmonic chart",
                                                self,
@@ -500,10 +499,11 @@ class ComtradeWidget(QWidget):
                 uid = max(self.lvl_ptr_uids) + 1 if self.lvl_ptr_uids else 1
                 self.ass_list[i].add_ptr_lvl(uid)
 
-    def __do_vector_diagram(self, checked: bool):
+    def __do_vector_diagram(self):
         if not self.cvdwin:
             self.cvdwin = CVDWindow(self)
-        self.cvdwin.setVisible(checked)
+        self.action_vector_diagram.setEnabled(False)
+        self.cvdwin.show()
 
     def __do_harmonic_diagram(self, checked: bool):
         if not self.hdwin:

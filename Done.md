@@ -157,3 +157,21 @@ Behavior:
 
 ## 0.3.2:
 - [x] 5 x Checkbox injected into prin preview dialog
+- [x] Get i-slice
+- [x] Canvas:
+  + [x] Header
+  + [x] Grid
+  + [x] Ptrs (main, OMP, tmp)
+- [x] Payload (rows):
+  + [x] Label
+  + [x] Graph
+  + [x] Ptrs (Msr, Lvl)
+- [x] FIXME:
+  + [x] Separate custom print options buttons
+  + [x] i_range expand
+  + [x] Ptrs on/off (global)
+  + [x] Extra (left) grid items
+  + [x] bar.is_bool labels too low (? html style ?)
+  + [x] Not refreshed (exec_ \[>slot_paint_request\])
+  + [x] Ptrs on/off (local)
+  + [x] Modal prn dialog
