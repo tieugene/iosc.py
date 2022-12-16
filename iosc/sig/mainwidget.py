@@ -5,10 +5,9 @@ import pathlib
 from typing import Any, Dict, Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QCloseEvent, QPagedPaintDevice
-from PyQt5.QtPrintSupport import QPrinter
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QMenuBar, QToolBar, QAction, QMessageBox, \
-    QFileDialog, QHBoxLayout, QActionGroup, QToolButton, QMenu
+from PyQt5.QtGui import QIcon, QCloseEvent
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QMenuBar, QToolBar, QAction, QMessageBox, QFileDialog,\
+    QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
