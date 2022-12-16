@@ -17,7 +17,6 @@ PORS_TEXT = ('Primary', 'Secondary')
 
 
 class HeaderItem(RectTextItem):
-    """:fixme: pors test not changing"""
     __plot: 'PlotPrint'
 
     def __init__(self, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):

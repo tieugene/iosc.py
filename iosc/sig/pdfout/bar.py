@@ -37,7 +37,6 @@ class LvlPtrItem(QGraphicsLineItem):
     def __init__(self, y: float, color: QColor, parent: 'AGraphItem'):
         super().__init__(parent)
         self.y = y
-        print("Lvl:", y)
         self.setPen(ThinPen(color, PENSTYLE_PTR_LVL))
 
     def update_visibility(self, v: bool):
@@ -70,7 +69,8 @@ class AGraphItem(QGraphicsPathItem):
                 self.msr_ptr.append(MsrPtrItem((i - i_range[0]) / (i_range[1] - i_range[0]), ss.color, self))
         self.lvl_ptr = list()
         for lptr in ss.lvl_ptr.values():
-            self.lvl_ptr.append(LvlPtrItem(lptr[0].y_reduced / 2, ss.color, self))  # FIXME: y
+            y = lptr[0].y_real / asize
+            self.lvl_ptr.append(LvlPtrItem(y, ss.color, self))
 
     def set_size(self, s: QSizeF, ymax: float):
         """

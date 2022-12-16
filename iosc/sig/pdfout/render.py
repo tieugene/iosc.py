@@ -62,7 +62,7 @@ class PlotPrint(GraphViewBase):
         """Current full table width"""
         return W_PAGE[1 - int(self.portrait)]
 
-    def h_row(self, sb: SignalBar) -> int:  # FIXME:
+    def h_row(self, sb: SignalBar) -> int:
         """Row height as f(sb.is_bool, sb.h[default], self.portrait).
         - if is_bool: exact H_ROW_BASE
         - else: defined or 4 × H_ROW_BASE

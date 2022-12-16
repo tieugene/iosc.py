@@ -7,20 +7,21 @@ Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
   + [x] Header
   + [x] Grid
   + [x] Ptrs (main, OMP, tmp)
-- [ ] Payload (rows):
+- [x] Payload (rows):
   + [x] Label
   + [x] Graph
-  + [ ] Ptrs (Msr, Lvl)
+  + [x] Ptrs (Msr, Lvl)
 - [ ] FIXME:
   + [x] Separate custom print options buttons
   + [x] i_range expand
   + [x] Ptrs on/off (global)
-  + [?] Extra (left) grid items
+  + [x] Extra (left) grid items
   + [x] bar.is_bool labels too low (? html style ?)
   + [x] Not refreshed (exec_ \[>slot_paint_request\])
   + [x] Ptrs on/off (local)
   + [ ] Modal prn dialog
   + [ ] Signal sanity check
++ [ ] FIXME: X-resize glitches
 
 ## Samples:
 - QPrint:
