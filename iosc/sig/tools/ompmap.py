@@ -11,28 +11,42 @@ CORR_SIG = ('Ua', 'Ub', 'Uc', 'Ia', 'Ib', 'Ic', 'Ua', 'Ia')
 
 
 class SignalBox(QComboBox):
-    ss:
-    def __init__(self, ass_list: List[AnalogSignalSuit], v: str):
-        super().__init__()
-        for ss in ass_list:
+    __buddy: QLabel
+    __parent: 'OMPMapWindow'
+
+    def __init__(self, buddy: QLabel, v: str, parent: 'OMPMapWindow'):
+        super().__init__(parent)
+        self.__buddy = buddy
+        self.__parent = parent
+        idx = None
+        for ss in parent.oscwin.ass_list:
             self.addItem(ss.signal.sid)
             if v in ss.signal.sid:
-                self.setCurrentIndex(self.count() - 1)
+                idx = self.count() - 1
+                self.setCurrentIndex(idx)
             # TODO: add data (signal no, signal itself)
+        if idx is not None:
+            self.__slot_update_buddy(idx)
+        self.currentIndexChanged.connect(self.__slot_update_buddy)
+
+    def __slot_update_buddy(self, idx: int):
+        self.__buddy.setText(self.itemText(idx))
 
 
 class OMPMapWindow(QDialog):
+    oscwin: 'ComtradeWidget'
     button_box: QDialogButtonBox
 
     def __init__(self, parent: 'ComtradeWidget'):
         super().__init__(parent)
+        self.oscwin = parent
         self.setWindowTitle("OMP Map")
-        self.__mk_widgets(parent.ass_list)
+        self.__mk_widgets()
         self.__load_data()
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
 
-    def __mk_widgets(self, ass_list: List[AnalogSignalSuit]):
+    def __mk_widgets(self):
         lt = QGridLayout()
         # 1. top head
         for c, s in enumerate(ROW_HEAD):
@@ -40,8 +54,8 @@ class OMPMapWindow(QDialog):
         # the end
         for r in range(8):
             lt.addWidget(QLabel(COL_LEFT[r]), r + 1, 0)
-            lt.addWidget(SignalBox(ass_list, CORR_SIG[r]), r + 1, 1)
-            lt.addWidget(QLabel(), r + 1, 2)
+            lt.addWidget(buddy := QLabel(), r + 1, 2)
+            lt.addWidget(SignalBox(buddy, CORR_SIG[r], self), r + 1, 1)
             lt.addWidget(QLabel(COL_RIGHT[r]), r + 1, 3)
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.setLayout(lt)
