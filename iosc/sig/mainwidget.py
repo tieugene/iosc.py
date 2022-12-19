@@ -17,8 +17,9 @@ from iosc.core.convtrade import convert, ConvertError
 from iosc.sig.pdfout.dialog import PDFOutPreviewDialog
 from iosc.sig.pdfout.pdfprinter import PdfPrinter
 from iosc.sig.tools.cvdwindow import CVDWindow
-from iosc.sig.widget.section import TimeAxisBar, SignalBarTable, TimeStampsBar, XScroller
 from iosc.sig.tools.hdwindow import HDWindow
+from iosc.sig.tools.vtwindow import VTWindow
+from iosc.sig.widget.section import TimeAxisBar, SignalBarTable, TimeStampsBar, XScroller
 from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit
 from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
 
@@ -72,6 +73,7 @@ class ComtradeWidget(QWidget):
     action_ptr_add_lvl: QAction
     action_vector_diagram: QAction
     action_harmonic_diagram: QAction
+    action_value_table: QAction
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
@@ -319,6 +321,11 @@ class ComtradeWidget(QWidget):
                                                self,
                                                shortcut="Ctrl+H",
                                                triggered=self.__do_harmonic_diagram)
+        self.action_value_table = QAction(QIcon.fromTheme("x-office-spreadsheet"),
+                                          "Value table",
+                                          self,
+                                          shortcut="Ctrl+T",
+                                          triggered=self.__do_value_table)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
         self.action_shift.addAction(self.action_shift_yes)
@@ -371,6 +378,7 @@ class ComtradeWidget(QWidget):
         menu_tools = self.menubar.addMenu("&Tools")
         menu_tools.addAction(self.action_vector_diagram)
         menu_tools.addAction(self.action_harmonic_diagram)
+        menu_tools.addAction(self.action_value_table)
 
     def __mk_toolbar(self):
         # prepare
@@ -531,6 +539,9 @@ class ComtradeWidget(QWidget):
             self.hdwin = HDWindow(self)
         self.action_harmonic_diagram.setEnabled(False)
         self.hdwin.show()
+
+    def __do_value_table(self):
+        VTWindow(self).exec_()
 
     def resize_col_ctrl(self, dx: int):
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:

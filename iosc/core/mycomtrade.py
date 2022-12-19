@@ -1,6 +1,8 @@
 """Comtrade wrapper
 :todo: exceptions
 """
+import cmath
+import math
 # 1. std
 from typing import Union, Optional, List
 import pathlib
@@ -140,6 +142,34 @@ class AnalogSignal(Signal):
     @property
     def uu_orig(self):
         return self.__uu_orig
+
+    def as_str(self, y: float, pors: bool):
+        """
+        :param y: Signal value (real)
+        :param pors: False=primary, True=secondary
+        :return: String repr of signal.
+        """
+        pors_y = y * self.get_mult(pors)
+        uu = self.uu_orig
+        if abs(pors_y) < 1:
+            pors_y *= 1000
+            uu = 'm' + uu
+        elif abs(pors_y) > 1000:
+            pors_y /= 1000
+            uu = 'k' + uu
+        return "%.3f %s" % (pors_y, uu)
+
+    def as_str_full(self, v: Union[float, complex], pors: bool):
+        """
+
+        :param v: Signal value
+        :param pors: False=primary, True=secondary
+        :return: String repr of signal (any form)
+        """
+        if isinstance(v, complex):  # hrm1
+            return "%s / %.3f°" % (self.as_str(abs(v), pors), math.degrees(cmath.phase(v)))
+        else:
+            return self.as_str(v, pors)
 
 
 class MyComtrade(Wrapper):
