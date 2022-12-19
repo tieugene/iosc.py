@@ -2,8 +2,8 @@
 
 Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
 
-- [x] 2.3.3.3. Export CVS
-- [ ] 2.3.6.5. The table
+- [x] 2.3.3.3. Export to CVS
+- [x] 2.3.6.5. Value table
 - [ ] 2.3.6.1. OMP map
 - [ ] 2.3.6.2. OMP save
 - [ ] 2.3.4.1. Find
