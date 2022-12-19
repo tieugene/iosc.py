@@ -25,6 +25,7 @@ class PtrLabel(QCPItemText):
         :fixme: draw in front of ticks
         """
         x = self._oscwin.i2x(i)  # from z-point, ms
+        # TODO: make function
         self.setText((self._oscwin.osc.raw.cfg.trigger_timestamp + datetime.timedelta(milliseconds=x)).time().isoformat())
         self.position.setCoords(x, 0)
         self.parentPlot().replot()
