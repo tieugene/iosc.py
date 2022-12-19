@@ -2,7 +2,7 @@
 RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
 import pathlib
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QCloseEvent, QHideEvent, QShowEvent
@@ -18,6 +18,7 @@ from iosc.sig.pdfout.dialog import PDFOutPreviewDialog
 from iosc.sig.pdfout.pdfprinter import PdfPrinter
 from iosc.sig.tools.cvdwindow import CVDWindow
 from iosc.sig.tools.hdwindow import HDWindow
+from iosc.sig.tools.ompmap import OMPMapWindow
 from iosc.sig.tools.vtwindow import VTWindow
 from iosc.sig.widget.section import TimeAxisBar, SignalBarTable, TimeStampsBar, XScroller
 from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit
@@ -40,7 +41,7 @@ class ComtradeWidget(QWidget):
     x_zoom: int
     show_sec: bool  # pri/sec selector
     viewas: int  # TODO: enum
-    ass_list: list[AnalogSignalSuit]  # Translate signal no to chart widget
+    ass_list: List[AnalogSignalSuit]  # Translate signal no to chart widget
     # actions
     action_close: QAction
     action_info: QAction
@@ -74,6 +75,7 @@ class ComtradeWidget(QWidget):
     action_vector_diagram: QAction
     action_harmonic_diagram: QAction
     action_value_table: QAction
+    action_omp_map: QAction
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
@@ -326,6 +328,9 @@ class ComtradeWidget(QWidget):
                                           self,
                                           shortcut="Ctrl+T",
                                           triggered=self.__do_value_table)
+        self.action_omp_map = QAction("OMP map",
+                                      self,
+                                      triggered=self.__do_omp_map)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
         self.action_shift.addAction(self.action_shift_yes)
@@ -379,6 +384,7 @@ class ComtradeWidget(QWidget):
         menu_tools.addAction(self.action_vector_diagram)
         menu_tools.addAction(self.action_harmonic_diagram)
         menu_tools.addAction(self.action_value_table)
+        menu_tools.addAction(self.action_omp_map)
 
     def __mk_toolbar(self):
         # prepare
@@ -542,6 +548,9 @@ class ComtradeWidget(QWidget):
 
     def __do_value_table(self):
         VTWindow(self).exec_()
+
+    def __do_omp_map(self):
+        OMPMapWindow(self).exec_()
 
     def resize_col_ctrl(self, dx: int):
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:
