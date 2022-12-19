@@ -161,7 +161,6 @@ class AnalogSignal(Signal):
 
     def as_str_full(self, v: Union[float, complex], pors: bool):
         """
-
         :param v: Signal value
         :param pors: False=primary, True=secondary
         :return: String repr of signal (any form)
