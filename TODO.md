@@ -1,6 +1,14 @@
 # TODO
 
-Current job: [0.3.2. PDF](https://github.com/tieugene/iosc.py/issues/191)
+Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
+
+- [x] 2.3.3.3. Export CVS
+- [ ] 2.3.6.5. The table
+- [ ] 2.3.6.1. OMP map
+- [ ] 2.3.6.2. OMP save
+- [ ] 2.3.4.1. Find
+- [ ] 2.3.3.4. Cfg save
+- [ ] 2.3.3.5. Cfg load
 
 ## Samples:
 - QPrint:

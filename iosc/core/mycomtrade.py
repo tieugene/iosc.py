@@ -2,7 +2,7 @@
 :todo: exceptions
 """
 # 1. std
-from typing import Union, Optional
+from typing import Union, Optional, List
 import pathlib
 # 2. 3rd
 import chardet
@@ -132,7 +132,7 @@ class AnalogSignal(Signal):
     def get_mult(self, ps: bool) -> float:
         """
         Get multiplier between pri/sec
-        :param ps:
+        :param ps: False=primary, True=secondary
         :return: Multiplier
         """
         return self.__mult[int(ps)]
@@ -145,7 +145,7 @@ class AnalogSignal(Signal):
 class MyComtrade(Wrapper):
     path: pathlib.Path
     x: np.array
-    y: list[Union[StatusSignal, AnalogSignal]]
+    y: List[Union[StatusSignal, AnalogSignal]]
 
     def __init__(self, path: pathlib.Path):
         super().__init__(Comtrade())
