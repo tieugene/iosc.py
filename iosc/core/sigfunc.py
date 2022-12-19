@@ -2,9 +2,9 @@
 Calling from AnalogSignalCtrlWidget to calc requested signal value.
 FFT: [Libs](https://www.nayuki.io/page/free-small-fft-in-multiple-languages)
 """
-import cmath
+# 1. std
 import math
-
+# 2. 3rd
 import numpy as np
 
 

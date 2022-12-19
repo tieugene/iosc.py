@@ -3,8 +3,6 @@ TODO: move up (../
 """
 # 1. std
 from typing import Optional, Union, List
-import cmath
-import math
 # 2. 3rd
 from PyQt5.QtCore import QObject, pyqtSignal, QMargins, Qt
 from PyQt5.QtGui import QPen, QColor, QBrush
@@ -236,37 +234,29 @@ class AnalogSignalSuit(SignalSuit):
 
     def sig2str(self, y: float) -> str:
         """Return string repr of signal dependong on:
-         - signal value
+         - signal value (datum)
          - pors (global)
-         - orig/shifted (global, indirect)"""
-        pors_y = y * self.signal.get_mult(self.oscwin.show_sec)
-        uu = self.signal.uu_orig
-        if abs(pors_y) < 1:
-            pors_y *= 1000
-            uu = 'm' + uu
-        elif abs(pors_y) > 1000:
-            pors_y /= 1000
-            uu = 'k' + uu
-        return "%.3f %s" % (pors_y, uu)
+         - orig/shifted (global, indirect).
+         Used in:
+         - self.sig2str_i()
+         - LvlPtr.__slot_update_text()
+         """
+        return self.signal.as_str(y, self.oscwin.show_sec)
 
-    def sig2str_i(self, i: int) -> str:  # FIXME: to AnaloSignalSuit
-        """Return string repr of signal dependong on:
+    def sig2str_i(self, i: int) -> str:
+        """Return string repr of signal in sample #i depending on:
          - signal value
          - in index i
          - selected function[func_i]
          - pors (global)
-         - orig/shifted (global, indirect)"""
-        func = func_list[self.oscwin.viewas]
-        v = func(self.signal.value, i, self.oscwin.osc.spp)
-        if isinstance(v, complex):  # hrm1
-            y = abs(v)
-        else:
-            y = v
-        y_str = self.sig2str(y)
-        if isinstance(v, complex):  # hrm1
-            return "%s / %.3f°" % (y_str, math.degrees(cmath.phase(v)))
-        else:
-            return y_str
+         - [orig/shifted (global, indirect)].
+         Used in:
+         - AnalogSignalLable._value_str()
+         - MsrPtr.__slot_update_text()
+         """
+
+        v = func_list[self.oscwin.viewas](self.signal.value, i, self.oscwin.osc.spp)
+        return self.signal.as_str_full(v, self.oscwin.show_sec)
 
     def hrm(self, hrm_no: int, t_i: int) -> complex:
         """
