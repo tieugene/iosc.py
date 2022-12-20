@@ -1,5 +1,5 @@
 # 1. std
-from typing import List, Union
+from typing import Union
 # 2. 3rd
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox
@@ -21,7 +21,8 @@ class SignalBox(QComboBox):
         super().__init__(parent)
         self.__no = no
         self.__parent = parent
-        # TODO: add empty
+        self.addItem('')
+        self.setItemData(0, -1)
         for i, ss in enumerate(parent.oscwin.ass_list):
             self.addItem(ss.signal.sid)
             self.setItemData(self.count() - 1, i)
@@ -78,7 +79,7 @@ class OMPMapWindow(QDialog):
         """Find correspondent signals"""
         for r, lbl in enumerate(CORR_SIG):
             if (idx := self.oscwin.osc.find_signal(lbl)) is not None:
-                self.__get_rc_widget(r + 1, 1).setCurrentIndex(idx)  # TODO: add empty
+                self.__get_rc_widget(r + 1, 1).setCurrentIndex(idx + 1)
 
     def __slot_chg_signal(self, row: int, y_i: int):
         """
@@ -86,12 +87,19 @@ class OMPMapWindow(QDialog):
         :param y_i: Signal no
         :return:
         """
-        def __h1(__i: int):
-            v = hrm1(self.oscwin.osc.y[y_i].value, __i, self.oscwin.osc.spp)
-            return self.oscwin.osc.y[y_i].as_str_full(v, self.oscwin.show_sec)
-        self.__get_rc_widget(row + 1, 2).setText(__h1(self.oscwin.sc_ptr_i))
+        def __h1(__y_i: int, __i: int) -> str:
+            """
+            :param __y_i: Number of signal
+            :param __i: Number of X-point
+            :return: String repr of 1st harmonic y_i-th signal in point Xi
+            """
+            if __y_i >= 0:
+                v = hrm1(self.oscwin.osc.y[y_i].value, __i, self.oscwin.osc.spp)
+                return self.oscwin.osc.y[y_i].as_str_full(v, self.oscwin.show_sec)
+            else:
+                return ''
+        self.__get_rc_widget(row + 1, 2).setText(__h1(y_i, self.oscwin.sc_ptr_i))
         if row in {0, 3}:
             dst_row = 7 if row == 0 else 8
-            self.__get_rc_widget(dst_row, 1).setText(self.oscwin.osc.y[y_i].sid)
-            i = self.oscwin.sc_ptr_i + self.oscwin.osc.spp * self.oscwin.omp_width  # x_i of PR ptr
-            self.__get_rc_widget(dst_row, 2).setText(__h1(i))
+            self.__get_rc_widget(dst_row, 1).setText(self.__get_rc_widget(row + 1, 1).currentText())
+            self.__get_rc_widget(dst_row, 2).setText(__h1(y_i, self.oscwin.pr_ptr_i))

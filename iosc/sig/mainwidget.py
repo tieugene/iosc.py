@@ -152,27 +152,36 @@ class ComtradeWidget(QWidget):
         return self.i2x(self.__main_ptr_i)
 
     @property
-    def sc_ptr_i(self) -> Optional[int]:  # Position of master (left) SC pointer
-        return self.__sc_ptr_i
-
-    @property
-    def sc_ptr_x(self) -> Optional[float]:
-        if self.__sc_ptr_i:
-            return self.i2x(self.__sc_ptr_i)
-
-    @property
     def tmp_ptr_i(self) -> Dict[int, int]:
         return self.__tmp_ptr_i
 
     @property
-    def omp_width(self) -> Optional[int]:  # Distance between SC pointers, periods
+    def sc_ptr_i(self) -> Optional[int]:
+        """Position index of master (SC, right) OMP pointer"""
+        return self.__sc_ptr_i
+
+    @property
+    def sc_ptr_x(self) -> Optional[float]:
+        """Time of master (right) OMP pointer"""
+        if self.__sc_ptr_i:
+            return self.i2x(self.__sc_ptr_i)
+
+    @property
+    def omp_width(self) -> Optional[int]:
+        """Distance between SC pointers, periods"""
         return self.__omp_width
 
     @omp_width.setter
     def omp_width(self, i):
         # self.__omp_width = i
         # self.signal_omp_width_changed.emit()
-        print(i)
+        print(i)  # TODO: UB
+
+    @property
+    def pr_ptr_i(self) -> Optional[int]:
+        """Position index of slave (left) OMP pointer"""
+        if self.__sc_ptr_i is not None:
+            return self.__sc_ptr_i + self.osc.spp * self.__omp_width
 
     @property
     def shifted(self):
