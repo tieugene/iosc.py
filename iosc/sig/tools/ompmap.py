@@ -1,4 +1,6 @@
 # 1. std
+import json
+import pathlib
 from typing import Union, List, Optional
 # 2. 3rd
 from PyQt5.QtCore import pyqtSignal
@@ -10,6 +12,7 @@ ROW_HEAD = ("OMP signal", "Osc. signal", "Value", "Time")
 COL_LEFT = ("Ua", "Ub", "Uc", "Ia", "Ib", "Ic", "Ua,pr", "Ia,pr")
 COL_RIGHT = ("SC ptr", "SC ptr", "SC ptr", "SC ptr", "SC ptr", "SC ptr", "PR ptr", "PR ptr")
 CORR_SIG = ('Ua', 'Ub', 'Uc', 'Ia', 'Ib', 'Ic')
+OUT_NAME = ('uasc', 'ubsc', 'ucsc', 'iasc', 'ibsc', 'icsc', 'uapr', 'iapr')
 
 
 class SignalBox(QComboBox):
@@ -50,6 +53,10 @@ class OMPMapWindow(QDialog):
         self.__button_box.rejected.connect(self.reject)
         self.finished.connect(self.__slot_post_close)
 
+    @property
+    def map(self) -> List[int]:
+        return self.__map
+
     def __mk_widgets(self):
         lt = QGridLayout()
         # 1. top head
@@ -87,7 +94,7 @@ class OMPMapWindow(QDialog):
             if (idx := self.oscwin.osc.find_signal(lbl)) is not None:
                 self.__get_rc_widget(r + 1, 1).setCurrentIndex(idx + 1)
 
-    def __data_save(self):
+    def __data_store(self):
         for i in range(len(self.__map)):
             self.__map[i] = self.__get_rc_widget(i + 1, 1).currentIndex() - 1
 
@@ -95,32 +102,34 @@ class OMPMapWindow(QDialog):
         for i in range(len(self.__map)):
             self.__get_rc_widget(i + 1, 1).setCurrentIndex(self.__map[i] + 1)
 
+    def __h1(self, __y_i: int, __i: int) -> complex:
+        return hrm1(self.oscwin.osc.y[__y_i].value, __i, self.oscwin.osc.spp)
+
     def __slot_chg_signal(self, row: int, y_i: int):
         """
         :param row: SignalBox row (from 0)
         :param y_i: Signal no
         :return:
         """
-        def __h1(__y_i: int, __i: int) -> str:
+        def __h1_str(__y_i: int, __i: int) -> str:
             """
             :param __y_i: Number of signal
             :param __i: Number of X-point
             :return: String repr of 1st harmonic y_i-th signal in point Xi
             """
             if __y_i >= 0:
-                v = hrm1(self.oscwin.osc.y[y_i].value, __i, self.oscwin.osc.spp)
-                return self.oscwin.osc.y[y_i].as_str_full(v, self.oscwin.show_sec)
+                return self.oscwin.osc.y[__y_i].as_str_full(self.__h1(__y_i, __i), self.oscwin.show_sec)
             else:
                 return ''
-        self.__get_rc_widget(row + 1, 2).setText(__h1(y_i, self.oscwin.sc_ptr_i))
+        self.__get_rc_widget(row + 1, 2).setText(__h1_str(y_i, self.oscwin.sc_ptr_i))
         if row in {0, 3}:
             dst_row = 7 if row == 0 else 8
             self.__get_rc_widget(dst_row, 1).setText(self.__get_rc_widget(row + 1, 1).currentText())
-            self.__get_rc_widget(dst_row, 2).setText(__h1(y_i, self.oscwin.pr_ptr_i))
+            self.__get_rc_widget(dst_row, 2).setText(__h1_str(y_i, self.oscwin.pr_ptr_i))
 
     def __slot_post_close(self, result: int):
         if result:  # Ok
-            self.__data_save()
+            self.__data_store()
 
     def exec_(self) -> int:
         if self.__exec_1:
@@ -128,3 +137,14 @@ class OMPMapWindow(QDialog):
         else:
             self.__data_restore()
         return super().exec_()
+
+    def data_save(self, fn: pathlib.Path):
+        data = [self.__h1(self.__map[i], self.oscwin.sc_ptr_i) for i in range(len(self.__map))]
+        data.append(self.__h1(self.__map[0], self.oscwin.pr_ptr_i))
+        data.append(self.__h1(self.__map[3], self.oscwin.pr_ptr_i))
+        out_obj = {}
+        for i, d in enumerate(data):
+            out_obj[OUT_NAME[i]+'r'] = data[i].real
+            out_obj[OUT_NAME[i]+'i'] = data[i].imag
+        with open(fn, 'wt') as fp:
+            json.dump(out_obj, fp, indent=1)
