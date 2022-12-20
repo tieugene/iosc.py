@@ -2,7 +2,7 @@
 RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
 import pathlib
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QCloseEvent, QHideEvent, QShowEvent
@@ -18,6 +18,7 @@ from iosc.sig.pdfout.dialog import PDFOutPreviewDialog
 from iosc.sig.pdfout.pdfprinter import PdfPrinter
 from iosc.sig.tools.cvdwindow import CVDWindow
 from iosc.sig.tools.hdwindow import HDWindow
+from iosc.sig.tools.ompmap import OMPMapWindow
 from iosc.sig.tools.vtwindow import VTWindow
 from iosc.sig.widget.section import TimeAxisBar, SignalBarTable, TimeStampsBar, XScroller
 from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit
@@ -40,7 +41,7 @@ class ComtradeWidget(QWidget):
     x_zoom: int
     show_sec: bool  # pri/sec selector
     viewas: int  # TODO: enum
-    ass_list: list[AnalogSignalSuit]  # Translate signal no to chart widget
+    ass_list: List[AnalogSignalSuit]  # Translate signal no to chart widget
     # actions
     action_close: QAction
     action_info: QAction
@@ -74,6 +75,7 @@ class ComtradeWidget(QWidget):
     action_vector_diagram: QAction
     action_harmonic_diagram: QAction
     action_value_table: QAction
+    action_omp_map: QAction
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
@@ -85,6 +87,7 @@ class ComtradeWidget(QWidget):
     xscroll_bar: XScroller
     cvdwin: Optional[CVDWindow]  # TODO: List[CVDWindow]
     hdwin: Optional[HDWindow]  # TODO: List[HDWindow]
+    ompmapwin: Optional[OMPMapWindow]
     __printer: PdfPrinter
     __print_preview: PDFOutPreviewDialog
     # signals
@@ -150,27 +153,36 @@ class ComtradeWidget(QWidget):
         return self.i2x(self.__main_ptr_i)
 
     @property
-    def sc_ptr_i(self) -> Optional[int]:  # Position of master (left) SC pointer
-        return self.__sc_ptr_i
-
-    @property
-    def sc_ptr_x(self) -> Optional[float]:
-        if self.__sc_ptr_i:
-            return self.i2x(self.__sc_ptr_i)
-
-    @property
     def tmp_ptr_i(self) -> Dict[int, int]:
         return self.__tmp_ptr_i
 
     @property
-    def omp_width(self) -> Optional[int]:  # Distance between SC pointers, periods
+    def sc_ptr_i(self) -> Optional[int]:
+        """Position index of master (SC, right) OMP pointer"""
+        return self.__sc_ptr_i
+
+    @property
+    def sc_ptr_x(self) -> Optional[float]:
+        """Time of master (right) OMP pointer"""
+        if self.__sc_ptr_i:
+            return self.i2x(self.__sc_ptr_i)
+
+    @property
+    def omp_width(self) -> Optional[int]:
+        """Distance between SC pointers, periods"""
         return self.__omp_width
 
     @omp_width.setter
     def omp_width(self, i):
         # self.__omp_width = i
         # self.signal_omp_width_changed.emit()
-        print(i)
+        print(i)  # TODO: UB
+
+    @property
+    def pr_ptr_i(self) -> Optional[int]:
+        """Position index of slave (left) OMP pointer"""
+        if self.__sc_ptr_i is not None:
+            return self.__sc_ptr_i + self.osc.spp * self.__omp_width
 
     @property
     def shifted(self):
@@ -195,6 +207,7 @@ class ComtradeWidget(QWidget):
         self.xscroll_bar = XScroller(self)
         self.cvdwin = None
         self.hdwin = None
+        self.ompmapwin = None
         self.__printer = PdfPrinter()
         self.__print_preview = PDFOutPreviewDialog(self.__printer, self)
 
@@ -326,6 +339,10 @@ class ComtradeWidget(QWidget):
                                           self,
                                           shortcut="Ctrl+T",
                                           triggered=self.__do_value_table)
+        self.action_omp_map = QAction("OMP map",
+                                      self,
+                                      shortcut="Ctrl+M",
+                                      triggered=self.__do_omp_map)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
         self.action_shift.addAction(self.action_shift_yes)
@@ -342,6 +359,8 @@ class ComtradeWidget(QWidget):
         self.action_viewas.addAction(self.action_viewas_hrm5).setData(6)
         self.action_viewas_is.setChecked(True)
         self.action_zoom_x_out.setEnabled(False)
+        # specials
+        self.action_omp_map.setEnabled(self.__sc_ptr_i is not None)
 
     def __mk_menu(self):
         menu_file = self.menubar.addMenu("&File")
@@ -379,6 +398,7 @@ class ComtradeWidget(QWidget):
         menu_tools.addAction(self.action_vector_diagram)
         menu_tools.addAction(self.action_harmonic_diagram)
         menu_tools.addAction(self.action_value_table)
+        menu_tools.addAction(self.action_omp_map)
 
     def __mk_toolbar(self):
         # prepare
@@ -542,6 +562,12 @@ class ComtradeWidget(QWidget):
 
     def __do_value_table(self):
         VTWindow(self).exec_()
+
+    def __do_omp_map(self):
+        if self.__sc_ptr_i is not None:
+            if not self.ompmapwin:
+                self.ompmapwin = OMPMapWindow(self)
+            self.ompmapwin.exec_()
 
     def resize_col_ctrl(self, dx: int):
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:

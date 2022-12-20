@@ -92,7 +92,7 @@ class Ptr(QCPItemTracer):
 
 class SCPtr(Ptr):
     """OMP SC (Short Circuit) pointer."""
-    __pr_ptr: VLine
+    __pr_ptr: VLine  # Sibling PR pointer
     __x_limit: tuple[float, float]
 
     def __init__(self, graph: QCPGraph, root: QWidget):

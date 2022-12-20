@@ -264,7 +264,7 @@ class AnalogSignalSuit(SignalSuit):
         Used by CVD.
         :param hrm_no: Harmonic no (1, 2, 3, 5)
         :param t_i: Point of x-axis
-        :return: Complex value of 1st harmonic
+        :return: Complex value of harmonic
         """
         return HRM_N2F[hrm_no](self.signal.value, t_i, self.oscwin.osc.spp)
 

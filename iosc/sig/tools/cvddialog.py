@@ -1,9 +1,10 @@
+# 1. std
 from typing import Optional
-
+# 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtWidgets import QComboBox, QLabel
-
+# 3. local
 from iosc.sig.widget.dialog import SelectSignalsDialog
 
 
