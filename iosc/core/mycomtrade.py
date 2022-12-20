@@ -285,3 +285,10 @@ class MyComtrade(Wrapper):
     def shifted(self, v: bool):
         """Switch all signals between original and shifted modes"""
         self._raw.x_shifted = v
+
+    def find_signal(self, s: str) -> Optional[int]:
+        """Find signal by name"""
+        for i, sig in enumerate(self.y):
+            if not sig.is_bool:
+                if s in sig.sid:
+                    return i
