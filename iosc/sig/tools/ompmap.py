@@ -1,5 +1,5 @@
 # 1. std
-from typing import Union
+from typing import Union, List, Optional
 # 2. 3rd
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox
@@ -34,16 +34,21 @@ class SignalBox(QComboBox):
 
 class OMPMapWindow(QDialog):
     oscwin: 'ComtradeWidget'
-    button_box: QDialogButtonBox
+    __button_box: QDialogButtonBox
+    __map: List[int]  # map itself
+    __exec_1: bool  # Indicates 1st exec_
 
     def __init__(self, parent: 'ComtradeWidget'):
         super().__init__(parent)
         self.oscwin = parent
+        self.__map = [-1] * 6
+        self.__exec_1 = True
         self.setWindowTitle("OMP Map")
         self.__mk_widgets()
-        self.__set_data()
-        self.button_box.accepted.connect(self.accept)
-        self.button_box.rejected.connect(self.reject)
+        self.__data_autofill()
+        self.__button_box.accepted.connect(self.accept)
+        self.__button_box.rejected.connect(self.reject)
+        self.finished.connect(self.__slot_post_close)
 
     def __mk_widgets(self):
         lt = QGridLayout()
@@ -64,8 +69,8 @@ class OMPMapWindow(QDialog):
             lt.addWidget(QLabel(), r + 1, 2)
             lt.addWidget(QLabel(COL_RIGHT[r]), r + 1, 3)
         # the end
-        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        lt.addWidget(self.button_box, 9, 0, 4, 1)
+        self.__button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        lt.addWidget(self.__button_box, 9, 0, 4, 1)
         self.setLayout(lt)
 
     def __get_rc_widget(self, r: int, c: int) -> Union[SignalBox, QLabel]:
@@ -76,11 +81,19 @@ class OMPMapWindow(QDialog):
         """
         return self.layout().itemAtPosition(r, c).widget()
 
-    def __set_data(self):
+    def __data_autofill(self):
         """Find correspondent signals"""
         for r, lbl in enumerate(CORR_SIG):
             if (idx := self.oscwin.osc.find_signal(lbl)) is not None:
                 self.__get_rc_widget(r + 1, 1).setCurrentIndex(idx + 1)
+
+    def __data_save(self):
+        for i in range(len(self.__map)):
+            self.__map[i] = self.__get_rc_widget(i + 1, 1).currentIndex() - 1
+
+    def __data_restore(self):
+        for i in range(len(self.__map)):
+            self.__get_rc_widget(i + 1, 1).setCurrentIndex(self.__map[i] + 1)
 
     def __slot_chg_signal(self, row: int, y_i: int):
         """
@@ -104,3 +117,14 @@ class OMPMapWindow(QDialog):
             dst_row = 7 if row == 0 else 8
             self.__get_rc_widget(dst_row, 1).setText(self.__get_rc_widget(row + 1, 1).currentText())
             self.__get_rc_widget(dst_row, 2).setText(__h1(y_i, self.oscwin.pr_ptr_i))
+
+    def __slot_post_close(self, result: int):
+        if result:  # Ok
+            self.__data_save()
+
+    def exec_(self) -> int:
+        if self.__exec_1:
+            self.__exec_1 = False
+        else:
+            self.__data_restore()
+        return super().exec_()
