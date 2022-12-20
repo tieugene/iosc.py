@@ -87,6 +87,7 @@ class ComtradeWidget(QWidget):
     xscroll_bar: XScroller
     cvdwin: Optional[CVDWindow]  # TODO: List[CVDWindow]
     hdwin: Optional[HDWindow]  # TODO: List[HDWindow]
+    ompmapwin: Optional[OMPMapWindow]
     __printer: PdfPrinter
     __print_preview: PDFOutPreviewDialog
     # signals
@@ -206,6 +207,7 @@ class ComtradeWidget(QWidget):
         self.xscroll_bar = XScroller(self)
         self.cvdwin = None
         self.hdwin = None
+        self.ompmapwin = None
         self.__printer = PdfPrinter()
         self.__print_preview = PDFOutPreviewDialog(self.__printer, self)
 
@@ -356,6 +358,8 @@ class ComtradeWidget(QWidget):
         self.action_viewas.addAction(self.action_viewas_hrm5).setData(6)
         self.action_viewas_is.setChecked(True)
         self.action_zoom_x_out.setEnabled(False)
+        # specials
+        self.action_omp_map.setEnabled(self.__sc_ptr_i is not None)
 
     def __mk_menu(self):
         menu_file = self.menubar.addMenu("&File")
@@ -559,7 +563,10 @@ class ComtradeWidget(QWidget):
         VTWindow(self).exec_()
 
     def __do_omp_map(self):
-        OMPMapWindow(self).exec_()
+        if self.__sc_ptr_i is not None:
+            if not self.ompmapwin:
+                self.ompmapwin = OMPMapWindow(self)
+            self.ompmapwin.exec_()
 
     def resize_col_ctrl(self, dx: int):
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:
