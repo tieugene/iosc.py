@@ -341,6 +341,7 @@ class ComtradeWidget(QWidget):
                                           triggered=self.__do_value_table)
         self.action_omp_map = QAction("OMP map",
                                       self,
+                                      shortcut="Ctrl+M",
                                       triggered=self.__do_omp_map)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)

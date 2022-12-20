@@ -65,6 +65,7 @@ class OMPMapWindow(QDialog):
             lt.addWidget(QLabel(COL_RIGHT[r]), r + 1, 3)
         # the end
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        lt.addWidget(self.button_box, 9, 0, 4, 1)
         self.setLayout(lt)
 
     def __get_rc_widget(self, r: int, c: int) -> Union[SignalBox, QLabel]:
