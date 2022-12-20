@@ -76,6 +76,7 @@ class ComtradeWidget(QWidget):
     action_harmonic_diagram: QAction
     action_value_table: QAction
     action_omp_map: QAction
+    action_omp_save: QAction
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
@@ -343,6 +344,9 @@ class ComtradeWidget(QWidget):
                                       self,
                                       shortcut="Ctrl+M",
                                       triggered=self.__do_omp_map)
+        self.action_omp_save = QAction("OMP save",
+                                      self,
+                                      triggered=self.__do_omp_save)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
         self.action_shift.addAction(self.action_shift_yes)
@@ -361,6 +365,7 @@ class ComtradeWidget(QWidget):
         self.action_zoom_x_out.setEnabled(False)
         # specials
         self.action_omp_map.setEnabled(self.__sc_ptr_i is not None)
+        self.action_omp_save.setEnabled(self.__sc_ptr_i is not None)
 
     def __mk_menu(self):
         menu_file = self.menubar.addMenu("&File")
@@ -399,6 +404,7 @@ class ComtradeWidget(QWidget):
         menu_tools.addAction(self.action_harmonic_diagram)
         menu_tools.addAction(self.action_value_table)
         menu_tools.addAction(self.action_omp_map)
+        menu_tools.addAction(self.action_omp_save)
 
     def __mk_toolbar(self):
         # prepare
@@ -564,10 +570,29 @@ class ComtradeWidget(QWidget):
         VTWindow(self).exec_()
 
     def __do_omp_map(self):
-        if self.__sc_ptr_i is not None:
-            if not self.ompmapwin:
-                self.ompmapwin = OMPMapWindow(self)
-            self.ompmapwin.exec_()
+        if self.__sc_ptr_i is None:
+            return
+        if not self.ompmapwin:
+            self.ompmapwin = OMPMapWindow(self)
+        self.ompmapwin.exec_()
+
+    def __do_omp_save(self):
+        if self.__sc_ptr_i is None:
+            return
+        if not self.ompmapwin:
+            QMessageBox.critical(self, "OMP save error", "OMP map was not call somewhen")
+            return
+        if -1 in self.ompmapwin.map:
+            QMessageBox.critical(self, "OMP save error", "OMP map is not fully defined")
+            return
+        fn = QFileDialog.getSaveFileName(
+            self,
+            "Save OMP values",
+            str(pathlib.Path(self.osc.raw.cfg.filepath).with_suffix('.uim')),
+            "U,I mesurements (*.uim)"
+        )
+        if fn[0]:
+            self.ompmapwin.data_save(pathlib.Path(fn[0]))
 
     def resize_col_ctrl(self, dx: int):
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:
