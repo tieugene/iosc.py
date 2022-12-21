@@ -1,6 +1,6 @@
 """Mainwidget widget lists"""
 # 1. std
-from typing import Tuple
+from typing import Tuple, Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal, QMargins
 from PyQt5.QtGui import QDropEvent, QDragEnterEvent, QDragMoveEvent, QPainter
@@ -9,8 +9,9 @@ from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QScrollBar, QLab
 from QCustomPlot2 import QCustomPlot
 # 3. local
 import iosc.const
-from iosc.sig.widget.common import SignalBar, SignalBarList
+from iosc.sig.widget.common import SignalBar, SignalBarList, SignalSuit
 from iosc.sig.widget.ctrl import BarCtrlWidget
+from iosc.sig.widget.finder import FindDialog
 from iosc.sig.widget.top import TimeAxisPlot
 from iosc.sig.widget.bottom import TimeStampsPlot
 
@@ -78,12 +79,14 @@ class SignalBarTable(QTableWidget):
 
     oscwin: 'ComtradeWidget'
     bars: SignalBarList
+    __find_dialog: Optional[FindDialog]
 
     def __init__(self, oscwin: 'ComtradeWidget'):
         super().__init__()  # Parent will be QSplitter
         self.oscwin = oscwin
         self.setColumnCount(2)
         self.bars = list()
+        self.__find_dialog = None
         # self.horizontalHeader().setMinimumSectionSize(1)
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Fixed)
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
@@ -99,7 +102,7 @@ class SignalBarTable(QTableWidget):
         self.setStyle(self.DropmarkerStyle())
         # selection
         self.setSelectionMode(self.SelectionMode.NoSelection)  # default=SingleSelection
-        self.setStyleSheet("QTableWidget:focus {border: 3px solid blue;}")
+        self.setStyleSheet("QTableWidget:focus {border: 1px solid blue;}")
         # DnD
         # self.setDragEnabled(True)  # default=False
         self.setAcceptDrops(True)
@@ -210,6 +213,20 @@ class SignalBarTable(QTableWidget):
         for bar in self.bars:
             if not bar.is_bool():
                 bar.height = round(bar.height * mult)
+
+    def do_find_signal(self):
+        """
+        Open find signal dialog.
+        """
+        FindDialog(self).exec_()
+
+    def find_signal_worker(self, text: str) -> Optional[SignalSuit]:
+        """
+        :return:
+        """
+        for bar in self.bars:
+            if ss := bar.find_signal(text):
+                return ss
 
 
 class XScroller(QScrollBar):

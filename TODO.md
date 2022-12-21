@@ -8,6 +8,9 @@ Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
 - [x] 2.3.6.2. OMP save
 - […] 2.3.4.1. Find
   + [x] Highlight focused table
+  + [x] Highlight ss found
+  + [ ] Red if not found
+  + [ ] Scroll
 - [ ] 2.3.3.4. Cfg save
 - [ ] 2.3.3.5. Cfg load
 
