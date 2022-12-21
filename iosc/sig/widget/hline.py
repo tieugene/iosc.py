@@ -14,6 +14,7 @@ class HLine(QFrame):
         self.setGeometry(QRect(0, 0, 0, 0))  # size is not the matter
         self.setFrameShape(QFrame.HLine)
         self.setCursor(Qt.SplitVCursor)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
     def mouseMoveEvent(self, event: QMouseEvent):
         """accepted() == True, y() = Δy."""

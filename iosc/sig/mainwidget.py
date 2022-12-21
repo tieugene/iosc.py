@@ -505,7 +505,20 @@ class ComtradeWidget(QWidget):
         self.signal_unhide_all.emit()
 
     def __do_signal_find(self):
+        """
+        SignalBarTable:
+        - frameShape() == 6 (StyledPanel)
+        - frameWidth() == 2
+        - midLineWidth() == 0
+        :return:
+        """
         print("Find it")
+        print("1st table hasFocus:", self.analog_table.hasFocus())
+        # print("1st table focusPolicy:", self.analog_table.focusPolicy())  # 11
+        print("2nd table hasFocus:", self.status_table.hasFocus())
+        at = self.analog_table
+        at.setFocus()
+        print(at.hasFocus(), at.frameShape(), at.frameWidth(), at.midLineWidth())
 
     def __do_resize_y_all_inc(self):
         self.analog_table.resize_y_all(True)

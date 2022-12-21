@@ -198,6 +198,7 @@ class BarCtrlWidget(QWidget):
             self.setGeometry(QRect(0, 0, 0, 0))  # size is not the matter
             self.setFrameShape(QFrame.VLine)
             self.setCursor(Qt.SplitHCursor)
+            self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         def mouseMoveEvent(self, event: QMouseEvent):
             """accepted() == True, x() = Δx."""

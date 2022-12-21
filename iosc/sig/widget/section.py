@@ -94,16 +94,17 @@ class SignalBarTable(QTableWidget):
         self.verticalHeader().hide()
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.setVerticalScrollMode(self.ScrollPerPixel)
+        self.setVerticalScrollMode(self.ScrollMode.ScrollPerPixel)
         self.setShowGrid(False)
         self.setStyle(self.DropmarkerStyle())
         # selection
-        self.setSelectionMode(self.NoSelection)  # default=SingleSelection
+        self.setSelectionMode(self.SelectionMode.NoSelection)  # default=SingleSelection
+        self.setStyleSheet("QTableWidget:focus {border: 3px solid blue;}")
         # DnD
         # self.setDragEnabled(True)  # default=False
         self.setAcceptDrops(True)
         self.setDragDropOverwriteMode(False)
-        self.setDragDropMode(self.DropOnly)  # default=DragDrop
+        self.setDragDropMode(self.DragDropMode.DropOnly)  # default=DragDrop
         # signals/slot
         self.oscwin.signal_resize_col_ctrl.connect(self.__slot_resize_col_ctrl)
 
@@ -126,11 +127,11 @@ class SignalBarTable(QTableWidget):
         __index = self.indexAt(event.pos())  # isValid: T: on row, F: out
         if not __index.isValid():  # below last
             return self.rowCount(), False
-        if __dip == self.AboveItem:
+        if __dip == self.DropIndicatorPosition.AboveItem:
             return __index.row(), False
-        elif __dip == self.BelowItem:
+        elif __dip == self.DropIndicatorPosition.BelowItem:
             return __index.row() + 1, False
-        elif __dip == self.OnItem:
+        elif __dip == self.DropIndicatorPosition.OnItem:
             return __index.row(), True
         else:
             return -1, False
