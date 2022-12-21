@@ -2,7 +2,7 @@
 # 1. std
 from typing import Tuple, Optional
 # 2. 3rd
-from PyQt5.QtCore import Qt, pyqtSignal, QMargins
+from PyQt5.QtCore import Qt, pyqtSignal, QMargins, QModelIndex
 from PyQt5.QtGui import QDropEvent, QDragEnterEvent, QDragMoveEvent, QPainter
 from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QScrollBar, QLabel, QHBoxLayout, QProxyStyle, QStyle,\
     QStyleOption
@@ -226,6 +226,7 @@ class SignalBarTable(QTableWidget):
         """
         for bar in self.bars:
             if ss := bar.find_signal(text):
+                self.scrollTo(self.model().index(bar.row, 0))
                 return ss
 
 
