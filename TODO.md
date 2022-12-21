@@ -2,16 +2,30 @@
 
 Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
 
-- [x] 2.3.3.3. Export to CVS
-- [x] 2.3.6.5. Value table
-- [x] 2.3.6.1. OMP map
-- [x] 2.3.6.2. OMP save
-- [x] 2.3.4.1. Find
-  + [x] Highlight focused table
-  + [x] Highlight ss found
-  + [x] Red if not found
-  + [x] Scroll
-- [ ] 2.3.3.4. Cfg save
+- [ ] 2.3.3.4. Cfg save:
+  + [ ] Osc window:
+    - [ ] *Width*
+    - [ ] *Col widths*
+    - [ ] X-zoom
+    - [ ] X-position
+  + [ ] Tools (CVD, HD, OMP):
+    - [ ] Opened
+    - [ ] Content
+  + [ ] Mode:
+    - [ ] PorS
+    - [ ] ViewAs
+  + [ ] Bar (*in tables*):
+    - [ ] Signals:
+      + [ ] Shown
+      + [ ] *MsrPtrs*
+      + [ ] *LvlPtrs*
+    - [ ] Height
+    - [ ] Y-zoom
+    - [ ] *Y-position*
+  + [ ] Ptr positions:
+    - [ ] MainPtr
+    - [ ] *SC ptrs*
+    - [ ] *TmpPtrs*
 - [ ] 2.3.3.5. Cfg load
 
 ## Samples:

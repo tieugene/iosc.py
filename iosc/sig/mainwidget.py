@@ -252,16 +252,25 @@ class ComtradeWidget(QWidget):
         self.action_convert = QAction(QIcon.fromTheme("document-save-as"),
                                       "&Save as...",
                                       self,
-                                      shortcut="Ctrl+S",
                                       triggered=self.__do_file_convert)
+        self.action_csv = QAction("&Export to CSV",
+                                  self,
+                                  triggered=self.__do_file_csv)
+        self.action_cfg_save = QAction(QIcon.fromTheme("document-save"),
+                                       "&Save settings",
+                                       self,
+                                       shortcut="Ctrl+S",
+                                       triggered=self.__do_cfg_save)
+        self.action_cfg_load = QAction(QIcon.fromTheme("document-open"),
+                                       "&Load settings",
+                                       self,
+                                       shortcut="Ctrl+L",
+                                       triggered=self.__do_cfg_load)
         self.action_pdfout = QAction(svg_icon(ESvgSrc.PDF),
                                      "&Print...",
                                      self,
                                      shortcut="Ctrl+P",
                                      triggered=self.__print_preview.open)
-        self.action_csv = QAction("&Export to CSV",
-                                  self,
-                                  triggered=self.__do_file_csv)
         self.action_resize_y_in = QAction(svg_icon(ESvgSrc.VZoomIn),
                                           "Y-Resize +",
                                           self,
@@ -377,6 +386,8 @@ class ComtradeWidget(QWidget):
         menu_file.addAction(self.action_info)
         menu_file.addAction(self.action_convert)
         menu_file.addAction(self.action_csv)
+        menu_file.addAction(self.action_cfg_save)
+        menu_file.addAction(self.action_cfg_load)
         menu_file.addAction(self.action_pdfout)
         menu_file.addAction(self.action_close)
         menu_view = self.menubar.addMenu("&View")
@@ -500,6 +511,27 @@ class ComtradeWidget(QWidget):
         )
         if fn[0]:
             export_to_csv(self.osc, self.show_sec, pathlib.Path(fn[0]))
+
+    def __do_cfg_save(self):
+        fn = QFileDialog.getSaveFileName(
+            self,
+            "Save settings",
+            str(pathlib.Path(self.osc.raw.cfg.filepath).with_suffix('.ofg')),
+            "Oscillogramm configuration (*.ofg)"
+        )
+        if fn[0]:
+            ...  # stub
+            # export_to_csv(self.osc, self.show_sec, pathlib.Path(fn[0]))
+
+    def __do_cfg_load(self):
+        fn = QFileDialog.getSaveFileName(
+            self,
+            "Load settings",
+            str(pathlib.Path(self.osc.raw.cfg.filepath).parent),
+            "Oscillogramm configuration (*.ofg)"
+        )
+        if fn[0]:
+            ...  # stub
 
     def __do_unhide(self):
         self.signal_unhide_all.emit()
