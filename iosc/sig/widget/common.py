@@ -137,6 +137,11 @@ class SignalSuit(QObject):
                 ))
                 self.graph.parentPlot().replot()  # bad solution but ...
 
+    def set_highlight(self, v: bool):
+        if self._label:
+            if self._label.isSelected() != v:
+                self._label.setSelected(v)
+
 
 class StatusSignalSuit(SignalSuit):
     def __init__(self, signal: mycomtrade.StatusSignal, oscwin: 'ComtradeWidget'):
@@ -427,6 +432,11 @@ class SignalBar(QObject):
         self.ctrl.update_statusonly()
         self.gfx.update_statusonly()
         # TODO: update row height
+
+    def find_signal(self, text: str) -> Optional[SignalSuit]:
+        for ss in self.signals:
+            if text in ss.signal.sid:
+                return ss
 
 
 SignalBarList = List[SignalBar]  # custom type

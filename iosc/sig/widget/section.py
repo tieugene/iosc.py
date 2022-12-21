@@ -1,16 +1,17 @@
 """Mainwidget widget lists"""
 # 1. std
-from typing import Tuple
+from typing import Tuple, Optional
 # 2. 3rd
-from PyQt5.QtCore import Qt, pyqtSignal, QMargins
+from PyQt5.QtCore import Qt, pyqtSignal, QMargins, QModelIndex
 from PyQt5.QtGui import QDropEvent, QDragEnterEvent, QDragMoveEvent, QPainter
 from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QScrollBar, QLabel, QHBoxLayout, QProxyStyle, QStyle,\
     QStyleOption
 from QCustomPlot2 import QCustomPlot
 # 3. local
 import iosc.const
-from iosc.sig.widget.common import SignalBar, SignalBarList
+from iosc.sig.widget.common import SignalBar, SignalBarList, SignalSuit
 from iosc.sig.widget.ctrl import BarCtrlWidget
+from iosc.sig.widget.finder import FindDialog
 from iosc.sig.widget.top import TimeAxisPlot
 from iosc.sig.widget.bottom import TimeStampsPlot
 
@@ -78,12 +79,14 @@ class SignalBarTable(QTableWidget):
 
     oscwin: 'ComtradeWidget'
     bars: SignalBarList
+    __find_dialog: Optional[FindDialog]
 
     def __init__(self, oscwin: 'ComtradeWidget'):
         super().__init__()  # Parent will be QSplitter
         self.oscwin = oscwin
         self.setColumnCount(2)
         self.bars = list()
+        self.__find_dialog = None
         # self.horizontalHeader().setMinimumSectionSize(1)
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.Fixed)
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
@@ -94,16 +97,17 @@ class SignalBarTable(QTableWidget):
         self.verticalHeader().hide()
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.setVerticalScrollMode(self.ScrollPerPixel)
+        self.setVerticalScrollMode(self.ScrollMode.ScrollPerPixel)
         self.setShowGrid(False)
         self.setStyle(self.DropmarkerStyle())
         # selection
-        self.setSelectionMode(self.NoSelection)  # default=SingleSelection
+        self.setSelectionMode(self.SelectionMode.NoSelection)  # default=SingleSelection
+        self.setStyleSheet("QTableWidget:focus {border: 1px solid blue;}")
         # DnD
         # self.setDragEnabled(True)  # default=False
         self.setAcceptDrops(True)
         self.setDragDropOverwriteMode(False)
-        self.setDragDropMode(self.DropOnly)  # default=DragDrop
+        self.setDragDropMode(self.DragDropMode.DropOnly)  # default=DragDrop
         # signals/slot
         self.oscwin.signal_resize_col_ctrl.connect(self.__slot_resize_col_ctrl)
 
@@ -126,11 +130,11 @@ class SignalBarTable(QTableWidget):
         __index = self.indexAt(event.pos())  # isValid: T: on row, F: out
         if not __index.isValid():  # below last
             return self.rowCount(), False
-        if __dip == self.AboveItem:
+        if __dip == self.DropIndicatorPosition.AboveItem:
             return __index.row(), False
-        elif __dip == self.BelowItem:
+        elif __dip == self.DropIndicatorPosition.BelowItem:
             return __index.row() + 1, False
-        elif __dip == self.OnItem:
+        elif __dip == self.DropIndicatorPosition.OnItem:
             return __index.row(), True
         else:
             return -1, False
@@ -209,6 +213,21 @@ class SignalBarTable(QTableWidget):
         for bar in self.bars:
             if not bar.is_bool():
                 bar.height = round(bar.height * mult)
+
+    def do_find_signal(self):
+        """
+        Open find signal dialog.
+        """
+        FindDialog(self).exec_()
+
+    def find_signal_worker(self, text: str) -> Optional[SignalSuit]:
+        """
+        :return:
+        """
+        for bar in self.bars:
+            if ss := bar.find_signal(text):
+                self.scrollTo(self.model().index(bar.row, 0))
+                return ss
 
 
 class XScroller(QScrollBar):

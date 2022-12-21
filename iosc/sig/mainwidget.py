@@ -77,6 +77,7 @@ class ComtradeWidget(QWidget):
     action_value_table: QAction
     action_omp_map: QAction
     action_omp_save: QAction
+    action_signal_find: QAction
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
@@ -345,8 +346,12 @@ class ComtradeWidget(QWidget):
                                       shortcut="Ctrl+M",
                                       triggered=self.__do_omp_map)
         self.action_omp_save = QAction("OMP save",
-                                      self,
-                                      triggered=self.__do_omp_save)
+                                       self,
+                                       triggered=self.__do_omp_save)
+        self.action_signal_find = QAction("Find...",
+                                          self,
+                                          shortcut="Ctrl+F",
+                                          triggered=self.__do_signal_find)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
         self.action_shift.addAction(self.action_shift_yes)
@@ -393,8 +398,9 @@ class ComtradeWidget(QWidget):
         menu_view_viewas.addAction(self.action_viewas_hrm2)
         menu_view_viewas.addAction(self.action_viewas_hrm3)
         menu_view_viewas.addAction(self.action_viewas_hrm5)
-        menu_channel = self.menubar.addMenu("&Channel")
-        menu_channel.addAction(self.action_unhide)
+        menu_signal = self.menubar.addMenu("&Signal")
+        menu_signal.addAction(self.action_unhide)
+        menu_signal.addAction(self.action_signal_find)
         menu_ptr = self.menubar.addMenu("&Pointers")
         menu_ptr.addAction(self.action_ptr_add_tmp)
         menu_ptr.addAction(self.action_ptr_add_msr)
@@ -497,6 +503,19 @@ class ComtradeWidget(QWidget):
 
     def __do_unhide(self):
         self.signal_unhide_all.emit()
+
+    def __do_signal_find(self):
+        """
+        SignalBarTable:
+        - frameShape() == 6 (StyledPanel)
+        - frameWidth() == 2
+        - midLineWidth() == 0
+        :return:
+        """
+        for t in (self.analog_table, self.status_table):
+            if t.hasFocus():
+                t.do_find_signal()
+                break
 
     def __do_resize_y_all_inc(self):
         self.analog_table.resize_y_all(True)
