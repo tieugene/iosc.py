@@ -23,19 +23,25 @@ class FindDialog(QInputDialog):
             self.__ss_found.set_highlight(False)
             self.__ss_found = None
 
+    def __highlight_found(self, found: bool):
+        self.setStyleSheet('' if found else 'QInputDialog {background-color: red;}')
+
     def __slot_on_the_fly(self, text: str):
         if text:
             if ss := self.parent().find_signal_worker(text):  # found
                 # TODO: not red bg
+                self.__highlight_found(True)
                 if ss != self.__ss_found:
                     self.__deselect_old()
                     self.__ss_found = ss
                     self.__ss_found.set_highlight(True)
             else:  # not found
                 self.__deselect_old()
+                self.__highlight_found(False)
                 # TODO: red bg
         else:  # clear selection
             self.__deselect_old()
+            self.__highlight_found(True)
 
     def __slot_post_close(self, _: int):
         self.__deselect_old()
