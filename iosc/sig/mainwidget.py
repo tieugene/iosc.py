@@ -537,6 +537,9 @@ class ComtradeWidget(QWidget):
             data['tool'] = tool
         return data
 
+    def __cfg_restore(self, data: dict):
+        print(data)
+
     def __do_file_close(self):
         # self.close()  # close widget but not tab itself
         self.parent().parent().slot_tab_close(self.parent().indexOf(self))  # QStackedWidget.ComtradeTabWidget
@@ -598,18 +601,19 @@ class ComtradeWidget(QWidget):
             "Oscillogramm configuration (*.ofg)"
         )
         if fn[0]:
-            with open(fn[0], 'wt') as of:
-                json.dump(self.__ofg_store(), of, indent=2)
+            with open(fn[0], 'wt') as fp:
+                json.dump(self.__ofg_store(), fp, indent=2)
 
     def __do_cfg_load(self):
-        fn = QFileDialog.getSaveFileName(
+        fn = QFileDialog.getOpenFileName(
             self,
             "Load settings",
             str(pathlib.Path(self.osc.raw.cfg.filepath).parent),
             "Oscillogramm configuration (*.ofg)"
         )
         if fn[0]:
-            ...  # stub
+            with open(fn[0], 'rt') as fp:
+                self.__cfg_restore(json.load(fp))
 
     def __do_unhide(self):
         self.signal_unhide_all.emit()
