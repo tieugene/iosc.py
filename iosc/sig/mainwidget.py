@@ -538,6 +538,8 @@ class ComtradeWidget(QWidget):
         return data
 
     def __cfg_restore(self, data: dict):
+        if data['ver'] != iosc.const.OFG_VER:
+            QMessageBox.critical(self, "OFG loading error", f"Incompatible version: {data['ver']}")
         sss = [None] * len(self.osc.y)
         # 1. store SS' | detch them | drop bars
         for table in (self.analog_table, self.status_table):
@@ -554,6 +556,7 @@ class ComtradeWidget(QWidget):
                 for src_ss in src_bar['s']:
                     dst_bar.sig_add(sss[src_ss['i']])
                     # show, color, style, pointers
+                # height, yzoom
 
     def __do_file_close(self):
         # self.close()  # close widget but not tab itself
