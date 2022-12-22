@@ -186,3 +186,4 @@ Behavior:
   + [x] Highlight ss found
   + [x] Red if not found
   + [x] Scroll
+- [x] 2.3.3.4. Cfg save

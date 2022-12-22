@@ -138,6 +138,7 @@ class SignalSuit(QObject):
                 self.graph.parentPlot().replot()  # bad solution but ...
 
     def set_highlight(self, v: bool):
+        """Highlight signal label due 'Find' operation"""
         if self._label:
             if self._label.isSelected() != v:
                 self._label.setSelected(v)
@@ -434,8 +435,9 @@ class SignalBar(QObject):
         # TODO: update row height
 
     def find_signal(self, text: str) -> Optional[SignalSuit]:
+        """Try to find signal"""
         for ss in self.signals:
-            if text in ss.signal.sid:
+            if (not ss.hidden) and (text in ss.signal.sid):
                 return ss
 
 

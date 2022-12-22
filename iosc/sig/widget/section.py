@@ -225,7 +225,7 @@ class SignalBarTable(QTableWidget):
         :return:
         """
         for bar in self.bars:
-            if ss := bar.find_signal(text):
+            if (not bar.hidden) and (ss := bar.find_signal(text)):
                 self.scrollTo(self.model().index(bar.row, 0))
                 return ss
 
