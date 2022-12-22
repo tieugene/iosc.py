@@ -461,7 +461,9 @@ class ComtradeWidget(QWidget):
                 self.status_table.bar_insert().sig_add(StatusSignalSuit(sig, self))  # FIXME: default height
 
     def __ofg_store(self) -> dict:
+        """:todo: capsulate"""
         data = {
+            'ver': iosc.const.OFG_VER,
             'xzoom': self.x_zoom,
             'mode': {
                 'pors': self.show_sec,
@@ -492,7 +494,7 @@ class ComtradeWidget(QWidget):
                     s_data = {
                         'i': ss.signal.i,
                         'num': ss.num,  # ?
-                        'hidden': ss.hidden,
+                        'show': not ss.hidden,
                         'color': int(ss.color.rgba64()),
                     }
                     if not ss.signal.is_bool:
@@ -511,6 +513,28 @@ class ComtradeWidget(QWidget):
                 t_data.append(b_data)
             data['table'].append(t_data)
         # tools
+        tool = dict()
+        # - CDV
+        if self.cvdwin:
+            tool['cvd'] = {
+                'show': self.cvdwin.isVisible(),
+                'base': self.cvdwin.ss_base.signal.i,
+                'used': [ss.signal.i for ss in self.cvdwin.ss_used]
+            }
+        # - HD
+        if self.hdwin:
+            tool['hd'] = {
+                'show': self.hdwin.isVisible(),
+                'used': [ss.signal.i for ss in self.hdwin.ss_used]
+            }
+        # - OMP
+        if self.ompmapwin:
+            tool['omp'] = {
+                'show': self.ompmapwin.isVisible(),
+                'used': self.ompmapwin.map
+            }
+        if tool:
+            data['tool'] = tool
         return data
 
     def __do_file_close(self):  # FIXME: not closes tab

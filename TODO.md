@@ -3,10 +3,10 @@
 Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
 
 - [ ] 2.3.3.4. Cfg save:&hellip;
-  + [ ] Osc window:
+  + [?] Osc window:
     - [x] X-zoom:int
     - [ ] *Width:int*
-    - [ ] *Col widths:int*
+    - [ ] *Col1 widths:int*
     - [ ] *X-position:?*
   + [x] Mode:
     - [x] PorS:bool
@@ -16,9 +16,9 @@ Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
     - [x] MainPtr:&xi;
     - [x] *SC ptrs:&Xi;*
     - [x] *TmpPtrs:&Xi;[]*
-  + [ ] Bar (*in tables*):
-    - [ ] Signals:
-      + [x] Shown:bool
+  + [?] Bar (*in tables*):
+    - [x] Signals:
+      + [x] Show:bool
       + [x] *color:rgb*
       + [x] *style:enum*
       + [x] *MsrPtrs:&Xi;[]*
@@ -26,25 +26,21 @@ Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
     - [x] Height:int (px, A-sig)
     - [x] Y-zoom:int
     - [ ] *Y-position:?*
-  + [ ] Tools (CVD, HD, OMP):
-    - [ ] Opened:bool
-    - [ ] Content:&hellip;
+  + [x] Tools:
+    - [x] CVD:
+      + [x] Show:bool
+      + [x] Base:int
+      + [x] Selected:int[]
+    - [x] HD:
+      + [x] Show:bool
+      + [x] Selected:int[]
+    - [x] OMP:
+      + [x] Show:bool
+      + [x] Data:int[6]
+  + [ ] CRC:
+    + [ ] A-sigs
+    + [ ] B-sigs
+    + [ ] Samples
+    + [ ] Rate
+    + [ ] iz
 - [ ] 2.3.3.5. Cfg load
-
-## Samples:
-- QPrint:
-  - `itemviews/spreadseet/spreadsheet.py` (preview; QTableView().render(printer)
-  - ~~`orderform.py`~~ (print only, to pdf; QTextEdit().print_()
-  - ~~`textedit.py`~~ (preview; QTextEdit().print_())
-- [Print to PDF](https://wiki.qt.io/Exporting_a_document_to_PDF)
-- QPdfWriter:
-- [QGraphicsScene &rArr; QPrinter](https://www.qtcentre.org/threads/47972-Render-QGraphicsScene-to-a-QPrinter-to-export-PDF)
-- [FAQ 2](https://stackoverflow.com/questions/35034953/printing-qgraphicsscene-cuts-objects-in-half)
-
-## RTFM:
-- QSplineSeries
-- [spline](https://www.toptal.com/c-plus-plus/rounded-corners-bezier-curves-qpainter)
-- **QGraphicsGridLayout**
-- [disable transform](https://stackoverflow.com/questions/1222914/qgraphicsview-and-qgraphicsitem-don%C2%B4t-scale-item-when-scaling-the-view-rect)
-- [Scene border](https://www.qtcentre.org/threads/13814-how-to-enable-borders-in-QGraphicsScene)
-- [Tic align](https://www.qtcentre.org/threads/51168-QGraphicsTextItem-center-based-coordinates)
