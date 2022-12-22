@@ -493,7 +493,7 @@ class ComtradeWidget(QWidget):
                 for ss in bar.signals:
                     s_data = {
                         'i': ss.signal.i,
-                        'num': ss.num,  # ?
+                        'num': ss.num,  # FIXME: ?
                         'show': not ss.hidden,
                         'color': int(ss.color.rgba64()),
                     }
@@ -538,7 +538,22 @@ class ComtradeWidget(QWidget):
         return data
 
     def __cfg_restore(self, data: dict):
-        print(data)
+        sss = [None] * len(self.osc.y)
+        # 1. store SS' | detch them | drop bars
+        for table in (self.analog_table, self.status_table):
+            for bar in table.bars[::-1]:  # reverse order
+                for ss in bar.signals:
+                    sss[ss.signal.i] = ss
+                    ss.detach()
+                bar.suicide()
+        # 2. mk bars | add SS'
+        for ti, table in enumerate((self.analog_table, self.status_table)):
+            src_table = data['table'][ti]
+            for src_bar in src_table:
+                dst_bar = table.bar_insert()
+                for src_ss in src_bar['s']:
+                    dst_bar.sig_add(sss[src_ss['i']])
+                    # show, color, style, pointers
 
     def __do_file_close(self):
         # self.close()  # close widget but not tab itself
