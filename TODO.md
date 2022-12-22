@@ -6,6 +6,16 @@ Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
 
 ## Current:
 - [x] ver:str
+- [x] Bar:
+  + [x] Signals:
+    - [x] Show:bool
+    - [x] color:rgb
+    - [x] style:enum
+    - [x] MsrPtrs:&Xi;[]
+    - [x] LvlPtrs:float[] *(%)*
+  + [x] Height:int
+  + [x] Y-zoom:int
+  + [ ] ~Y-position:?~
 - [ ] Osc window:
   + [ ] X-zoom:int
   + [ ] ~Width:int~
@@ -19,16 +29,6 @@ Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
   + [ ] MainPtr:&xi;
   + [ ] SC ptrs:(&Xi;, width:int)
   + [ ] TmpPtrs:&Xi;[]
-- [ ] Bar *(in tables)*:
-  + [x] Signals:
-    - [ ] Show:bool
-    - [ ] *color:rgb*
-    - [ ] *style:enum*
-    - [ ] MsrPtrs:&Xi;[]
-    - [ ] LvlPtrs:float[] *(%)*
-  + [ ] Height:int (px, A-sig)
-  + [ ] Y-zoom:int
-  + [ ] ~Y-position:?~
 - [ ] Tools:
   + [ ] CVD:
     - [ ] Show:bool
@@ -49,8 +49,9 @@ Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
 
 ## Ideas:
 
-- ~~delete and reload bars and signals~~
-- detach signals + recreate bars:
+Detach signals + recreate bars:
+
+- Bars:
   1. collect and detach all SS'
   2. delete all bars
   3. add bar and attach SSs

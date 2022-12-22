@@ -6,7 +6,7 @@ import pathlib
 from typing import Any, Dict, Optional, List
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QCloseEvent, QHideEvent, QShowEvent
+from PyQt5.QtGui import QIcon, QCloseEvent, QHideEvent, QShowEvent, QColor, QRgba64
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QMenuBar, QToolBar, QAction, QMessageBox, QFileDialog,\
     QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
@@ -506,7 +506,7 @@ class ComtradeWidget(QWidget):
                             s_data['ptr_msr'] = ptrs
                         if ss.lvl_ptr:
                             ptrs = dict()
-                            for uid, v in ss.msr_ptr.items():
+                            for uid, v in ss.lvl_ptr.items():
                                 ptrs[uid] = v[1]
                             s_data['ptr_lvl'] = ptrs
                     b_data['s'].append(s_data)
@@ -538,6 +538,8 @@ class ComtradeWidget(QWidget):
         return data
 
     def __cfg_restore(self, data: dict):
+        """Restore osc from (.ofg.
+        :todo: capsulate"""
         if data['ver'] != iosc.const.OFG_VER:
             QMessageBox.critical(self, "OFG loading error", f"Incompatible version: {data['ver']}")
         sss = [None] * len(self.osc.y)
@@ -546,6 +548,11 @@ class ComtradeWidget(QWidget):
             for bar in table.bars[::-1]:  # reverse order
                 for ss in bar.signals:
                     sss[ss.signal.i] = ss
+                    if not ss.signal.is_bool:
+                        for uid in ss.msr_ptr.keys():  # TODO: check 'n/a'
+                            ss.del_ptr_msr(uid)
+                        for uid in ss.lvl_ptr.keys():  # TODO: check 'n/a'
+                            ss.del_ptr_lvl(uid)
                     ss.detach()
                 bar.suicide()
         # 2. mk bars | add SS'
@@ -554,9 +561,19 @@ class ComtradeWidget(QWidget):
             for src_bar in src_table:
                 dst_bar = table.bar_insert()
                 for src_ss in src_bar['s']:
-                    dst_bar.sig_add(sss[src_ss['i']])
-                    # show, color, style, pointers
-                # height, yzoom
+                    ss = sss[src_ss['i']]
+                    dst_bar.sig_add(ss)
+                    ss.hidden = not src_ss['show']  # show
+                    ss.color = QColor.fromRgba64(QRgba64.fromRgba64(src_ss['color']))  # color
+                    if not ss.signal.is_bool:
+                        ss.line_style = src_ss['style']  # style
+                        for uid, v in src_ss.get('ptr_msr', {}).items():
+                            ss.add_ptr_msr(int(uid), v['i'], v['f'])
+                        for uid, v in src_ss.get('ptr_lvl', {}).items():
+                            ss.add_ptr_lvl(int(uid), v)
+                if not dst_bar.is_bool():
+                    dst_bar.height = src_bar['h']  # height
+                    dst_bar.zoom_y = src_bar['yzoom']  # yzoom
 
     def __do_file_close(self):
         # self.close()  # close widget but not tab itself

@@ -279,13 +279,14 @@ class AnalogSignalSuit(SignalSuit):
         self._label.slot_update_value()
         self.graph.parentPlot().slot_rerange_y()
 
-    def add_ptr_msr(self, uid: int, i: int):
+    def add_ptr_msr(self, uid: int, i: int, f: Optional[int] = None):
         """Add new MsrPtr.
         Call from ComtradeWidget.
         :param uid: Uniq (throuh app) id
         :param i: X-index
+        :param f: Function number
         """
-        self.msr_ptr[uid] = [None, i, self.oscwin.viewas]
+        self.msr_ptr[uid] = [None, i, f if f is not None else self.oscwin.viewas]
         MsrPtr(self, uid)
 
     def del_ptr_msr(self, uid: int):  # TODO: detach itself at all
