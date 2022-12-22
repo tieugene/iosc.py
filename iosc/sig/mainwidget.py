@@ -537,7 +537,7 @@ class ComtradeWidget(QWidget):
             data['tool'] = tool
         return data
 
-    def __do_file_close(self):  # FIXME: not closes tab
+    def __do_file_close(self):
         # self.close()  # close widget but not tab itself
         self.parent().parent().slot_tab_close(self.parent().indexOf(self))  # QStackedWidget.ComtradeTabWidget
 
