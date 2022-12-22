@@ -1,6 +1,7 @@
 """Signal tab widget
 RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
+import json
 import pathlib
 from typing import Any, Dict, Optional, List
 # 2. 3rd
@@ -459,6 +460,59 @@ class ComtradeWidget(QWidget):
             else:
                 self.status_table.bar_insert().sig_add(StatusSignalSuit(sig, self))  # FIXME: default height
 
+    def __ofg_store(self) -> dict:
+        data = {
+            'xzoom': self.x_zoom,
+            'mode': {
+                'pors': self.show_sec,
+                'viewas': self.viewas,
+                'shift': self.__shifted,
+            },
+            'ptr': {
+                'main': self.__main_ptr_i
+            },
+            'table': list()
+        }
+        if self.__sc_ptr_i is not None:
+            data['ptr']['omp'] = {'i': self.__sc_ptr_i, 'w': self.__omp_width}
+        if self.__tmp_ptr_i:
+            tmp = {}
+            for uid, i in self.__tmp_ptr_i.items():
+                tmp[uid] = i
+            data['ptr']['tmp'] = tmp
+        # bars
+        for table in (self.analog_table, self.status_table):
+            t_data = list()
+            for bar in table.bars:
+                b_data = {'s': list()}
+                if not bar.is_bool():
+                    b_data['h'] = bar.height
+                    b_data['yzoom'] = bar.zoom_y
+                for ss in bar.signals:
+                    s_data = {
+                        'i': ss.signal.i,
+                        'num': ss.num,  # ?
+                        'hidden': ss.hidden,
+                        'color': int(ss.color.rgba64()),
+                    }
+                    if not ss.signal.is_bool:
+                        s_data['style'] = ss.line_style
+                        if ss.msr_ptr:
+                            ptrs = dict()
+                            for uid, v in ss.msr_ptr.items():
+                                ptrs[uid] = {'i': v[1], 'f': v[2]}
+                            s_data['ptr_msr'] = ptrs
+                        if ss.lvl_ptr:
+                            ptrs = dict()
+                            for uid, v in ss.msr_ptr.items():
+                                ptrs[uid] = v[1]
+                            s_data['ptr_lvl'] = ptrs
+                    b_data['s'].append(s_data)
+                t_data.append(b_data)
+            data['table'].append(t_data)
+        # tools
+        return data
+
     def __do_file_close(self):  # FIXME: not closes tab
         # self.close()  # close widget but not tab itself
         self.parent().parent().slot_tab_close(self.parent().indexOf(self))  # QStackedWidget.ComtradeTabWidget
@@ -520,8 +574,8 @@ class ComtradeWidget(QWidget):
             "Oscillogramm configuration (*.ofg)"
         )
         if fn[0]:
-            ...  # stub
-            # export_to_csv(self.osc, self.show_sec, pathlib.Path(fn[0]))
+            with open(fn[0], 'wt') as of:
+                json.dump(self.__ofg_store(), of, indent=2)
 
     def __do_cfg_load(self):
         fn = QFileDialog.getSaveFileName(

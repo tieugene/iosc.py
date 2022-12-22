@@ -2,30 +2,33 @@
 
 Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
 
-- [ ] 2.3.3.4. Cfg save:
+- [ ] 2.3.3.4. Cfg save:&hellip;
   + [ ] Osc window:
-    - [ ] *Width*
-    - [ ] *Col widths*
-    - [ ] X-zoom
-    - [ ] X-position
-  + [ ] Tools (CVD, HD, OMP):
-    - [ ] Opened
-    - [ ] Content
-  + [ ] Mode:
-    - [ ] PorS
-    - [ ] ViewAs
+    - [x] X-zoom:int
+    - [ ] *Width:int*
+    - [ ] *Col widths:int*
+    - [ ] *X-position:?*
+  + [x] Mode:
+    - [x] PorS:bool
+    - [x] ViewAs:enum
+    - [x] *Shifted/Y-centered:bool*
+  + [x] Ptr positions:
+    - [x] MainPtr:&xi;
+    - [x] *SC ptrs:&Xi;*
+    - [x] *TmpPtrs:&Xi;[]*
   + [ ] Bar (*in tables*):
     - [ ] Signals:
-      + [ ] Shown
-      + [ ] *MsrPtrs*
-      + [ ] *LvlPtrs*
-    - [ ] Height
-    - [ ] Y-zoom
-    - [ ] *Y-position*
-  + [ ] Ptr positions:
-    - [ ] MainPtr
-    - [ ] *SC ptrs*
-    - [ ] *TmpPtrs*
+      + [x] Shown:bool
+      + [x] *color:rgb*
+      + [x] *style:enum*
+      + [x] *MsrPtrs:&Xi;[]*
+      + [x] *LvlPtrs:?[]*
+    - [x] Height:int (px, A-sig)
+    - [x] Y-zoom:int
+    - [ ] *Y-position:?*
+  + [ ] Tools (CVD, HD, OMP):
+    - [ ] Opened:bool
+    - [ ] Content:&hellip;
 - [ ] 2.3.3.5. Cfg load
 
 ## Samples:
