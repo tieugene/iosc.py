@@ -14,7 +14,6 @@ from .const import FONT_MAIN
 # simple successors with some predefines
 class ThinPen(QPen):
     """Non-scalable QPen"""
-
     def __init__(self, color: Qt.GlobalColor, style: Qt.PenStyle = None):
         super().__init__(color)
         self.setCosmetic(True)
@@ -29,7 +28,7 @@ class PlainTextItem(QGraphicsSimpleTextItem):
     - not changed: boundingRect(), pos(), scenePos()
     - not call: deviceTransform(), itemTransform(), transform(), boundingRegion()
     - call: paint()
-    :todo: add align
+    :todo: add [align](https://www.qtcentre.org/threads/51168-QGraphicsTextItem-center-based-coordinates)
     """
 
     def __init__(self, txt: str, color: Qt.GlobalColor = None):

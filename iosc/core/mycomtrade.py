@@ -45,7 +45,7 @@ class Wrapper:
 
 class Signal(Wrapper):
     """Signal base."""
-    _i_: int
+    _i_: int  # Signal order number
     _is_bool: bool
     _raw2: Channel
     _value: np.array  # list of values

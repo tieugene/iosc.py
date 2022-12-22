@@ -1,6 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush, QColor, QFont, QPen
 
+OFG_VER = '1.0'
 COL0_WIDTH_INIT = 150  # width of Columnt 0 (SigCtrlView)
 COL0_WIDTH_MIN = 50
 XSCALE_HEIGHT = 24  # height of timeline widget, px

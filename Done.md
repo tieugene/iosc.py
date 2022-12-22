@@ -175,3 +175,14 @@ Behavior:
   + [x] Not refreshed (exec_ \[>slot_paint_request\])
   + [x] Ptrs on/off (local)
   + [x] Modal prn dialog
+
+## 0.3.3:
+- [x] 2.3.3.3. Export to CVS
+- [x] 2.3.6.5. Value table
+- [x] 2.3.6.1. OMP map
+- [x] 2.3.6.2. OMP save
+- [x] 2.3.4.1. Find
+  + [x] Highlight focused table
+  + [x] Highlight ss found
+  + [x] Red if not found
+  + [x] Scroll

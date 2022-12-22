@@ -1,6 +1,7 @@
 """Signal tab widget
 RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
+import json
 import pathlib
 from typing import Any, Dict, Optional, List
 # 2. 3rd
@@ -252,16 +253,25 @@ class ComtradeWidget(QWidget):
         self.action_convert = QAction(QIcon.fromTheme("document-save-as"),
                                       "&Save as...",
                                       self,
-                                      shortcut="Ctrl+S",
                                       triggered=self.__do_file_convert)
+        self.action_csv = QAction("&Export to CSV",
+                                  self,
+                                  triggered=self.__do_file_csv)
+        self.action_cfg_save = QAction(QIcon.fromTheme("document-save"),
+                                       "&Save settings",
+                                       self,
+                                       shortcut="Ctrl+S",
+                                       triggered=self.__do_cfg_save)
+        self.action_cfg_load = QAction(QIcon.fromTheme("document-open"),
+                                       "&Load settings",
+                                       self,
+                                       shortcut="Ctrl+L",
+                                       triggered=self.__do_cfg_load)
         self.action_pdfout = QAction(svg_icon(ESvgSrc.PDF),
                                      "&Print...",
                                      self,
                                      shortcut="Ctrl+P",
                                      triggered=self.__print_preview.open)
-        self.action_csv = QAction("&Export to CSV",
-                                  self,
-                                  triggered=self.__do_file_csv)
         self.action_resize_y_in = QAction(svg_icon(ESvgSrc.VZoomIn),
                                           "Y-Resize +",
                                           self,
@@ -377,6 +387,8 @@ class ComtradeWidget(QWidget):
         menu_file.addAction(self.action_info)
         menu_file.addAction(self.action_convert)
         menu_file.addAction(self.action_csv)
+        menu_file.addAction(self.action_cfg_save)
+        menu_file.addAction(self.action_cfg_load)
         menu_file.addAction(self.action_pdfout)
         menu_file.addAction(self.action_close)
         menu_view = self.menubar.addMenu("&View")
@@ -448,6 +460,83 @@ class ComtradeWidget(QWidget):
             else:
                 self.status_table.bar_insert().sig_add(StatusSignalSuit(sig, self))  # FIXME: default height
 
+    def __ofg_store(self) -> dict:
+        """:todo: capsulate"""
+        data = {
+            'ver': iosc.const.OFG_VER,
+            'xzoom': self.x_zoom,
+            'mode': {
+                'pors': self.show_sec,
+                'viewas': self.viewas,
+                'shift': self.__shifted,
+            },
+            'ptr': {
+                'main': self.__main_ptr_i
+            },
+            'table': list()
+        }
+        if self.__sc_ptr_i is not None:
+            data['ptr']['omp'] = {'i': self.__sc_ptr_i, 'w': self.__omp_width}
+        if self.__tmp_ptr_i:
+            tmp = {}
+            for uid, i in self.__tmp_ptr_i.items():
+                tmp[uid] = i
+            data['ptr']['tmp'] = tmp
+        # bars
+        for table in (self.analog_table, self.status_table):
+            t_data = list()
+            for bar in table.bars:
+                b_data = {'s': list()}
+                if not bar.is_bool():
+                    b_data['h'] = bar.height
+                    b_data['yzoom'] = bar.zoom_y
+                for ss in bar.signals:
+                    s_data = {
+                        'i': ss.signal.i,
+                        'num': ss.num,  # ?
+                        'show': not ss.hidden,
+                        'color': int(ss.color.rgba64()),
+                    }
+                    if not ss.signal.is_bool:
+                        s_data['style'] = ss.line_style
+                        if ss.msr_ptr:
+                            ptrs = dict()
+                            for uid, v in ss.msr_ptr.items():
+                                ptrs[uid] = {'i': v[1], 'f': v[2]}
+                            s_data['ptr_msr'] = ptrs
+                        if ss.lvl_ptr:
+                            ptrs = dict()
+                            for uid, v in ss.msr_ptr.items():
+                                ptrs[uid] = v[1]
+                            s_data['ptr_lvl'] = ptrs
+                    b_data['s'].append(s_data)
+                t_data.append(b_data)
+            data['table'].append(t_data)
+        # tools
+        tool = dict()
+        # - CDV
+        if self.cvdwin:
+            tool['cvd'] = {
+                'show': self.cvdwin.isVisible(),
+                'base': self.cvdwin.ss_base.signal.i,
+                'used': [ss.signal.i for ss in self.cvdwin.ss_used]
+            }
+        # - HD
+        if self.hdwin:
+            tool['hd'] = {
+                'show': self.hdwin.isVisible(),
+                'used': [ss.signal.i for ss in self.hdwin.ss_used]
+            }
+        # - OMP
+        if self.ompmapwin:
+            tool['omp'] = {
+                'show': self.ompmapwin.isVisible(),
+                'used': self.ompmapwin.map
+            }
+        if tool:
+            data['tool'] = tool
+        return data
+
     def __do_file_close(self):  # FIXME: not closes tab
         # self.close()  # close widget but not tab itself
         self.parent().parent().slot_tab_close(self.parent().indexOf(self))  # QStackedWidget.ComtradeTabWidget
@@ -500,6 +589,27 @@ class ComtradeWidget(QWidget):
         )
         if fn[0]:
             export_to_csv(self.osc, self.show_sec, pathlib.Path(fn[0]))
+
+    def __do_cfg_save(self):
+        fn = QFileDialog.getSaveFileName(
+            self,
+            "Save settings",
+            str(pathlib.Path(self.osc.raw.cfg.filepath).with_suffix('.ofg')),
+            "Oscillogramm configuration (*.ofg)"
+        )
+        if fn[0]:
+            with open(fn[0], 'wt') as of:
+                json.dump(self.__ofg_store(), of, indent=2)
+
+    def __do_cfg_load(self):
+        fn = QFileDialog.getSaveFileName(
+            self,
+            "Load settings",
+            str(pathlib.Path(self.osc.raw.cfg.filepath).parent),
+            "Oscillogramm configuration (*.ofg)"
+        )
+        if fn[0]:
+            ...  # stub
 
     def __do_unhide(self):
         self.signal_unhide_all.emit()
