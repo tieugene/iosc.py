@@ -543,7 +543,8 @@ class ComtradeWidget(QWidget):
         if data['ver'] != iosc.const.OFG_VER:
             QMessageBox.critical(self, "OFG loading error", f"Incompatible version: {data['ver']}")
         sss = [None] * len(self.osc.y)
-        # 1. store SS' | detch them | drop bars
+        # 1. clean
+        # 1.1. store SS' | detch them | drop bars
         for table in (self.analog_table, self.status_table):
             for bar in table.bars[::-1]:  # reverse order
                 for ss in bar.signals:
@@ -555,7 +556,10 @@ class ComtradeWidget(QWidget):
                             ss.del_ptr_lvl(uid)
                     ss.detach()
                 bar.suicide()
-        # 2. mk bars | add SS'
+        # 1.2. Tmp ptrs
+        # 1.3. Tools
+        # 2. Restore
+        # 2.1. mk bars | add SS'
         for ti, table in enumerate((self.analog_table, self.status_table)):
             src_table = data['table'][ti]
             for src_bar in src_table:
@@ -574,6 +578,12 @@ class ComtradeWidget(QWidget):
                 if not dst_bar.is_bool():
                     dst_bar.height = src_bar['h']  # height
                     dst_bar.zoom_y = src_bar['yzoom']  # yzoom
+        # 2.0. Window
+        self.x_zoom = data['xzoom']
+        self.__update_xzoom_actions()
+        self.signal_x_zoom.emit()
+        # 2.2. Tmp ptrs
+        # 2.3. Tools
 
     def __do_file_close(self):
         # self.close()  # close widget but not tab itself
@@ -680,15 +690,20 @@ class ComtradeWidget(QWidget):
         self.action_zoom_x_out.setEnabled(self.x_zoom < (len(iosc.const.X_PX_WIDTH_uS) - 1))
 
     def __do_xzoom(self, dxz: int = 0):
+        """Change X-zoom by dxz.
+        :param dxz: Delta-xzoom: -1/1 - decrease/increase, 0 = ... (todo)
+        """
         if 0 <= self.x_zoom + dxz < len(iosc.const.X_PX_WIDTH_uS):
             self.x_zoom += dxz
             self.__update_xzoom_actions()
             self.signal_x_zoom.emit()
 
     def __do_xzoom_in(self):
+        """X-zoom in action"""
         self.__do_xzoom(-1)
 
     def __do_xzoom_out(self):
+        """X-zoom out action"""
         self.__do_xzoom(1)
 
     def __do_shift(self, _: QAction):

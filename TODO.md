@@ -16,8 +16,8 @@ Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
   + [x] Height:int
   + [x] Y-zoom:int
   + [ ] ~Y-position:?~
-- [ ] Osc window:
-  + [ ] X-zoom:int
+- [x] Osc window:
+  + [x] X-zoom:int
   + [ ] ~Width:int~
   + [ ] ~Col1 widths:int~
   + [ ] ~X-position:?~
