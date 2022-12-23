@@ -21,13 +21,13 @@ Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
   + [ ] ~Width:int~
   + [ ] ~Col1 widths:int~
   + [ ] ~X-position:?~
-- [ ] Mode:
-  + [ ] PorS:bool
-  + [ ] ViewAs:enum
-  + [ ] Shifted/Y-centered:bool
+- [x] Mode:
+  + [x] PorS:bool
+  + [x] ViewAs:enum
+  + [x] Shifted/Y-centered:bool
 - [ ] Ptr positions:
-  + [ ] MainPtr:&xi;
-  + [ ] SC ptrs:(&Xi;, width:int)
+  + [x] MainPtr:&xi;
+  + [x] SC ptrs:(&Xi;, width:int)
   + [ ] TmpPtrs:&Xi;[]
 - [ ] Tools:
   + [ ] CVD:

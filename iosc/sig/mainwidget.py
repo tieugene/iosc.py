@@ -596,7 +596,11 @@ class ComtradeWidget(QWidget):
         act.setChecked(True)
         self.__do_viewas(act)
         # - MainPtr
+        self.slot_ptr_moved_main(data['ptr']['main'])
         # - SC ptrs
+        if self.__sc_ptr_i is not None:
+            self.slot_ptr_moved_sc(data['ptr']['omp']['i'])
+            # TODO: width
         # 2.3. Tmp ptrs
         # 2.4. Tools
 
