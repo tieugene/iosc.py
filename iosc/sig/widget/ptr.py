@@ -4,7 +4,7 @@ from typing import Optional
 from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal
 from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor, QPen
 from PyQt5.QtWidgets import QWidget, QMenu
-from QCustomPlot2 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect, QCPGraph
+from QCustomPlot_PyQt5 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect, QCPGraph
 # 3. local
 import iosc.const
 from iosc.sig.widget.dialog import get_new_omp_width, MsrPtrDialog, LvlPtrDialog

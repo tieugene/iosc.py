@@ -31,10 +31,10 @@ View/analyze comtrade oscillograms
 #### Linux:
 ```bash
 # RH-based (last rpm is hand-made):
-dnf install python3-numpy python3-chardet python3-qcustomplot2
+dnf install python3-numpy python3-chardet python3-qcustomplot-pyqt5
 # Debian-based:
 apt install python3-numpy python3-chardet python3-pyqt5
-# TODO: python3-qcustomplot2
+# TODO: python3-qcustomplot-pyqt5
 ```
 
 #### macOS
