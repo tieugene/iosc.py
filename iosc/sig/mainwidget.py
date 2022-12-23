@@ -559,7 +559,6 @@ class ComtradeWidget(QWidget):
                             ss.del_ptr_lvl(uid)
                     ss.detach()
                 bar.suicide()
-        # 1.3. Tools
         # 2. Restore
         # 2.1. mk bars | add SS'
         for ti, table in enumerate((self.analog_table, self.status_table)):
