@@ -138,6 +138,7 @@ class SignalSuit(QObject):
                 self.graph.parentPlot().replot()  # bad solution but ...
 
     def set_highlight(self, v: bool):
+        """Highlight signal label due 'Find' operation"""
         if self._label:
             if self._label.isSelected() != v:
                 self._label.setSelected(v)
@@ -278,13 +279,14 @@ class AnalogSignalSuit(SignalSuit):
         self._label.slot_update_value()
         self.graph.parentPlot().slot_rerange_y()
 
-    def add_ptr_msr(self, uid: int, i: int):
+    def add_ptr_msr(self, uid: int, i: int, f: Optional[int] = None):
         """Add new MsrPtr.
         Call from ComtradeWidget.
         :param uid: Uniq (throuh app) id
         :param i: X-index
+        :param f: Function number
         """
-        self.msr_ptr[uid] = [None, i, self.oscwin.viewas]
+        self.msr_ptr[uid] = [None, i, f if f is not None else self.oscwin.viewas]
         MsrPtr(self, uid)
 
     def del_ptr_msr(self, uid: int):  # TODO: detach itself at all
@@ -434,8 +436,9 @@ class SignalBar(QObject):
         # TODO: update row height
 
     def find_signal(self, text: str) -> Optional[SignalSuit]:
+        """Try to find signal"""
         for ss in self.signals:
-            if text in ss.signal.sid:
+            if (not ss.hidden) and (text in ss.signal.sid):
                 return ss
 
 

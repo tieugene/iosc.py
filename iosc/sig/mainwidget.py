@@ -6,7 +6,7 @@ import pathlib
 from typing import Any, Dict, Optional, List
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QCloseEvent, QHideEvent, QShowEvent
+from PyQt5.QtGui import QIcon, QCloseEvent, QHideEvent, QShowEvent, QColor, QRgba64
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QMenuBar, QToolBar, QAction, QMessageBox, QFileDialog,\
     QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
@@ -476,11 +476,11 @@ class ComtradeWidget(QWidget):
             'table': list()
         }
         if self.__sc_ptr_i is not None:
-            data['ptr']['omp'] = {'i': self.__sc_ptr_i, 'w': self.__omp_width}
+            data['ptr']['omp'] = {'xi': self.__sc_ptr_i, 'w': self.__omp_width}
         if self.__tmp_ptr_i:
-            tmp = {}
+            tmp = []
             for uid, i in self.__tmp_ptr_i.items():
-                tmp[uid] = i
+                tmp.append({'uid': uid, 'xi': i})
             data['ptr']['tmp'] = tmp
         # bars
         for table in (self.analog_table, self.status_table):
@@ -493,21 +493,21 @@ class ComtradeWidget(QWidget):
                 for ss in bar.signals:
                     s_data = {
                         'i': ss.signal.i,
-                        'num': ss.num,  # ?
+                        'num': ss.num,  # FIXME: ×?
                         'show': not ss.hidden,
                         'color': int(ss.color.rgba64()),
                     }
                     if not ss.signal.is_bool:
                         s_data['style'] = ss.line_style
                         if ss.msr_ptr:
-                            ptrs = dict()
+                            ptrs = []
                             for uid, v in ss.msr_ptr.items():
-                                ptrs[uid] = {'i': v[1], 'f': v[2]}
+                                ptrs.append({'uid': uid, 'xi': v[1], 'f': v[2]})
                             s_data['ptr_msr'] = ptrs
                         if ss.lvl_ptr:
-                            ptrs = dict()
-                            for uid, v in ss.msr_ptr.items():
-                                ptrs[uid] = v[1]
+                            ptrs = []
+                            for uid, v in ss.lvl_ptr.items():
+                                ptrs.append({'uid': uid, 'y': v[1]})
                             s_data['ptr_lvl'] = ptrs
                     b_data['s'].append(s_data)
                 t_data.append(b_data)
@@ -536,6 +536,131 @@ class ComtradeWidget(QWidget):
         if tool:
             data['tool'] = tool
         return data
+
+    def __cfg_restore(self, data: dict):
+        """Restore osc from (.ofg.
+        :todo: capsulate"""
+        if data['ver'] != iosc.const.OFG_VER:
+            QMessageBox.critical(self, "OFG loading error", f"Incompatible version: {data['ver']}")
+        # 1. clean
+        # 1.1. Tmp ptrs
+        for uid in self.__tmp_ptr_i.keys():
+            self.slot_ptr_del_tmp(uid)
+        # 1.2. store SS' | detch them | drop bars
+        sss = [None] * len(self.osc.y)
+        for table in (self.analog_table, self.status_table):
+            for bar in table.bars[::-1]:  # reverse order
+                for ss in bar.signals:
+                    sss[ss.signal.i] = ss
+                    if not ss.signal.is_bool:
+                        for uid in ss.msr_ptr.keys():  # TODO: check 'n/a'
+                            ss.del_ptr_msr(uid)
+                        for uid in ss.lvl_ptr.keys():  # TODO: check 'n/a'
+                            ss.del_ptr_lvl(uid)
+                    ss.detach()
+                bar.suicide()
+        # 1.3. Tools
+        # 2. Restore
+        # 2.1. mk bars | add SS'
+        for ti, table in enumerate((self.analog_table, self.status_table)):
+            src_table = data['table'][ti]
+            for src_bar in src_table:
+                dst_bar = table.bar_insert()
+                for src_ss in src_bar['s']:
+                    ss = sss[src_ss['i']]
+                    dst_bar.sig_add(ss)
+                    ss.hidden = not src_ss['show']  # show
+                    ss.color = QColor.fromRgba64(QRgba64.fromRgba64(src_ss['color']))  # color
+                    if not ss.signal.is_bool:
+                        ss.line_style = src_ss['style']  # style
+                        for ptr in src_ss.get('ptr_msr', []):  # MsrPtr
+                            ss.add_ptr_msr(ptr['uid'], ptr['xi'], ptr['f'])
+                        for ptr in src_ss.get('ptr_lvl', []):  # LvlPtr
+                            ss.add_ptr_lvl(ptr['uid'], ptr['y'])
+                if not dst_bar.is_bool():
+                    dst_bar.height = src_bar['h']  # height
+                    dst_bar.zoom_y = src_bar['yzoom']  # yzoom
+        # 2.1. Window
+        self.__update_xzoom(data['xzoom'])  # - x-zoom
+        # - modes
+        # -- shift
+        if data['mode']['shift']:
+            self.action_shift_yes.setChecked(True)
+        else:
+            self.action_shift_not.setChecked(True)
+        # -- pors
+        if data['mode']['pors']:
+            self.action_pors_sec.setChecked(True)
+        else:
+            self.action_pors_pri.setChecked(True)
+        # -- viewas
+        act = self.action_viewas.actions()[data['mode']['viewas']]
+        act.setChecked(True)
+        self.__do_viewas(act)
+        # 2.2. Ptrs
+        # - MainPtr
+        self.slot_ptr_moved_main(data['ptr']['main'])
+        # - SC ptrs
+        if self.__sc_ptr_i is not None:
+            self.slot_ptr_moved_sc(data['ptr']['omp']['xi'])  # TODO: width
+        # - Tmp ptrs
+        for ptr in data['ptr'].get('tmp', []):
+            self.__ptr_add_tmp(ptr['uid'], ptr['xi'])
+        # 2.3. Tools
+        if 'tool' in data:
+            # - CVD
+            if src := data['tool'].get('cvd'):
+                if not self.cvdwin:
+                    self.cvdwin = CVDWindow(self)
+                self.cvdwin.ss_used.clear()
+                for i in src['used']:
+                    self.cvdwin.ss_used.append(self.ass_list[i])
+                self.cvdwin.ss_base = self.ass_list[src['base']]
+                self.cvdwin.chart.reload_signals()
+                self.cvdwin.table.reload_signals()
+                if src['show']:
+                    self.__do_vector_diagram()
+                # FIXME: signals visibility
+            # - HD
+            if src := data['tool'].get('hd'):
+                if not self.hdwin:
+                    self.hdwin = HDWindow(self)
+                self.hdwin.ss_used.clear()
+                for i in src['used']:
+                    self.hdwin.ss_used.append(self.ass_list[i])
+                self.hdwin.table.reload_signals()
+                if src['show']:
+                    self.__do_harmonic_diagram()
+            # - OMP map
+            if src := data['tool'].get('omp'):
+                if not self.ompmapwin:
+                    self.ompmapwin = OMPMapWindow(self)
+                for i, j in enumerate(src['used']):  # TODO: chk 'None's
+                    self.ompmapwin.map[i] = j
+                self.ompmapwin.exec_1 = False
+                if src['show']:
+                    self.__do_omp_map()
+
+    def __update_xzoom_actions(self):
+        """Set X-zoom actions availability"""
+        self.action_zoom_x_in.setEnabled(self.x_zoom > 0)
+        self.action_zoom_x_out.setEnabled(self.x_zoom < (len(iosc.const.X_PX_WIDTH_uS) - 1))
+
+    def __update_xzoom(self, xz):
+        """Change X-zoom.
+        :param xz: New X-zoom value
+        :todo: add force:bool=False
+        """
+        if (xz != self.x_zoom) and (0 <= xz < len(iosc.const.X_PX_WIDTH_uS)):
+            self.x_zoom = xz
+            self.__update_xzoom_actions()
+            self.signal_x_zoom.emit()
+
+    def __ptr_add_tmp(self, uid: int, i: int):
+        """:todo: optional name:str"""
+        self.__tmp_ptr_i[uid] = i
+        self.signal_ptr_add_tmp.emit(uid)  # create them ...
+        # self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
 
     def __do_file_close(self):
         # self.close()  # close widget but not tab itself
@@ -598,18 +723,19 @@ class ComtradeWidget(QWidget):
             "Oscillogramm configuration (*.ofg)"
         )
         if fn[0]:
-            with open(fn[0], 'wt') as of:
-                json.dump(self.__ofg_store(), of, indent=2)
+            with open(fn[0], 'wt') as fp:
+                json.dump(self.__ofg_store(), fp, indent=2)
 
     def __do_cfg_load(self):
-        fn = QFileDialog.getSaveFileName(
+        fn = QFileDialog.getOpenFileName(
             self,
             "Load settings",
             str(pathlib.Path(self.osc.raw.cfg.filepath).parent),
             "Oscillogramm configuration (*.ofg)"
         )
         if fn[0]:
-            ...  # stub
+            with open(fn[0], 'rt') as fp:
+                self.__cfg_restore(json.load(fp))
 
     def __do_unhide(self):
         self.signal_unhide_all.emit()
@@ -635,22 +761,13 @@ class ComtradeWidget(QWidget):
         self.analog_table.resize_y_all(False)
         self.status_table.resize_y_all(False)
 
-    def __update_xzoom_actions(self):
-        """Set X-zoom actions availability"""
-        self.action_zoom_x_in.setEnabled(self.x_zoom > 0)
-        self.action_zoom_x_out.setEnabled(self.x_zoom < (len(iosc.const.X_PX_WIDTH_uS) - 1))
-
-    def __do_xzoom(self, dxz: int = 0):
-        if 0 <= self.x_zoom + dxz < len(iosc.const.X_PX_WIDTH_uS):
-            self.x_zoom += dxz
-            self.__update_xzoom_actions()
-            self.signal_x_zoom.emit()
-
     def __do_xzoom_in(self):
-        self.__do_xzoom(-1)
+        """X-zoom in action"""
+        self.__update_xzoom(self.x_zoom-1)
 
     def __do_xzoom_out(self):
-        self.__do_xzoom(1)
+        """X-zoom out action"""
+        self.__update_xzoom(self.x_zoom+1)
 
     def __do_shift(self, _: QAction):
         self.osc.shifted = self.action_shift_yes.isChecked()
@@ -661,15 +778,12 @@ class ComtradeWidget(QWidget):
         self.signal_chged_pors.emit()
 
     def __do_viewas(self, a: QAction):
-        self.viewas = a.data()
         self.viewas_toolbutton.setDefaultAction(a)
+        self.viewas = a.data()
         self.signal_chged_func.emit()
 
     def __do_ptr_add_tmp(self):
-        uid = max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1  # generate new uid
-        self.__tmp_ptr_i[uid] = self.__main_ptr_i
-        self.signal_ptr_add_tmp.emit(uid)  # create them ...
-        # self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
+        self.__ptr_add_tmp(max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1, self.__main_ptr_i)
 
     def __do_ptr_add_msr(self):
         if ss_selected := SelectSignalsDialog(self.ass_list).execute():

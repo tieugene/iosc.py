@@ -45,7 +45,7 @@ class Wrapper:
 
 class Signal(Wrapper):
     """Signal base."""
-    _i_: int  # Signal order number
+    _i_: int  # Signal order number (through analog > status)
     _is_bool: bool
     _raw2: Channel
     _value: np.array  # list of values
@@ -80,7 +80,7 @@ class StatusSignal(Signal):
     _is_bool = True
 
     def __init__(self, raw: Comtrade, i: int):
-        super().__init__(raw, raw.cfg.status_channels[i], i)
+        super().__init__(raw, raw.cfg.status_channels[i], i + raw.cfg.analog_count)
         self._value = self._raw.status[i]
 
     @property
