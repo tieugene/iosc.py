@@ -608,6 +608,20 @@ class ComtradeWidget(QWidget):
         for uid, i in data['ptr'].get('tmp', {}).items():
             self.__ptr_add_tmp(int(uid), i)
         # 2.3. Tools
+        if 'tool' in data:
+            # - CVD
+            if src := data['tool'].get('cvd'):
+                if not self.cvdwin:
+                    self.cvdwin = CVDWindow(self)
+                self.cvdwin.ss_used.clear()
+                for i in src['used']:
+                    self.cvdwin.ss_used.append(self.ass_list[i])
+                self.cvdwin.ss_base = self.ass_list[src['base']]
+                self.cvdwin.chart.reload_signals()
+                self.cvdwin.table.reload_signals()
+                if src['show']:
+                    self.__do_vector_diagram()
+                # FIXME: signals visibility
 
     def __update_xzoom_actions(self):
         """Set X-zoom actions availability"""
@@ -751,8 +765,7 @@ class ComtradeWidget(QWidget):
         self.signal_chged_func.emit()
 
     def __do_ptr_add_tmp(self):
-        uid = max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1  # generate new uid
-        self.__ptr_add_tmp(uid, self.__main_ptr_i)
+        self.__ptr_add_tmp(max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1, self.__main_ptr_i)
 
     def __do_ptr_add_msr(self):
         if ss_selected := SelectSignalsDialog(self.ass_list).execute():

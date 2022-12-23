@@ -30,10 +30,10 @@ Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
   + [x] SC ptrs:(&Xi;, width:int)
   + [x] TmpPtrs:&Xi;[]
 - [ ] Tools:
-  + [ ] CVD:
-    - [ ] Show:bool
-    - [ ] Base:int
-    - [ ] Used:int[]
+  + [x] CVD:
+    - [x] Show:bool
+    - [x] Base:int
+    - [x] Used:int[]
   + [ ] HD:
     - [ ] Show:bool
     - [ ] Used:int[]
