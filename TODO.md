@@ -3,6 +3,7 @@
 Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
 
 - [ ] 2.3.3.5. Cfg load
+
 &times;
 ## Current:
 - [x] ver:str
@@ -29,7 +30,7 @@ Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
   + [x] MainPtr:&xi;
   + [x] SC ptrs:(&Xi;, width:int)
   + [x] TmpPtrs:&Xi;[]
-- [ ] Tools:
+- [x] Tools:
   + [x] CVD:
     - [x] Show:bool
     - [x] Base:int
@@ -37,9 +38,9 @@ Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
   + [x] HD:
     - [x] Show:bool
     - [x] Used:int[]
-  + [ ] OMP:
-    - [ ] Show:bool
-    - [ ] Used:int[6]
+  + [x] OMP:
+    - [x] Show:bool
+    - [x] Used:int[6]
 - [ ] ~CRC~:
   - [ ] A-sigs:int
   - [ ] B-sigs:int

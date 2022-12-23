@@ -622,7 +622,7 @@ class ComtradeWidget(QWidget):
                 if src['show']:
                     self.__do_vector_diagram()
                 # FIXME: signals visibility
-            # - CVD
+            # - HD
             if src := data['tool'].get('hd'):
                 if not self.hdwin:
                     self.hdwin = HDWindow(self)
@@ -632,6 +632,15 @@ class ComtradeWidget(QWidget):
                 self.hdwin.table.reload_signals()
                 if src['show']:
                     self.__do_harmonic_diagram()
+            # - OMP map
+            if src := data['tool'].get('omp'):
+                if not self.ompmapwin:
+                    self.ompmapwin = OMPMapWindow(self)
+                for i, j in enumerate(src['used']):  # TODO: chk 'None's
+                    self.ompmapwin.map[i] = j
+                self.ompmapwin.exec_1 = False
+                if src['show']:
+                    self.__do_omp_map()
 
     def __update_xzoom_actions(self):
         """Set X-zoom actions availability"""

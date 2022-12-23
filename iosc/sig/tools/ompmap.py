@@ -39,13 +39,13 @@ class OMPMapWindow(QDialog):
     oscwin: 'ComtradeWidget'
     __button_box: QDialogButtonBox
     __map: List[int]  # map itself
-    __exec_1: bool  # Indicates 1st exec_
+    exec_1: bool  # Indicates 1st exec_
 
     def __init__(self, parent: 'ComtradeWidget'):
         super().__init__(parent)
         self.oscwin = parent
         self.__map = [-1] * 6
-        self.__exec_1 = True
+        self.exec_1 = True
         self.setWindowTitle("OMP Map")
         self.__mk_widgets()
         self.__data_autofill()
@@ -132,8 +132,8 @@ class OMPMapWindow(QDialog):
             self.__data_store()
 
     def exec_(self) -> int:
-        if self.__exec_1:
-            self.__exec_1 = False
+        if self.exec_1:
+            self.exec_1 = False
         else:
             self.__data_restore()
         return super().exec_()
