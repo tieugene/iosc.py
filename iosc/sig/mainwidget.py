@@ -622,6 +622,16 @@ class ComtradeWidget(QWidget):
                 if src['show']:
                     self.__do_vector_diagram()
                 # FIXME: signals visibility
+            # - CVD
+            if src := data['tool'].get('hd'):
+                if not self.hdwin:
+                    self.hdwin = HDWindow(self)
+                self.hdwin.ss_used.clear()
+                for i in src['used']:
+                    self.hdwin.ss_used.append(self.ass_list[i])
+                self.hdwin.table.reload_signals()
+                if src['show']:
+                    self.__do_harmonic_diagram()
 
     def __update_xzoom_actions(self):
         """Set X-zoom actions availability"""

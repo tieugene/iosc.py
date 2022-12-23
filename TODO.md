@@ -34,9 +34,9 @@ Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
     - [x] Show:bool
     - [x] Base:int
     - [x] Used:int[]
-  + [ ] HD:
-    - [ ] Show:bool
-    - [ ] Used:int[]
+  + [x] HD:
+    - [x] Show:bool
+    - [x] Used:int[]
   + [ ] OMP:
     - [ ] Show:bool
     - [ ] Used:int[6]
