@@ -500,14 +500,14 @@ class ComtradeWidget(QWidget):
                     if not ss.signal.is_bool:
                         s_data['style'] = ss.line_style
                         if ss.msr_ptr:
-                            ptrs = dict()
+                            ptrs = []
                             for uid, v in ss.msr_ptr.items():
-                                ptrs[uid] = {'i': v[1], 'f': v[2]}  # FIXME: {'uid': ...}
+                                ptrs.append({'uid': uid, 'xi': v[1], 'f': v[2]})
                             s_data['ptr_msr'] = ptrs
                         if ss.lvl_ptr:
-                            ptrs = dict()
+                            ptrs = []
                             for uid, v in ss.lvl_ptr.items():
-                                ptrs[uid] = v[1]  # FIXME: {'uid': ...}
+                                ptrs.append({'uid': uid, 'y': v[1]})
                             s_data['ptr_lvl'] = ptrs
                     b_data['s'].append(s_data)
                 t_data.append(b_data)
@@ -573,10 +573,10 @@ class ComtradeWidget(QWidget):
                     ss.color = QColor.fromRgba64(QRgba64.fromRgba64(src_ss['color']))  # color
                     if not ss.signal.is_bool:
                         ss.line_style = src_ss['style']  # style
-                        for uid, v in src_ss.get('ptr_msr', {}).items():
-                            ss.add_ptr_msr(int(uid), v['i'], v['f'])
-                        for uid, v in src_ss.get('ptr_lvl', {}).items():
-                            ss.add_ptr_lvl(int(uid), v)
+                        for ptr in src_ss.get('ptr_msr', []):  # MsrPtr
+                            ss.add_ptr_msr(ptr['uid'], ptr['xi'], ptr['f'])
+                        for ptr in src_ss.get('ptr_lvl', []):  # LvlPtr
+                            ss.add_ptr_lvl(ptr['uid'], ptr['y'])
                 if not dst_bar.is_bool():
                     dst_bar.height = src_bar['h']  # height
                     dst_bar.zoom_y = src_bar['yzoom']  # yzoom
