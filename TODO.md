@@ -3,7 +3,7 @@
 Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
 
 - [ ] 2.3.3.5. Cfg load
-
+&times;
 ## Current:
 - [x] ver:str
 - [x] Bar:
@@ -25,10 +25,10 @@ Current job: [0.3.3. Misc](https://github.com/tieugene/iosc.py/milestone/15)
   + [x] PorS:bool
   + [x] ViewAs:enum
   + [x] Shifted/Y-centered:bool
-- [ ] Ptr positions:
+- [x] Ptr:
   + [x] MainPtr:&xi;
   + [x] SC ptrs:(&Xi;, width:int)
-  + [ ] TmpPtrs:&Xi;[]
+  + [x] TmpPtrs:&Xi;[]
 - [ ] Tools:
   + [ ] CVD:
     - [ ] Show:bool

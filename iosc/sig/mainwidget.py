@@ -480,7 +480,7 @@ class ComtradeWidget(QWidget):
         if self.__tmp_ptr_i:
             tmp = {}
             for uid, i in self.__tmp_ptr_i.items():
-                tmp[uid] = i
+                tmp[uid] = i  # FIXME: {'uid': ..., 'xi': ...}
             data['ptr']['tmp'] = tmp
         # bars
         for table in (self.analog_table, self.status_table):
@@ -493,7 +493,7 @@ class ComtradeWidget(QWidget):
                 for ss in bar.signals:
                     s_data = {
                         'i': ss.signal.i,
-                        'num': ss.num,  # FIXME: ?
+                        'num': ss.num,  # FIXME: ×?
                         'show': not ss.hidden,
                         'color': int(ss.color.rgba64()),
                     }
@@ -502,12 +502,12 @@ class ComtradeWidget(QWidget):
                         if ss.msr_ptr:
                             ptrs = dict()
                             for uid, v in ss.msr_ptr.items():
-                                ptrs[uid] = {'i': v[1], 'f': v[2]}
+                                ptrs[uid] = {'i': v[1], 'f': v[2]}  # FIXME: {'uid': ...}
                             s_data['ptr_msr'] = ptrs
                         if ss.lvl_ptr:
                             ptrs = dict()
                             for uid, v in ss.lvl_ptr.items():
-                                ptrs[uid] = v[1]
+                                ptrs[uid] = v[1]  # FIXME: {'uid': ...}
                             s_data['ptr_lvl'] = ptrs
                     b_data['s'].append(s_data)
                 t_data.append(b_data)
@@ -542,9 +542,12 @@ class ComtradeWidget(QWidget):
         :todo: capsulate"""
         if data['ver'] != iosc.const.OFG_VER:
             QMessageBox.critical(self, "OFG loading error", f"Incompatible version: {data['ver']}")
-        sss = [None] * len(self.osc.y)
         # 1. clean
-        # 1.1. store SS' | detch them | drop bars
+        # 1.1. Tmp ptrs
+        for uid in self.__tmp_ptr_i.keys():
+            self.slot_ptr_del_tmp(uid)
+        # 1.2. store SS' | detch them | drop bars
+        sss = [None] * len(self.osc.y)
         for table in (self.analog_table, self.status_table):
             for bar in table.bars[::-1]:  # reverse order
                 for ss in bar.signals:
@@ -556,7 +559,6 @@ class ComtradeWidget(QWidget):
                             ss.del_ptr_lvl(uid)
                     ss.detach()
                 bar.suicide()
-        # 1.2. Tmp ptrs
         # 1.3. Tools
         # 2. Restore
         # 2.1. mk bars | add SS'
@@ -595,14 +597,17 @@ class ComtradeWidget(QWidget):
         act = self.action_viewas.actions()[data['mode']['viewas']]
         act.setChecked(True)
         self.__do_viewas(act)
+        # 2.2. Ptrs
         # - MainPtr
         self.slot_ptr_moved_main(data['ptr']['main'])
         # - SC ptrs
         if self.__sc_ptr_i is not None:
             self.slot_ptr_moved_sc(data['ptr']['omp']['i'])
             # TODO: width
-        # 2.3. Tmp ptrs
-        # 2.4. Tools
+        # - Tmp ptrs
+        for uid, i in data['ptr'].get('tmp', {}).items():
+            self.__ptr_add_tmp(int(uid), i)
+        # 2.3. Tools
 
     def __update_xzoom_actions(self):
         """Set X-zoom actions availability"""
@@ -618,6 +623,12 @@ class ComtradeWidget(QWidget):
             self.x_zoom = xz
             self.__update_xzoom_actions()
             self.signal_x_zoom.emit()
+
+    def __ptr_add_tmp(self, uid: int, i: int):
+        """:todo: optional name:str"""
+        self.__tmp_ptr_i[uid] = i
+        self.signal_ptr_add_tmp.emit(uid)  # create them ...
+        # self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
 
     def __do_file_close(self):
         # self.close()  # close widget but not tab itself
@@ -741,9 +752,7 @@ class ComtradeWidget(QWidget):
 
     def __do_ptr_add_tmp(self):
         uid = max(self.__tmp_ptr_i.keys()) + 1 if self.__tmp_ptr_i.keys() else 1  # generate new uid
-        self.__tmp_ptr_i[uid] = self.__main_ptr_i
-        self.signal_ptr_add_tmp.emit(uid)  # create them ...
-        # self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
+        self.__ptr_add_tmp(uid, self.__main_ptr_i)
 
     def __do_ptr_add_msr(self):
         if ss_selected := SelectSignalsDialog(self.ass_list).execute():
