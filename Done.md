@@ -188,3 +188,6 @@ Behavior:
   + [x] Scroll
 - [x] 2.3.3.4. Cfg save
 - [x] 2.3.3.5. Cfg load
+- [x] Fixes:
+  + [x] 2&times;CRLF @ Windows
+  + [x] MsrPtr/LvlPtr wrongs save

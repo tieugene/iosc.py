@@ -493,7 +493,7 @@ class ComtradeWidget(QWidget):
                 for ss in bar.signals:
                     s_data = {
                         'i': ss.signal.i,
-                        'num': ss.num,  # FIXME: ×?
+                        # 'num': ss.num,  # FIXME: ×?
                         'show': not ss.hidden,
                         'color': int(ss.color.rgba64()),
                     }
@@ -502,12 +502,12 @@ class ComtradeWidget(QWidget):
                         if ss.msr_ptr:
                             ptrs = []
                             for uid, v in ss.msr_ptr.items():
-                                ptrs.append({'uid': uid, 'xi': v[1], 'f': v[2]})
+                                ptrs.append({'uid': uid, 'xi': v[0].i, 'f': v[2]})
                             s_data['ptr_msr'] = ptrs
                         if ss.lvl_ptr:
                             ptrs = []
                             for uid, v in ss.lvl_ptr.items():
-                                ptrs.append({'uid': uid, 'y': v[1]})
+                                ptrs.append({'uid': uid, 'y': v[0].y_reduced})
                             s_data['ptr_lvl'] = ptrs
                     b_data['s'].append(s_data)
                 t_data.append(b_data)
@@ -553,13 +553,12 @@ class ComtradeWidget(QWidget):
                 for ss in bar.signals:
                     sss[ss.signal.i] = ss
                     if not ss.signal.is_bool:
-                        for uid in ss.msr_ptr.keys():  # TODO: check 'n/a'
+                        for uid in tuple(ss.msr_ptr.keys()):  # fix dynamic
                             ss.del_ptr_msr(uid)
-                        for uid in ss.lvl_ptr.keys():  # TODO: check 'n/a'
+                        for uid in tuple(ss.lvl_ptr.keys()):  # fix dynamic
                             ss.del_ptr_lvl(uid)
                     ss.detach()
                 bar.suicide()
-        # 1.3. Tools
         # 2. Restore
         # 2.1. mk bars | add SS'
         for ti, table in enumerate((self.analog_table, self.status_table)):
