@@ -8,7 +8,7 @@ from iosc.core import mycomtrade
 
 
 def export_to_csv(osc: mycomtrade.MyComtrade, pors: bool, dst: pathlib.Path):
-    with open(dst, 'w') as csvfile:
+    with open(dst, 'wt', newline='') as csvfile:
         csv_writer = csv.writer(csvfile, delimiter=';')
         # 1. header
         h1 = ["Sample N", "Relative time", "Astronomic time"]
