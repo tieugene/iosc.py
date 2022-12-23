@@ -578,12 +578,42 @@ class ComtradeWidget(QWidget):
                 if not dst_bar.is_bool():
                     dst_bar.height = src_bar['h']  # height
                     dst_bar.zoom_y = src_bar['yzoom']  # yzoom
-        # 2.0. Window
-        self.x_zoom = data['xzoom']
-        self.__update_xzoom_actions()
-        self.signal_x_zoom.emit()
-        # 2.2. Tmp ptrs
-        # 2.3. Tools
+        # 2.1. Window
+        self.__update_xzoom(data['xzoom'])  # - x-zoom
+        # - modes
+        # -- shift
+        if data['mode']['shift']:
+            self.action_shift_yes.setChecked(True)
+        else:
+            self.action_shift_not.setChecked(True)
+        # -- pors
+        if data['mode']['pors']:
+            self.action_pors_sec.setChecked(True)
+        else:
+            self.action_pors_pri.setChecked(True)
+        # -- viewas
+        act = self.action_viewas.actions()[data['mode']['viewas']]
+        act.setChecked(True)
+        self.__do_viewas(act)
+        # - MainPtr
+        # - SC ptrs
+        # 2.3. Tmp ptrs
+        # 2.4. Tools
+
+    def __update_xzoom_actions(self):
+        """Set X-zoom actions availability"""
+        self.action_zoom_x_in.setEnabled(self.x_zoom > 0)
+        self.action_zoom_x_out.setEnabled(self.x_zoom < (len(iosc.const.X_PX_WIDTH_uS) - 1))
+
+    def __update_xzoom(self, xz):
+        """Change X-zoom.
+        :param xz: New X-zoom value
+        :todo: add force:bool=False
+        """
+        if (xz != self.x_zoom) and (0 <= xz < len(iosc.const.X_PX_WIDTH_uS)):
+            self.x_zoom = xz
+            self.__update_xzoom_actions()
+            self.signal_x_zoom.emit()
 
     def __do_file_close(self):
         # self.close()  # close widget but not tab itself
@@ -684,27 +714,13 @@ class ComtradeWidget(QWidget):
         self.analog_table.resize_y_all(False)
         self.status_table.resize_y_all(False)
 
-    def __update_xzoom_actions(self):
-        """Set X-zoom actions availability"""
-        self.action_zoom_x_in.setEnabled(self.x_zoom > 0)
-        self.action_zoom_x_out.setEnabled(self.x_zoom < (len(iosc.const.X_PX_WIDTH_uS) - 1))
-
-    def __do_xzoom(self, dxz: int = 0):
-        """Change X-zoom by dxz.
-        :param dxz: Delta-xzoom: -1/1 - decrease/increase, 0 = ... (todo)
-        """
-        if 0 <= self.x_zoom + dxz < len(iosc.const.X_PX_WIDTH_uS):
-            self.x_zoom += dxz
-            self.__update_xzoom_actions()
-            self.signal_x_zoom.emit()
-
     def __do_xzoom_in(self):
         """X-zoom in action"""
-        self.__do_xzoom(-1)
+        self.__update_xzoom(self.x_zoom-1)
 
     def __do_xzoom_out(self):
         """X-zoom out action"""
-        self.__do_xzoom(1)
+        self.__update_xzoom(self.x_zoom+1)
 
     def __do_shift(self, _: QAction):
         self.osc.shifted = self.action_shift_yes.isChecked()
@@ -715,8 +731,8 @@ class ComtradeWidget(QWidget):
         self.signal_chged_pors.emit()
 
     def __do_viewas(self, a: QAction):
-        self.viewas = a.data()
         self.viewas_toolbutton.setDefaultAction(a)
+        self.viewas = a.data()
         self.signal_chged_func.emit()
 
     def __do_ptr_add_tmp(self):
