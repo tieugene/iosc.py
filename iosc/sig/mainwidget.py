@@ -476,11 +476,11 @@ class ComtradeWidget(QWidget):
             'table': list()
         }
         if self.__sc_ptr_i is not None:
-            data['ptr']['omp'] = {'i': self.__sc_ptr_i, 'w': self.__omp_width}
+            data['ptr']['omp'] = {'xi': self.__sc_ptr_i, 'w': self.__omp_width}
         if self.__tmp_ptr_i:
-            tmp = {}
+            tmp = []
             for uid, i in self.__tmp_ptr_i.items():
-                tmp[uid] = i  # FIXME: {'uid': ..., 'xi': ...}
+                tmp.append({'uid': uid, 'xi': i})
             data['ptr']['tmp'] = tmp
         # bars
         for table in (self.analog_table, self.status_table):
@@ -602,11 +602,10 @@ class ComtradeWidget(QWidget):
         self.slot_ptr_moved_main(data['ptr']['main'])
         # - SC ptrs
         if self.__sc_ptr_i is not None:
-            self.slot_ptr_moved_sc(data['ptr']['omp']['i'])
-            # TODO: width
+            self.slot_ptr_moved_sc(data['ptr']['omp']['xi'])  # TODO: width
         # - Tmp ptrs
-        for uid, i in data['ptr'].get('tmp', {}).items():
-            self.__ptr_add_tmp(int(uid), i)
+        for ptr in data['ptr'].get('tmp', []):
+            self.__ptr_add_tmp(ptr['uid'], ptr['xi'])
         # 2.3. Tools
         if 'tool' in data:
             # - CVD
