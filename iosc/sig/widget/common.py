@@ -7,7 +7,7 @@ from typing import Optional, Union, List
 from PyQt5.QtCore import QObject, pyqtSignal, QMargins, Qt
 from PyQt5.QtGui import QPen, QColor, QBrush
 from PyQt5.QtWidgets import QWidget
-from QCustomPlot2 import QCPGraph, QCPScatterStyle, QCustomPlot, QCPRange
+from QCustomPlot_PyQt5 import QCPGraph, QCPScatterStyle, QCustomPlot, QCPRange
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade

@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt, pyqtSignal, QMargins, QModelIndex
 from PyQt5.QtGui import QDropEvent, QDragEnterEvent, QDragMoveEvent, QPainter
 from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QScrollBar, QLabel, QHBoxLayout, QProxyStyle, QStyle,\
     QStyleOption
-from QCustomPlot2 import QCustomPlot
+from QCustomPlot_PyQt5 import QCustomPlot
 # 3. local
 import iosc.const
 from iosc.sig.widget.common import SignalBar, SignalBarList, SignalSuit

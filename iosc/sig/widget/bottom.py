@@ -1,7 +1,7 @@
 import datetime
 # 2. 3rd
 from PyQt5.QtCore import QMargins, Qt
-from QCustomPlot2 import QCPItemText
+from QCustomPlot_PyQt5 import QCPItemText
 # 4. local
 import iosc.const
 from iosc.sig.widget.common import OneBarPlot

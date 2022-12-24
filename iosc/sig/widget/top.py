@@ -1,7 +1,7 @@
 # 2. 3rd
 from PyQt5.QtCore import QMargins, Qt, pyqtSignal
 from PyQt5.QtGui import QResizeEvent
-from QCustomPlot2 import QCPItemText, QCPAxis, QCPAxisTickerFixed
+from QCustomPlot_PyQt5 import QCPItemText, QCPAxis, QCPAxisTickerFixed
 # 3. local
 import iosc.const
 from iosc.sig.widget.common import OneBarPlot

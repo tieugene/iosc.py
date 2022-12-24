@@ -6,7 +6,7 @@ from typing import Optional
 from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QLabel, QWidget, QScrollBar, QGridLayout
-from QCustomPlot2 import QCustomPlot, QCPGraph, QCPAxisTickerFixed
+from QCustomPlot_PyQt5 import QCustomPlot, QCPGraph, QCPAxisTickerFixed
 # 3. local
 import iosc.const
 from iosc.sig.widget.hline import HLine
