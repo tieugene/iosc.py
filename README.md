@@ -7,7 +7,7 @@ View/analyze comtrade oscillograms
   - [numpy](https://numpy.org/)
   - [chardet](https://github.com/chardet/chardet)
   - [PyQt5](https://www.riverbankcomputing.com/software/pyqt/)
-  - [QCustomPlot2-PyQt5](https://pypi.org/project/QCustomPlot2/)
+  - [QCustomPlot-PyQt5](https://pypi.org/project/QCustomPlot-PyQt5/)
 
 ## Includes
 - [python-comtrade](https://github.com/dparrini/python-comtrade)
@@ -44,3 +44,5 @@ brew install python3
 pip3 install numpy chardet
 ```
 &hellip; and install `QCustomPlot_PyQt5` according to [documentation](https://github.com/salsergey/QCustomPlot-PyQt#macos).
+
+## [Specification](https://github.com/michDaven/AbScan-TechReq)
