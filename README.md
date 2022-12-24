@@ -25,7 +25,7 @@ View/analyze comtrade oscillograms
 1. Download and install [Python3](https://www.python.org/downloads/windows/)
 2. Add required python packages (cmd.exe as admin):
    ```shell
-   pip install numpy chardet QCustomPlot2
+   pip install numpy chardet QCustomPlot_PyQt5
    ```
 
 #### Linux:
@@ -41,5 +41,6 @@ apt install python3-numpy python3-chardet python3-pyqt5
 (with [homebrew](https://brew.sh/)):
 ```bash
 brew install python3
-pip3 install numpy chardet QCustomPlot2
+pip3 install numpy chardet
 ```
+&hellip; and install `QCustomPlot_PyQt5` according to [documentation](https://github.com/salsergey/QCustomPlot-PyQt#macos).
