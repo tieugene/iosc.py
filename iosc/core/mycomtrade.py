@@ -269,6 +269,10 @@ class MyComtrade(Wrapper):
         return self.x[-1] - self.x[0]
 
     @property
+    def x_count(self) -> int:
+        return len(self.x)
+
+    @property
     def rate(self) -> float:
         return self._raw.cfg.sample_rates[0][0]
 

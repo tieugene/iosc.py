@@ -73,6 +73,8 @@ class ComtradeWidget(QWidget):
     action_ptr_add_tmp: QAction
     action_ptr_add_msr: QAction
     action_ptr_add_lvl: QAction
+    action_mainptr_l: QAction
+    action_mainptr_r: QAction
     action_vector_diagram: QAction
     action_harmonic_diagram: QAction
     action_value_table: QAction
@@ -338,6 +340,14 @@ class ComtradeWidget(QWidget):
         self.action_ptr_add_lvl = QAction("Add level pointers",
                                           self,
                                           triggered=self.__do_ptr_add_lvl)
+        self.action_mainptr_l = QAction("Move main ptr left",
+                                        self,
+                                        shortcut="Left",
+                                        triggered=self.__do_mainptr_l)
+        self.action_mainptr_r = QAction("Move main ptr right",
+                                        self,
+                                        shortcut="Right",
+                                        triggered=self.__do_mainptr_r)
         self.action_vector_diagram = QAction("Vector chart",
                                              self,
                                              shortcut="Ctrl+V",
@@ -417,6 +427,8 @@ class ComtradeWidget(QWidget):
         menu_ptr.addAction(self.action_ptr_add_tmp)
         menu_ptr.addAction(self.action_ptr_add_msr)
         menu_ptr.addAction(self.action_ptr_add_lvl)
+        menu_ptr.addAction(self.action_mainptr_l)
+        menu_ptr.addAction(self.action_mainptr_r)
         menu_tools = self.menubar.addMenu("&Tools")
         menu_tools.addAction(self.action_vector_diagram)
         menu_tools.addAction(self.action_harmonic_diagram)
@@ -795,6 +807,14 @@ class ComtradeWidget(QWidget):
             for i in ss_selected:
                 uid = max(self.lvl_ptr_uids) + 1 if self.lvl_ptr_uids else 1
                 self.ass_list[i].add_ptr_lvl(uid)
+
+    def __do_mainptr_l(self):
+        if self.__main_ptr_i > 0:
+            self.slot_ptr_moved_main(self.__main_ptr_i - 1)
+
+    def __do_mainptr_r(self):
+        if self.__main_ptr_i < (self.osc.x_count - 1):
+            self.slot_ptr_moved_main(self.__main_ptr_i + 1)
 
     def __do_vector_diagram(self):
         if not self.cvdwin:
