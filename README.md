@@ -36,6 +36,7 @@ dnf install python3-numpy python3-chardet python3-qcustomplot-pyqt5
 apt install python3-numpy python3-chardet python3-pyqt5
 # TODO: python3-qcustomplot-pyqt5
 ```
+Required packages can be installed from correspondent [repo](https://build.opensuse.org/package/show/home:sergeyopensuse:gpxviewer/python-qcustomplot2).
 
 #### macOS
 (with [homebrew](https://brew.sh/)):
