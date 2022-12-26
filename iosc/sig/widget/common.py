@@ -6,7 +6,7 @@ from typing import Optional, Union, List
 # 2. 3rd
 from PyQt5.QtCore import QObject, pyqtSignal, QMargins, Qt
 from PyQt5.QtGui import QPen, QColor, QBrush
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QScrollBar, QLabel, QHBoxLayout
 from QCustomPlot_PyQt5 import QCPGraph, QCPScatterStyle, QCustomPlot, QCPRange
 # 3. local
 import iosc.const
@@ -54,6 +54,38 @@ class OneBarPlot(QCustomPlot):
     def slot_rerange_force(self):
         self.slot_rerange()
         self.replot()
+
+
+class OneRowBar(QWidget):
+    class RStub(QScrollBar):
+        def __init__(self, parent: 'OneRowBar' = None):
+            super().__init__(Qt.Vertical, parent)
+            self.setFixedHeight(0)
+
+    _label: QLabel
+    plot: QCustomPlot
+
+    def __init__(self, parent: 'ComtradeWidget'):
+        super().__init__(parent)
+        self._label = QLabel(self)
+
+    def _post_init(self):
+        # layout
+        self.setLayout(QHBoxLayout())
+        self.layout().addWidget(self._label)
+        self.layout().addWidget(self.plot)
+        self.layout().addWidget(self.RStub())
+        self.layout().addWidget(self.RStub())
+        # squeeze
+        self.layout().setContentsMargins(QMargins())
+        self.layout().setSpacing(0)
+        self._label.setContentsMargins(QMargins())
+        # init sizes
+        self.__slot_resize_col_ctrl(self.parent().col_ctrl_width)
+        self.parent().signal_resize_col_ctrl.connect(self.__slot_resize_col_ctrl)
+
+    def __slot_resize_col_ctrl(self, x: int):
+        self._label.setFixedWidth(x + iosc.const.LINE_CELL_SIZE)
 
 
 class SignalSuit(QObject):

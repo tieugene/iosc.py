@@ -4,7 +4,7 @@ from PyQt5.QtGui import QResizeEvent
 from QCustomPlot_PyQt5 import QCPItemText, QCPAxis, QCPAxisTickerFixed
 # 3. local
 import iosc.const
-from iosc.sig.widget.common import OneBarPlot
+from iosc.sig.widget.common import OneBarPlot, OneRowBar
 
 
 class PtrLabel(QCPItemText):
@@ -115,3 +115,11 @@ class TimeAxisPlot(OneBarPlot):
         self.removeItem(self._tmp_ptr[uid])
         del self._tmp_ptr[uid]
         self.replot()
+
+
+class TimeAxisBar(OneRowBar):
+    def __init__(self, parent: 'ComtradeWidget'):
+        super().__init__(parent)
+        self._label.setText('ms')
+        self.plot = TimeAxisPlot(self)
+        self._post_init()
