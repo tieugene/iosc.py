@@ -7,23 +7,23 @@ from PyQt5.QtSvg import QSvgRenderer
 
 vzoom_in = '''<?xml version="1.0" encoding="utf-8"?>
 <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-    <polyline points="5,6 10,1 15,6" stroke-width="1" stroke="black" fill="none"/>
-    <polyline points="5,14 10,19 15,14" stroke-width="1" stroke="black" fill="none"/>
+    <polyline points="5,6 10,1 15,6" stroke-width="1" stroke="currentColor" fill="none"/>
+    <polyline points="5,14 10,19 15,14" stroke-width="1" stroke="currentColor" fill="none"/>
 </svg>'''
 vzoom_out = '''<?xml version="1.0" encoding="utf-8"?>
 <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-    <polyline points="5,1 10,6 15,1" stroke-width="1" stroke="black" fill="none"/>
-    <polyline points="5,19 10,14 15,19" stroke-width="1" stroke="black" fill="none"/>
+    <polyline points="5,1 10,6 15,1" stroke-width="1" stroke="currentColor" fill="none"/>
+    <polyline points="5,19 10,14 15,19" stroke-width="1" stroke="currentColor" fill="none"/>
 </svg>'''
 hzoom_in = '''<?xml version="1.0" encoding="utf-8"?>
 <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-    <polyline points="6,5 1,10 6,15" stroke-width="1" stroke="black" fill="none"/>
-    <polyline points="14,5 19,10 14,15" stroke-width="1" stroke="black" fill="none"/>
+    <polyline points="6,5 1,10 6,15" stroke-width="1" stroke="currentColor" fill="none"/>
+    <polyline points="14,5 19,10 14,15" stroke-width="1" stroke="currentColor" fill="none"/>
 </svg>'''
 hzoom_out = '''<?xml version="1.0" encoding="utf-8"?>
 <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-    <polyline points="1,5 6,10 1,15" stroke-width="1" stroke="black" fill="none"/>
-    <polyline points="19,5 14,10 19,15" stroke-width="1" stroke="black" fill="none"/>
+    <polyline points="1,5 6,10 1,15" stroke-width="1" stroke="currentColor" fill="none"/>
+    <polyline points="19,5 14,10 19,15" stroke-width="1" stroke="currentColor" fill="none"/>
 </svg>'''
 shifted_orig = '''<?xml version="1.0" encoding="utf-8"?>
 <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">

@@ -666,6 +666,7 @@ class ComtradeWidget(QWidget):
             self.x_zoom = xz
             self.__update_xzoom_actions()
             self.signal_x_zoom.emit()
+            self.timeaxis_bar.plot.signal_width_changed.emit(self.timeaxis_bar.plot.viewport().width())  # FIXME: dirty hack
 
     def __ptr_add_tmp(self, uid: int, i: int):
         """:todo: optional name:str"""
