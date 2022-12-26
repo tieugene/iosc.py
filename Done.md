@@ -191,3 +191,6 @@ Behavior:
 - [x] Fixes:
   + [x] 2&times;CRLF @ Windows
   + [x] MsrPtr/LvlPtr wrongs save
+
+## 0.3.4:
+- [x] [X-zoom glitches](https://github.com/tieugene/iosc.py/issues/203)
