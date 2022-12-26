@@ -21,7 +21,9 @@ from iosc.sig.tools.cvdwindow import CVDWindow
 from iosc.sig.tools.hdwindow import HDWindow
 from iosc.sig.tools.ompmap import OMPMapWindow
 from iosc.sig.tools.vtwindow import VTWindow
-from iosc.sig.widget.section import TimeAxisBar, SignalBarTable, TimeStampsBar, XScroller
+from iosc.sig.widget.section import SignalBarTable
+from iosc.sig.widget.bottom import TimeStampsBar, XScroller
+from iosc.sig.widget.top import TimeAxisBar
 from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit
 from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
 

@@ -1,10 +1,11 @@
 import datetime
 # 2. 3rd
-from PyQt5.QtCore import QMargins, Qt
+from PyQt5.QtCore import QMargins, Qt, pyqtSignal
+from PyQt5.QtWidgets import QScrollBar
 from QCustomPlot_PyQt5 import QCPItemText
 # 4. local
 import iosc.const
-from iosc.sig.widget.common import OneBarPlot
+from iosc.sig.widget.common import OneBarPlot, OneRowBar
 
 
 class PtrLabel(QCPItemText):
@@ -91,3 +92,73 @@ class TimeStampsPlot(OneBarPlot):
         self.removeItem(self._tmp_ptr[uid])
         del self._tmp_ptr[uid]
         self.replot()
+
+
+class TimeStampsBar(OneRowBar):
+    def __init__(self, parent: 'ComtradeWidget'):
+        super().__init__(parent)
+        self.plot = TimeStampsPlot(self)
+        self._post_init()
+
+
+class XScroller(QScrollBar):
+    signal_update_plots = pyqtSignal()
+
+    def __init__(self, parent: 'ComtradeWidget'):
+        """
+        :param parent:
+        :type parent: ComtradeWidget
+        :note: An idea:
+        - full width = plot width (px)
+        - page size = current col1 width (px)
+        """
+        super().__init__(Qt.Horizontal, parent)
+        parent.signal_x_zoom.connect(self.__slot_update_range)
+        parent.timeaxis_bar.plot.signal_width_changed.connect(self.__slot_update_page)
+
+    @property
+    def norm_min(self) -> float:
+        """Normalized (0..1) left page position"""
+        return self.value() / (self.maximum() + self.pageStep())
+
+    @property
+    def norm_max(self) -> float:
+        """Normalized (0..1) right page position"""
+        return (self.value() + self.pageStep()) / (self.maximum() + self.pageStep())
+
+    def __update_enabled(self):
+        self.setEnabled(self.maximum() > 0)
+
+    def __slot_update_range(self):
+        """Update maximum against new x-zoom.
+        (x_width_px changed, page (px) - not)"""
+        page = self.pageStep()
+        x_width_px = self.parent().x_width_px()
+        if (max_new := x_width_px - self.pageStep()) < 0:
+            max_new = 0
+        v_new = min(
+            max_new,
+            max(
+                0,
+                round((self.value() + page / 2) / (self.maximum() + page) * x_width_px - (page / 2))
+            )
+        )
+        self.setMaximum(max_new)
+        if v_new != self.value():
+            self.setValue(v_new)  # emit signal
+        else:
+            self.signal_update_plots.emit()
+        self.__update_enabled()
+
+    def __slot_update_page(self, new_page: int):
+        """Update page against new signal windows width"""
+        x_max = self.parent().x_width_px()
+        if min(new_page, self.pageStep()) < x_max:
+            if new_page > x_max:
+                new_page = x_max
+            self.setPageStep(new_page)
+            v0 = self.value()
+            self.setMaximum(self.parent().x_width_px() - new_page)  # WARN: value changed w/o signal emit
+            if self.value() == v0:
+                self.signal_update_plots.emit()  # Force update plots; plan B: self.valueChanged.emit(self.value())
+        self.__update_enabled()
