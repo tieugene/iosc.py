@@ -194,3 +194,4 @@ Behavior:
 
 ## 0.3.4:
 - [x] [X-zoom glitches](https://github.com/tieugene/iosc.py/issues/203)
+- [x] [Find over all](https://github.com/tieugene/iosc.py/issues/232)

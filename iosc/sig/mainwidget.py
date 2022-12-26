@@ -21,10 +21,11 @@ from iosc.sig.tools.cvdwindow import CVDWindow
 from iosc.sig.tools.hdwindow import HDWindow
 from iosc.sig.tools.ompmap import OMPMapWindow
 from iosc.sig.tools.vtwindow import VTWindow
+from iosc.sig.widget.finder import FindDialog
 from iosc.sig.widget.section import SignalBarTable
 from iosc.sig.widget.bottom import TimeStampsBar, XScroller
 from iosc.sig.widget.top import TimeAxisBar
-from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit
+from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit, SignalSuit
 from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
 
 
@@ -668,13 +669,24 @@ class ComtradeWidget(QWidget):
             self.x_zoom = xz
             self.__update_xzoom_actions()
             self.signal_x_zoom.emit()
-            self.timeaxis_bar.plot.signal_width_changed.emit(self.timeaxis_bar.plot.viewport().width())  # FIXME: dirty hack
+            self.timeaxis_bar.plot.signal_width_changed.emit(self.timeaxis_bar.plot.viewport().width())  # FIXME: hack
 
     def __ptr_add_tmp(self, uid: int, i: int):
         """:todo: optional name:str"""
         self.__tmp_ptr_i[uid] = i
         self.signal_ptr_add_tmp.emit(uid)  # create them ...
         # self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
+
+    def find_signal_worker(self, text: str) -> Optional[SignalSuit]:
+        """
+        :param text: Substring to search in signa names
+        :return: SignalSuit found
+        """
+        for t in (self.analog_table, self.status_table):
+            for bar in t.bars:
+                if (not bar.hidden) and (ss := bar.find_signal(text)):
+                    t.scrollTo(t.model().index(bar.row, 0))
+                    return ss
 
     def __do_file_close(self):
         # self.close()  # close widget but not tab itself
@@ -755,17 +767,8 @@ class ComtradeWidget(QWidget):
         self.signal_unhide_all.emit()
 
     def __do_signal_find(self):
-        """
-        SignalBarTable:
-        - frameShape() == 6 (StyledPanel)
-        - frameWidth() == 2
-        - midLineWidth() == 0
-        :return:
-        """
-        for t in (self.analog_table, self.status_table):
-            if t.hasFocus():
-                t.do_find_signal()
-                break
+        """Find signal over both of SignalTables"""
+        FindDialog(self).exec_()
 
     def __do_resize_y_all_inc(self):
         self.analog_table.resize_y_all(True)

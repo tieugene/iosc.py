@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QDropEvent, QDragEnterEvent, QDragMoveEvent, QPainter
 from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QProxyStyle, QStyle, QStyleOption
 # 3. local
-from iosc.sig.widget.common import SignalBar, SignalBarList, SignalSuit
+from iosc.sig.widget.common import SignalBar, SignalBarList
 from iosc.sig.widget.ctrl import BarCtrlWidget
 from iosc.sig.widget.finder import FindDialog
 
@@ -161,18 +161,3 @@ class SignalBarTable(QTableWidget):
         for bar in self.bars:
             if not bar.is_bool():
                 bar.height = round(bar.height * mult)
-
-    def do_find_signal(self):
-        """
-        Open find signal dialog.
-        """
-        FindDialog(self).exec_()
-
-    def find_signal_worker(self, text: str) -> Optional[SignalSuit]:
-        """
-        :return:
-        """
-        for bar in self.bars:
-            if (not bar.hidden) and (ss := bar.find_signal(text)):
-                self.scrollTo(self.model().index(bar.row, 0))
-                return ss
