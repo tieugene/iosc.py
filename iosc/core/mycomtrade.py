@@ -10,7 +10,7 @@ import pathlib
 import chardet
 import numpy as np
 # 3. local
-from .comtrade import Comtrade, Channel
+from .comtrade import Comtrade, Channel, AnalogChannel
 
 # x. const
 ERR_DSC_FREQ = "Oscillogramm freq. must be 50 or 60 Hz.\nWe have %d"
@@ -44,7 +44,8 @@ class Wrapper:
 
 
 class Signal(Wrapper):
-    """Signal base."""
+    """Signal base.
+    :todo: add uplink/parent (osc)"""
     _i_: int  # Signal order number (through analog > status)
     _is_bool: bool
     _raw2: Channel
@@ -56,24 +57,25 @@ class Signal(Wrapper):
         self._raw2 = raw2
 
     @property
-    def i(self) -> int:
-        return self.__i
+    def is_bool(self) -> bool:
+        return self._is_bool
 
     @property
-    def raw2(self) -> Channel:
-        return self._raw2
+    def i(self) -> int:
+        return self.__i
 
     @property
     def sid(self) -> str:
         return self._raw2.name
 
     @property
-    def time(self) -> np.array:  # FIXME: rm
-        return self._raw.time
+    def ph(self) -> str:
+        """Phase"""
+        return self._raw2.ph
 
     @property
-    def is_bool(self) -> bool:
-        return self._is_bool
+    def time(self) -> np.array:  # FIXME: rm
+        return self._raw.time
 
 
 class StatusSignal(Signal):
@@ -90,6 +92,7 @@ class StatusSignal(Signal):
 
 class AnalogSignal(Signal):
     _is_bool = False
+    _raw2: AnalogChannel
     __mult: tuple[float, float]
     __uu_orig: str  # original uu (w/o m/k)
     __value_shifted: np.array
@@ -131,9 +134,29 @@ class AnalogSignal(Signal):
     def v_max(self) -> float:
         return max(self.value)
 
+    @property
+    def uu(self) -> str:
+        """Unit as is"""
+        return self._raw2.uu
+
+    @property
+    def primary(self) -> float:
+        """Primary multiplier"""
+        return self._raw2.primary
+
+    @property
+    def secondary(self) -> float:
+        """Secondary multiplier"""
+        return self._raw2.secondary
+
+    @property
+    def pors(self) -> str:
+        """Primary-or-Secondary (main signal value)"""
+        return self._raw2.pors
+
     def get_mult(self, ps: bool) -> float:
         """
-        Get multiplier between pri/sec
+        Get multiplier against pri/sec value.
         :param ps: False=primary, True=secondary
         :return: Multiplier
         """
@@ -274,6 +297,8 @@ class MyComtrade(Wrapper):
 
     @property
     def rate(self) -> float:
+        """Sample rate, Hz.
+        :todo: int"""
         return self._raw.cfg.sample_rates[0][0]
 
     @property
@@ -291,7 +316,7 @@ class MyComtrade(Wrapper):
         self._raw.x_shifted = v
 
     def find_signal(self, s: str) -> Optional[int]:
-        """Find signal by name"""
+        """Find signal by name (strict substring)"""
         for i, sig in enumerate(self.y):
             if not sig.is_bool:
                 if s in sig.sid:

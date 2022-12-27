@@ -108,7 +108,7 @@ class SignalSuit(QObject):
         self._label = None
         self.graph = None
         self._hidden = False
-        self.color = iosc.const.COLOR_SIG_DEFAULT.get(self.signal.raw2.ph.lower(), iosc.const.COLOR_SIG_UNKNOWN)
+        self.color = iosc.const.COLOR_SIG_DEFAULT.get(self.signal.ph.lower(), iosc.const.COLOR_SIG_UNKNOWN)
         oscwin.signal_x_zoom.connect(self.__slot_retick)
 
     @property

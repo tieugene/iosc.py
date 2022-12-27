@@ -15,7 +15,7 @@ def export_to_csv(osc: mycomtrade.MyComtrade, pors: bool, dst: pathlib.Path):
         h2 = ["", "ms", ""]
         for s in osc.y:
             h1.append(s.sid)
-            h2.append("Log. 0/1" if s.is_bool else s.raw2.uu)
+            h2.append("Log. 0/1" if s.is_bool else s.uu)
         csv_writer.writerow(h1)
         csv_writer.writerow(h2)
         # 2. body

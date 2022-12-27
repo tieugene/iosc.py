@@ -55,7 +55,7 @@ class CVDTable(QTableWidget):
         i = self.__parent.t_i
         for r, ss in enumerate(self.__parent.ss_used):
             v: complex = ss.hrm(1, i)
-            uu = ss.signal.raw2.uu
+            uu = ss.signal.uu
             self.item(r, 1).setText("%.1f %s" % (abs(v), uu))
             self.item(r, 2).setText("%.1f°" % __norm_angle(math.degrees(cmath.phase(v)-self.__parent.get_base_angle())))
             self.item(r, 3).setText("%.1f %s" % (v.real, uu))
