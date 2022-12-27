@@ -12,6 +12,7 @@ class FindDialog(QInputDialog):
     def __init__(self, parent: 'SignalBarTable'):
         super().__init__(parent)
         self.__ss_found = None
+        self.setOption(self.InputDialogOption.NoButtons)
         self.setWindowTitle("Search signal")
         self.setInputMode(self.InputMode.TextInput)
         self.setLabelText("Search signal")
