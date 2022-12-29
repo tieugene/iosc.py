@@ -33,21 +33,15 @@ class SanityChkError(RuntimeError):
         return f"Sanity check error: {self.msg}"
 
 
-class Wrapper:
-    _raw: Comtrade
-
-    def __init__(self, raw: Comtrade):
-        self._raw = raw
-
-
-class Signal(Wrapper):
+class Signal:
     """Signal base.
     :todo: add uplink/parent (osc)"""
-    __osc: 'MyComtrade'
-    _i_: int  # Signal order number (through analog > status)
     _is_bool: bool
+    _raw: Comtrade
     _raw2: Channel
+    _i_: int  # Signal order number (through analog > status)
     _value: np.array  # list of values
+    __osc: 'MyComtrade'
 
     def __init__(self, raw: Comtrade, raw2: Channel, i: int):
         """
@@ -55,9 +49,9 @@ class Signal(Wrapper):
         :param raw2: Raw wrapped comtrade signal object
         :param i: Order number of signal through all
         """
-        super().__init__(raw)
-        self.__i = i
+        self._raw = raw
         self._raw2 = raw2
+        self.__i = i
 
     @property
     def is_bool(self) -> bool:
@@ -201,13 +195,14 @@ class AnalogSignal(Signal):
             return self.as_str(v, pors)
 
 
-class MyComtrade(Wrapper):
+class MyComtrade:
+    _raw: Comtrade
     path: pathlib.Path
     x: np.array
     y: List[Union[StatusSignal, AnalogSignal]]
 
     def __init__(self, path: pathlib.Path):
-        super().__init__(Comtrade())
+        self._raw = Comtrade()
         self.path = path  # TODO: ?
         self.__load()
         self.__sanity_check()
