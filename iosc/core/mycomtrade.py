@@ -1,11 +1,12 @@
 """Comtrade wrapper
 :todo: exceptions
 """
-import cmath
-import math
 # 1. std
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Dict
 import pathlib
+import cmath
+import datetime
+import math
 # 2. 3rd
 import chardet
 import numpy as np
@@ -38,20 +39,22 @@ class Wrapper:
     def __init__(self, raw: Comtrade):
         self._raw = raw
 
-    @property
-    def raw(self) -> Comtrade:
-        return self._raw
-
 
 class Signal(Wrapper):
     """Signal base.
     :todo: add uplink/parent (osc)"""
+    __osc: 'MyComtrade'
     _i_: int  # Signal order number (through analog > status)
     _is_bool: bool
     _raw2: Channel
     _value: np.array  # list of values
 
     def __init__(self, raw: Comtrade, raw2: Channel, i: int):
+        """
+        :param raw: Raw parent comtrade object
+        :param raw2: Raw wrapped comtrade signal object
+        :param i: Order number of signal through all
+        """
         super().__init__(raw)
         self.__i = i
         self._raw2 = raw2
@@ -69,7 +72,7 @@ class Signal(Wrapper):
         return self._raw2.name
 
     @property
-    def ph(self) -> str:
+    def ph(self) -> str:  # transparent
         """Phase"""
         return self._raw2.ph
 
@@ -82,6 +85,10 @@ class StatusSignal(Signal):
     _is_bool = True
 
     def __init__(self, raw: Comtrade, i: int):
+        """
+        :param raw: Raw comtrade object
+        :param i: Order numer of signal through same type (!)
+        """
         super().__init__(raw, raw.cfg.status_channels[i], i + raw.cfg.analog_count)
         self._value = self._raw.status[i]
 
@@ -135,22 +142,22 @@ class AnalogSignal(Signal):
         return max(self.value)
 
     @property
-    def uu(self) -> str:
+    def uu(self) -> str:  # transparent
         """Unit as is"""
         return self._raw2.uu
 
     @property
-    def primary(self) -> float:
+    def primary(self) -> float:  # transparent
         """Primary multiplier"""
         return self._raw2.primary
 
     @property
-    def secondary(self) -> float:
+    def secondary(self) -> float:  # transparent
         """Secondary multiplier"""
         return self._raw2.secondary
 
     @property
-    def pors(self) -> str:
+    def pors(self) -> str:  # transparent
         """Primary-or-Secondary (main signal value)"""
         return self._raw2.pors
 
@@ -201,11 +208,79 @@ class MyComtrade(Wrapper):
 
     def __init__(self, path: pathlib.Path):
         super().__init__(Comtrade())
-        self.path = path
+        self.path = path  # TODO: ?
         self.__load()
         self.__sanity_check()
         self.__setup()
         self._raw.x_shifted = False  # FIXME: hacking xtra-var injection
+
+    @property
+    def info(self) -> Dict:
+        """Misc info for rare (1..2 times) usage"""
+        return {
+            'rec_dev_id': self._raw.rec_dev_id,
+            'station_name': self._raw.station_name,
+            'rev_year': self._raw.rev_year,
+            'analog_count': self._raw.analog_count,
+            'status_count': self._raw.status_count,
+            'start_timestamp': self._raw.start_timestamp,
+            'timemult': self._raw.cfg.timemult,
+            'time_base': self._raw.time_base,
+            'frequency': self._raw.frequency
+        }
+
+    @property
+    def ft(self) -> str:  # transparent
+        """File format"""
+        return self._raw.ft
+
+    @property
+    def filepath(self) -> str:  # transparent
+        return self._raw.cfg.filepath
+
+    @property
+    def total_samples(self) -> int:  # transparent
+        return self._raw.total_samples
+
+    @property
+    def rate(self) -> float:  # transparent
+        """Sample rate, Hz.
+        :todo: int"""
+        return self._raw.cfg.sample_rates[0][0]
+
+    @property
+    def trigger_timestamp(self) -> datetime.datetime:  # transparent
+        return self._raw.cfg.trigger_timestamp
+
+    @property
+    def spp(self) -> int:
+        """Samples per period"""
+        return int(round(self.rate / self._raw.frequency))
+
+    @property
+    def shifted(self):
+        return self._raw.x_shifted
+
+    @shifted.setter
+    def shifted(self, v: bool):
+        """Switch all signals between original and shifted modes"""
+        self._raw.x_shifted = v
+
+    @property
+    def x_min(self) -> float:  # mS
+        return self.x[0]
+
+    @property
+    def x_max(self) -> float:  # mS
+        return self.x[-1]
+
+    @property
+    def x_size(self) -> float:  # mS
+        return self.x[-1] - self.x[0]
+
+    @property
+    def x_count(self) -> int:
+        return len(self.x)
 
     def __load(self):
         encoding = None
@@ -278,42 +353,6 @@ class MyComtrade(Wrapper):
             self.y.append(AnalogSignal(self._raw, i))
         for i in range(self._raw.status_count):
             self.y.append(StatusSignal(self._raw, i))
-
-    @property
-    def x_min(self) -> float:  # mS
-        return self.x[0]
-
-    @property
-    def x_max(self) -> float:  # mS
-        return self.x[-1]
-
-    @property
-    def x_size(self) -> float:  # mS
-        return self.x[-1] - self.x[0]
-
-    @property
-    def x_count(self) -> int:
-        return len(self.x)
-
-    @property
-    def rate(self) -> float:
-        """Sample rate, Hz.
-        :todo: int"""
-        return self._raw.cfg.sample_rates[0][0]
-
-    @property
-    def spp(self) -> int:
-        """Samples per period"""
-        return int(round(self.rate / self._raw.frequency))
-
-    @property
-    def shifted(self):
-        return self._raw.x_shifted
-
-    @shifted.setter
-    def shifted(self, v: bool):
-        """Switch all signals between original and shifted modes"""
-        self._raw.x_shifted = v
 
     def find_signal(self, s: str) -> Optional[int]:
         """Find signal by name (strict substring)"""

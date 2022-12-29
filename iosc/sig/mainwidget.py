@@ -150,7 +150,7 @@ class ComtradeWidget(QWidget):
     # property
     def x_sample_width_px(self) -> int:
         """Current width of samples interval, px"""
-        return round(self.x_width_px() / self.osc.raw.total_samples)
+        return round(self.x_width_px() / self.osc.total_samples)
 
     @property
     def main_ptr_i(self) -> int:
@@ -700,19 +700,20 @@ class ComtradeWidget(QWidget):
         # plan A:
         # msg.setDetailedText(self.osc.cfg_summary())
         # plan B
+        info = self.osc.info
         txt = "<html><body><table><tbody>"
         txt += tr("File", self.osc.path)  # was self.osc.raw.cfg.filepath
-        txt += tr("Station name", self.osc.raw.station_name)
-        txt += tr("Station id", self.osc.raw.rec_dev_id)
-        txt += tr("Comtrade ver.", self.osc.raw.rev_year)
-        txt += tr("File format", self.osc.raw.ft)
-        txt += tr("Analog chs.", self.osc.raw.analog_count)
-        txt += tr("Status chs.", self.osc.raw.status_count)
-        txt += tr("Time", f"{self.osc.raw.start_timestamp}&hellip;{self.osc.raw.trigger_timestamp}"
-                          f" with &times; {self.osc.raw.cfg.timemult}")
-        txt += tr("Time base", self.osc.raw.time_base)
-        txt += tr("Line freq, Hz", self.osc.raw.frequency)
-        txt += tr("Samples", self.osc.raw.total_samples)
+        txt += tr("Station name", info['station_name'])
+        txt += tr("Station id", info['rec_dev_id'])
+        txt += tr("Comtrade ver.", info['rev_year'])
+        txt += tr("File format", self.osc.ft)
+        txt += tr("Analog chs.", info['analog_count'])
+        txt += tr("Status chs.", info['status_count'])
+        txt += tr("Time", f"{info['start_timestamp']}&hellip;{self.osc.trigger_timestamp}"
+                          f" with &times; {info['timemult']}")
+        txt += tr("Time base", info['time_base'])
+        txt += tr("Line freq, Hz", info['frequency'])
+        txt += tr("Samples", self.osc.total_samples)
         txt += tr(f"Sample rate:", f"{self.osc.rate} Hz")
         txt += "<tbody></table></body><html>"
         msg.setText(txt)
@@ -723,11 +724,11 @@ class ComtradeWidget(QWidget):
     def __do_file_convert(self):
         fn = QFileDialog.getSaveFileName(
             self,
-            "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[self.osc.raw.ft]
+            "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[self.osc.ft]
         )
         if fn[0]:
             try:
-                convert(pathlib.Path(self.osc.raw.cfg.filepath), pathlib.Path(fn[0]))
+                convert(pathlib.Path(self.osc.filepath), pathlib.Path(fn[0]))
             except ConvertError as e:
                 QMessageBox.critical(self, "Converting error", str(e))
 
@@ -735,7 +736,7 @@ class ComtradeWidget(QWidget):
         fn = QFileDialog.getSaveFileName(
             self,
             "Export file as CSV",
-            str(pathlib.Path(self.osc.raw.cfg.filepath).with_suffix('.csv')),
+            str(pathlib.Path(self.osc.filepath).with_suffix('.csv')),
             "Comma separated values (*.csv)"
         )
         if fn[0]:
@@ -745,7 +746,7 @@ class ComtradeWidget(QWidget):
         fn = QFileDialog.getSaveFileName(
             self,
             "Save settings",
-            str(pathlib.Path(self.osc.raw.cfg.filepath).with_suffix('.ofg')),
+            str(pathlib.Path(self.osc.filepath).with_suffix('.ofg')),
             "Oscillogramm configuration (*.ofg)"
         )
         if fn[0]:
@@ -756,7 +757,7 @@ class ComtradeWidget(QWidget):
         fn = QFileDialog.getOpenFileName(
             self,
             "Load settings",
-            str(pathlib.Path(self.osc.raw.cfg.filepath).parent),
+            str(pathlib.Path(self.osc.filepath).parent),
             "Oscillogramm configuration (*.ofg)"
         )
         if fn[0]:
@@ -856,7 +857,7 @@ class ComtradeWidget(QWidget):
         fn = QFileDialog.getSaveFileName(
             self,
             "Save OMP values",
-            str(pathlib.Path(self.osc.raw.cfg.filepath).with_suffix('.uim')),
+            str(pathlib.Path(self.osc.filepath).with_suffix('.uim')),
             "U,I mesurements (*.uim)"
         )
         if fn[0]:

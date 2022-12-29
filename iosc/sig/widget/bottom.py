@@ -27,7 +27,7 @@ class PtrLabel(QCPItemText):
         """
         x = self._oscwin.i2x(i)  # from z-point, ms
         # TODO: make function
-        self.setText((self._oscwin.osc.raw.cfg.trigger_timestamp + datetime.timedelta(milliseconds=x)).time().isoformat())
+        self.setText((self._oscwin.osc.trigger_timestamp + datetime.timedelta(milliseconds=x)).time().isoformat())
         self.position.setCoords(x, 0)
         self.parentPlot().replot()
 
@@ -81,7 +81,7 @@ class TimeStampsPlot(OneBarPlot):
         self.__zero_ptr_label.setFont(iosc.const.FONT_TOPBAR)
         self.__zero_ptr_label.setPadding(QMargins(2, 2, 2, 2))
         self.__zero_ptr_label.setPositionAlignment(Qt.AlignHCenter)  # | Qt.AlignTop (default)
-        self.__zero_ptr_label.setText(self._oscwin.osc.raw.cfg.trigger_timestamp.time().isoformat())
+        self.__zero_ptr_label.setText(self._oscwin.osc.trigger_timestamp.time().isoformat())
 
     def _slot_ptr_add_tmp(self, uid: int):
         """Add new TmpPtr"""

@@ -19,11 +19,11 @@ def export_to_csv(osc: mycomtrade.MyComtrade, pors: bool, dst: pathlib.Path):
         csv_writer.writerow(h1)
         csv_writer.writerow(h2)
         # 2. body
-        for i in range(osc.raw.total_samples):
+        for i in range(osc.total_samples):
             data = [
                 i+1,
                 "%.6f" % osc.x[i],
-                (osc.raw.cfg.trigger_timestamp + datetime.timedelta(milliseconds=osc.x[i])).time().isoformat()
+                (osc.trigger_timestamp + datetime.timedelta(milliseconds=osc.x[i])).time().isoformat()
             ]
             for j in range(len(osc.y)):
                 s = osc.y[j]
