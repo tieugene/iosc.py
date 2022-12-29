@@ -3,6 +3,7 @@
 Current job: [0.3.4. Debug](https://github.com/tieugene/iosc.py/milestone/16)
 
 - [ ] DocStrings
+- [ ] flake8
 - [ ] PyLint
 - [ ] __father, __oscwin
 - [x] rm `mycomtrade.MyComtrade.raw`:
@@ -15,4 +16,4 @@ Current job: [0.3.4. Debug](https://github.com/tieugene/iosc.py/milestone/16)
 - [x] rm `mycomtrade.Signal.raw2`:
   - ph, uu, primary, secondary, pors
   - check: CVDTable A-sig props, ss.color, csv
-- [ ] `mycomtrade.Signal.osc`
+- [x] `mycomtrade.Signal.__parent (uplink)`

@@ -11,7 +11,7 @@ import math
 import chardet
 import numpy as np
 # 3. local
-from .comtrade import Comtrade, Channel, AnalogChannel
+from .comtrade import Comtrade, AnalogChannel, StatusChannel
 
 # x. const
 ERR_DSC_FREQ = "Oscillogramm freq. must be 50 or 60 Hz.\nWe have %d"
@@ -37,19 +37,16 @@ class Signal:
     """Signal base.
     :todo: add uplink/parent (osc)"""
     _is_bool: bool
-    _raw: Comtrade
-    _raw2: Channel
+    _raw2: Union[AnalogChannel, StatusChannel]
     _i_: int  # Signal order number (through analog > status)
     _value: np.array  # list of values
-    __osc: 'MyComtrade'
+    # __osc: 'MyComtrade'
 
-    def __init__(self, raw: Comtrade, raw2: Channel, i: int):
+    def __init__(self, raw2: Union[AnalogChannel, StatusChannel], i: int):
         """
-        :param raw: Raw parent comtrade object
         :param raw2: Raw wrapped comtrade signal object
         :param i: Order number of signal through all
         """
-        self._raw = raw
         self._raw2 = raw2
         self.__i = i
 
@@ -70,10 +67,6 @@ class Signal:
         """Phase"""
         return self._raw2.ph
 
-    @property
-    def time(self) -> np.array:  # FIXME: rm
-        return self._raw.time
-
 
 class StatusSignal(Signal):
     _is_bool = True
@@ -83,8 +76,8 @@ class StatusSignal(Signal):
         :param raw: Raw comtrade object
         :param i: Order numer of signal through same type (!)
         """
-        super().__init__(raw, raw.cfg.status_channels[i], i + raw.cfg.analog_count)
-        self._value = self._raw.status[i]
+        super().__init__(raw.cfg.status_channels[i], i + raw.cfg.analog_count)
+        self._value = raw.status[i]
 
     @property
     def value(self) -> np.array:
@@ -93,14 +86,15 @@ class StatusSignal(Signal):
 
 class AnalogSignal(Signal):
     _is_bool = False
-    _raw2: AnalogChannel
+    __parent: 'MyComtrade'
     __mult: tuple[float, float]
     __uu_orig: str  # original uu (w/o m/k)
     __value_shifted: np.array
 
-    def __init__(self, raw: Comtrade, i: int):
-        super().__init__(raw, raw.cfg.analog_channels[i], i)
-        self._value = self._raw.analog[i]
+    def __init__(self, raw: Comtrade, i: int, parent: 'MyComtrade'):
+        super().__init__(raw.cfg.analog_channels[i], i)
+        self._value = raw.analog[i]
+        self.__parent = parent
         self.__value_shifted = self._value - np.average(self._value)
         # pri/sec multipliers
         if self._raw2.uu.startswith('m'):
@@ -125,7 +119,7 @@ class AnalogSignal(Signal):
 
     @property
     def value(self) -> np.array:
-        return self.__value_shifted if self._raw.x_shifted else self._value
+        return self.__value_shifted if self.__parent.shifted else self._value
 
     @property
     def v_min(self) -> float:
@@ -197,13 +191,15 @@ class AnalogSignal(Signal):
 
 class MyComtrade:
     _raw: Comtrade
+    __x_shifted: bool  # FIXME: dynamic
     path: pathlib.Path
     x: np.array
     y: List[Union[StatusSignal, AnalogSignal]]
 
     def __init__(self, path: pathlib.Path):
         self._raw = Comtrade()
-        self.path = path  # TODO: ?
+        self.__x_shifted = False
+        self.path = path  # TODO: rm
         self.__load()
         self.__sanity_check()
         self.__setup()
@@ -254,12 +250,12 @@ class MyComtrade:
 
     @property
     def shifted(self):
-        return self._raw.x_shifted
+        return self.__x_shifted
 
     @shifted.setter
     def shifted(self, v: bool):
         """Switch all signals between original and shifted modes"""
-        self._raw.x_shifted = v
+        self.__x_shifted = v
 
     @property
     def x_min(self) -> float:  # mS
@@ -345,7 +341,7 @@ class MyComtrade:
         self.x = [1000 * (t - self._raw.trigger_time) for t in self._raw.time]
         self.y = list()
         for i in range(self._raw.analog_count):
-            self.y.append(AnalogSignal(self._raw, i))
+            self.y.append(AnalogSignal(self._raw, i, self))
         for i in range(self._raw.status_count):
             self.y.append(StatusSignal(self._raw, i))
 
