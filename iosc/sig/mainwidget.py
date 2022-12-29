@@ -396,48 +396,57 @@ class ComtradeWidget(QWidget):
         self.action_omp_save.setEnabled(self.__sc_ptr_i is not None)
 
     def __mk_menu(self):
-        menu_file = self.menubar.addMenu("&File")
-        menu_file.addAction(self.action_info)
-        menu_file.addAction(self.action_convert)
-        menu_file.addAction(self.action_csv)
-        menu_file.addAction(self.action_cfg_save)
-        menu_file.addAction(self.action_cfg_load)
-        menu_file.addAction(self.action_pdfout)
-        menu_file.addAction(self.action_close)
+        self.menubar.addMenu("&File").addActions((
+            self.action_info,
+            self.action_convert,
+            self.action_csv,
+            self.action_cfg_save,
+            self.action_cfg_load,
+            self.action_pdfout,
+            self.action_close
+        ))
         menu_view = self.menubar.addMenu("&View")
-        menu_view.addAction(self.action_resize_y_in)
-        menu_view.addAction(self.action_resize_y_out)
-        menu_view.addAction(self.action_zoom_x_in)
-        menu_view.addAction(self.action_zoom_x_out)
-        menu_view_shift = menu_view.addMenu("Original/Shifted")
-        menu_view_shift.addAction(self.action_shift_not)
-        menu_view_shift.addAction(self.action_shift_yes)
-        menu_view_pors = menu_view.addMenu("Pri/Sec")
-        menu_view_pors.addAction(self.action_pors_pri)
-        menu_view_pors.addAction(self.action_pors_sec)
-        menu_view_viewas = menu_view.addMenu("View as...")
-        menu_view_viewas.addAction(self.action_viewas_is)
-        menu_view_viewas.addAction(self.action_viewas_mid)
-        menu_view_viewas.addAction(self.action_viewas_eff)
-        menu_view_viewas.addAction(self.action_viewas_hrm1)
-        menu_view_viewas.addAction(self.action_viewas_hrm2)
-        menu_view_viewas.addAction(self.action_viewas_hrm3)
-        menu_view_viewas.addAction(self.action_viewas_hrm5)
-        menu_signal = self.menubar.addMenu("&Signal")
-        menu_signal.addAction(self.action_unhide)
-        menu_signal.addAction(self.action_signal_find)
-        menu_ptr = self.menubar.addMenu("&Pointers")
-        menu_ptr.addAction(self.action_ptr_add_tmp)
-        menu_ptr.addAction(self.action_ptr_add_msr)
-        menu_ptr.addAction(self.action_ptr_add_lvl)
-        menu_ptr.addAction(self.action_mainptr_l)
-        menu_ptr.addAction(self.action_mainptr_r)
-        menu_tools = self.menubar.addMenu("&Tools")
-        menu_tools.addAction(self.action_vector_diagram)
-        menu_tools.addAction(self.action_harmonic_diagram)
-        menu_tools.addAction(self.action_value_table)
-        menu_tools.addAction(self.action_omp_map)
-        menu_tools.addAction(self.action_omp_save)
+        menu_view.addActions((
+            self.action_resize_y_in,
+            self.action_resize_y_out,
+            self.action_zoom_x_in,
+            self.action_zoom_x_out
+        ))
+        menu_view.addMenu("Original/Shifted").addActions((
+            self.action_shift_not,
+            self.action_shift_yes
+        ))
+        menu_view.addMenu("Pri/Sec").addActions((
+            self.action_pors_pri,
+            self.action_pors_sec
+        ))
+        menu_view.addMenu("View as...").addActions((
+            self.action_viewas_is,
+            self.action_viewas_mid,
+            self.action_viewas_eff,
+            self.action_viewas_hrm1,
+            self.action_viewas_hrm2,
+            self.action_viewas_hrm3,
+            self.action_viewas_hrm5
+        ))
+        self.menubar.addMenu("&Signal").addActions((
+            self.action_unhide,
+            self.action_signal_find
+        ))
+        self.menubar.addMenu("&Pointers").addActions((
+            self.action_ptr_add_tmp,
+            self.action_ptr_add_msr,
+            self.action_ptr_add_lvl,
+            self.action_mainptr_l,
+            self.action_mainptr_r
+        ))
+        self.menubar.addMenu("&Tools").addActions((
+            self.action_vector_diagram,
+            self.action_harmonic_diagram,
+            self.action_value_table,
+            self.action_omp_map,
+            self.action_omp_save
+        ))
 
     def __mk_toolbar(self):
         # prepare
