@@ -1,4 +1,4 @@
-"""Main application Window"""
+"""Main application Window."""
 # 1. std
 import pathlib
 import sys
@@ -19,7 +19,8 @@ Developed for <a href="https://ntkpribor.ru/">&laquo;NTK Priborenergo&raquo;, Lt
 
 
 class MainWindow(QMainWindow):
-    """Main application window"""
+    """Main application window."""
+
     tabs: ComtradeTabWidget
     act_bar: QToolBar
     act_file_open: QAction
@@ -36,13 +37,13 @@ class MainWindow(QMainWindow):
         # self.handle_cli()
 
     def __mk_widgets(self):
-        """Create child widgets"""
+        """Create child widgets."""
         self.tabs = ComtradeTabWidget(self)
         self.setCentralWidget(self.tabs)
         # self.act_bar = QToolBar(self)
 
     def __mk_actions(self):
-        """Create qctions required"""
+        """Create qctions required."""
         # noinspection PyArgumentList
         self.act_exit = QAction(QIcon.fromTheme("application-exit"),
                                 "E&xit",
@@ -65,7 +66,7 @@ class MainWindow(QMainWindow):
                                      triggered=self.__do_file_open)
 
     def __mk_menu(self):
-        """Create main application menu"""
+        """Create main application menu."""
         self.menuBar().addMenu("&File").addActions((
             self.act_file_open,
             self.act_exit
@@ -79,7 +80,7 @@ class MainWindow(QMainWindow):
         # self.act_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
     def __mk_layout(self):
-        """Lay out child widgets"""
+        """Lay out child widgets."""
         main_tab = QWidget()
         main_tab.setLayout(QHBoxLayout())
         # main_tab.layout().addWidget(self.act_bar)
@@ -88,7 +89,7 @@ class MainWindow(QMainWindow):
             self.tabs.addTab(main_tab, "File")
 
     def handle_cli(self):
-        """Process CLI arg"""
+        """Process CLI arg."""
         argv = QCoreApplication.arguments()
         if len(argv) > 2:
             QMessageBox.warning(self, "CLI error", "One file only")
@@ -101,14 +102,14 @@ class MainWindow(QMainWindow):
 
     # actions
     def __do_about(self):
-        """Show 'About' message box"""
+        """Show 'About' message box."""
         # QMessageBox.about(self, "About iOsc.py", ABOUT_STR)
         dialog = QMessageBox(QMessageBox.Information, "About iOsc.py", ABOUT_STR % __version__, QMessageBox.Ok, self)
         dialog.setTextFormat(Qt.RichText)
         dialog.exec_()
 
     def __do_file_open(self):
-        """Open comtrade file"""
+        """Open comtrade file."""
         fn = QFileDialog.getOpenFileName(
             self,
             "Open data",
@@ -120,7 +121,7 @@ class MainWindow(QMainWindow):
 
 
 def main() -> int:
-    """Application entry point"""
+    """Application entry point."""
     # QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
     app.setApplicationVersion(__version__)

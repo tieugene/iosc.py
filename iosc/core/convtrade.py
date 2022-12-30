@@ -21,6 +21,7 @@ NONE = (  # None values (ascii, binary)
 
 
 class ComtradeRev(IntEnum):
+    """Comtrade revision"""
     R1991 = 0
     R1999 = 1
     R2013 = 2
@@ -163,6 +164,7 @@ def convert(sfname: pathlib.Path, dfname: pathlib.Path):
 
 
 def main():
+    """Entry point for standalone CLI converting"""
     if len(sys.argv) != 3:
         print(f"Usage: {sys.argv[0]} <in_cfg_file> <out_file_or_dir")
         sys.exit()

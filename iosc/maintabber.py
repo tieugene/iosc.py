@@ -1,4 +1,4 @@
-"""Comtrade widgets tabber"""
+"""Comtrade widgets tabber."""
 # 1. std
 import pathlib
 import struct
@@ -12,8 +12,9 @@ from sig.mainwidget import ComtradeWidget
 
 
 class ComtradeTabWidget(QTabWidget):
-    """Oscillogramm tabs container"""
-    def __init__(self, parent: QMainWindow):
+    """Oscillogramm tabs container."""
+
+    def __init__(self, parent: 'MainWindow'):  # noqa: F821
         super().__init__(parent)
         self.setTabsClosable(True)
         self.tabCloseRequested.connect(self.slot_tab_close)
@@ -21,9 +22,10 @@ class ComtradeTabWidget(QTabWidget):
 
     def add_chart_tab(self, path: pathlib.Path):
         """Add new oscillogramm tab.
+
         :note: If addTab() after show(), set .updatesEnabled = False B4 changes and = True after changes
          (to prevent flicker)
-        """
+         """
         QGuiApplication.setOverrideCursor(Qt.WaitCursor)
         self.setUpdatesEnabled(False)
         try:
@@ -40,7 +42,7 @@ class ComtradeTabWidget(QTabWidget):
             QGuiApplication.restoreOverrideCursor()
 
     def slot_tab_close(self, index):
-        """Close the tab (oscillogramm)"""
+        """Close the tab (oscillogramm)."""
         max_tabs = int(MAIN_TAB)
         if index >= max_tabs and self.count() >= (max_tabs + 1):  # main tab unclosable
             self.widget(index).close()

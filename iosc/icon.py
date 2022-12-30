@@ -1,4 +1,4 @@
-"""SVG icons"""
+"""SVG icons."""
 from enum import Enum
 
 from PyQt5.QtCore import QXmlStreamReader, Qt
@@ -51,6 +51,8 @@ pdf = '''<?xml version="1.0" encoding="utf-8"?>
 
 
 class ESvgSrc(Enum):
+    """SVG icons enumerator."""
+
     VZoomIn = vzoom_in
     VZoomOut = vzoom_out
     HZoomIn = hzoom_in
@@ -63,6 +65,11 @@ class ESvgSrc(Enum):
 
 
 def svg_icon(src: ESvgSrc) -> QIcon:
+    """SVG icon loader.
+
+    :param src: Icon to get
+    :return: QIcon object of bitmaped SVG icon
+    """
     svg_renderer = QSvgRenderer(QXmlStreamReader(src.value))
     pix = QPixmap(svg_renderer.defaultSize())
     pix.fill(Qt.transparent)

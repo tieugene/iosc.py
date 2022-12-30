@@ -13,7 +13,8 @@ from .const import FONT_MAIN
 # ---- Shortcuts ----
 # simple successors with some predefines
 class ThinPen(QPen):
-    """Non-scalable QPen"""
+    """Non-scalable QPen."""
+
     def __init__(self, color: Qt.GlobalColor, style: Qt.PenStyle = None):
         super().__init__(color)
         self.setCosmetic(True)
@@ -22,8 +23,8 @@ class ThinPen(QPen):
 
 
 class PlainTextItem(QGraphicsSimpleTextItem):
-    """
-    Non-scalable plain text
+    """Non-scalable plain text.
+
     Warn: on resize:
     - not changed: boundingRect(), pos(), scenePos()
     - not call: deviceTransform(), itemTransform(), transform(), boundingRegion()
@@ -40,7 +41,8 @@ class PlainTextItem(QGraphicsSimpleTextItem):
 
 
 class RichTextItem(QGraphicsTextItem):
-    """Non-scalable rich text"""
+    """Non-scalable rich text."""
+
     def __init__(self, txt: str = None):
         super().__init__(txt)
         self.setFont(FONT_MAIN)
@@ -48,16 +50,20 @@ class RichTextItem(QGraphicsTextItem):
 
 
 class GroupItem(QGraphicsItemGroup):
+    """Custom item group."""
+
     def __init__(self):
         super().__init__()
 
     def boundingRect(self) -> QRectF:  # set_size() fix
+        """Bounding rect."""
         return self.childrenBoundingRect()
 
 
 # ---- QGraphicsItem ----
 class TCPlainTextItem(PlainTextItem):
-    """Top-H=centered text"""
+    """Top-H-centered text."""
+
     __br: QRectF  # boundingRect()
 
     def __init__(self, txt: str):
@@ -65,23 +71,27 @@ class TCPlainTextItem(PlainTextItem):
         self.__br = super().boundingRect()
 
     def boundingRect(self) -> QRectF:
+        """Bounding rect."""
         self.__br = super().boundingRect()
         self.__br.translate(-self.__br.width() / 2, 0.0)
         return self.__br
 
     def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
-        """H-center"""
+        """H-center."""
         painter.translate(self.__br.left(), -self.__br.top())  # shift to top
         super().paint(painter, option, widget)
 
 
 class ClipedPlainTextItem(PlainTextItem):
     """Clipped plain text.
-    Used in: RecTextItem"""
+
+    Used in: RecTextItem
+    """
     def __init__(self, txt: str, color: Qt.GlobalColor = None):
         super().__init__(txt, color)
 
     def boundingRect(self) -> QRectF:  # fix for upper br: return clipped size
+        """Bounding rect."""
         if self.isClipped():
             return self.parentItem().boundingRect()
         return super().boundingRect()
@@ -89,10 +99,12 @@ class ClipedPlainTextItem(PlainTextItem):
 
 class ClipedRichTextItem(RichTextItem):
     """Clipped rich text."""
+
     def __init__(self, txt: str = None):
         super().__init__(txt)
 
     def boundingRect(self) -> QRectF:  # fix for upper br: return clipped size
+        """Bounding rect."""
         if self.isClipped():
             return self.parentItem().boundingRect()
         return super().boundingRect()
@@ -100,13 +112,14 @@ class ClipedRichTextItem(RichTextItem):
 
 # ---- QGraphicsView
 class GraphViewBase(QGraphicsView):
-    """Basic QGraphicsView parent (auto-resizing)
-    """
+    """Basic QGraphicsView parent (auto-resizing)."""
+
     def __init__(self, parent: QWidget = None):
         super().__init__(parent)
         self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate)
 
     def resizeEvent(self, event: QResizeEvent):  # !!! (resize __view to content)
+        """Inherited."""
         # super().resizeEvent(event)
         self.fitInView(self.sceneRect(), Qt.AspectRatioMode.IgnoreAspectRatio)  # expand to max
         # Note: KeepAspectRatioByExpanding is extremally CPU-greedy
@@ -115,8 +128,10 @@ class GraphViewBase(QGraphicsView):
 # ---- Containers
 class RectTextItem(GroupItem):
     """Text in border.
+
     Used in: HeaderItem
-    Result: something strange."""
+    Result: something strange.
+    """
 
     text: Union[ClipedPlainTextItem, ClipedRichTextItem]
     rect: QGraphicsRectItem
@@ -135,18 +150,21 @@ class RectTextItem(GroupItem):
         self.text.setParentItem(self.rect)
 
     def set_width(self, w: float):
+        """Set self width."""
         self.prepareGeometryChange()  # not helps
         r = self.rect.rect()
         r.setWidth(w)
         self.rect.setRect(r)
 
     def set_height(self, h: float):
+        """Set self height."""
         self.prepareGeometryChange()  # not helps
         r = self.rect.rect()
         r.setHeight(h)
         self.rect.setRect(r)
 
     def set_size(self, s: QSizeF):  # self.rect.rect() = self.rect.boundingRect() + 1
+        """Set self size."""
         self.prepareGeometryChange()  # not helps
         r = self.rect.rect()
         r.setWidth(s.width())

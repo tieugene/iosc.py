@@ -1,4 +1,4 @@
-"""gfx_ppreview/consts: constants"""
+"""Constants (local)."""
 # 1. std
 # 2. 3rd
 from PyQt5.QtGui import QFont

@@ -1,3 +1,4 @@
+"""Constants (global)."""
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush, QColor, QFont, QPen
 

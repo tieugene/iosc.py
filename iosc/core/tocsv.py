@@ -1,3 +1,4 @@
+"""Just holds CVS export function."""
 # 1. std
 import pathlib
 import csv
@@ -8,6 +9,12 @@ from iosc.core import mycomtrade
 
 
 def export_to_csv(osc: mycomtrade.MyComtrade, pors: bool, dst: pathlib.Path):
+    """Export osc into CSV file.
+
+    :param osc: Osc to export
+    :param pors: Current Primary/Secondary state
+    :param dst: Destination file
+    """
     with open(dst, 'wt', newline='') as csvfile:
         csv_writer = csv.writer(csvfile, delimiter=';')
         # 1. header

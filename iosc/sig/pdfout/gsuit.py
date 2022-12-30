@@ -1,7 +1,7 @@
-"""Graphics things (application dependent)"""
-import math
+"""Graphics things (application dependent)."""
 # 1. std
 from typing import List
+import math
 # 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsLineItem, QGraphicsRectItem, QGraphicsItem
@@ -17,6 +17,8 @@ PORS_TEXT = ('Primary', 'Secondary')
 
 
 class HeaderItem(RectTextItem):
+    """Page header."""
+
     __plot: 'PlotPrint'  # noqa: F821
 
     def __init__(self, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):  # noqa: F821
@@ -30,11 +32,13 @@ class HeaderItem(RectTextItem):
         self.update_size()
 
     def update_size(self):
+        """Update geometry."""
         self.set_width(self.__plot.w_full)
 
 
 class VItem(GroupItem):
-    """Vertical line for TableCanvas"""
+    """Vertical line for TableCanvas."""
+
     _plot: 'PlotPrint'  # noqa: F821
     _line: QGraphicsLineItem
     _text: TCPlainTextItem
@@ -51,7 +55,9 @@ class VItem(GroupItem):
 
 
 class TableCanvas(GroupItem):
-    """Table frame with:
+    """Table frame.
+
+    Contains:
     - header
     - border
     - columns separator
@@ -62,6 +68,8 @@ class TableCanvas(GroupItem):
     """
 
     class GridItem(VItem):
+        """Vertical grid line with bottom label."""
+
         __x: float
         __text: TCPlainTextItem
 
@@ -77,12 +85,15 @@ class TableCanvas(GroupItem):
             self.addToGroup(self.__text)
 
         def update_size(self):
+            """Update geometry."""
             x = W_LABEL + (self._plot.w_full - W_LABEL) * self.__x
             y = self._plot.h_full - H_BOTTOM
             self._line.setLine(x, H_HEADER, x, y)
             self.__text.setPos(x, y)
 
     class PtrItem(VItem):
+        """Pointer representation."""
+
         __i: int
 
         def __init__(self, i: int, color: Qt.GlobalColor, plot: 'PlotPrint', pen_style: Qt.PenStyle = None):  # noqa: F821
@@ -101,6 +112,7 @@ class TableCanvas(GroupItem):
             self.update_visibility()
 
         def update_size(self):
+            """Update object geometry."""
             x = W_LABEL +\
                 (self._plot.w_full - W_LABEL)\
                 * (self.__i - self._plot.i_range[0])\
@@ -109,6 +121,7 @@ class TableCanvas(GroupItem):
             self._line.setLine(x, H_HEADER, x, y)
 
         def update_visibility(self):
+            """Show/hide pointer according to switcher."""
             self.setVisible(self._plot.prn_ptrs)
 
     __plot: 'PlotPrint'  # noqa: F821
@@ -144,7 +157,7 @@ class TableCanvas(GroupItem):
         self.update_sizes()
 
     def __mk_grid(self, oscwin: 'ComtradeWidget'):  # noqa: F821
-        """Create grid items"""
+        """Create grid items."""
         x_step: int = oscwin.x_px_width_us() * 100  # μs, grid step (1..1000 * 100, e.g. 1000)
         i_range = self.__plot.i_range
         t0: float = oscwin.osc.x[i_range[0]] * 1000  # μs, 1st sample position (e.g. -81666.(6))
@@ -161,7 +174,7 @@ class TableCanvas(GroupItem):
             x_us += x_step
 
     def __mk_ptrs(self, oscwin: 'ComtradeWidget'):  # noqa: F821
-        """Create ponters (main, SC, tmp[])"""
+        """Create ponters (main, SC, tmp[])."""
         def __helper(__item):
             self.__ptrs.append(__item)
             self.__ptrs[-1].setParentItem(self.__frame)
@@ -179,6 +192,7 @@ class TableCanvas(GroupItem):
                 __helper(self.PtrItem(i, COLOR_PTR_TMP, self.__plot, PENSTYLE_PTR_TMP))
 
     def update_sizes(self):
+        """Update object sizes."""
         self.__header.update_size()
         self.__frame.setRect(0, H_HEADER, self.__plot.w_full, self.__plot.h_full - H_HEADER)
         self.__colsep.setLine(W_LABEL, H_HEADER, W_LABEL, self.__plot.h_full - H_BOTTOM)
@@ -189,14 +203,17 @@ class TableCanvas(GroupItem):
             p.update_size()
 
     def update_ptrs_visibility(self):
+        """Show/hide pointers."""
         for p in self.__ptrs:
             p.update_visibility()
 
 
 class TablePayload(GroupItem):
     """Just rows with underlines.
+
     Used in: PlotScene > … > Print
     """
+
     __rowitem: list[RowItem]
 
     def __init__(self, sblist: SignalBarList, plot: 'PlotPrint'):  # noqa: F821
@@ -212,6 +229,7 @@ class TablePayload(GroupItem):
             y += item.boundingRect().height()
 
     def update_sizes(self):
+        """Update object sizes on paint region changed."""
         # y = self.__rowitem[0].boundingRect().y()
         y = H_HEADER
         for item in self.__rowitem:
@@ -220,16 +238,19 @@ class TablePayload(GroupItem):
             y += item.boundingRect().height()
 
     def update_ptrs_visibility(self):
+        """Show/hide pointers according to switcher."""
         for item in self.__rowitem:
             item.update_ptrs_visibility()
 
     def update_labels(self):
+        """Show/hide signal labels according to switcher."""
         for item in self.__rowitem:
             item.update_labels()
 
 
 class PlotScene(QGraphicsScene):
-    """Used in: PlotPrint > PrintView"""
+    """Used in: PlotPrint > PrintView."""
+
     __canvas: TableCanvas
     __payload: TablePayload
 
@@ -242,13 +263,16 @@ class PlotScene(QGraphicsScene):
         self.addItem(self.__payload)
 
     def update_sizes(self):
+        """Update object sizes on paint region changed."""
         self.__canvas.update_sizes()
         self.__payload.update_sizes()
         self.setSceneRect(self.itemsBoundingRect())
 
     def update_labels(self):
+        """Show/hide signal labels according to switcher."""
         self.__payload.update_labels()
 
     def update_ptrs_visibility(self):
+        """Show/hide pointers according to switcher."""
         self.__canvas.update_ptrs_visibility()
         self.__payload.update_ptrs_visibility()

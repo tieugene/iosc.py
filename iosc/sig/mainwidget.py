@@ -141,43 +141,43 @@ class ComtradeWidget(QWidget):
         self.__mk_connections()
 
     def x_px_width_us(self) -> int:
-        """Current px width, μs"""
+        """Current px width (μs)."""
         return iosc.const.X_PX_WIDTH_uS[self.x_zoom]
 
     # property
     def x_width_px(self) -> int:
-        """Current graph width, px (?)"""
+        """Current graph width, px (?)."""
         return round(self.osc.x_size * 1000 / self.x_px_width_us())
 
     # property
     def x_sample_width_px(self) -> int:
-        """Current width of samples interval, px"""
+        """Current width of samples interval (px)."""
         return round(self.x_width_px() / self.osc.total_samples)
 
     @property
     def main_ptr_i(self) -> int:
-        """Sample number of main pointer"""
+        """Sample number of main pointer."""
         return self.__main_ptr_i
 
     @property
     def tmp_ptr_i(self) -> Dict[int, int]:
-        """Requisitions of tmp pointers"""
+        """Requisitions of tmp pointers."""
         return self.__tmp_ptr_i
 
     @property
     def sc_ptr_i(self) -> Optional[int]:
-        """Sample number of master (SC, right) OMP pointer"""
+        """Sample number of master (SC, right) OMP pointer."""
         return self.__sc_ptr_i
 
     @property
     def pr_ptr_i(self) -> Optional[int]:
-        """Sample number of slave (left) OMP pointer"""
+        """Sample number of slave (left) OMP pointer."""
         if self.__sc_ptr_i is not None:
             return self.__sc_ptr_i + self.osc.spp * self.__omp_width
 
     @property
     def omp_width(self) -> Optional[int]:
-        """Distance between SC pointers, periods"""
+        """Distance between SC pointers, periods."""
         return self.__omp_width
 
     @omp_width.setter
@@ -193,15 +193,15 @@ class ComtradeWidget(QWidget):
         return self.osc.shifted
 
     def x2i(self, x: float) -> int:
-        """Sample number of time (ms)"""
+        """Sample number of time (ms)."""
         return int(round((x - self.osc.x_min) / 1000 * self.osc.rate))
 
     def i2x(self, i: int) -> float:
-        """Time of Sample number (ms)"""
+        """Time of Sample number (ms)."""
         return self.osc.x[i]
 
     def __mk_widgets(self):
-        """Make child widgets"""
+        """Make child widgets."""
         self.menubar = QMenuBar()
         self.toolbar = QToolBar(self)
         self.viewas_toolbutton = QToolButton(self)
@@ -217,7 +217,7 @@ class ComtradeWidget(QWidget):
         self.__print_preview = PDFOutPreviewDialog(self.__printer, self)
 
     def __mk_layout(self):
-        """Lay out child widgets"""
+        """Lay out child widgets."""
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
@@ -243,7 +243,7 @@ class ComtradeWidget(QWidget):
         self.layout().addWidget(self.xscroll_bar)
 
     def __mk_actions(self):
-        """Make required actions"""
+        """Make required actions."""
         # noinspection PyArgumentList
         self.action_close = QAction(QIcon.fromTheme("window-close"),
                                     "&Close",
@@ -429,7 +429,7 @@ class ComtradeWidget(QWidget):
         self.action_omp_save.setEnabled(self.__sc_ptr_i is not None)
 
     def __mk_menu(self):
-        """Make local (osc) menu"""
+        """Make local (osc) menu."""
         self.menubar.addMenu("&File").addActions((
             self.action_info,
             self.action_convert,
@@ -483,7 +483,7 @@ class ComtradeWidget(QWidget):
         ))
 
     def __mk_toolbar(self):
-        """Make local (osc) toolbar"""
+        """Make local (osc) toolbar."""
         # prepare
         self.viewas_toolbutton.setPopupMode(QToolButton.MenuButtonPopup)
         viewas_menu = QMenu()
@@ -503,7 +503,7 @@ class ComtradeWidget(QWidget):
         self.toolbar.addAction(self.action_info)
 
     def __mk_connections(self):
-        """Link required signals/slots"""
+        """Link required signals/slots."""
         self.action_shift.triggered.connect(self.__do_shift)
         self.action_pors.triggered.connect(self.__do_pors)
         self.action_viewas.triggered.connect(self.__do_viewas)
@@ -513,7 +513,7 @@ class ComtradeWidget(QWidget):
         self.xscroll_bar.signal_update_plots.connect(self.timestamps_bar.plot.slot_rerange)
 
     def __set_data(self):
-        """Initial fill out signal tables"""
+        """Initial fill out signal tables."""
         for sig in self.osc.y:
             if not sig.is_bool:
                 self.analog_table.bar_insert().sig_add(ass := AnalogSignalSuit(sig, self))  # FIXME: default height
@@ -523,6 +523,7 @@ class ComtradeWidget(QWidget):
 
     def __ofg_store(self) -> dict:
         """Collect osc settings to save.
+
         :todo: capsulate"""
         data = {
             'ver': iosc.const.OFG_VER,
@@ -601,6 +602,7 @@ class ComtradeWidget(QWidget):
 
     def __cfg_restore(self, data: dict):
         """Restore osc from *.ofg content.
+
         :todo: capsulate"""
         if data['ver'] != iosc.const.OFG_VER:
             QMessageBox.critical(self, "OFG loading error", f"Incompatible version: {data['ver']}")
@@ -703,12 +705,13 @@ class ComtradeWidget(QWidget):
                     self.__do_omp_map()
 
     def __update_xzoom_actions(self):
-        """Set X-zoom actions availability"""
+        """Set X-zoom actions availability."""
         self.action_zoom_x_in.setEnabled(self.x_zoom > 0)
         self.action_zoom_x_out.setEnabled(self.x_zoom < (len(iosc.const.X_PX_WIDTH_uS) - 1))
 
     def __update_xzoom(self, xz: int):
         """Change X-zoom.
+
         :param xz: New X-zoom value
         :todo: add force:bool=False
         """
@@ -720,6 +723,7 @@ class ComtradeWidget(QWidget):
 
     def __ptr_add_tmp(self, uid: int, i: int):
         """Add new tmp pointer.
+
         :param uid: Pinter uniq id.
         :param i: Sample number.
         :todo: optional name:str"""
@@ -729,6 +733,7 @@ class ComtradeWidget(QWidget):
 
     def find_signal_worker(self, text: str) -> Optional[ABSignalSuit]:
         """Find signal by substring.
+
         :param text: Substring to search in signal names
         :return: SignalSuit found
         """
@@ -739,13 +744,14 @@ class ComtradeWidget(QWidget):
                     return ss
 
     def __do_file_close(self):
-        """Close this osc"""
+        """Close this osc."""
         # self.close()  # close widget but not tab itself
         self.__father.slot_tab_close(self.parent().indexOf(self))  # QStackedWidget.ComtradeTabWidget
 
     def __do_file_info(self):
-        """Show misc osc info"""
+        """Show misc osc info."""
         def tr(name: str, value: Any):
+            """HTML <tr> constructor"""
             return f"<tr><th>{name}:</th><td>{value}</td></tr>"
 
         msg = QMessageBox(QMessageBox.Icon.Information, "Comtrade file info", "Summary")
@@ -774,7 +780,7 @@ class ComtradeWidget(QWidget):
         msg.exec_()
 
     def __do_file_convert(self):
-        """Convert the osc into opposite format (ASCII<>BINARY)"""
+        """Convert the osc into opposite format (ASCII<>BINARY)."""
         fn = QFileDialog.getSaveFileName(
             self,
             "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[self.osc.ft]
@@ -786,7 +792,7 @@ class ComtradeWidget(QWidget):
                 QMessageBox.critical(self, "Converting error", str(e))
 
     def __do_file_csv(self):
-        """Export the osc into CSV file"""
+        """Export the osc into CSV file."""
         fn = QFileDialog.getSaveFileName(
             self,
             "Export file as CSV",
@@ -797,7 +803,7 @@ class ComtradeWidget(QWidget):
             export_to_csv(self.osc, self.show_sec, pathlib.Path(fn[0]))
 
     def __do_cfg_save(self):
-        """Save osc settings"""
+        """Save osc settings."""
         fn = QFileDialog.getSaveFileName(
             self,
             "Save settings",
@@ -809,7 +815,7 @@ class ComtradeWidget(QWidget):
                 json.dump(self.__ofg_store(), fp, indent=2)
 
     def __do_cfg_load(self):
-        """[Re]load osc settings"""
+        """[Re]load osc settings."""
         fn = QFileDialog.getOpenFileName(
             self,
             "Load settings",
@@ -821,11 +827,11 @@ class ComtradeWidget(QWidget):
                 self.__cfg_restore(json.load(fp))
 
     def __do_unhide(self):
-        """Unhide all signals"""
+        """Unhide all signals."""
         self.signal_unhide_all.emit()
 
     def __do_signal_find(self):
-        """Open 'Find signal' dialog"""
+        """Open 'Find signal' dialog."""
         FindDialog(self).exec_()
 
     def __do_resize_y_all_inc(self):
@@ -837,11 +843,11 @@ class ComtradeWidget(QWidget):
         self.status_table.resize_y_all(False)
 
     def __do_xzoom_in(self):
-        """X-zoom in action"""
+        """X-zoom in action."""
         self.__update_xzoom(self.x_zoom - 1)
 
     def __do_xzoom_out(self):
-        """X-zoom out action"""
+        """X-zoom out action."""
         self.__update_xzoom(self.x_zoom + 1)
 
     def __do_shift(self, _: QAction):
@@ -877,7 +883,7 @@ class ComtradeWidget(QWidget):
             self.slot_ptr_moved_main(self.__main_ptr_i - 1)
 
     def __do_mainptr_r(self):
-        if self.__main_ptr_i < (self.osc.x_count - 1):
+        if self.__main_ptr_i < (self.osc.total_samples - 1):
             self.slot_ptr_moved_main(self.__main_ptr_i + 1)
 
     def __do_vector_diagram(self):
@@ -922,6 +928,7 @@ class ComtradeWidget(QWidget):
 
     def resize_col_ctrl(self, dx: int):
         """Resize left column in signal tables.
+
         Used by: ctrl.VLine"""
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:
             self.col_ctrl_width += dx
@@ -929,6 +936,7 @@ class ComtradeWidget(QWidget):
 
     def slot_ptr_moved_main(self, i: int):
         """Dispatch all main ptrs.
+
         :param i: New Main Ptr x-position
         :type i: ~~QCPItemPosition~~ int
         Emit slot_main_ptr_move(pos) for:
@@ -940,7 +948,8 @@ class ComtradeWidget(QWidget):
         self.signal_ptr_moved_main.emit(i)
 
     def slot_ptr_moved_sc(self, i: int):
-        """Dispatch all OMP SC ptrs
+        """Dispatch all OMP SC ptrs.
+
         :param i: New SC Ptr index
         :type i: ~~QCPItemPosition~~ float
         Emit slot_sc_ptr_move(pos) for:
@@ -952,6 +961,7 @@ class ComtradeWidget(QWidget):
 
     def slot_ptr_moved_tmp(self, uid: int, i: int):
         """Move tmp pointer in child widgets.
+
         :param uid: TmpPtr uniq id
         :param i: Sample to move to
         Used by: ptr.TmpPtr"""
@@ -960,12 +970,14 @@ class ComtradeWidget(QWidget):
 
     def slot_ptr_del_tmp(self, uid: int):
         """Del tmp pointer in all child widgets.
+
         :param uid: TmpPtr uniq id"""
         del self.__tmp_ptr_i[uid]
         self.signal_ptr_del_tmp.emit(uid)
 
     def slot_ptr_edit_tmp(self, uid: int):
         """Edit tmp pointer.
+
         :param uid: TmpPtr uniq id"""
         v = self.i2x(self.__tmp_ptr_i[uid])
         name = self.timeaxis_bar.plot.get_tmp_ptr_name(uid)
@@ -975,7 +987,7 @@ class ComtradeWidget(QWidget):
             self.signal_ptr_moved_tmp.emit(uid, self.x2i(form.f_val.value()))
 
     def hideEvent(self, event: QHideEvent):
-        """Hide child windows on osc switch out"""
+        """Hide child windows on osc switch out."""
         super().hideEvent(event)
         if self.cvdwin and self.cvdwin.isVisible():
             self.cvdwin.hide()
@@ -983,7 +995,7 @@ class ComtradeWidget(QWidget):
             self.hdwin.hide()
 
     def showEvent(self, event: QShowEvent):
-        """Show child windows on osc switch in"""
+        """Show child windows on osc switch in."""
         super().showEvent(event)
         if not self.action_vector_diagram.isEnabled():  # == CVD opened
             self.cvdwin.show()
@@ -991,7 +1003,7 @@ class ComtradeWidget(QWidget):
             self.hdwin.show()
 
     def closeEvent(self, event: QCloseEvent):
-        """Close child windows"""
+        """Close child windows."""
         if self.cvdwin:
             self.cvdwin.deleteLater()
         if self.hdwin:

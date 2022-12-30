@@ -1,4 +1,4 @@
-"""Row-level things"""
+"""Row-level things."""
 # 1. std
 from typing import List, Union, Tuple
 # 2. 3rd
@@ -159,6 +159,7 @@ class BarLabelItem(RectTextItem):
 
 class BarGraphItem(GroupItem):
     """Graph part of signal bar.
+
     Used in: RowItem > … > Print
     """
     __graph: List[Union[AGraphItem, BGraphItem]]
@@ -205,7 +206,7 @@ class BarGraphItem(GroupItem):
 
 
 class RowItem(GroupItem):
-    """Used in: TablePayload > … > View/Print"""
+    """Used in: TablePayload > … > View/Print."""
     __sb: SignalBar
     __plot: 'PlotPrint'  # noqa: F821; ref to father
     __label: BarLabelItem  # left side
