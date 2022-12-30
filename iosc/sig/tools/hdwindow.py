@@ -26,7 +26,7 @@ class HDWindow(QDialog):
     action_close: QAction
     signal_ptr_moved = pyqtSignal(int)
 
-    def __init__(self, parent: 'ComtradeWidget'):
+    def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         super().__init__(parent)
         self.__ptr_uid = 0  # MainPtr
         self.__i = parent.main_ptr_i

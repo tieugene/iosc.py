@@ -5,9 +5,9 @@ from iosc.sig.tools.hdbar import HDBar
 
 
 class HDTable(QWidget):
-    hdwin: 'HDWindow'  # functional parent
+    hdwin: 'HDWindow'  # noqa: F821; functional parent
 
-    def __init__(self, parent: 'HDWindow'):
+    def __init__(self, parent: 'HDWindow'):  # noqa: F821
         super().__init__(parent)
         self.hdwin = parent
         # self.setStyleSheet("border: 1px solid red")

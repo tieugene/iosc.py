@@ -14,7 +14,7 @@ class SelectCVDSignalsDialog(SelectSignalsDialog):
 
     def __init__(
             self,
-            ass_list: list['AnalogSignalSuit'],
+            ass_list: list['AnalogSignalSuit'],  # noqa: F821
             ass_used: set[int],
             ass_base: int = 0,
             parent=None

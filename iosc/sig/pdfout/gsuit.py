@@ -17,9 +17,9 @@ PORS_TEXT = ('Primary', 'Secondary')
 
 
 class HeaderItem(RectTextItem):
-    __plot: 'PlotPrint'
+    __plot: 'PlotPrint'  # noqa: F821
 
-    def __init__(self, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):
+    def __init__(self, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):  # noqa: F821
         info = oscwin.osc.info
         super().__init__(ClipedPlainTextItem(
             f"{oscwin.osc.path}"
@@ -35,11 +35,11 @@ class HeaderItem(RectTextItem):
 
 class VItem(GroupItem):
     """Vertical line for TableCanvas"""
-    _plot: 'PlotPrint'
+    _plot: 'PlotPrint'  # noqa: F821
     _line: QGraphicsLineItem
     _text: TCPlainTextItem
 
-    def __init__(self, color: Qt.GlobalColor, plot: 'PlotPrint'):
+    def __init__(self, color: Qt.GlobalColor, plot: 'PlotPrint'):  # noqa: F821
         """
         :param plot: Parent plot
         """
@@ -65,7 +65,7 @@ class TableCanvas(GroupItem):
         __x: float
         __text: TCPlainTextItem
 
-        def __init__(self, x: float, label: str, plot: 'PlotPrint'):
+        def __init__(self, x: float, label: str, plot: 'PlotPrint'):  # noqa: F821
             """
             :param x: Normalized X-position, 0..1
             :param label: Text to label
@@ -85,7 +85,7 @@ class TableCanvas(GroupItem):
     class PtrItem(VItem):
         __i: int
 
-        def __init__(self, i: int, color: Qt.GlobalColor, plot: 'PlotPrint', pen_style: Qt.PenStyle = None):
+        def __init__(self, i: int, color: Qt.GlobalColor, plot: 'PlotPrint', pen_style: Qt.PenStyle = None):  # noqa: F821
             """
             :param i: Xindex of pointer
             :param color: Subj
@@ -111,7 +111,7 @@ class TableCanvas(GroupItem):
         def update_visibility(self):
             self.setVisible(self._plot.prn_ptrs)
 
-    __plot: 'PlotPrint'
+    __plot: 'PlotPrint'  # noqa: F821
     __header: HeaderItem
     __frame: QGraphicsRectItem  # external border; TODO: clip all inners (header, tic labels) by this
     __colsep: QGraphicsLineItem  # columns separator
@@ -119,7 +119,7 @@ class TableCanvas(GroupItem):
     __grid: List[GridItem]  # tics (v-line+label)
     __ptrs: List[PtrItem]  # pointers
 
-    def __init__(self, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):
+    def __init__(self, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):  # noqa: F821
         super().__init__()
         self.__plot = plot
         self.__header = HeaderItem(oscwin, plot)
@@ -143,7 +143,7 @@ class TableCanvas(GroupItem):
         # go
         self.update_sizes()
 
-    def __mk_grid(self, oscwin: 'ComtradeWidget'):
+    def __mk_grid(self, oscwin: 'ComtradeWidget'):  # noqa: F821
         """Create grid items"""
         x_step: int = oscwin.x_px_width_us() * 100  # μs, grid step (1..1000 * 100, e.g. 1000)
         i_range = self.__plot.i_range
@@ -160,7 +160,7 @@ class TableCanvas(GroupItem):
             self.addToGroup(self.__grid[-1])
             x_us += x_step
 
-    def __mk_ptrs(self, oscwin: 'ComtradeWidget'):
+    def __mk_ptrs(self, oscwin: 'ComtradeWidget'):  # noqa: F821
         """Create ponters (main, SC, tmp[])"""
         def __helper(__item):
             self.__ptrs.append(__item)
@@ -199,7 +199,7 @@ class TablePayload(GroupItem):
     """
     __rowitem: list[RowItem]
 
-    def __init__(self, sblist: SignalBarList, plot: 'PlotPrint'):
+    def __init__(self, sblist: SignalBarList, plot: 'PlotPrint'):  # noqa: F821
         super().__init__()
         self.__rowitem = list()
         y = 0
@@ -233,7 +233,7 @@ class PlotScene(QGraphicsScene):
     __canvas: TableCanvas
     __payload: TablePayload
 
-    def __init__(self, sblist: SignalBarList, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):
+    def __init__(self, sblist: SignalBarList, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):  # noqa: F821
         super().__init__()
         self.__canvas = TableCanvas(oscwin, plot)
         self.__payload = TablePayload(sblist, plot)

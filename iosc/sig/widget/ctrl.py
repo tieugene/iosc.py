@@ -11,10 +11,10 @@ from iosc.sig.widget.hline import HLine
 
 
 class SignalLabel(QListWidgetItem):
-    ss: Union['StatusSignalSuit', 'AnalogSignalSuit']
+    ss: Union['StatusSignalSuit', 'AnalogSignalSuit']  # noqa: F821
     # signal_restyled = pyqtSignal()  # N/A
 
-    def __init__(self, ss: Union['StatusSignalSuit', 'AnalogSignalSuit'], parent: 'BarCtrlWidget.SignalLabelList' = None):
+    def __init__(self, ss: Union['StatusSignalSuit', 'AnalogSignalSuit'], parent: 'BarCtrlWidget.SignalLabelList' = None):  # noqa: F821
         super().__init__(parent)
         self.ss = ss
         # self._set_style()
@@ -35,7 +35,7 @@ class SignalLabel(QListWidgetItem):
 
 class StatusSignalLabel(SignalLabel):
 
-    def __init__(self, ss: 'StatusSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
+    def __init__(self, ss: 'StatusSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):  # noqa: F821
         super().__init__(ss, parent)
 
     @property
@@ -45,7 +45,7 @@ class StatusSignalLabel(SignalLabel):
 
 
 class AnalogSignalLabel(SignalLabel):
-    def __init__(self, ss: 'AnalogSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
+    def __init__(self, ss: 'AnalogSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):  # noqa: F821
         super().__init__(ss, parent)
         self.ss.bar.table.oscwin.signal_chged_pors.connect(self.slot_update_value)
         self.ss.bar.table.oscwin.signal_chged_func.connect(self.slot_update_value)
@@ -79,7 +79,7 @@ class BarCtrlWidget(QWidget):
                 return __pix
 
             def _mk_mime() -> QMimeData:
-                bar: 'HDBar' = self.parent().bar
+                bar: 'HDBar' = self.parent().bar  # noqa: F821
                 return bar.table.mimeData([bar.table.item(bar.row, 0)])
 
             drag = QDrag(self)
@@ -143,7 +143,7 @@ class BarCtrlWidget(QWidget):
 
     class ZoomButtonBox(QWidget):
         class ZoomButton(QPushButton):
-            def __init__(self, txt: str, parent: 'ZoomButtonBox'):
+            def __init__(self, txt: str, parent: 'ZoomButtonBox'):  # noqa: F821
                 super().__init__(txt, parent)
                 self.setContentsMargins(QMargins())  # not helps
                 self.setFixedWidth(16)
@@ -190,9 +190,9 @@ class BarCtrlWidget(QWidget):
             self.__b_zoom_out.setEnabled(z > 1)
 
     class VLine(QFrame):
-        __oscwin: 'ComtradeWidget'
+        __oscwin: 'ComtradeWidget'  # noqa: F821
 
-        def __init__(self, oscwin: 'ComtradeWidget'):
+        def __init__(self, oscwin: 'ComtradeWidget'):  # noqa: F821
             super().__init__()
             self.__oscwin = oscwin
             self.setGeometry(QRect(0, 0, 0, 0))  # size is not the matter
@@ -204,13 +204,13 @@ class BarCtrlWidget(QWidget):
             """accepted() == True, x() = Δx."""
             self.__oscwin.resize_col_ctrl(event.x())
 
-    bar: 'HDBar'
+    bar: 'HDBar'  # noqa: F821
     anc: Anchor
     lst: SignalLabelList
     zbx: ZoomButtonBox
     hline: HLine
 
-    def __init__(self, bar: 'HDBar'):
+    def __init__(self, bar: 'HDBar'):  # noqa: F821
         super().__init__()  # parent will be QWidget
         self.bar = bar
         self.anc = self.Anchor(self)
@@ -228,7 +228,7 @@ class BarCtrlWidget(QWidget):
         self.layout().setContentsMargins(QMargins())
         self.layout().setSpacing(0)
 
-    def sig_add(self, ss: 'SignalSuit') -> Union[StatusSignalLabel, AnalogSignalLabel]:
+    def sig_add(self, ss: 'SignalSuit') -> Union[StatusSignalLabel, AnalogSignalLabel]:  # noqa: F821
         return StatusSignalLabel(ss, self.lst) if ss.signal.is_bool else AnalogSignalLabel(ss, self.lst)
 
     def sig_del(self, i: int):

@@ -1,7 +1,7 @@
 # 1. std
 import json
 import pathlib
-from typing import Union, List, Optional
+from typing import Union, List
 # 2. 3rd
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox
@@ -36,12 +36,12 @@ class SignalBox(QComboBox):
 
 
 class OMPMapWindow(QDialog):
-    oscwin: 'ComtradeWidget'
+    oscwin: 'ComtradeWidget'  # noqa: F821
     __button_box: QDialogButtonBox
     __map: List[int]  # map itself
     exec_1: bool  # Indicates 1st exec_
 
-    def __init__(self, parent: 'ComtradeWidget'):
+    def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         super().__init__(parent)
         self.oscwin = parent
         self.__map = [-1] * 6
@@ -144,7 +144,7 @@ class OMPMapWindow(QDialog):
         data.append(self.__h1(self.__map[3], self.oscwin.pr_ptr_i))
         out_obj = {}
         for i, d in enumerate(data):
-            out_obj[OUT_NAME[i]+'r'] = data[i].real
-            out_obj[OUT_NAME[i]+'i'] = data[i].imag
+            out_obj[OUT_NAME[i] + 'r'] = data[i].real
+            out_obj[OUT_NAME[i] + 'i'] = data[i].imag
         with open(fn, 'wt') as fp:
             json.dump(out_obj, fp, indent=1)

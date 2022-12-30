@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, Q
 
 
 class SignalPropertiesDialog(QDialog):
-    _ss: Union['StatusSignalSuit', 'AnalogSignalSuit']
+    _ss: Union['StatusSignalSuit', 'AnalogSignalSuit']  # noqa: F821
     _color: QColor
     f_name: QLineEdit
     f_type: QLineEdit
@@ -20,7 +20,7 @@ class SignalPropertiesDialog(QDialog):
     button_box: QDialogButtonBox
     _layout: QFormLayout
 
-    def __init__(self, ss: Union['StatusSignalSuit', 'AnalogSignalSuit'], parent=None):
+    def __init__(self, ss: Union['StatusSignalSuit', 'AnalogSignalSuit'], parent=None):  # noqa: F821
         super().__init__(parent)
         # 1. store args
         self._ss = ss
@@ -60,7 +60,7 @@ class SignalPropertiesDialog(QDialog):
 
 
 class StatusSignalPropertiesDialog(SignalPropertiesDialog):
-    def __init__(self, ss: 'StatusSignalSuit', parent=None):
+    def __init__(self, ss: 'StatusSignalSuit', parent=None):  # noqa: F821
         super().__init__(ss, parent)
         self.f_type.setText("Status")
 
@@ -78,7 +78,7 @@ class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
     f_pors: QLineEdit
     f_style: QComboBox
 
-    def __init__(self, ss: 'AnalogSignalSuit', parent=None):
+    def __init__(self, ss: 'AnalogSignalSuit', parent=None):  # noqa: F821
         super().__init__(ss, parent)
         self.f_type.setText("Analog")
         self.f_uu = QLineEdit(self._ss.signal.uu)
@@ -109,13 +109,13 @@ class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
 
 def get_new_omp_width(parent: QWidget, old_value: int) -> Optional[int]:
     new_value, ok = QInputDialog.getInt(
-            parent,
-            "Distance between PR and SC",
-            "Main frequency periods number",
-            old_value,
-            1,
-            10
-        )
+        parent,
+        "Distance between PR and SC",
+        "Main frequency periods number",
+        old_value,
+        1,
+        10
+    )
     if ok and new_value != old_value:
         return new_value
 
@@ -157,7 +157,7 @@ class SelectSignalsDialog(QDialog):
     buttons_select: QDialogButtonBox
     button_box: QDialogButtonBox
 
-    def __init__(self, ass_list: list['AnalogSignalSuit'], ass_used: set[int] = (), parent=None):
+    def __init__(self, ass_list: list['AnalogSignalSuit'], ass_used: set[int] = (), parent=None):  # noqa: F821
         super().__init__(parent)
         self.setWindowTitle("Select signals")
         self._mk_widgets()
@@ -190,7 +190,7 @@ class SelectSignalsDialog(QDialog):
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
 
-    def _set_data(self, ass_list: list['AnalogSignalSuit'], ass_used: set[int]):
+    def _set_data(self, ass_list: list['AnalogSignalSuit'], ass_used: set[int]):  # noqa: F821
         for i, ss in enumerate(ass_list):
             item = QListWidgetItem(ss.signal.sid, self.f_signals)
             item.setForeground(ss.color)

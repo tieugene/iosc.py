@@ -150,10 +150,10 @@ class CVDiagramObject(QGraphicsObject):
             self.__arrow.set_angle(a)
             self.__label.set_angle(a)  # ? refreshes arrow ?
 
-    cvdview: 'CVDiagramView'
+    cvdview: 'CVDiagramView'  # noqa: F821
     sv_list: list[SigVector]
 
-    def __init__(self, cvdview: 'CVDiagramView'):
+    def __init__(self, cvdview: 'CVDiagramView'):  # noqa: F821
         super().__init__()
         self.cvdview = cvdview
         self.sv_list = list()

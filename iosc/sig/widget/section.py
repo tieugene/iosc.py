@@ -25,11 +25,11 @@ class SignalBarTable(QTableWidget):
                 painter.setPen(pen)
             super().drawPrimitive(element, option, painter, widget)
 
-    oscwin: 'ComtradeWidget'
+    oscwin: 'ComtradeWidget'  # noqa: F821
     bars: SignalBarList
     __find_dialog: Optional[FindDialog]
 
-    def __init__(self, oscwin: 'ComtradeWidget'):
+    def __init__(self, oscwin: 'ComtradeWidget'):  # noqa: F821
         super().__init__()  # Parent will be QSplitter
         self.oscwin = oscwin
         self.setColumnCount(2)
@@ -102,8 +102,8 @@ class SignalBarTable(QTableWidget):
             if isinstance(src_object, BarCtrlWidget.Anchor):
                 if not over:
                     return int(
-                        src_object.parent().bar.table != self or
-                        (dst_row_num - src_object.parent().bar.row) not in {0, 1}
+                        src_object.parent().bar.table != self
+                        or (dst_row_num - src_object.parent().bar.row) not in {0, 1}
                     )
             elif isinstance(src_object, BarCtrlWidget.SignalLabelList):
                 if over:

@@ -28,7 +28,7 @@ class CVDWindow(QDialog):
     action_ptr: PtrSwitcher
     action_close: QAction
 
-    def __init__(self, parent: 'ComtradeWidget'):
+    def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         super().__init__(parent)
         self.__ptr_uid = 0  # MainPtr
         self.__i = parent.main_ptr_i

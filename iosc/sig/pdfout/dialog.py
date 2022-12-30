@@ -12,14 +12,14 @@ from .render import PlotPrint
 
 
 class PDFOutPreviewDialog(QPrintPreviewDialog):
-    __parent: 'ComtradeWidget'
+    __parent: 'ComtradeWidget'  # noqa: F821
     __render: Optional[PlotPrint]
     __1stime: bool
     __act_opt_values: QAction
     __act_opt_ptrs: QAction
     __actions_to_print: QActionGroup
 
-    def __init__(self, __printer: PdfPrinter, parent: 'ComtradeWidget'):
+    def __init__(self, __printer: PdfPrinter, parent: 'ComtradeWidget'):  # noqa: F821
         super().__init__(__printer, parent)
         self.__parent = parent
         self.__render = None

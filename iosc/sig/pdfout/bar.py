@@ -55,9 +55,9 @@ class AGraphItem(QGraphicsPathItem):
         amin = min(0.0, ss.signal.v_min)  # adjusted absolute value
         amax = max(0.0, ss.signal.v_max)
         asize = amax - amin
-        self.ymin = amin/asize
-        self.ymax = amax/asize
-        self.__nvalue = [v / asize for v in ss.signal.value[i_range[0]:i_range[1]+1]]
+        self.ymin = amin / asize
+        self.ymax = amax / asize
+        self.__nvalue = [v / asize for v in ss.signal.value[i_range[0]:i_range[1] + 1]]
         self.setPen(ThinPen(ss.color))
         pp = QPainterPath()
         # default: x=0..SAMPLES, y=(-1..0)..(0..1)
@@ -105,7 +105,7 @@ class BGraphItem(QGraphicsPolygonItem):
 
     def __init__(self, ss: StatusSignalSuit, i_range: IntX2):
         super().__init__()
-        self.__value = ss.signal.value[i_range[0]:i_range[1]+1]  # just copy
+        self.__value = ss.signal.value[i_range[0]:i_range[1] + 1]  # just copy
         self.setPen(ThinPen(ss.color))
         self.setBrush(QBrush(ss.color))  # , Qt.BrushStyle.Dense1Pattern
         self.setOpacity(0.5)
@@ -207,12 +207,12 @@ class BarGraphItem(GroupItem):
 class RowItem(GroupItem):
     """Used in: TablePayload > … > View/Print"""
     __sb: SignalBar
-    __plot: 'PlotPrint'  # ref to father
+    __plot: 'PlotPrint'  # noqa: F821; ref to father
     __label: BarLabelItem  # left side
     __graph: BarGraphItem  # right side
     __uline: QGraphicsLineItem  # underline
 
-    def __init__(self, sb: SignalBar, plot: 'PlotPrint'):
+    def __init__(self, sb: SignalBar, plot: 'PlotPrint'):  # noqa: F821
         super().__init__()
         self.__sb = sb
         self.__plot = plot
@@ -232,9 +232,9 @@ class RowItem(GroupItem):
     def update_size(self):
         w = self.__plot.w_full - W_LABEL
         h = self.__plot.h_row(self.__sb)
-        self.__label.set_height(h-1)
-        self.__graph.set_size(QSize(w, h-1))
-        self.__uline.setLine(0, h-1, self.__plot.w_full, h-1)
+        self.__label.set_height(h - 1)
+        self.__graph.set_size(QSize(w, h - 1))
+        self.__uline.setLine(0, h - 1, self.__plot.w_full, h - 1)
 
     def update_labels(self):
         self.__label.update_text(self.__plot.prn_values)

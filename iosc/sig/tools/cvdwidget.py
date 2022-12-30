@@ -6,10 +6,10 @@ from iosc.sig.tools.cvdobject import CVDiagramObject
 
 
 class CVDiagramView(QGraphicsView):
-    cvdwin: 'CVDWindow'  # uplink
+    cvdwin: 'CVDWindow'  # noqa: F821; uplink
     circle: CVDiagramObject  # downlink
 
-    def __init__(self, parent: 'CVDWindow'):
+    def __init__(self, parent: 'CVDWindow'):  # noqa: F821
         # Howto (resize to content): scene.setSceneRect(scene.itemsBoundingRect()) <= QGraphicsScene::changed()
         super().__init__(parent)
         self.cvdwin = parent

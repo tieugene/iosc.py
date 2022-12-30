@@ -9,7 +9,7 @@ from iosc.sig.widget.common import OneBarPlot, OneRowBar
 
 
 class PtrLabel(QCPItemText):
-    _oscwin: 'ComtradeWidget'
+    _oscwin: 'ComtradeWidget'  # noqa: F821
 
     def __init__(self, parent: 'TimeStampsPlot'):
         super().__init__(parent)
@@ -95,7 +95,7 @@ class TimeStampsPlot(OneBarPlot):
 
 
 class TimeStampsBar(OneRowBar):
-    def __init__(self, parent: 'ComtradeWidget'):
+    def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         super().__init__(parent)
         self.plot = TimeStampsPlot(self)
         self._post_init()
@@ -104,7 +104,7 @@ class TimeStampsBar(OneRowBar):
 class XScroller(QScrollBar):
     signal_update_plots = pyqtSignal()
 
-    def __init__(self, parent: 'ComtradeWidget'):
+    def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         """
         :param parent:
         :type parent: ComtradeWidget

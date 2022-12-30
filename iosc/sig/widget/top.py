@@ -8,7 +8,7 @@ from iosc.sig.widget.common import OneBarPlot, OneRowBar
 
 
 class PtrLabel(QCPItemText):
-    _oscwin: 'ComtradeWidget'
+    _oscwin: 'ComtradeWidget'  # noqa: F821
 
     def __init__(self, parent: 'TimeAxisPlot'):
         super().__init__(parent)
@@ -77,7 +77,7 @@ class TimeAxisPlot(OneBarPlot):
     _tmp_ptr: dict[int, PtrLabelTmp]
     signal_width_changed = pyqtSignal(int)
 
-    def __init__(self, parent: 'TopBar'):
+    def __init__(self, parent: 'TopBar'):  # noqa: F821
         super().__init__(parent)
         self.__main_ptr_label = PtrLabelMain(self)
         self._tmp_ptr = dict()
@@ -118,7 +118,7 @@ class TimeAxisPlot(OneBarPlot):
 
 
 class TimeAxisBar(OneRowBar):
-    def __init__(self, parent: 'ComtradeWidget'):
+    def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         super().__init__(parent)
         self._label.setText('ms')
         self.plot = TimeAxisPlot(self)

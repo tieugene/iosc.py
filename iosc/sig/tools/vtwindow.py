@@ -16,7 +16,7 @@ class ValueTable(QTableWidget):
     - MainPtr value (of Type)
     - TmpPtr[]
     """
-    def __init__(self, oscwin: 'ComtradeWidget', parent: 'VTWindow'):
+    def __init__(self, oscwin: 'ComtradeWidget', parent: 'VTWindow'):  # noqa: F821
         super().__init__(parent)
         self.setWordWrap(False)
         self.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
@@ -56,7 +56,7 @@ class ValueTable(QTableWidget):
 
 
 class VTWindow(QDialog):
-    def __init__(self, parent: 'ComtradeWidget'):
+    def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         super().__init__(parent)
         self.setWindowTitle("Value table")
         self.setLayout(QVBoxLayout())

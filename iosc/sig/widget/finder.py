@@ -9,7 +9,7 @@ from iosc.sig.widget.common import SignalSuit
 class FindDialog(QInputDialog):
     __ss_found: Optional[SignalSuit]
 
-    def __init__(self, parent: 'SignalBarTable'):
+    def __init__(self, parent: 'SignalBarTable'):  # noqa: F821
         super().__init__(parent)
         self.__ss_found = None
         self.setOption(self.InputDialogOption.NoButtons)

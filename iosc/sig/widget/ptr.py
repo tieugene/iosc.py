@@ -29,11 +29,11 @@ class VLine(QCPItemStraightLine):
 
 class Ptr(QCPItemTracer):
     __cursor: QCursor
-    _oscwin: 'ComtradeWidget'
+    _oscwin: 'ComtradeWidget'  # noqa: F821
     signal_ptr_moved = pyqtSignal(int)
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, graph: QCPGraph, root: 'ComtradeWidget'):
+    def __init__(self, graph: QCPGraph, root: 'ComtradeWidget'):  # noqa: F821
         super().__init__(graph.parentPlot())
         self._oscwin = root
         self.setGraph(graph)
@@ -237,7 +237,7 @@ class _PowerPtr(Ptr):
 
 
 class MainPtr(_PowerPtr):
-    def __init__(self, graph: QCPGraph, root: 'ComtradeWidget'):
+    def __init__(self, graph: QCPGraph, root: 'ComtradeWidget'):  # noqa: F821
         super().__init__(graph, root)
         self.setPen(iosc.const.PEN_PTR_MAIN)
         self.slot_ptr_move(self._oscwin.main_ptr_i, False)
@@ -314,13 +314,13 @@ class MsrPtr(Ptr):
             self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
 
     FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
-    __ss: 'AnalogSignalSuit'
+    __ss: 'AnalogSignalSuit'  # noqa: F821
     __uid: int  # uniq id
     __func_i: int  # value mode (function) number (in sigfunc.func_list[])
     __tip: _Tip
     signal_ptr_del_msr = pyqtSignal(int)
 
-    def __init__(self, ss: 'AnalogSignalSuit', uid: int):
+    def __init__(self, ss: 'AnalogSignalSuit', uid: int):  # noqa: F821
         super().__init__(ss.graph, ss.oscwin)
         self.__ss = ss
         self.__uid = uid
@@ -417,14 +417,14 @@ class LvlPtr(QCPItemStraightLine):
             self.setColor(Qt.white)  # text
 
     __cursor: QCursor
-    __ss: 'AnalogSignalSuit'
-    __oscwin: 'ComtradeWidget'
+    __ss: 'AnalogSignalSuit'  # noqa: F821
+    __oscwin: 'ComtradeWidget'  # noqa: F821
     __uid: int  # uniq id
     __tip: _Tip
     __mult: float  # multiplier reduced<>real
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, ss: 'AnalogSignalSuit', uid: int):
+    def __init__(self, ss: 'AnalogSignalSuit', uid: int):  # noqa: F821
         super().__init__(ss.graph.parentPlot())
         self.__ss = ss
         self.__uid = uid

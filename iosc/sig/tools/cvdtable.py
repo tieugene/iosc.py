@@ -8,16 +8,16 @@ TABLE_HEAD = ("Name", "Module", "Angle", "Re", "Im")
 
 
 class CVDTable(QTableWidget):
-    __parent: 'CVDWindow'
+    __parent: 'CVDWindow'  # noqa: F821
     __trace_items: bool  # process item changing
 
-    def __init__(self, parent: 'CVDWindow'):
+    def __init__(self, parent: 'CVDWindow'):  # noqa: F821
         super().__init__(parent)
         self.__parent = parent
         self.__trace_items = False
         self.setColumnCount(len(TABLE_HEAD))
         self.horizontalHeader().setStretchLastSection(True)
-        self.horizontalHeader().setSectionResizeMode(len(TABLE_HEAD)-1, QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(len(TABLE_HEAD) - 1, QHeaderView.Stretch)
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setHorizontalHeaderLabels(TABLE_HEAD)
         self.setSelectionMode(self.NoSelection)
@@ -57,7 +57,7 @@ class CVDTable(QTableWidget):
             v: complex = ss.hrm(1, i)
             uu = ss.signal.uu
             self.item(r, 1).setText("%.1f %s" % (abs(v), uu))
-            self.item(r, 2).setText("%.1f°" % __norm_angle(math.degrees(cmath.phase(v)-self.__parent.get_base_angle())))
+            self.item(r, 2).setText("%.1f°" % __norm_angle(math.degrees(cmath.phase(v) - self.__parent.get_base_angle())))
             self.item(r, 3).setText("%.1f %s" % (v.real, uu))
             self.item(r, 4).setText("%.1f %s" % (v.imag, uu))
         self.__trace_items = True

@@ -21,7 +21,7 @@ def export_to_csv(osc: mycomtrade.MyComtrade, pors: bool, dst: pathlib.Path):
         # 2. body
         for i in range(osc.total_samples):
             data = [
-                i+1,
+                i + 1,
                 "%.6f" % osc.x[i],
                 (osc.trigger_timestamp + datetime.timedelta(milliseconds=osc.x[i])).time().isoformat()
             ]

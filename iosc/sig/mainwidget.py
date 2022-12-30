@@ -111,7 +111,7 @@ class ComtradeWidget(QWidget):
     signal_ptr_del_tmp = pyqtSignal(int)  # rm TmpPtr from each SignalChartWidget
     signal_ptr_moved_tmp = pyqtSignal(int, int)  # refresh SignalChartWidget on Tmp Ptr moved
 
-    def __init__(self, osc: mycomtrade.MyComtrade, parent: 'ComtradeTabWidget'):
+    def __init__(self, osc: mycomtrade.MyComtrade, parent: 'ComtradeTabWidget'):  # noqa: F821
         super().__init__(parent)
         self.osc = osc
         self.col_ctrl_width = iosc.const.COL0_WIDTH_INIT
@@ -723,7 +723,7 @@ class ComtradeWidget(QWidget):
         txt += tr("Time base", info['time_base'])
         txt += tr("Line freq, Hz", info['frequency'])
         txt += tr("Samples", self.osc.total_samples)
-        txt += tr(f"Sample rate:", f"{self.osc.rate} Hz")
+        txt += tr("Sample rate:", f"{self.osc.rate} Hz")
         txt += "<tbody></table></body><html>"
         msg.setText(txt)
         msg.setTextFormat(Qt.RichText)
@@ -790,11 +790,11 @@ class ComtradeWidget(QWidget):
 
     def __do_xzoom_in(self):
         """X-zoom in action"""
-        self.__update_xzoom(self.x_zoom-1)
+        self.__update_xzoom(self.x_zoom - 1)
 
     def __do_xzoom_out(self):
         """X-zoom out action"""
-        self.__update_xzoom(self.x_zoom+1)
+        self.__update_xzoom(self.x_zoom + 1)
 
     def __do_shift(self, _: QAction):
         self.osc.shifted = self.action_shift_yes.isChecked()

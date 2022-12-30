@@ -40,7 +40,7 @@ class OneBarPlot(QCustomPlot):
         self.addLayer("tips")  # default 6 layers (from bottom (0)): background>grid>main>axes>legend>overlay
 
     @property
-    def _oscwin(self) -> 'ComtradeWidget':
+    def _oscwin(self) -> 'ComtradeWidget':  # noqa: F821
         return self.parent().parent()
 
     def slot_rerange(self):
@@ -65,7 +65,7 @@ class OneRowBar(QWidget):
     _label: QLabel
     plot: QCustomPlot
 
-    def __init__(self, parent: 'ComtradeWidget'):
+    def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         super().__init__(parent)
         self._label = QLabel(self)
 
@@ -89,9 +89,9 @@ class OneRowBar(QWidget):
 
 
 class SignalSuit(QObject):
-    oscwin: 'ComtradeWidget'
+    oscwin: 'ComtradeWidget'  # noqa: F821
     signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]
-    bar: Optional['HDBar']
+    bar: Optional['HDBar']  # noqa: F821
     num: Optional[int]  # order number in bar
     _label: Optional[Union[StatusSignalLabel, AnalogSignalLabel]]
     graph: Optional[QCPGraph]
@@ -99,7 +99,7 @@ class SignalSuit(QObject):
     color: QColor
     signal_chg_color = pyqtSignal(QColor)
 
-    def __init__(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal], oscwin: 'ComtradeWidget'):
+    def __init__(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal], oscwin: 'ComtradeWidget'):  # noqa: F821
         super().__init__()
         self.oscwin = oscwin
         self.signal = signal
@@ -141,7 +141,7 @@ class SignalSuit(QObject):
             self._label.set_color()
         self.signal_chg_color.emit(self.color)  # Rx by: CVD
 
-    def embed(self, bar: 'HDBar', num: int):
+    def embed(self, bar: 'HDBar', num: int):  # noqa: F821
         self.bar = bar
         self.num = num
         self._label = self.bar.ctrl.sig_add(self)
@@ -177,7 +177,7 @@ class SignalSuit(QObject):
 
 
 class StatusSignalSuit(SignalSuit):
-    def __init__(self, signal: mycomtrade.StatusSignal, oscwin: 'ComtradeWidget'):
+    def __init__(self, signal: mycomtrade.StatusSignal, oscwin: 'ComtradeWidget'):  # noqa: F821
         super().__init__(signal, oscwin)
 
     @property
@@ -207,7 +207,7 @@ class AnalogSignalSuit(SignalSuit):
     msr_ptr: dict[int: list[Optional[MsrPtr], int, int]]  # uid: [obj, i, func_i]
     lvl_ptr: dict[int: list[Optional[LvlPtr], float]]  # uid: [obj, y]
 
-    def __init__(self, signal: mycomtrade.AnalogSignal, oscwin: 'ComtradeWidget'):
+    def __init__(self, signal: mycomtrade.AnalogSignal, oscwin: 'ComtradeWidget'):  # noqa: F821
         self.line_style = 0
         self.msr_ptr = dict()
         self.lvl_ptr = dict()
@@ -246,7 +246,7 @@ class AnalogSignalSuit(SignalSuit):
             self._set_style()
             self.graph.parentPlot().replot()
 
-    def embed(self, bar: 'HDBar', num: int):
+    def embed(self, bar: 'HDBar', num: int):  # noqa: F821
         super().embed(bar, num)
         for uid in self.msr_ptr.keys():
             MsrPtr(self, uid)
@@ -344,7 +344,7 @@ class AnalogSignalSuit(SignalSuit):
 
 
 class SignalBar(QObject):
-    table: 'SignalBarTable'
+    table: 'SignalBarTable'  # noqa: F821
     row: int
     signals: list[Union[StatusSignalSuit, AnalogSignalSuit]]
     zoom_y: int
@@ -352,7 +352,7 @@ class SignalBar(QObject):
     gfx: BarPlotWidget
     signal_zoom_y_changed = pyqtSignal()
 
-    def __init__(self, table: 'SignalBarTable', row: int = -1):
+    def __init__(self, table: 'SignalBarTable', row: int = -1):  # noqa: F821
         super().__init__()
         if not (0 <= row < table.rowCount()):
             row = table.rowCount()
@@ -432,7 +432,7 @@ class SignalBar(QObject):
         # else: do nothing
         self.update_stealth()
 
-    def sig_move(self, i: int, other_bar: 'HDBar'):
+    def sig_move(self, i: int, other_bar: 'HDBar'):  # noqa: F821
         ss = self.signals[i]
         del self.signals[i]
         ss.detach()

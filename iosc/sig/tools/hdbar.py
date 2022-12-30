@@ -97,7 +97,7 @@ class HDBar(QWidget):
     title: SignalTitleBar
     harm: list[SignalHarmBar]
 
-    def __init__(self, ss: AnalogSignalSuit, parent: 'HDTable'):
+    def __init__(self, ss: AnalogSignalSuit, parent: 'HDTable'):  # noqa: F821
         super().__init__(parent)
         self.__ss = ss
         self.title = SignalTitleBar(ss.signal.sid, ss.color, self)
@@ -119,12 +119,12 @@ class HDBar(QWidget):
         # - get all values
         v = [abs(self.__ss.hrm(h.h_no, t_i)) for h in self.harm]
         # - calc max
-        v_max = round(100 * max(v)/v[0])
+        v_max = round(100 * max(v) / v[0])
         # - paint them
         self.harm[0].set_value(100, v_max)
-        self.harm[1].set_value(round(100 * v[1]/v[0]), v_max)
-        self.harm[2].set_value(round(100 * v[2]/v[0]), v_max)
-        self.harm[3].set_value(round(100 * v[3]/v[0]), v_max)
+        self.harm[1].set_value(round(100 * v[1] / v[0]), v_max)
+        self.harm[2].set_value(round(100 * v[2] / v[0]), v_max)
+        self.harm[3].set_value(round(100 * v[3] / v[0]), v_max)
 
     def __slot_set_color(self):
         c = self.__ss.color

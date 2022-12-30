@@ -6,9 +6,9 @@ from PyQt5.QtWidgets import QFrame
 
 
 class HLine(QFrame):
-    __parent: Union['BarCtrlWidget', 'BarPlotWidget']
+    __parent: Union['BarCtrlWidget', 'BarPlotWidget']  # noqa: F821
 
-    def __init__(self, parent: Union['BarCtrlWidget', 'BarPlotWidget']):
+    def __init__(self, parent: Union['BarCtrlWidget', 'BarPlotWidget']):  # noqa: F821
         super().__init__()
         self.__parent = parent
         self.setGeometry(QRect(0, 0, 0, 0))  # size is not the matter

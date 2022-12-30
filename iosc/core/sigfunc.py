@@ -15,8 +15,8 @@ def _cutlpad(a: np.array, n: int, w: int) -> np.array:
 
 def _sft(a: np.array, n: int, w: int, h: int) -> complex:
     if n < (w - 1):
-        return 0+0j
-    win = a[n+1-w:n+1]
+        return 0 + 0j
+    win = a[n + 1 - w:n + 1]
     mult_2 = 2 / w / math.sqrt(2)
     mult_1 = 2 * math.pi * h / w
     arg = n * mult_1

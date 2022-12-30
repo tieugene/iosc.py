@@ -20,7 +20,7 @@ class PlotPrint(GraphViewBase):
     __i_range: Tuple[int, int]  # Range of samples to print out
     _scene: List[PlotScene]
 
-    def __init__(self, oscwin: 'ComtradeWidget'):
+    def __init__(self, oscwin: 'ComtradeWidget'):  # noqa: F821
         super().__init__()
         self._portrait = PORTRAIT
         self._prn_values = False

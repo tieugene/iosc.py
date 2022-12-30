@@ -82,7 +82,7 @@ class BarPlotWidget(QWidget):
                 self.valueChanged.emit(self.value())  # force replot
 
     class BarPlot(QCustomPlot):
-        _oscwin: 'ComtradeWidget'
+        _oscwin: 'ComtradeWidget'  # noqa: F821
         _main_ptr: MainPtr
         _sc_ptr: Optional[SCPtr]
         _tmp_ptr: dict[int, TmpPtr]
@@ -198,13 +198,13 @@ class BarPlotWidget(QWidget):
             del self._tmp_ptr[uid]
             self.replot()
 
-    bar: 'HDBar'
+    bar: 'HDBar'  # noqa: F821
     ys: YScroller
     yzlabel: YZLabel
     plot: BarPlot
     hline: HLine
 
-    def __init__(self, bar: 'HDBar'):
+    def __init__(self, bar: 'HDBar'):  # noqa: F821
         super().__init__()
         self.bar = bar
         self.ys = self.YScroller(self)
