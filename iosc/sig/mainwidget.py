@@ -1,4 +1,4 @@
-"""Signal tab widget
+"""Signal tab widget.
 RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
 import json
@@ -25,13 +25,14 @@ from iosc.sig.widget.finder import FindDialog
 from iosc.sig.widget.section import SignalBarTable
 from iosc.sig.widget.bottom import TimeStampsBar, XScroller
 from iosc.sig.widget.top import TimeAxisBar
-from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit, SignalSuit
+from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit, ABSignalSuit
 from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
 
 
 class ComtradeWidget(QWidget):
     """Main osc window."""
     # inner vars
+    __father: 'ComtradeTabWidget'  # noqa: F821; real parent
     osc: mycomtrade.MyComtrade
     col_ctrl_width: int
     # inner vars
@@ -113,6 +114,7 @@ class ComtradeWidget(QWidget):
 
     def __init__(self, osc: mycomtrade.MyComtrade, parent: 'ComtradeTabWidget'):  # noqa: F821
         super().__init__(parent)
+        self.__father = parent
         self.osc = osc
         self.col_ctrl_width = iosc.const.COL0_WIDTH_INIT
         self.__main_ptr_i = self.x2i(0.0)  # default: Z (Osc1: 600)
@@ -121,14 +123,14 @@ class ComtradeWidget(QWidget):
         else:
             self.__sc_ptr_i = self.__main_ptr_i + 2 * self.osc.spp
             self.__omp_width = 3
-        self.__tmp_ptr_i = dict()
+        self.__tmp_ptr_i = {}
         self.msr_ptr_uids = set()
         self.lvl_ptr_uids = set()
         self.__shifted = False
         self.x_zoom = len(iosc.const.X_PX_WIDTH_uS) - 1  # initial: max
         self.show_sec = True
         self.viewas = 0
-        self.ass_list = list()
+        self.ass_list = []
         self.__mk_widgets()
         self.__mk_layout()
         self.__mk_actions()
@@ -154,26 +156,24 @@ class ComtradeWidget(QWidget):
 
     @property
     def main_ptr_i(self) -> int:
+        """Sample number of main pointer"""
         return self.__main_ptr_i
 
     @property
-    def main_ptr_x(self) -> float:
-        return self.i2x(self.__main_ptr_i)
-
-    @property
     def tmp_ptr_i(self) -> Dict[int, int]:
+        """Requisitions of tmp pointers"""
         return self.__tmp_ptr_i
 
     @property
     def sc_ptr_i(self) -> Optional[int]:
-        """Position index of master (SC, right) OMP pointer"""
+        """Sample number of master (SC, right) OMP pointer"""
         return self.__sc_ptr_i
 
     @property
-    def sc_ptr_x(self) -> Optional[float]:
-        """Time of master (right) OMP pointer"""
-        if self.__sc_ptr_i:
-            return self.i2x(self.__sc_ptr_i)
+    def pr_ptr_i(self) -> Optional[int]:
+        """Sample number of slave (left) OMP pointer"""
+        if self.__sc_ptr_i is not None:
+            return self.__sc_ptr_i + self.osc.spp * self.__omp_width
 
     @property
     def omp_width(self) -> Optional[int]:
@@ -182,29 +182,26 @@ class ComtradeWidget(QWidget):
 
     @omp_width.setter
     def omp_width(self, i):
+        """:fixme: UB"""
         # self.__omp_width = i
         # self.signal_omp_width_changed.emit()
-        print(i)  # TODO: UB
-
-    @property
-    def pr_ptr_i(self) -> Optional[int]:
-        """Position index of slave (left) OMP pointer"""
-        if self.__sc_ptr_i is not None:
-            return self.__sc_ptr_i + self.osc.spp * self.__omp_width
+        print(i)
 
     @property
     def shifted(self):
+        """:fixme: rm?"""
         return self.osc.shifted
 
     def x2i(self, x: float) -> int:
-        """Recalc graph x-position (ms) into index in signal array"""
+        """Sample number of time (ms)"""
         return int(round((x - self.osc.x_min) / 1000 * self.osc.rate))
 
     def i2x(self, i: int) -> float:
-        """Recalc index in signal array int graph x-position (ms)"""
+        """Time of Sample number (ms)"""
         return self.osc.x[i]
 
     def __mk_widgets(self):
+        """Make child widgets"""
         self.menubar = QMenuBar()
         self.toolbar = QToolBar(self)
         self.viewas_toolbutton = QToolButton(self)
@@ -220,6 +217,7 @@ class ComtradeWidget(QWidget):
         self.__print_preview = PDFOutPreviewDialog(self.__printer, self)
 
     def __mk_layout(self):
+        """Lay out child widgets"""
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
@@ -245,132 +243,167 @@ class ComtradeWidget(QWidget):
         self.layout().addWidget(self.xscroll_bar)
 
     def __mk_actions(self):
+        """Make required actions"""
+        # noinspection PyArgumentList
         self.action_close = QAction(QIcon.fromTheme("window-close"),
                                     "&Close",
                                     self,
                                     shortcut="Ctrl+W",
                                     triggered=self.__do_file_close)
+        # noinspection PyArgumentList
         self.action_info = QAction(QIcon.fromTheme("dialog-information"),
                                    "&Info",
                                    self,
                                    shortcut="Ctrl+I",
                                    triggered=self.__do_file_info)
+        # noinspection PyArgumentList
         self.action_convert = QAction(QIcon.fromTheme("document-save-as"),
                                       "&Save as...",
                                       self,
                                       triggered=self.__do_file_convert)
+        # noinspection PyArgumentList
         self.action_csv = QAction("&Export to CSV",
                                   self,
                                   triggered=self.__do_file_csv)
+        # noinspection PyArgumentList
         self.action_cfg_save = QAction(QIcon.fromTheme("document-save"),
                                        "&Save settings",
                                        self,
                                        shortcut="Ctrl+S",
                                        triggered=self.__do_cfg_save)
+        # noinspection PyArgumentList
         self.action_cfg_load = QAction(QIcon.fromTheme("document-open"),
                                        "&Load settings",
                                        self,
                                        shortcut="Ctrl+L",
                                        triggered=self.__do_cfg_load)
+        # noinspection PyArgumentList
         self.action_pdfout = QAction(svg_icon(ESvgSrc.PDF),
                                      "&Print...",
                                      self,
                                      shortcut="Ctrl+P",
                                      triggered=self.__print_preview.open)
+        # noinspection PyArgumentList
         self.action_resize_y_in = QAction(svg_icon(ESvgSrc.VZoomIn),
                                           "Y-Resize +",
                                           self,
                                           triggered=self.__do_resize_y_all_inc)
+        # noinspection PyArgumentList
         self.action_resize_y_out = QAction(svg_icon(ESvgSrc.VZoomOut),
                                            "Y-Resize -",
                                            self,
                                            triggered=self.__do_resize_y_all_dec)
+        # noinspection PyArgumentList
         self.action_zoom_x_in = QAction(svg_icon(ESvgSrc.HZoomIn),
                                         "X-Zoom in",
                                         self,
                                         triggered=self.__do_xzoom_in)
+        # noinspection PyArgumentList
         self.action_zoom_x_out = QAction(svg_icon(ESvgSrc.HZoomOut),
                                          "X-Zoom out",
                                          self,
                                          triggered=self.__do_xzoom_out)
+        # noinspection PyArgumentList
         self.action_unhide = QAction(QIcon.fromTheme("edit-undo"),
                                      "&Unhide all",
                                      self,
                                      triggered=self.__do_unhide)
+        # noinspection PyArgumentList
         self.action_shift_not = QAction(svg_icon(ESvgSrc.ShiftOrig),
                                         "&Original",
                                         self,
                                         checkable=True)
+        # noinspection PyArgumentList
         self.action_shift_yes = QAction(svg_icon(ESvgSrc.ShiftCentered),
                                         "&Centered",
                                         self,
                                         checkable=True)
+        # noinspection PyArgumentList
         self.action_pors_pri = QAction(svg_icon(ESvgSrc.PorsP),
                                        "&Pri",
                                        self,
                                        checkable=True)
+        # noinspection PyArgumentList
         self.action_pors_sec = QAction(svg_icon(ESvgSrc.PorsS),
                                        "&Sec",
                                        self,
                                        checkable=True)
+        # noinspection PyArgumentList
         self.action_viewas_is = QAction("As &is",
                                         self,
                                         checkable=True)
+        # noinspection PyArgumentList
         self.action_viewas_mid = QAction("&Mid",
                                          self,
                                          checkable=True)
+        # noinspection PyArgumentList
         self.action_viewas_eff = QAction("&Eff",
                                          self,
                                          checkable=True)
+        # noinspection PyArgumentList
         self.action_viewas_hrm1 = QAction("Hrm &1",
                                           self,
                                           checkable=True)
+        # noinspection PyArgumentList
         self.action_viewas_hrm2 = QAction("Hrm &2",
                                           self,
                                           checkable=True)
+        # noinspection PyArgumentList
         self.action_viewas_hrm3 = QAction("Hrm &3",
                                           self,
                                           checkable=True)
+        # noinspection PyArgumentList
         self.action_viewas_hrm5 = QAction("Hrm &5",
                                           self,
                                           checkable=True)
+        # noinspection PyArgumentList
         self.action_ptr_add_tmp = QAction("Add temporary pointer",
                                           self,
                                           triggered=self.__do_ptr_add_tmp)
+        # noinspection PyArgumentList
         self.action_ptr_add_msr = QAction("Add measure pointers",
                                           self,
                                           triggered=self.__do_ptr_add_msr)
+        # noinspection PyArgumentList
         self.action_ptr_add_lvl = QAction("Add level pointers",
                                           self,
                                           triggered=self.__do_ptr_add_lvl)
+        # noinspection PyArgumentList
         self.action_mainptr_l = QAction("Move main ptr left",
                                         self,
                                         shortcut="Left",
                                         triggered=self.__do_mainptr_l)
+        # noinspection PyArgumentList
         self.action_mainptr_r = QAction("Move main ptr right",
                                         self,
                                         shortcut="Right",
                                         triggered=self.__do_mainptr_r)
+        # noinspection PyArgumentList
         self.action_vector_diagram = QAction("Vector chart",
                                              self,
                                              shortcut="Ctrl+V",
                                              triggered=self.__do_vector_diagram)
+        # noinspection PyArgumentList
         self.action_harmonic_diagram = QAction("Harmonic chart",
                                                self,
                                                shortcut="Ctrl+H",
                                                triggered=self.__do_harmonic_diagram)
+        # noinspection PyArgumentList
         self.action_value_table = QAction(QIcon.fromTheme("x-office-spreadsheet"),
                                           "Value table",
                                           self,
                                           shortcut="Ctrl+T",
                                           triggered=self.__do_value_table)
+        # noinspection PyArgumentList
         self.action_omp_map = QAction("OMP map",
                                       self,
                                       shortcut="Ctrl+M",
                                       triggered=self.__do_omp_map)
+        # noinspection PyArgumentList
         self.action_omp_save = QAction("OMP save",
                                        self,
                                        triggered=self.__do_omp_save)
+        # noinspection PyArgumentList
         self.action_signal_find = QAction("Find...",
                                           self,
                                           shortcut="Ctrl+F",
@@ -396,6 +429,7 @@ class ComtradeWidget(QWidget):
         self.action_omp_save.setEnabled(self.__sc_ptr_i is not None)
 
     def __mk_menu(self):
+        """Make local (osc) menu"""
         self.menubar.addMenu("&File").addActions((
             self.action_info,
             self.action_convert,
@@ -449,6 +483,7 @@ class ComtradeWidget(QWidget):
         ))
 
     def __mk_toolbar(self):
+        """Make local (osc) toolbar"""
         # prepare
         self.viewas_toolbutton.setPopupMode(QToolButton.MenuButtonPopup)
         viewas_menu = QMenu()
@@ -468,6 +503,7 @@ class ComtradeWidget(QWidget):
         self.toolbar.addAction(self.action_info)
 
     def __mk_connections(self):
+        """Link required signals/slots"""
         self.action_shift.triggered.connect(self.__do_shift)
         self.action_pors.triggered.connect(self.__do_pors)
         self.action_viewas.triggered.connect(self.__do_viewas)
@@ -477,6 +513,7 @@ class ComtradeWidget(QWidget):
         self.xscroll_bar.signal_update_plots.connect(self.timestamps_bar.plot.slot_rerange)
 
     def __set_data(self):
+        """Initial fill out signal tables"""
         for sig in self.osc.y:
             if not sig.is_bool:
                 self.analog_table.bar_insert().sig_add(ass := AnalogSignalSuit(sig, self))  # FIXME: default height
@@ -485,7 +522,8 @@ class ComtradeWidget(QWidget):
                 self.status_table.bar_insert().sig_add(StatusSignalSuit(sig, self))  # FIXME: default height
 
     def __ofg_store(self) -> dict:
-        """:todo: capsulate"""
+        """Collect osc settings to save.
+        :todo: capsulate"""
         data = {
             'ver': iosc.const.OFG_VER,
             'xzoom': self.x_zoom,
@@ -497,7 +535,7 @@ class ComtradeWidget(QWidget):
             'ptr': {
                 'main': self.__main_ptr_i
             },
-            'table': list()
+            'table': []
         }
         if self.__sc_ptr_i is not None:
             data['ptr']['omp'] = {'xi': self.__sc_ptr_i, 'w': self.__omp_width}
@@ -508,9 +546,9 @@ class ComtradeWidget(QWidget):
             data['ptr']['tmp'] = tmp
         # bars
         for table in (self.analog_table, self.status_table):
-            t_data = list()
+            t_data = []
             for bar in table.bars:
-                b_data = {'s': list()}
+                b_data = {'s': []}
                 if not bar.is_bool():
                     b_data['h'] = bar.height
                     b_data['yzoom'] = bar.zoom_y
@@ -537,7 +575,7 @@ class ComtradeWidget(QWidget):
                 t_data.append(b_data)
             data['table'].append(t_data)
         # tools
-        tool = dict()
+        tool = {}
         # - CDV
         if self.cvdwin:
             tool['cvd'] = {
@@ -562,16 +600,16 @@ class ComtradeWidget(QWidget):
         return data
 
     def __cfg_restore(self, data: dict):
-        """Restore osc from (.ofg.
+        """Restore osc from *.ofg content.
         :todo: capsulate"""
         if data['ver'] != iosc.const.OFG_VER:
             QMessageBox.critical(self, "OFG loading error", f"Incompatible version: {data['ver']}")
         # 1. clean
         # 1.1. Tmp ptrs
-        for uid in self.__tmp_ptr_i.keys():
+        for uid in self.__tmp_ptr_i:  # .keys()
             self.slot_ptr_del_tmp(uid)
         # 1.2. store SS' | detch them | drop bars
-        sss = [None] * len(self.osc.y)
+        sss: List[Optional[ABSignalSuit]] = [None] * len(self.osc.y)
         for table in (self.analog_table, self.status_table):
             for bar in table.bars[::-1]:  # reverse order
                 for ss in bar.signals:
@@ -669,7 +707,7 @@ class ComtradeWidget(QWidget):
         self.action_zoom_x_in.setEnabled(self.x_zoom > 0)
         self.action_zoom_x_out.setEnabled(self.x_zoom < (len(iosc.const.X_PX_WIDTH_uS) - 1))
 
-    def __update_xzoom(self, xz):
+    def __update_xzoom(self, xz: int):
         """Change X-zoom.
         :param xz: New X-zoom value
         :todo: add force:bool=False
@@ -681,14 +719,17 @@ class ComtradeWidget(QWidget):
             self.timeaxis_bar.plot.signal_width_changed.emit(self.timeaxis_bar.plot.viewport().width())  # FIXME: hack
 
     def __ptr_add_tmp(self, uid: int, i: int):
-        """:todo: optional name:str"""
+        """Add new tmp pointer.
+        :param uid: Pinter uniq id.
+        :param i: Sample number.
+        :todo: optional name:str"""
         self.__tmp_ptr_i[uid] = i
         self.signal_ptr_add_tmp.emit(uid)  # create them ...
         # self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
 
-    def find_signal_worker(self, text: str) -> Optional[SignalSuit]:
-        """
-        :param text: Substring to search in signa names
+    def find_signal_worker(self, text: str) -> Optional[ABSignalSuit]:
+        """Find signal by substring.
+        :param text: Substring to search in signal names
         :return: SignalSuit found
         """
         for t in (self.analog_table, self.status_table):
@@ -698,10 +739,12 @@ class ComtradeWidget(QWidget):
                     return ss
 
     def __do_file_close(self):
+        """Close this osc"""
         # self.close()  # close widget but not tab itself
-        self.parent().parent().slot_tab_close(self.parent().indexOf(self))  # QStackedWidget.ComtradeTabWidget
+        self.__father.slot_tab_close(self.parent().indexOf(self))  # QStackedWidget.ComtradeTabWidget
 
     def __do_file_info(self):
+        """Show misc osc info"""
         def tr(name: str, value: Any):
             return f"<tr><th>{name}:</th><td>{value}</td></tr>"
 
@@ -731,6 +774,7 @@ class ComtradeWidget(QWidget):
         msg.exec_()
 
     def __do_file_convert(self):
+        """Convert the osc into opposite format (ASCII<>BINARY)"""
         fn = QFileDialog.getSaveFileName(
             self,
             "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[self.osc.ft]
@@ -742,6 +786,7 @@ class ComtradeWidget(QWidget):
                 QMessageBox.critical(self, "Converting error", str(e))
 
     def __do_file_csv(self):
+        """Export the osc into CSV file"""
         fn = QFileDialog.getSaveFileName(
             self,
             "Export file as CSV",
@@ -752,6 +797,7 @@ class ComtradeWidget(QWidget):
             export_to_csv(self.osc, self.show_sec, pathlib.Path(fn[0]))
 
     def __do_cfg_save(self):
+        """Save osc settings"""
         fn = QFileDialog.getSaveFileName(
             self,
             "Save settings",
@@ -759,10 +805,11 @@ class ComtradeWidget(QWidget):
             "Oscillogramm configuration (*.ofg)"
         )
         if fn[0]:
-            with open(fn[0], 'wt') as fp:
+            with open(fn[0], 'wt') as fp:  # FIXME: chk encoding
                 json.dump(self.__ofg_store(), fp, indent=2)
 
     def __do_cfg_load(self):
+        """[Re]load osc settings"""
         fn = QFileDialog.getOpenFileName(
             self,
             "Load settings",
@@ -770,14 +817,15 @@ class ComtradeWidget(QWidget):
             "Oscillogramm configuration (*.ofg)"
         )
         if fn[0]:
-            with open(fn[0], 'rt') as fp:
+            with open(fn[0], 'rt') as fp:  # FIXME: encoding
                 self.__cfg_restore(json.load(fp))
 
     def __do_unhide(self):
+        """Unhide all signals"""
         self.signal_unhide_all.emit()
 
     def __do_signal_find(self):
-        """Find signal over both of SignalTables"""
+        """Open 'Find signal' dialog"""
         FindDialog(self).exec_()
 
     def __do_resize_y_all_inc(self):
@@ -873,13 +921,14 @@ class ComtradeWidget(QWidget):
             self.ompmapwin.data_save(pathlib.Path(fn[0]))
 
     def resize_col_ctrl(self, dx: int):
+        """Resize left column in signal tables.
+        Used by: ctrl.VLine"""
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:
             self.col_ctrl_width += dx
             self.signal_resize_col_ctrl.emit(self.col_ctrl_width)
 
     def slot_ptr_moved_main(self, i: int):
-        """
-        Dispatch all main ptrs
+        """Dispatch all main ptrs.
         :param i: New Main Ptr x-position
         :type i: ~~QCPItemPosition~~ int
         Emit slot_main_ptr_move(pos) for:
@@ -891,8 +940,7 @@ class ComtradeWidget(QWidget):
         self.signal_ptr_moved_main.emit(i)
 
     def slot_ptr_moved_sc(self, i: int):
-        """
-        Dispatch all OMP SC ptrs
+        """Dispatch all OMP SC ptrs
         :param i: New SC Ptr index
         :type i: ~~QCPItemPosition~~ float
         Emit slot_sc_ptr_move(pos) for:
@@ -903,14 +951,22 @@ class ComtradeWidget(QWidget):
         self.signal_ptr_moved_sc.emit(i)
 
     def slot_ptr_moved_tmp(self, uid: int, i: int):
+        """Move tmp pointer in child widgets.
+        :param uid: TmpPtr uniq id
+        :param i: Sample to move to
+        Used by: ptr.TmpPtr"""
         self.__tmp_ptr_i[uid] = i
         self.signal_ptr_moved_tmp.emit(uid, i)
 
     def slot_ptr_del_tmp(self, uid: int):
+        """Del tmp pointer in all child widgets.
+        :param uid: TmpPtr uniq id"""
         del self.__tmp_ptr_i[uid]
         self.signal_ptr_del_tmp.emit(uid)
 
     def slot_ptr_edit_tmp(self, uid: int):
+        """Edit tmp pointer.
+        :param uid: TmpPtr uniq id"""
         v = self.i2x(self.__tmp_ptr_i[uid])
         name = self.timeaxis_bar.plot.get_tmp_ptr_name(uid)
         form = TmpPtrDialog((v, self.osc.x_min, self.osc.x_max, 1000 / self.osc.rate, name))
@@ -919,6 +975,7 @@ class ComtradeWidget(QWidget):
             self.signal_ptr_moved_tmp.emit(uid, self.x2i(form.f_val.value()))
 
     def hideEvent(self, event: QHideEvent):
+        """Hide child windows on osc switch out"""
         super().hideEvent(event)
         if self.cvdwin and self.cvdwin.isVisible():
             self.cvdwin.hide()
@@ -926,6 +983,7 @@ class ComtradeWidget(QWidget):
             self.hdwin.hide()
 
     def showEvent(self, event: QShowEvent):
+        """Show child windows on osc switch in"""
         super().showEvent(event)
         if not self.action_vector_diagram.isEnabled():  # == CVD opened
             self.cvdwin.show()
@@ -933,6 +991,7 @@ class ComtradeWidget(QWidget):
             self.hdwin.show()
 
     def closeEvent(self, event: QCloseEvent):
+        """Close child windows"""
         if self.cvdwin:
             self.cvdwin.deleteLater()
         if self.hdwin:

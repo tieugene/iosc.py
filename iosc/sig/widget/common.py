@@ -2,7 +2,7 @@
 TODO: move up (../
 """
 # 1. std
-from typing import Optional, Union, List
+from typing import Optional, Union, List, TypeAlias
 # 2. 3rd
 from PyQt5.QtCore import QObject, pyqtSignal, QMargins, Qt
 from PyQt5.QtGui import QPen, QColor, QBrush
@@ -63,7 +63,7 @@ class OneRowBar(QWidget):
             self.setFixedHeight(0)
 
     _label: QLabel
-    plot: QCustomPlot
+    plot: OneBarPlot
 
     def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         super().__init__(parent)
@@ -343,10 +343,13 @@ class AnalogSignalSuit(SignalSuit):
         self.graph.parentPlot().replot()
 
 
+ABSignalSuit: TypeAlias = Union[AnalogSignalSuit, StatusSignalSuit]
+
+
 class SignalBar(QObject):
     table: 'SignalBarTable'  # noqa: F821
     row: int
-    signals: list[Union[StatusSignalSuit, AnalogSignalSuit]]
+    signals: List[ABSignalSuit]
     zoom_y: int
     ctrl: BarCtrlWidget
     gfx: BarPlotWidget

@@ -118,6 +118,8 @@ class TimeAxisPlot(OneBarPlot):
 
 
 class TimeAxisBar(OneRowBar):
+    plot: TimeAxisPlot  # rewrite
+
     def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         super().__init__(parent)
         self._label.setText('ms')

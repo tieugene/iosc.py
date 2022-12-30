@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Application entry point"""
+"""Application entry module"""
 import os.path
 import sys
 
