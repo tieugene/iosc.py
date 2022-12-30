@@ -1,11 +1,12 @@
 """Comtrade widgets tabber"""
+# 1. std
 import pathlib
 import struct
-
+# 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QGuiApplication
 from PyQt5.QtWidgets import QTabWidget, QMainWindow, QMessageBox
-
+# 3. local
 from core.mycomtrade import MyComtrade, SanityChkError
 from sig.mainwidget import ComtradeWidget
 
@@ -26,10 +27,10 @@ class ComtradeTabWidget(QTabWidget):
         self.setUpdatesEnabled(False)
         try:
             rec = MyComtrade(path)
-        except struct.error as e:
-            QMessageBox.critical(self, "Loading error", str(e))
-        except SanityChkError as e:
-            QMessageBox.critical(self, "Sanity check error", str(e))
+        except struct.error as err:
+            QMessageBox.critical(self, "Loading error", str(err))
+        except SanityChkError as err:
+            QMessageBox.critical(self, "Sanity check error", str(err))
         else:
             index = self.addTab(ComtradeWidget(rec, self), path.name)  # table width == 940 (CLI) | 100 (Open)
             self.setCurrentIndex(index)

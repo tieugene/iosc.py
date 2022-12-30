@@ -1,14 +1,13 @@
 """Main GUI"""
-__version__ = '0.3.4'
 # 1. std
 import pathlib
 import sys
-
 # 2. 3rd
 from PyQt5.QtCore import Qt, QCoreApplication
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, QApplication
 # 3. local
+from _version import __version__
 from maintabber import ComtradeTabWidget, MAIN_TAB
 
 # x. const
