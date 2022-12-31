@@ -1,3 +1,4 @@
+"""Pointers."""
 # 1. std
 from typing import Optional
 # 2. 3rd
@@ -11,12 +12,16 @@ from iosc.sig.widget.dialog import get_new_omp_width, MsrPtrDialog, LvlPtrDialog
 
 
 class VLine(QCPItemStraightLine):
+    """Vertical line."""
+
     def __init__(self, cp: QCustomPlot):
+        """Init VLine object."""
         super().__init__(cp)
 
     def move2x(self, x: float):
-        """
-        :param x:
+        """Move pointer to x-position.
+
+        :param x: Position to move.
         :note: for  QCPItemLine: s/point1/start/, s/point2/end/
         """
         self.point1.setCoords(x, 0)
@@ -24,22 +29,27 @@ class VLine(QCPItemStraightLine):
 
     @property
     def x(self):
+        """:return: Pointer x-position (ms)."""
         return self.point1.coords().x()
 
 
 class Ptr(QCPItemTracer):
+    """Pointers base class."""
+
     __cursor: QCursor
-    _oscwin: 'ComtradeWidget'
+    _oscwin: 'ComtradeWidget'  # noqa: F821
     signal_ptr_moved = pyqtSignal(int)
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, graph: QCPGraph, root: 'ComtradeWidget'):
+    def __init__(self, graph: QCPGraph, root: 'ComtradeWidget'):  # noqa: F821
+        """Init Ptr object."""
         super().__init__(graph.parentPlot())
         self._oscwin = root
         self.setGraph(graph)
         self.position.setAxes(graph.parentPlot().xAxis, None)
 
     def mousePressEvent(self, event: QMouseEvent, _):
+        """Inherited."""
         if event.button() == Qt.LeftButton:
             event.accept()
             self.selection = True
@@ -49,6 +59,7 @@ class Ptr(QCPItemTracer):
             event.ignore()
 
     def mouseReleaseEvent(self, event: QMouseEvent, _):
+        """Inherited."""
         if event.button() == Qt.LeftButton:
             if self.selection:
                 event.accept()
@@ -60,21 +71,23 @@ class Ptr(QCPItemTracer):
 
     @property
     def selection(self) -> bool:
+        """:return: Object is selected."""
         return self.selected()
 
     @selection.setter
     def selection(self, val: bool):
+        """Set object selected."""
         self.setSelected(val)
         self.parentPlot().ptr_selected = val
 
     @property
     def x(self) -> float:
-        """Current x-position (ms)"""
+        """:return: Current x-position (ms)."""
         return self.position.key()
 
     @property
     def i(self) -> int:
-        """Index of value in current self position"""
+        """:return: Index of current position."""
         return self._oscwin.x2i(self.x)
 
     def _switch_cursor(self, selected: bool):
@@ -86,16 +99,18 @@ class Ptr(QCPItemTracer):
         self._oscwin.setCursor(cur)
 
     def _mouse2ms(self, event: QMouseEvent) -> float:
-        """Get mouse position as ms"""
+        """Get mouse position as ms."""
         return self.parentPlot().xAxis.pixelToCoord(event.pos().x())  # ms, realative to z-point
 
 
 class SCPtr(Ptr):
     """OMP SC (Short Circuit) pointer."""
+
     __pr_ptr: VLine  # Sibling PR pointer
     __x_limit: tuple[float, float]
 
     def __init__(self, graph: QCPGraph, root: QWidget):
+        """Init SCPtr object."""
         super().__init__(graph, root)
         self.setPen(iosc.const.PEN_PTR_OMP)
         self.__pr_ptr = VLine(graph.parentPlot())
@@ -107,7 +122,7 @@ class SCPtr(Ptr):
         self._oscwin.signal_ptr_moved_sc.connect(self.__slot_ptr_move)
 
     def __set_limits(self):
-        """Set limits for moves"""
+        """Set limits for moves."""
         i_z = self._oscwin.x2i(0.0)
         self.__x_limit = (
             self._oscwin.i2x(i_z + 1),
@@ -126,8 +141,9 @@ class SCPtr(Ptr):
             self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
-        """
-        :param event:
+        """Inherited.
+
+        :param event: Subj
         :param pos: Where mouse was pressed (looks like fixed)
         :note: self.mouseMoveEvent() unusable because points to click position
         """
@@ -146,6 +162,7 @@ class SCPtr(Ptr):
             self.signal_ptr_moved.emit(i_new)  # replot will be after PR moving
 
     def mouseDoubleClickEvent(self, event: QMouseEvent, _):
+        """Inherited."""
         event.accept()
         if new_omp_width := get_new_omp_width(self._oscwin, self._oscwin.omp_width):
             self._oscwin.omp_width = new_omp_width
@@ -160,32 +177,41 @@ class _TipBase(QCPItemText):
 
 
 class _PowerPtr(Ptr):
-    """Pointer with tip and rectangle"""
+    """Pointer with tip and rectangle."""
+
     class _Tip(_TipBase):
+        """Pointer tip."""
+
         def __init__(self, cp: QCustomPlot):
+            """Init _Tip object."""
             super().__init__(cp)
             self.setColor(Qt.black)  # text
             self.setPen(Qt.red)
             self.setBrush(QBrush(QColor(255, 170, 0)))  # rect
 
         def move2x(self, x: float, x_old: float):
+            """Move tip to x-position."""
             dx = x - x_old
             self.setPositionAlignment((Qt.AlignLeft if dx > 0 else Qt.AlignRight) | Qt.AlignBottom)
             self.position.setCoords(x, 0)
             self.setText("%.2f" % dx)
 
     class _Rect(QCPItemRect):
+        """Rectangle between old and new ptr postitions."""
+
         def __init__(self, cp: QCustomPlot):
+            """Init _Rect object."""
             super().__init__(cp)
             self.setPen(QColor(255, 170, 0, 128))
             self.setBrush(QColor(255, 170, 0, 128))
 
         def set2x(self, x: float):
-            """Set starting point"""
+            """Set starting point."""
             yaxis = self.parentPlot().yAxis
             self.topLeft.setCoords(x, yaxis.pixelToCoord(0) - yaxis.pixelToCoord(iosc.const.RECT_PTR_HEIGHT))
 
-        def stretc2x(self, x: float):
+        def stretch2x(self, x: float):
+            """Stretch the rect to given position."""
             self.bottomRight.setCoords(x, 0)
 
     __old_pos: VLine
@@ -193,6 +219,7 @@ class _PowerPtr(Ptr):
     __tip: _Tip
 
     def __init__(self, graph: QCPGraph, root: QWidget):
+        """Init _PowerPtr object."""
         super().__init__(graph, root)
         self.__old_pos = VLine(graph.parentPlot())
         self.__old_pos.setPen(iosc.const.PEN_PTR_OLD)
@@ -231,13 +258,16 @@ class _PowerPtr(Ptr):
             if not self.__old_pos.visible():  # show tips on demand
                 self.__switch_tips(True)
             self.__tip.move2x(x_ms, self.__old_pos.x)
-            self.__rect.stretc2x(x_ms)
+            self.__rect.stretch2x(x_ms)
             self.parentPlot().replot()
             return i_new
 
 
 class MainPtr(_PowerPtr):
-    def __init__(self, graph: QCPGraph, root: 'ComtradeWidget'):
+    """Main pointer."""
+
+    def __init__(self, graph: QCPGraph, root: 'ComtradeWidget'):  # noqa: F821
+        """Init MainPtr object."""
         super().__init__(graph, root)
         self.setPen(iosc.const.PEN_PTR_MAIN)
         self.slot_ptr_move(self._oscwin.main_ptr_i, False)
@@ -246,14 +276,16 @@ class MainPtr(_PowerPtr):
         self._oscwin.signal_ptr_moved_main.connect(self.slot_ptr_move)
 
     def slot_ptr_move(self, i: int, replot: bool = True):
+        """Move local (bar) MainPtr to global main ptr position."""
         if not self.selected():  # check is not myself
             self.setGraphKey(self._oscwin.i2x(i))
             if replot:
                 self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
-        """
-        :param event:
+        """Inherited.
+
+        :param event: Subj
         :param pos: Where mouse was pressed (looks like fixed)
         :note: self.mouseMoveEvent() unusable because points to click position
         """
@@ -262,12 +294,15 @@ class MainPtr(_PowerPtr):
 
 
 class TmpPtr(_PowerPtr):
+    """Temporary pointer."""
+
     _uid: int
     signal_ptr_moved_tmp = pyqtSignal(int, int)
     # signal_ptr_del_tmp = pyqtSignal(int)
     signal_ptr_edit_tmp = pyqtSignal(int)
 
     def __init__(self, graph: QCPGraph, root: QWidget, uid: int):
+        """Init TmpPtr object."""
         super().__init__(graph, root)
         self._uid = uid
         self.setPen(iosc.const.PEN_PTR_TMP)
@@ -285,8 +320,9 @@ class TmpPtr(_PowerPtr):
                 self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
-        """
-        :param event:
+        """Inherited.
+
+        :param event: Subj
         :param pos: Where mouse was pressed (looks like fixed)
         :note: self.mouseMoveEvent() unusable because points to click position
         """
@@ -307,6 +343,8 @@ class TmpPtr(_PowerPtr):
 
 
 class MsrPtr(Ptr):
+    """Measure pointer."""
+
     class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
@@ -314,13 +352,14 @@ class MsrPtr(Ptr):
             self.setPositionAlignment(Qt.AlignLeft | Qt.AlignBottom)
 
     FUNC_ABBR = ("I", "M", "E", "H1", "H2", "H3", "H5")
-    __ss: 'AnalogSignalSuit'
+    __ss: 'AnalogSignalSuit'  # noqa: F821
     __uid: int  # uniq id
     __func_i: int  # value mode (function) number (in sigfunc.func_list[])
     __tip: _Tip
     signal_ptr_del_msr = pyqtSignal(int)
 
-    def __init__(self, ss: 'AnalogSignalSuit', uid: int):
+    def __init__(self, ss: 'AnalogSignalSuit', uid: int):  # noqa: F821
+        """Init MsrPtr object."""
         super().__init__(ss.graph, ss.oscwin)
         self.__ss = ss
         self.__uid = uid
@@ -339,6 +378,7 @@ class MsrPtr(Ptr):
 
     @property
     def uid(self) -> int:
+        """:return: Pointer uniq id."""
         return self.__uid
 
     def __set_color(self):
@@ -363,10 +403,12 @@ class MsrPtr(Ptr):
         self.parentPlot().replot()
 
     def slot_set_color(self):
+        """Set pointer color."""
         self.__set_color()
         self.parentPlot().replot()
 
     def mouseMoveEvent(self, event: QMouseEvent, _):
+        """Inherited."""
         event.accept()
         x_ms: float = self._mouse2ms(event)
         i_old: int = self.i
@@ -400,7 +442,7 @@ class MsrPtr(Ptr):
             self.__move_tip()
 
     def suicide(self):
-        """Clean self before deleting"""
+        """Clean self before deleting."""
         # flush self data
         self.__ss.msr_ptr[self.__uid][2] = self.__func_i
         self.__ss.msr_ptr[self.__uid][1] = self.i
@@ -411,20 +453,23 @@ class MsrPtr(Ptr):
 
 
 class LvlPtr(QCPItemStraightLine):
+    """Level pointer."""
+
     class _Tip(_TipBase):
         def __init__(self, cp: QCustomPlot):
             super().__init__(cp)
             self.setColor(Qt.white)  # text
 
     __cursor: QCursor
-    __ss: 'AnalogSignalSuit'
-    __oscwin: 'ComtradeWidget'
+    __ss: 'AnalogSignalSuit'  # noqa: F821
+    __oscwin: 'ComtradeWidget'  # noqa: F821
     __uid: int  # uniq id
     __tip: _Tip
     __mult: float  # multiplier reduced<>real
     signal_rmb_clicked = pyqtSignal(QPointF)
 
-    def __init__(self, ss: 'AnalogSignalSuit', uid: int):
+    def __init__(self, ss: 'AnalogSignalSuit', uid: int):  # noqa: F821
+        """Init LvlPtr object."""
         super().__init__(ss.graph.parentPlot())
         self.__ss = ss
         self.__uid = uid
@@ -443,34 +488,39 @@ class LvlPtr(QCPItemStraightLine):
 
     @property
     def selection(self) -> bool:
+        """:return: Whether the pointer is selected."""
         return self.selected()
 
     @selection.setter
     def selection(self, val: bool):
+        """[De]Select the pointer."""
         self.setSelected(val)
         self.parentPlot().ptr_selected = val
 
     @property
     def uid(self) -> int:
+        """:return: Pinter uinq id."""
         return self.__uid
 
     @property
     def y_reduced_min(self) -> float:
+        """:return: Min adjusted signal value."""
         return self.__ss.signal.v_min / self.__mult
 
     @property
     def y_reduced_max(self) -> float:
+        """:return: Max adjusted signal value."""
         return self.__ss.signal.v_max / self.__mult
 
     @property
     def y_reduced(self) -> float:
-        """Adjusted (-1..1) Y value"""
+        """:return: Adjusted (-1..1) level value."""
         return self.point1.coords().y()
 
     @y_reduced.setter
     def y_reduced(self, y: float):
-        """
-        :param y:
+        """Set adjusted level value.
+
         :note: for  QCPItemLine: s/point1/start/, s/point2/end/
         """
         self.point1.setCoords(self.__oscwin.osc.x_min, y)
@@ -481,6 +531,7 @@ class LvlPtr(QCPItemStraightLine):
 
     @property
     def y_real(self) -> float:
+        """:return: Real signal value in the level."""
         return self.y_reduced * self.__mult
 
     @y_real.setter
@@ -495,12 +546,13 @@ class LvlPtr(QCPItemStraightLine):
         self.__tip.setBrush(QBrush(color))  # rect
 
     def slot_set_color(self):
+        """Update ptr color."""
         self.__set_color()
         self.parentPlot().replot()
 
     def __y_pors(self, y: float) -> float:
-        """
-        Reduce value according go global pors mode
+        """Reduce value according go global pors mode.
+
         :param y: Value to redice
         :return: porsed y
         """
@@ -511,6 +563,7 @@ class LvlPtr(QCPItemStraightLine):
         self.parentPlot().replot()  # TODO: don't to this on total repaint
 
     def mousePressEvent(self, event: QMouseEvent, _):
+        """Inherited."""
         if event.button() == Qt.LeftButton:
             event.accept()
             self.selection = True
@@ -520,6 +573,7 @@ class LvlPtr(QCPItemStraightLine):
             event.ignore()
 
     def mouseReleaseEvent(self, event: QMouseEvent, _):
+        """Inherited."""
         if event.button() == Qt.LeftButton:
             if self.selection:
                 event.accept()
@@ -530,8 +584,9 @@ class LvlPtr(QCPItemStraightLine):
             event.ignore()
 
     def mouseMoveEvent(self, event: QMouseEvent, pos: QPointF):
-        """
-        :param event:
+        """Inherited.
+
+        :param event: Subj
         :param pos: Where mouse was pressed (mousePressEvent), not changing each step; unusual
         :note: self.mouseMoveEvent() unusable because points to click position
         """
@@ -578,6 +633,7 @@ class LvlPtr(QCPItemStraightLine):
             self.y_real = form.f_val.value() / self.__ss.signal.get_mult(self.__oscwin.show_sec)
 
     def suicide(self):
+        """Self destroy."""
         self.__ss.lvl_ptr[self.__uid][1] = self.y_reduced
         self.parentPlot().removeItem(self.__tip)
         self.parentPlot().removeItem(self)

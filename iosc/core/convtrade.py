@@ -1,9 +1,10 @@
-"""Converts comtrade file between ASCII and BINARY
+"""Converts comtrade file between ASCII and BINARY.
+
 :todo: exceptions
 """
-from enum import IntEnum
 # 1. std
 from typing import Optional
+from enum import IntEnum
 import sys
 import pathlib
 import math
@@ -21,26 +22,32 @@ NONE = (  # None values (ascii, binary)
 
 
 class ComtradeRev(IntEnum):
+    """Comtrade revision enum."""
+
     R1991 = 0
     R1999 = 1
     R2013 = 2
 
 
 class ConvertError(RuntimeError):
-    """Exception with a text msg"""
+    """Exception with a text msg."""
+
     msg: str
 
     def __init__(self, msg: str):
+        """Init ConvertError object."""
         super().__init__(self)
         self.msg = msg
 
     def __str__(self):
+        """:return: String representation of error."""
         return f"Convert error: {self.msg}"
 
 
 def __cfg_xfer(sfname: pathlib.Path, dfname: pathlib.Path, enc: str)\
         -> (Optional[ComtradeRev], Optional[tuple[int, ...]], Optional[bool]):
     """Process cfg-file and save it as opposite (ASCII<>BINARY).
+
     :param sfname: Source cfg-file path
     :param dfname: Destination cfg-file path
     :param enc: Encoding
@@ -130,6 +137,7 @@ def __bin2ascii(sfile: pathlib.Path, dfile: pathlib.Path, rev: ComtradeRev, ch_n
 
 def convert(sfname: pathlib.Path, dfname: pathlib.Path):
     """Convert comtrade file between ASCII and BINARY.
+
     :param sfname: Source *.cfg file path
     :type sfname: pathlib.Path
     :param dfname: Dest file path
@@ -137,11 +145,11 @@ def convert(sfname: pathlib.Path, dfname: pathlib.Path):
     """
     # 0. checks
     if sfname.suffix.lower() == 'cff':
-        raise ConvertError(f"CFF export not supported yet")
+        raise ConvertError("CFF export not supported yet")
     if not sfname.is_file():
         raise ConvertError(f"Src '{sfname}' not exists")
     if sfname.with_suffix('') == dfname.with_suffix(''):
-        raise ConvertError(f"Same src and dst")
+        raise ConvertError("Same src and dst")
     # 1. detect encoding
     # enc: Optional[str] = None
     with open(sfname, 'rb') as infile:
@@ -163,6 +171,7 @@ def convert(sfname: pathlib.Path, dfname: pathlib.Path):
 
 
 def main():
+    """Entry point for standalone CLI converting."""
     if len(sys.argv) != 3:
         print(f"Usage: {sys.argv[0]} <in_cfg_file> <out_file_or_dir")
         sys.exit()

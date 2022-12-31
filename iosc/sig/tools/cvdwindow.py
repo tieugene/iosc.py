@@ -1,5 +1,4 @@
-"""Circular Vector Diagram (CVD).
-Main window."""
+"""Circular Vector Diagram (CVD). Main window."""
 # 1. std
 import cmath
 # 2. 3rd
@@ -16,6 +15,7 @@ from iosc.sig.tools.cvddialog import SelectCVDSignalsDialog
 
 class CVDWindow(QDialog):
     """Main CVD window."""
+
     __ptr_uid: int
     __i: int
     __ass_list: list[AnalogSignalSuit]  # just shortcut
@@ -28,7 +28,8 @@ class CVDWindow(QDialog):
     action_ptr: PtrSwitcher
     action_close: QAction
 
-    def __init__(self, parent: 'ComtradeWidget'):
+    def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
+        """Init CVDWindow object."""
         super().__init__(parent)
         self.__ptr_uid = 0  # MainPtr
         self.__i = parent.main_ptr_i
@@ -48,10 +49,11 @@ class CVDWindow(QDialog):
 
     @property
     def t_i(self):
-        """Current MainPtr.i"""
+        """:return: Current MainPtr.i."""
         return self.__i
 
     def get_base_angle(self) -> float:
+        """:return: Base angle (of base signal)."""
         return cmath.phase(self.ss_base.hrm(1, self.t_i))
 
     def __mk_widgets(self):
@@ -60,7 +62,9 @@ class CVDWindow(QDialog):
         self.table = CVDTable(self)
 
     def __mk_layout(self):
-        """Layout:
+        """Lay out child widgets.
+
+        They are:
         - toolbar
         - plot
         - table
@@ -76,11 +80,13 @@ class CVDWindow(QDialog):
         self.layout().addWidget(splitter)
 
     def __mk_actions(self):
+        # noinspection PyArgumentList
         self.action_settings = QAction(QIcon.fromTheme("document-properties"),
                                        "&Select signals",
                                        self,
                                        shortcut="Ctrl+S",
                                        triggered=self.__do_settings)
+        # noinspection PyArgumentList
         self.action_close = QAction(QIcon.fromTheme("window-close"),
                                     "&Close",
                                     self,
@@ -122,6 +128,7 @@ class CVDWindow(QDialog):
             self.__slot_ptr_moved(i)  # Plan B: get from parent
 
     def slot_ptr_switch(self, uid: int):
+        """Switch between pointers."""
         if uid != self.__ptr_uid:  # skip if not changed
             self.__ptr_uid = uid
             self.__slot_ptr_moved(self.parent().tmp_ptr_i[uid] if uid else self.parent().main_ptr_i)

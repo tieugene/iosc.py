@@ -1,3 +1,5 @@
+"""Bottom things (X-scroller, time scale)."""
+# 1. std
 import datetime
 # 2. 3rd
 from PyQt5.QtCore import QMargins, Qt, pyqtSignal
@@ -8,10 +10,13 @@ import iosc.const
 from iosc.sig.widget.common import OneBarPlot, OneRowBar
 
 
-class PtrLabel(QCPItemText):
-    _oscwin: 'ComtradeWidget'
+class __PtrLabel(QCPItemText):
+    """Base class for bottom labels."""
+
+    _oscwin: 'ComtradeWidget'  # noqa: F821
 
     def __init__(self, parent: 'TimeStampsPlot'):
+        """Init PtrLabel object."""
         super().__init__(parent)
         self._oscwin = parent.parent().parent()
         self.setTextAlignment(Qt.AlignCenter)
@@ -22,7 +27,8 @@ class PtrLabel(QCPItemText):
         self.setLayer("tips")
 
     def _update_ptr(self, i: int):
-        """Repaint/__move main ptr value label (%.2f)
+        """Repaint/__move main ptr value label (%.2f).
+
         :fixme: draw in front of ticks
         """
         x = self._oscwin.i2x(i)  # from z-point, ms
@@ -32,8 +38,11 @@ class PtrLabel(QCPItemText):
         self.parentPlot().replot()
 
 
-class PtrLabelMain(PtrLabel):
+class PtrLabelMain(__PtrLabel):
+    """Bottom MainPTr label."""
+
     def __init__(self, parent: 'TimeStampsPlot'):
+        """Init PtrLabelMain object."""
         super().__init__(parent)
         self.setBrush(iosc.const.BRUSH_PTR_MAIN)  # rect
         self.__slot_ptr_move(self._oscwin.main_ptr_i)
@@ -43,10 +52,13 @@ class PtrLabelMain(PtrLabel):
         self._update_ptr(i)
 
 
-class PtrLabelTmp(PtrLabel):
+class PtrLabelTmp(__PtrLabel):
+    """Bottom TmpPtr label."""
+
     _uid: int
 
     def __init__(self, parent: 'TimeStampsPlot', uid: int):
+        """Init PtrLabelTmp object."""
         super().__init__(parent)
         self._uid = uid
         self.setBrush(iosc.const.BRUSH_PTR_TMP)  # rect
@@ -59,11 +71,14 @@ class PtrLabelTmp(PtrLabel):
 
 
 class TimeStampsPlot(OneBarPlot):
+    """Bottom time scale graphics."""
+
     __zero_ptr_label: QCPItemText
     __main_ptr_label: PtrLabelMain
     _tmp_ptr: dict[int, PtrLabelTmp]
 
     def __init__(self, parent: 'TimeStampsBar'):
+        """Init TimeStampsPlot object."""
         super().__init__(parent)
         self.xAxis.setTickLabels(False)
         # self.xAxis.setTickLabelSide(QCPAxis.lsInside)
@@ -84,29 +99,35 @@ class TimeStampsPlot(OneBarPlot):
         self.__zero_ptr_label.setText(self._oscwin.osc.trigger_timestamp.time().isoformat())
 
     def _slot_ptr_add_tmp(self, uid: int):
-        """Add new TmpPtr"""
+        """Add new TmpPtr."""
         self._tmp_ptr[uid] = PtrLabelTmp(self, uid)
 
     def _slot_ptr_del_tmp(self, uid: int):
-        """Del TmpPtr"""
+        """Del TmpPtr."""
         self.removeItem(self._tmp_ptr[uid])
         del self._tmp_ptr[uid]
         self.replot()
 
 
 class TimeStampsBar(OneRowBar):
-    def __init__(self, parent: 'ComtradeWidget'):
+    """Bottom time scale panel."""
+
+    def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
+        """Init TimeStampsBar object."""
         super().__init__(parent)
         self.plot = TimeStampsPlot(self)
         self._post_init()
 
 
 class XScroller(QScrollBar):
+    """Bottom scrollbar."""
+
     signal_update_plots = pyqtSignal()
 
-    def __init__(self, parent: 'ComtradeWidget'):
-        """
-        :param parent:
+    def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
+        """Init XScroller object.
+
+        :param parent: Subj
         :type parent: ComtradeWidget
         :note: An idea:
         - full width = plot width (px)
@@ -118,12 +139,12 @@ class XScroller(QScrollBar):
 
     @property
     def norm_min(self) -> float:
-        """Normalized (0..1) left page position"""
+        """:return: Normalized (0..1) left page position."""
         return self.value() / (self.maximum() + self.pageStep())
 
     @property
     def norm_max(self) -> float:
-        """Normalized (0..1) right page position"""
+        """:retrun: Normalized (0..1) right page position."""
         return (self.value() + self.pageStep()) / (self.maximum() + self.pageStep())
 
     def __update_enabled(self):
@@ -131,7 +152,9 @@ class XScroller(QScrollBar):
 
     def __slot_update_range(self):
         """Update maximum against new x-zoom.
-        (x_width_px changed, page (px) - not)"""
+
+        (x_width_px changed, page (px) - not)
+        """
         page = self.pageStep()
         x_width_px = self.parent().x_width_px()
         if (max_new := x_width_px - self.pageStep()) < 0:
@@ -151,7 +174,7 @@ class XScroller(QScrollBar):
         self.__update_enabled()
 
     def __slot_update_page(self, new_page: int):
-        """Update page against new signal windows width"""
+        """Update page against new signal windows width."""
         x_max = self.parent().x_width_px()
         if min(new_page, self.pageStep()) < x_max:
             if new_page > x_max:

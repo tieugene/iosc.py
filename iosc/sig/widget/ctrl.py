@@ -1,3 +1,4 @@
+"""Contorl (left) side of signal bars."""
 # 1. std
 from typing import Union
 # 2. Std
@@ -10,11 +11,14 @@ import iosc.const
 from iosc.sig.widget.hline import HLine
 
 
-class SignalLabel(QListWidgetItem):
-    ss: Union['StatusSignalSuit', 'AnalogSignalSuit']
+class __SignalLabel(QListWidgetItem):
+    """Base signal label class."""
+
+    ss: Union['StatusSignalSuit', 'AnalogSignalSuit']  # noqa: F821
     # signal_restyled = pyqtSignal()  # N/A
 
-    def __init__(self, ss: Union['StatusSignalSuit', 'AnalogSignalSuit'], parent: 'BarCtrlWidget.SignalLabelList' = None):
+    def __init__(self, ss: Union['StatusSignalSuit', 'AnalogSignalSuit'], parent: 'BarCtrlWidget.SignalLabelList' = None):  # noqa: F821
+        """Init SignalLabel object."""
         super().__init__(parent)
         self.ss = ss
         # self._set_style()
@@ -26,26 +30,32 @@ class SignalLabel(QListWidgetItem):
         return ''  # stub
 
     def set_color(self):
+        """Update signal label color."""
         self.setForeground(QBrush(self.ss.color))
 
     def slot_update_value(self):
-        """Update ctrl widget value"""
+        """Update ctrl widget value."""
         self.setText("%s\n%s" % (self.ss.signal.sid, self._value_str))
 
 
-class StatusSignalLabel(SignalLabel):
+class StatusSignalLabel(__SignalLabel):
+    """B-signal label."""
 
-    def __init__(self, ss: 'StatusSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
+    def __init__(self, ss: 'StatusSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):  # noqa: F821
+        """Init StatusSignalLabel object."""
         super().__init__(ss, parent)
 
     @property
     def _value_str(self) -> str:
-        """String representation of current value"""
+        """:return: String representation of current value."""
         return str(self.ss.signal.value[self.ss.bar.table.oscwin.main_ptr_i])
 
 
-class AnalogSignalLabel(SignalLabel):
-    def __init__(self, ss: 'AnalogSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):
+class AnalogSignalLabel(__SignalLabel):
+    """A-signal label."""
+
+    def __init__(self, ss: 'AnalogSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):  # noqa: F821
+        """Init AnalogSignalLabel object."""
         super().__init__(ss, parent)
         self.ss.bar.table.oscwin.signal_chged_pors.connect(self.slot_update_value)
         self.ss.bar.table.oscwin.signal_chged_func.connect(self.slot_update_value)
@@ -56,13 +66,19 @@ class AnalogSignalLabel(SignalLabel):
 
 
 class BarCtrlWidget(QWidget):
+    """Control (left) signal bar widget container."""
+
     class Anchor(QLabel):
+        """Anchor widget to move bar."""
+
         def __init__(self, parent: 'BarCtrlWidget'):
+            """Init Anchor object."""
             super().__init__(parent)
             self.setText('↕')
             self.setCursor(Qt.PointingHandCursor)
 
         def mousePressEvent(self, _: QMouseEvent):
+            """Inherited."""
             self.__start_drag()
 
         def __start_drag(self):
@@ -79,7 +95,7 @@ class BarCtrlWidget(QWidget):
                 return __pix
 
             def _mk_mime() -> QMimeData:
-                bar: 'HDBar' = self.parent().bar
+                bar: 'HDBar' = self.parent().bar  # noqa: F821
                 return bar.table.mimeData([bar.table.item(bar.row, 0)])
 
             drag = QDrag(self)
@@ -89,7 +105,10 @@ class BarCtrlWidget(QWidget):
             drag.exec_(Qt.MoveAction, Qt.MoveAction)
 
     class SignalLabelList(QListWidget):
+        """Signal label."""
+
         def __init__(self, parent: 'BarCtrlWidget'):
+            """Init SignalLabelList object."""
             super().__init__(parent)
             self.setDragEnabled(True)
             self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -99,7 +118,7 @@ class BarCtrlWidget(QWidget):
             self.itemClicked.connect(self.__slot_item_clicked)
 
         def __slot_item_clicked(self, _):
-            """Deselect item on mouse up"""
+            """Deselect item on mouse up."""
             self.clearSelection()
 
         def __slot_context_menu(self, point: QPoint):
@@ -118,9 +137,11 @@ class BarCtrlWidget(QWidget):
 
         @property
         def selected_row(self) -> int:
+            """:return: Signal label index selected."""
             return self.selectedIndexes()[0].row()
 
         def startDrag(self, supported_actions: Union[Qt.DropActions, Qt.DropAction]):
+            """Imherited."""
             def _mk_icon() -> QPixmap:
                 __txt = self.currentItem().ss.signal.sid
                 br = QFontMetrics(iosc.const.FONT_DND).boundingRect(__txt)  # sig0 = 1, -11, 55, 14
@@ -142,8 +163,13 @@ class BarCtrlWidget(QWidget):
             self.clearSelection()
 
     class ZoomButtonBox(QWidget):
+        """Bar Y-zoom buttons container."""
+
         class ZoomButton(QPushButton):
-            def __init__(self, txt: str, parent: 'ZoomButtonBox'):
+            """Bar Y-zoom button."""
+
+            def __init__(self, txt: str, parent: 'ZoomButtonBox'):  # noqa: F821
+                """Init ZoomButton object."""
                 super().__init__(txt, parent)
                 self.setContentsMargins(QMargins())  # not helps
                 self.setFixedWidth(16)
@@ -155,6 +181,7 @@ class BarCtrlWidget(QWidget):
         __b_zoom_out: ZoomButton
 
         def __init__(self, parent: 'BarCtrlWidget'):
+            """Init ZoomButtonBox object."""
             super().__init__(parent)
             self.__b_zoom_in = self.ZoomButton("+", self)
             self.__b_zoom_0 = self.ZoomButton("⚬", self)
@@ -190,9 +217,12 @@ class BarCtrlWidget(QWidget):
             self.__b_zoom_out.setEnabled(z > 1)
 
     class VLine(QFrame):
-        __oscwin: 'ComtradeWidget'
+        """Vertical line - anchor for column width changing."""
 
-        def __init__(self, oscwin: 'ComtradeWidget'):
+        __oscwin: 'ComtradeWidget'  # noqa: F821
+
+        def __init__(self, oscwin: 'ComtradeWidget'):  # noqa: F821
+            """Init VLine object."""
             super().__init__()
             self.__oscwin = oscwin
             self.setGeometry(QRect(0, 0, 0, 0))  # size is not the matter
@@ -201,16 +231,20 @@ class BarCtrlWidget(QWidget):
             self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         def mouseMoveEvent(self, event: QMouseEvent):
-            """accepted() == True, x() = Δx."""
+            """Inherited.
+
+            accepted() == True, x() = Δx.
+            """
             self.__oscwin.resize_col_ctrl(event.x())
 
-    bar: 'HDBar'
+    bar: 'HDBar'  # noqa: F821
     anc: Anchor
     lst: SignalLabelList
     zbx: ZoomButtonBox
     hline: HLine
 
-    def __init__(self, bar: 'HDBar'):
+    def __init__(self, bar: 'HDBar'):  # noqa: F821
+        """Init BarCtrlWidget object."""
         super().__init__()  # parent will be QWidget
         self.bar = bar
         self.anc = self.Anchor(self)
@@ -228,14 +262,18 @@ class BarCtrlWidget(QWidget):
         self.layout().setContentsMargins(QMargins())
         self.layout().setSpacing(0)
 
-    def sig_add(self, ss: 'SignalSuit') -> Union[StatusSignalLabel, AnalogSignalLabel]:
+    def sig_add(self, ss: 'SignalSuit') -> Union[StatusSignalLabel, AnalogSignalLabel]:  # noqa: F821
+        """Add signal suit."""
         return StatusSignalLabel(ss, self.lst) if ss.signal.is_bool else AnalogSignalLabel(ss, self.lst)
 
     def sig_del(self, i: int):
+        """Del signal suit."""
         self.lst.takeItem(i)
 
     def update_statusonly(self):
-        """Update some things depending on if bar is status-only:
+        """Update some things depending on if bar is status-only.
+
+        I.e.:
         - Y-zoom buttons
         - Y-resize widget
         """

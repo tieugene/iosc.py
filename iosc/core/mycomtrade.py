@@ -1,8 +1,6 @@
-"""Comtrade wrapper
-:todo: exceptions
-"""
+"""Comtrade wrapper."""
 # 1. std
-from typing import Union, Optional, List, Dict
+from typing import Union, Optional, List, Dict, Any, TypeAlias
 import pathlib
 import cmath
 import datetime
@@ -22,28 +20,38 @@ ERR_DSC_GAPR = "Oscillogramm must ends at least %.3f ms after trigger time.\nWe 
 
 
 class SanityChkError(RuntimeError):
-    """Exception with a text msg"""
+    """Exception with a text msg."""
+
     msg: str
 
     def __init__(self, msg: str):
+        """Init SanityChkError object."""
         super().__init__(self)
         self.msg = msg
 
     def __str__(self):
+        """:return: String error representation."""
         return f"Sanity check error: {self.msg}"
 
 
-class Signal:
+ABChannel: TypeAlias = Union[AnalogChannel, StatusChannel]
+
+
+class __Signal:
     """Signal base.
-    :todo: add uplink/parent (osc)"""
+
+    :todo: add uplink/parent (osc)
+    """
+
     _is_bool: bool
-    _raw2: Union[AnalogChannel, StatusChannel]
+    _raw2: ABChannel
     _i_: int  # Signal order number (through analog > status)
     _value: np.array  # list of values
     # __osc: 'MyComtrade'
 
-    def __init__(self, raw2: Union[AnalogChannel, StatusChannel], i: int):
-        """
+    def __init__(self, raw2: ABChannel, i: int):
+        """Init Signal pbject.
+
         :param raw2: Raw wrapped comtrade signal object
         :param i: Order number of signal through all
         """
@@ -52,27 +60,33 @@ class Signal:
 
     @property
     def is_bool(self) -> bool:
+        """:return: Whether signal is binary (bool)."""
         return self._is_bool
 
     @property
     def i(self) -> int:
+        """:return: Order number in common signal list."""
         return self.__i
 
     @property
     def sid(self) -> str:
+        """:return: Signal name."""
         return self._raw2.name
 
     @property
     def ph(self) -> str:  # transparent
-        """Phase"""
+        """:return: Signal phase (A|B|C)."""
         return self._raw2.ph
 
 
-class StatusSignal(Signal):
+class StatusSignal(__Signal):
+    """Binary/Boolean signal wrapper."""
+
     _is_bool = True
 
     def __init__(self, raw: Comtrade, i: int):
-        """
+        """Init StatusSignal object.
+
         :param raw: Raw comtrade object
         :param i: Order numer of signal through same type (!)
         """
@@ -81,10 +95,13 @@ class StatusSignal(Signal):
 
     @property
     def value(self) -> np.array:
+        """:return: Sample values."""
         return self._value
 
 
-class AnalogSignal(Signal):
+class AnalogSignal(__Signal):
+    """Analog signal wrapper."""
+
     _is_bool = False
     __parent: 'MyComtrade'
     __mult: tuple[float, float]
@@ -92,6 +109,7 @@ class AnalogSignal(Signal):
     __value_shifted: np.array
 
     def __init__(self, raw: Comtrade, i: int, parent: 'MyComtrade'):
+        """Init AnalogSignal object."""
         super().__init__(raw.cfg.analog_channels[i], i)
         self._value = raw.analog[i]
         self.__parent = parent
@@ -119,50 +137,55 @@ class AnalogSignal(Signal):
 
     @property
     def value(self) -> np.array:
+        """:return: Sample values depending on 'shifted' state."""
         return self.__value_shifted if self.__parent.shifted else self._value
 
     @property
     def v_min(self) -> float:
+        """:return: Minimal sample value (not shifted)."""
         return min(self.value)
 
     @property
     def v_max(self) -> float:
+        """:return: Maxomal sample value (not shifted)."""
         return max(self.value)
 
     @property
     def uu(self) -> str:  # transparent
-        """Unit as is"""
+        """:return: Bundled Unit as is."""
         return self._raw2.uu
 
     @property
     def primary(self) -> float:  # transparent
-        """Primary multiplier"""
+        """:return: Primary multiplier."""
         return self._raw2.primary
 
     @property
     def secondary(self) -> float:  # transparent
-        """Secondary multiplier"""
+        """:return: Secondary multiplier."""
         return self._raw2.secondary
 
     @property
     def pors(self) -> str:  # transparent
-        """Primary-or-Secondary (main signal value)"""
+        """:return: Primary-or-Secondary (main signal value)."""
         return self._raw2.pors
 
     def get_mult(self, ps: bool) -> float:
-        """
-        Get multiplier against pri/sec value.
+        """Get multiplier against pri/sec value.
+
         :param ps: False=primary, True=secondary
         :return: Multiplier
         """
         return self.__mult[int(ps)]
 
     @property
-    def uu_orig(self):
+    def uu_orig(self) -> str:
+        """:return: Cleaned unit (e.g. kV => V)."""
         return self.__uu_orig
 
-    def as_str(self, y: float, pors: bool):
-        """
+    def as_str(self, y: float, pors: bool) -> str:
+        """Get string representation of signal value (real only).
+
         :param y: Signal value (real)
         :param pors: False=primary, True=secondary
         :return: String repr of signal.
@@ -177,8 +200,9 @@ class AnalogSignal(Signal):
             uu = 'k' + uu
         return "%.3f %s" % (pors_y, uu)
 
-    def as_str_full(self, v: Union[float, complex], pors: bool):
-        """
+    def as_str_full(self, v: Union[float, complex], pors: bool) -> str:
+        """Get string representation of signal value (real or complex).
+
         :param v: Signal value
         :param pors: False=primary, True=secondary
         :return: String repr of signal (any form)
@@ -189,14 +213,20 @@ class AnalogSignal(Signal):
             return self.as_str(v, pors)
 
 
+ABSignal: TypeAlias = Union[StatusSignal, AnalogSignal]
+
+
 class MyComtrade:
+    """Comtrade wrapper."""
+
     _raw: Comtrade
     __x_shifted: bool  # FIXME: dynamic
     path: pathlib.Path
     x: np.array
-    y: List[Union[StatusSignal, AnalogSignal]]
+    y: List[ABSignal]
 
     def __init__(self, path: pathlib.Path):
+        """Init MyComtrade object."""
         self._raw = Comtrade()
         self.__x_shifted = False
         self.path = path  # TODO: rm
@@ -206,8 +236,8 @@ class MyComtrade:
         self._raw.x_shifted = False  # FIXME: hacking xtra-var injection
 
     @property
-    def info(self) -> Dict:
-        """Misc info for rare (1..2 times) usage"""
+    def info(self) -> Dict[str, Any]:
+        """Misc info for rare (1..2 times) usage."""
         return {
             'rec_dev_id': self._raw.rec_dev_id,
             'station_name': self._raw.station_name,
@@ -222,56 +252,61 @@ class MyComtrade:
 
     @property
     def ft(self) -> str:  # transparent
-        """File format"""
+        """File format."""
         return self._raw.ft
 
     @property
     def filepath(self) -> str:  # transparent
+        """.CFG/CFF full path."""
         return self._raw.cfg.filepath
 
     @property
     def total_samples(self) -> int:  # transparent
+        """:return: Samples in signal."""
         return self._raw.total_samples
 
     @property
     def rate(self) -> float:  # transparent
-        """Sample rate, Hz.
-        :todo: int"""
+        """:return: Sample rate, Hz.
+
+        :todo: int
+        """
         return self._raw.cfg.sample_rates[0][0]
 
     @property
     def trigger_timestamp(self) -> datetime.datetime:  # transparent
+        """Astronomic trigger time."""
         return self._raw.cfg.trigger_timestamp
 
     @property
     def spp(self) -> int:
-        """Samples per period"""
+        """:return: Samples per period."""
         return int(round(self.rate / self._raw.frequency))
 
     @property
-    def shifted(self):
+    def shifted(self) -> bool:
+        """:return: Whether osc switched to shifted mode."""
         return self.__x_shifted
 
     @shifted.setter
     def shifted(self, v: bool):
-        """Switch all signals between original and shifted modes"""
+        """Switch all signals to original or shifted mode."""
         self.__x_shifted = v
 
     @property
-    def x_min(self) -> float:  # mS
+    def x_min(self) -> float:
+        """:return: 1st sample time, ms."""
         return self.x[0]
 
     @property
-    def x_max(self) -> float:  # mS
+    def x_max(self) -> float:
+        """:return: Last sample time, ms."""
         return self.x[-1]
 
     @property
-    def x_size(self) -> float:  # mS
+    def x_size(self) -> float:
+        """:return: Signal width, ms."""
         return self.x[-1] - self.x[0]
-
-    @property
-    def x_count(self) -> int:
-        return len(self.x)
 
     def __load(self):
         encoding = None
@@ -285,7 +320,7 @@ class MyComtrade:
             self._raw.load(str(self.path))
 
     def chk_gap_l(self) -> Optional[str]:
-        """Check that OMP fits (left sife)"""
+        """Check that OMP fits (left sife)."""
         # FIXME: _sample.bad/short_L/live/R001_124-2014_05_26_05_09_46.cfg
         # __gap_real: float = (self._raw.trigger_timestamp - self._raw.start_timestamp).total_seconds()
         __gap_real = self._raw.trigger_time - self._raw.time[0]
@@ -294,31 +329,26 @@ class MyComtrade:
             return ERR_DSC_GAPL % (__gap_min * 1000, __gap_real * 1000)
 
     def chk_gap_r(self) -> Optional[str]:
-        """Check that OMP fits (right sife)"""
+        """Check that OMP fits (right side)."""
         __gap_real = self._raw.time[-1] - self._raw.trigger_time
         __gap_min = 2 / self._raw.frequency
         if __gap_real < __gap_min:
             return ERR_DSC_GAPR % (__gap_min * 1000, __gap_real * 1000)
 
     def __sanity_check(self):
-        """
-        - rates (1, raw.total_samples, ?frequency)
-        - null values
-        :return:
-        """
-
+        """Check data usability."""
         def __chk_freq() -> Optional[str]:
-            """Check freq = 50/60"""
+            """Check freq = 50/60."""
             if self._raw.cfg.frequency not in {50, 60}:
                 return ERR_DSC_FREQ % self._raw.cfg.frequency
 
         def __chk_nrate() -> Optional[str]:  # nrates
-            """Check that only 1 rate"""
+            """Check that only 1 rate."""
             if (nrates := self._raw.cfg.nrates) != 1:
                 return ERR_DSC_NRATES % nrates
 
         def __chk_rate_odd() -> Optional[str]:
-            """Check that rate is deviding by main freq"""
+            """Check that rate is deviding by main freq."""
             if self.rate % self._raw.cfg.frequency:
                 return ERR_DSC_RATE_ODD % (self.rate, self._raw.cfg.frequency)
 
@@ -337,7 +367,7 @@ class MyComtrade:
         # TODO: no null
 
     def __setup(self):
-        """Translate loaded data into app usable"""
+        """Translate loaded data into app usable."""
         self.x = [1000 * (t - self._raw.trigger_time) for t in self._raw.time]
         self.y = list()
         for i in range(self._raw.analog_count):
@@ -346,7 +376,7 @@ class MyComtrade:
             self.y.append(StatusSignal(self._raw, i))
 
     def find_signal(self, s: str) -> Optional[int]:
-        """Find signal by name (strict substring)"""
+        """Find signal by name (strict substring)."""
         for i, sig in enumerate(self.y):
             if not sig.is_bool:
                 if s in sig.sid:

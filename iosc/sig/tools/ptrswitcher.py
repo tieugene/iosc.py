@@ -1,13 +1,18 @@
+"""Pointers switcher."""
+# 1. std
 from typing import Union
-
+# 2. 3rd
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QActionGroup, QToolButton, QMenu, QAction
 
 
 class PtrSwitcher(QActionGroup):
+    """Class to switch current diagram values between pointers."""
+
     tb: QToolButton
 
-    def __init__(self, parent: Union['CVDWindow', 'HDWindow']):
+    def __init__(self, parent: Union['CVDWindow', 'HDWindow']):  # noqa: F821
+        """Init PtrSwitcher object."""
         super().__init__(parent)
         self.tb = QToolButton(parent)
         self.tb.setPopupMode(QToolButton.MenuButtonPopup)

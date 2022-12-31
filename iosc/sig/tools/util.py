@@ -1,7 +1,9 @@
+"""Misc utility functions."""
 from PyQt5.QtGui import QColor
 
 
 def sign_b2n(v: float, lim: float):
+    """:return: 'Sign' digit according to position of v reltive to lim."""
     if abs(v) < lim:
         return 0
     elif v < 0:
@@ -11,5 +13,5 @@ def sign_b2n(v: float, lim: float):
 
 
 def color2style(c: QColor) -> str:
-    """Convert QColor into stylesheet-compatible string"""
+    """Convert QColor into stylesheet-compatible string."""
     return "rgb(%d, %d, %d)" % (c.red(), c.green(), c.blue())

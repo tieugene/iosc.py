@@ -1,4 +1,4 @@
-"""Find signal"""
+"""Find signal."""
 from typing import Optional
 
 from PyQt5.QtWidgets import QInputDialog
@@ -7,9 +7,12 @@ from iosc.sig.widget.common import SignalSuit
 
 
 class FindDialog(QInputDialog):
+    """'Find signal' dialog."""
+
     __ss_found: Optional[SignalSuit]
 
-    def __init__(self, parent: 'SignalBarTable'):
+    def __init__(self, parent: 'SignalBarTable'):  # noqa: F821
+        """Init FindDialog object."""
         super().__init__(parent)
         self.__ss_found = None
         self.setOption(self.InputDialogOption.NoButtons)

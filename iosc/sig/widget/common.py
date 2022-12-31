@@ -1,8 +1,9 @@
 """Signal wrappers, commmon things.
+
 TODO: move up (../
 """
 # 1. std
-from typing import Optional, Union, List
+from typing import Optional, Union, List, TypeAlias
 # 2. 3rd
 from PyQt5.QtCore import QObject, pyqtSignal, QMargins, Qt
 from PyQt5.QtGui import QPen, QColor, QBrush
@@ -22,9 +23,10 @@ HRM_N2F = {1: hrm1, 2: hrm2, 3: hrm3, 5: hrm5}
 
 
 class OneBarPlot(QCustomPlot):
-    """Parent for top and bottom bars plots"""
+    """Parent for top/bottom bars plots."""
 
     def __init__(self, parent: QWidget):
+        """Init OneBarPlot object."""
         super().__init__(parent)
         ar = self.axisRect(0)
         ar.setMinimumMargins(QMargins())  # the best
@@ -40,10 +42,11 @@ class OneBarPlot(QCustomPlot):
         self.addLayer("tips")  # default 6 layers (from bottom (0)): background>grid>main>axes>legend>overlay
 
     @property
-    def _oscwin(self) -> 'ComtradeWidget':
+    def _oscwin(self) -> 'ComtradeWidget':  # noqa: F821
         return self.parent().parent()
 
     def slot_rerange(self):
+        """Recalc plot x-range."""
         x_coords = self._oscwin.osc.x
         x_width = self._oscwin.osc.x_size
         self.xAxis.setRange(
@@ -52,20 +55,27 @@ class OneBarPlot(QCustomPlot):
         )
 
     def slot_rerange_force(self):
+        """Recalc plot x-range and force replot it."""
         self.slot_rerange()
         self.replot()
 
 
 class OneRowBar(QWidget):
+    """Base for top/bottom panels."""
+
     class RStub(QScrollBar):
+        """Right stub to align against signal bars."""
+
         def __init__(self, parent: 'OneRowBar' = None):
+            """Init RStub object."""
             super().__init__(Qt.Vertical, parent)
             self.setFixedHeight(0)
 
     _label: QLabel
-    plot: QCustomPlot
+    plot: OneBarPlot
 
-    def __init__(self, parent: 'ComtradeWidget'):
+    def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
+        """Init OneRowBar object."""
         super().__init__(parent)
         self._label = QLabel(self)
 
@@ -89,9 +99,11 @@ class OneRowBar(QWidget):
 
 
 class SignalSuit(QObject):
-    oscwin: 'ComtradeWidget'
+    """Base signal container class."""
+
+    oscwin: 'ComtradeWidget'  # noqa: F821
     signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal]
-    bar: Optional['HDBar']
+    bar: Optional['HDBar']  # noqa: F821
     num: Optional[int]  # order number in bar
     _label: Optional[Union[StatusSignalLabel, AnalogSignalLabel]]
     graph: Optional[QCPGraph]
@@ -99,7 +111,8 @@ class SignalSuit(QObject):
     color: QColor
     signal_chg_color = pyqtSignal(QColor)
 
-    def __init__(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal], oscwin: 'ComtradeWidget'):
+    def __init__(self, signal: Union[mycomtrade.StatusSignal, mycomtrade.AnalogSignal], oscwin: 'ComtradeWidget'):# noqa: F821
+        """Init SignalSuit object."""
         super().__init__()
         self.oscwin = oscwin
         self.signal = signal
@@ -113,10 +126,12 @@ class SignalSuit(QObject):
 
     @property
     def hidden(self) -> bool:
+        """:return: Whether SignalSuit is hidden."""
         return self._hidden
 
     @hidden.setter
     def hidden(self, hide: bool):
+        """Set SignalSuit hidden flag."""
         if self._hidden != hide:
             self._label.setHidden(hide)
             self.graph.setVisible(not hide)
@@ -128,7 +143,7 @@ class SignalSuit(QObject):
         return []  # stub
 
     def get_label_html(self, with_values: bool = False) -> Optional[str]:
-        """HTML-compatible label"""
+        """HTML-compatible label."""
         if self._label:
             txt = self._label.text().split('\n')
             return '<br/>'.join(txt) if with_values else txt[0]
@@ -141,7 +156,8 @@ class SignalSuit(QObject):
             self._label.set_color()
         self.signal_chg_color.emit(self.color)  # Rx by: CVD
 
-    def embed(self, bar: 'HDBar', num: int):
+    def embed(self, bar: 'HDBar', num: int):  # noqa: F821
+        """Embed SignalSuit into bar."""
         self.bar = bar
         self.num = num
         self._label = self.bar.ctrl.sig_add(self)
@@ -152,6 +168,7 @@ class SignalSuit(QObject):
         self.__slot_retick()
 
     def detach(self):
+        """Detach SignalSuit from parent bar."""
         self.bar.ctrl.sig_del(self.num)
         self.bar.gfx.graph_del(self.graph)
         self.bar.gfx.plot.replot()
@@ -159,7 +176,7 @@ class SignalSuit(QObject):
         self.bar = None
 
     def __slot_retick(self):
-        """Update scatter style on x-zoom change"""
+        """Update scatter style on x-zoom change."""
         if self.graph:
             now = self.graph.scatterStyle().shape() != QCPScatterStyle.ssNone
             need = self.oscwin.x_sample_width_px() >= iosc.const.X_SCATTER_MARK
@@ -170,19 +187,25 @@ class SignalSuit(QObject):
                 self.graph.parentPlot().replot()  # bad solution but ...
 
     def set_highlight(self, v: bool):
-        """Highlight signal label due 'Find' operation"""
+        """Highlight signal label due 'Find' operation."""
         if self._label:
             if self._label.isSelected() != v:
                 self._label.setSelected(v)
 
 
 class StatusSignalSuit(SignalSuit):
-    def __init__(self, signal: mycomtrade.StatusSignal, oscwin: 'ComtradeWidget'):
+    """Inner Status signal container."""
+
+    def __init__(self, signal: mycomtrade.StatusSignal, oscwin: 'ComtradeWidget'):  # noqa: F821
+        """Init StatusSignalSuit object."""
         super().__init__(signal, oscwin)
 
     @property
     def range_y(self) -> QCPRange:
-        """For calculating parent plot y-size"""
+        """:return: Main and max signal value.
+
+        For calculating parent plot y-size.
+        """
         return QCPRange(0.0, 1.0)
 
     @property
@@ -196,18 +219,21 @@ class StatusSignalSuit(SignalSuit):
         self.graph.setBrush(brush)
 
     def do_sig_property(self):
-        """Show/set signal properties"""
+        """Show/set signal properties."""
         if StatusSignalPropertiesDialog(self).execute():
             self._set_style()
             self.graph.parentPlot().replot()
 
 
 class AnalogSignalSuit(SignalSuit):
+    """Inner Analog signal container."""
+
     line_style: int
     msr_ptr: dict[int: list[Optional[MsrPtr], int, int]]  # uid: [obj, i, func_i]
     lvl_ptr: dict[int: list[Optional[LvlPtr], float]]  # uid: [obj, y]
 
-    def __init__(self, signal: mycomtrade.AnalogSignal, oscwin: 'ComtradeWidget'):
+    def __init__(self, signal: mycomtrade.AnalogSignal, oscwin: 'ComtradeWidget'):  # noqa: F821
+        """Init AnalogSignalSuit object."""
         self.line_style = 0
         self.msr_ptr = dict()
         self.lvl_ptr = dict()
@@ -216,6 +242,7 @@ class AnalogSignalSuit(SignalSuit):
 
     @property
     def range_y(self) -> QCPRange:
+        """:return: Min and max signal values."""
         retvalue = self.graph.data().valueRange()[0]
         if retvalue.lower == retvalue.upper == 0.0:
             retvalue = QCPRange(-1.0, 1.0)
@@ -241,12 +268,13 @@ class AnalogSignalSuit(SignalSuit):
                 ptr.slot_set_color()
 
     def do_sig_property(self):
-        """Show/set signal properties"""
+        """Show/set signal properties."""
         if AnalogSignalPropertiesDialog(self).execute():
             self._set_style()
             self.graph.parentPlot().replot()
 
-    def embed(self, bar: 'HDBar', num: int):
+    def embed(self, bar: 'HDBar', num: int):  # noqa: F821
+        """Embed (add) object into bar."""
         super().embed(bar, num)
         for uid in self.msr_ptr.keys():
             MsrPtr(self, uid)
@@ -264,6 +292,7 @@ class AnalogSignalSuit(SignalSuit):
             del ptr  # or ptr.deleteLater()
 
     def detach(self):
+        """Detach object from parent bar."""
         for uid in self.msr_ptr.keys():
             self.__kill_ptr_msr(uid)
         for uid in self.lvl_ptr.keys():
@@ -271,34 +300,37 @@ class AnalogSignalSuit(SignalSuit):
         super().detach()
 
     def sig2str(self, y: float) -> str:
-        """Return string repr of signal dependong on:
-         - signal value (datum)
-         - pors (global)
-         - orig/shifted (global, indirect).
-         Used in:
-         - self.sig2str_i()
-         - LvlPtr.__slot_update_text()
-         """
+        """:return: String repr of signal value.
+
+        Depends on:
+        - signal value (datum)
+        - pors (global)
+        - orig/shifted (global, indirect).
+        Used in:
+        - self.sig2str_i()
+        - LvlPtr.__slot_update_text()
+        """
         return self.signal.as_str(y, self.oscwin.show_sec)
 
     def sig2str_i(self, i: int) -> str:
-        """Return string repr of signal in sample #i depending on:
-         - signal value
-         - in index i
-         - selected function[func_i]
-         - pors (global)
-         - [orig/shifted (global, indirect)].
-         Used in:
-         - AnalogSignalLable._value_str()
-         - MsrPtr.__slot_update_text()
-         """
+        """:return: string repr of signal in sample #i.
 
+        Depends on:
+        - signal value
+        - in index i
+        - selected function[func_i]
+        - pors (global)
+        - [orig/shifted (global, indirect)].
+        Used in:
+        - AnalogSignalLable._value_str()
+        - MsrPtr.__slot_update_text()
+        """
         v = func_list[self.oscwin.viewas](self.signal.value, i, self.oscwin.osc.spp)
         return self.signal.as_str_full(v, self.oscwin.show_sec)
 
     def hrm(self, hrm_no: int, t_i: int) -> complex:
-        """
-        Harmonic #1 of the signal.
+        """Harmonic #1 of the signal.
+
         Used by CVD.
         :param hrm_no: Harmonic no (1, 2, 3, 5)
         :param t_i: Point of x-axis
@@ -313,6 +345,7 @@ class AnalogSignalSuit(SignalSuit):
 
     def add_ptr_msr(self, uid: int, i: int, f: Optional[int] = None):
         """Add new MsrPtr.
+
         Call from ComtradeWidget.
         :param uid: Uniq (throuh app) id
         :param i: X-index
@@ -323,36 +356,48 @@ class AnalogSignalSuit(SignalSuit):
 
     def del_ptr_msr(self, uid: int):  # TODO: detach itself at all
         """Del MsrPtr.
-        Call from MsrPtr context menu"""
+
+        Call from MsrPtr context menu
+        """
         self.__kill_ptr_msr(uid)
         del self.msr_ptr[uid]
         self.graph.parentPlot().replot()
 
     def add_ptr_lvl(self, uid: int, y: Optional[float] = None):
         """Add new LvlPtr to the ss.
-        Call from ComtradeWidget."""
+
+        Call from ComtradeWidget.
+        """
         # self.lvl_ptr.add(LvlPtr(self, self.oscwin, uid, y or self.range_y.upper))
         self.lvl_ptr[uid] = [None, y or self.range_y.upper]
         LvlPtr(self, uid)
 
     def del_ptr_lvl(self, uid: int):
         """Del LvlPtr.
-        Call from LvlPtr context menu."""
+
+        Call from LvlPtr context menu.
+        """
         self.__kill_ptr_lvl(uid)
         del self.lvl_ptr[uid]
         self.graph.parentPlot().replot()
 
 
+ABSignalSuit: TypeAlias = Union[AnalogSignalSuit, StatusSignalSuit]
+
+
 class SignalBar(QObject):
-    table: 'SignalBarTable'
+    """Inner signal bar container."""
+
+    table: 'SignalBarTable'  # noqa: F821
     row: int
-    signals: list[Union[StatusSignalSuit, AnalogSignalSuit]]
+    signals: List[ABSignalSuit]
     zoom_y: int
     ctrl: BarCtrlWidget
     gfx: BarPlotWidget
     signal_zoom_y_changed = pyqtSignal()
 
-    def __init__(self, table: 'SignalBarTable', row: int = -1):
+    def __init__(self, table: 'SignalBarTable', row: int = -1):  # noqa: F821
+        """Init SignalBar object."""
         super().__init__()
         if not (0 <= row < table.rowCount()):
             row = table.rowCount()
@@ -370,28 +415,33 @@ class SignalBar(QObject):
 
     @property
     def hidden(self) -> bool:
+        """:return: Bar is hidden."""
         return self.table.isRowHidden(self.row)
 
     @hidden.setter
     def hidden(self, h: bool):
+        """Set bar hidden."""
         if self.hidden != h:
             self.table.setRowHidden(self.row, h)
 
     @property
     def height(self) -> int:
+        """:return: Bar height, px."""
         return self.table.rowHeight(self.row)
 
     @height.setter
     def height(self, h: int):
+        """Set bar height, px."""
         if self.height != h:
             self.table.setRowHeight(self.row, h)
 
     @property
     def sig_count(self) -> int:
+        """:return: SignalSuit count."""
         return len(self.signals)
 
     def is_bool(self, w_hidden: bool = False) -> Optional[bool]:
-        """Whether bar contains status signals only"""
+        """:return: Whether bar contains status signals only."""
         if self.signals:
             retvalue = True
             for ss in self.signals:
@@ -400,6 +450,7 @@ class SignalBar(QObject):
             return retvalue
 
     def suicide(self):
+        """Self destruction."""
         del self.table.bars[self.row]
         self.table.removeCellWidget(self.row, 0)
         self.table.removeCellWidget(self.row, 1)
@@ -410,6 +461,7 @@ class SignalBar(QObject):
 
     def zoom_dy(self, dy: int):
         """Y-zoom button changed.
+
         Call from BarCtrlWidget.ZoomButtonBox.
         :param dy: -1=decrease, 1=increase, 0=reset to 1
         """
@@ -422,6 +474,7 @@ class SignalBar(QObject):
             self.signal_zoom_y_changed.emit()
 
     def sig_add(self, ss: Union[StatusSignalSuit, AnalogSignalSuit]):
+        """Add SignalSuit suit to self."""
         is_bool_b4 = self.is_bool(True)
         ss.embed(self, len(self.signals))
         self.signals.append(ss)
@@ -432,7 +485,8 @@ class SignalBar(QObject):
         # else: do nothing
         self.update_stealth()
 
-    def sig_move(self, i: int, other_bar: 'HDBar'):
+    def sig_move(self, i: int, other_bar: 'HDBar'):  # noqa: F821
+        """Move SignalSuit from self to other bar."""
         ss = self.signals[i]
         del self.signals[i]
         ss.detach()
@@ -448,7 +502,7 @@ class SignalBar(QObject):
             self.suicide()
 
     def update_stealth(self):
-        """Update row visibility according to children hidden state"""
+        """Update row visibility according to children hidden state."""
         hide_me = True
         for ss in self.signals:
             hide_me &= ss.hidden
@@ -468,7 +522,7 @@ class SignalBar(QObject):
         # TODO: update row height
 
     def find_signal(self, text: str) -> Optional[SignalSuit]:
-        """Try to find signal"""
+        """Try to find signal by substring @ name."""
         for ss in self.signals:
             if (not ss.hidden) and (text in ss.signal.sid):
                 return ss

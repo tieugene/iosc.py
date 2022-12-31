@@ -1,7 +1,7 @@
+"""Graphics part of signal bars."""
 # 1. std
 from enum import IntEnum
-from typing import Optional
-
+from typing import Optional, Tuple
 # 2. 3rd
 from PyQt5.QtCore import Qt, QMargins
 from PyQt5.QtGui import QMouseEvent
@@ -14,14 +14,21 @@ from iosc.sig.widget.ptr import MainPtr, TmpPtr, SCPtr
 
 
 class EScatter(IntEnum):
+    """Graph scatter style enum."""
+
     N = 0  # none
     P = 1  # plus sign_b2n
     D = 2  # digit
 
 
 class BarPlotWidget(QWidget):
+    """Main cellWidget content."""
+
     class YZLabel(QLabel):
+        """Y-zoom indicator."""
+
         def __init__(self, parent: 'BarPlotWidget'):
+            """Init YZLabel object."""
             super().__init__(parent)
             self.setStyleSheet("QLabel { background-color : red; color : rgba(255,255,255,255) }")
             self.__slot_zoom_changed()
@@ -38,28 +45,32 @@ class BarPlotWidget(QWidget):
                 self.adjustSize()
 
     class YScroller(QScrollBar):
-        """Main idea:
+        """Bar chart Y-scroller.
+
+        Main idea:
         - Constant predefined width (in units; max)
         - Dynamic page (max..min for x1..xMax)
         """
 
         def __init__(self, parent: 'BarPlotWidget'):
+            """Init YScroller object."""
             super().__init__(Qt.Vertical, parent)
             self.__slot_zoom_changed()
             parent.bar.signal_zoom_y_changed.connect(self.__slot_zoom_changed)
 
         @property
         def y_norm_min(self) -> float:
-            """Normalized (0..1) minimal window position"""
+            """:return: Normalized (0..1) minimal window position."""
             return 1 - (self.value() + self.pageStep()) / iosc.const.Y_SCROLL_HEIGHT
 
         @property
         def y_norm_max(self) -> float:
-            """Normalized (0..1) maximal window position"""
+            """:return: Normalized (0..1) maximal window position."""
             return 1 - self.value() / iosc.const.Y_SCROLL_HEIGHT
 
         @property
-        def range_norm(self):
+        def range_norm(self) -> Tuple[float, float]:
+            """:return: Normalized min and max window (?) position."""
             return self.y_norm_min, self.y_norm_max
 
         def __slot_zoom_changed(self):
@@ -82,13 +93,16 @@ class BarPlotWidget(QWidget):
                 self.valueChanged.emit(self.value())  # force replot
 
     class BarPlot(QCustomPlot):
-        _oscwin: 'ComtradeWidget'
+        """Signal bar graphics container."""
+
+        _oscwin: 'ComtradeWidget'  # noqa: F821
         _main_ptr: MainPtr
         _sc_ptr: Optional[SCPtr]
         _tmp_ptr: dict[int, TmpPtr]
         ptr_selected: bool
 
         def __init__(self, parent: 'BarPlotWidget'):
+            """Init BarPlot object."""
             super().__init__(parent)
             self._oscwin = parent.bar.table.oscwin
             self.__squeeze()
@@ -143,12 +157,13 @@ class BarPlotWidget(QWidget):
             self.xAxis.grid().setZeroLinePen(iosc.const.PEN_ZERO)
 
         def __set_data(self):
-            """Set data for global xPtrs"""
+            """Set data for global xPtrs."""
             self.addGraph()  # main graph
             x_data = self._oscwin.osc.x
             self.graph(0).setData(x_data, [0.0] * len(x_data), True)
 
         def mousePressEvent(self, event: QMouseEvent):
+            """Inherited."""
             super().mousePressEvent(event)  # always .isAcepted() after this
             if event.button() == Qt.LeftButton and not self.ptr_selected:  # check selectable
                 i_new = self._oscwin.x2i(self.xAxis.pixelToCoord(event.x()))
@@ -184,27 +199,28 @@ class BarPlotWidget(QWidget):
             self.replot()
 
         def slot_refresh(self):
-            """Refresh plot after bar/signal moves"""
+            """Refresh plot after bar/signal moves."""
             self.__slot_rerange_x()
             self.__slot_retick()
 
         def _slot_ptr_add_tmp(self, ptr_id: int):
-            """Add new TmpPtr"""
+            """Add new TmpPtr."""
             self._tmp_ptr[ptr_id] = TmpPtr(self.graph(0), self._oscwin, ptr_id)
 
         def _slot_ptr_del_tmp(self, uid: int):
-            """Del TmpPtr"""
+            """Del TmpPtr."""
             self.removeItem(self._tmp_ptr[uid])
             del self._tmp_ptr[uid]
             self.replot()
 
-    bar: 'HDBar'
+    bar: 'HDBar'  # noqa: F821
     ys: YScroller
     yzlabel: YZLabel
     plot: BarPlot
     hline: HLine
 
-    def __init__(self, bar: 'HDBar'):
+    def __init__(self, bar: 'HDBar'):  # noqa: F821
+        """Init BarPlotWidget object."""
         super().__init__()
         self.bar = bar
         self.ys = self.YScroller(self)
@@ -221,13 +237,20 @@ class BarPlotWidget(QWidget):
         self.ys.valueChanged.connect(self.plot.slot_rerange_y)
 
     def graph_add(self) -> QCPGraph:
+        """Add new graph to plot.
+
+        :return: New QCPGraph object.
+        """
         return self.plot.addGraph()
 
     def graph_del(self, gr: QCPGraph):
+        """Del graph from plot."""
         self.plot.removeGraph(gr)
 
     def update_statusonly(self):
-        """Update some things depending on if bar is status-only:
+        """Update some things depending on if bar is status-only.
+
+        E.g.:
         - Y-resize widget
         """
         self.hline.setEnabled(not self.bar.is_bool())

@@ -1,23 +1,28 @@
+"""Circular Vector Diagram. Table part things."""
+# 1. std
 import cmath
 import math
-
+# 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
-
+# x. const
 TABLE_HEAD = ("Name", "Module", "Angle", "Re", "Im")
 
 
 class CVDTable(QTableWidget):
-    __parent: 'CVDWindow'
+    """Circular Vector Diagram. Table part."""
+
+    __parent: 'CVDWindow'  # noqa: F821
     __trace_items: bool  # process item changing
 
-    def __init__(self, parent: 'CVDWindow'):
+    def __init__(self, parent: 'CVDWindow'):  # noqa: F821
+        """Init CVDTable object."""
         super().__init__(parent)
         self.__parent = parent
         self.__trace_items = False
         self.setColumnCount(len(TABLE_HEAD))
         self.horizontalHeader().setStretchLastSection(True)
-        self.horizontalHeader().setSectionResizeMode(len(TABLE_HEAD)-1, QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(len(TABLE_HEAD) - 1, QHeaderView.Stretch)
         self.setVerticalScrollMode(self.ScrollPerPixel)
         self.setHorizontalHeaderLabels(TABLE_HEAD)
         self.setSelectionMode(self.NoSelection)
@@ -41,9 +46,9 @@ class CVDTable(QTableWidget):
         self.resizeColumnsToContents()
 
     def refresh_signals(self):
-        """Refresh row values by ptr"""
+        """Refresh row values by ptr."""
         def __norm_angle(a: float):
-            """Normalize angle (-235>+45), deg"""
+            """Normalize angle (-235>+45), deg."""
             if a < -180:
                 return a + 360
             elif a > 180:
@@ -57,7 +62,7 @@ class CVDTable(QTableWidget):
             v: complex = ss.hrm(1, i)
             uu = ss.signal.uu
             self.item(r, 1).setText("%.1f %s" % (abs(v), uu))
-            self.item(r, 2).setText("%.1f°" % __norm_angle(math.degrees(cmath.phase(v)-self.__parent.get_base_angle())))
+            self.item(r, 2).setText("%.1f°" % __norm_angle(math.degrees(cmath.phase(v) - self.__parent.get_base_angle())))
             self.item(r, 3).setText("%.1f %s" % (v.real, uu))
             self.item(r, 4).setText("%.1f %s" % (v.imag, uu))
         self.__trace_items = True

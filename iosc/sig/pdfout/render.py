@@ -1,3 +1,4 @@
+"""Rendering to PDF engine."""
 # 1. std
 import math
 from typing import List, Tuple
@@ -13,14 +14,16 @@ from iosc.sig.widget.common import SignalBarList, SignalBar
 
 
 class PlotPrint(GraphViewBase):
-    """:todo: just scene container; can be replaced with QObject?"""
+    """:todo: just scene container; can be replaced with QObject?."""
+
     _portrait: bool
     _prn_values: bool
     _prn_ptrs: bool
     __i_range: Tuple[int, int]  # Range of samples to print out
     _scene: List[PlotScene]
 
-    def __init__(self, oscwin: 'ComtradeWidget'):
+    def __init__(self, oscwin: 'ComtradeWidget'):  # noqa: F821
+        """Init PlotPrint object."""
         super().__init__()
         self._portrait = PORTRAIT
         self._prn_values = False
@@ -38,32 +41,37 @@ class PlotPrint(GraphViewBase):
 
     @property
     def portrait(self) -> bool:
+        """:return: Whether portrait orientation."""
         return self._portrait
 
     @property
     def prn_values(self) -> bool:
+        """:return: Whether to print signal labels."""
         return self._prn_values
 
     @property
     def prn_ptrs(self) -> bool:
+        """:return: Whether to print pointers."""
         return self._prn_ptrs
 
     @property
     def i_range(self) -> Tuple[int, int]:
+        """:return: Min and max sample numbers used."""
         return self.__i_range
 
     @property
     def w_full(self) -> int:
-        """Current full table width"""
+        """:return: Current full table width."""
         return W_PAGE[int(self.portrait)]
 
     @property
     def h_full(self) -> int:
-        """Current full table width"""
+        """:return: Current full table width."""
         return W_PAGE[1 - int(self.portrait)]
 
     def h_row(self, sb: SignalBar) -> int:
         """Row height as f(sb.is_bool, sb.h[default], self.portrait).
+
         - if is_bool: exact H_ROW_BASE
         - else: defined or 4 × H_ROW_BASE
         - finally × 1.5 if portrait
@@ -75,6 +83,7 @@ class PlotPrint(GraphViewBase):
 
     @property
     def scene_count(self) -> int:
+        """Scene count."""
         return len(self._scene)
 
     def __set_portrait(self, v: bool):
@@ -98,6 +107,7 @@ class PlotPrint(GraphViewBase):
 
     def __data_split(self, __sblist: SignalBarList) -> List[int]:
         """Split data to scene pieces.
+
         :return: list of bar numbers
         """
         retvalue = list()
@@ -114,8 +124,8 @@ class PlotPrint(GraphViewBase):
         return retvalue
 
     def slot_paint_request(self, printer: PdfPrinter):
-        """
-        Call _B4_ show dialog
+        """Call _B4_ show dialog.
+
         Use printer.pageRect(QPrinter.Millimeter/DevicePixel).
         :param printer: Where to draw to
         """

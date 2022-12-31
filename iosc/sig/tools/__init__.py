@@ -1,1 +1,1 @@
-'''Circular Vector Diagram'''
+"""Circular Vector Diagrams."""

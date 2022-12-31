@@ -20,6 +20,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# noqa
 
 
 import array
@@ -1118,7 +1119,7 @@ class AsciiDatReader(DatReader):
         super().__init__(**kwargs)
         self.ASCII_SEPARATOR = SEPARATOR
 
-        self.DATA_MISSING = ""
+        self.DATA_MISSING = ""  # FIXME: 1991: 999999, 1999: 99999, 2013: ''
 
     def parse(self, contents):
         """Parse a ASCII file contents."""
@@ -1149,7 +1150,7 @@ class AsciiDatReader(DatReader):
             ts_val = float(values[1])
             ts = self._get_time(n, ts_val, time_base, time_mult)
 
-            avalues = [float(x)*a[i] + b[i] for i, x in enumerate(values[2:analog_count+2])]
+            avalues = [float(x)*a[i] + b[i] for i, x in enumerate(values[2:analog_count+2])]  # FIXME: None
             svalues = [int(x) for x in values[len(values)-status_count:]]
 
             # store
