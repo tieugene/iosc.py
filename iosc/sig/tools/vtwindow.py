@@ -1,4 +1,4 @@
-"""Value table"""
+"""Value table."""
 # 2. 3rd
 from PyQt5.QtWidgets import QTableWidget, QDialog, QVBoxLayout, QTableWidgetItem, QAbstractItemView
 # 3. local
@@ -8,7 +8,9 @@ TYPE_NAME = ("As is", "Mid", "Eff", "H1", "H2", "H3", "H5")
 
 
 class ValueTable(QTableWidget):
-    """Columns:
+    """Value table widget.
+
+    Columns:
     - sid
     - type
     - Min
@@ -16,7 +18,9 @@ class ValueTable(QTableWidget):
     - MainPtr value (of Type)
     - TmpPtr[]
     """
+
     def __init__(self, oscwin: 'ComtradeWidget', parent: 'VTWindow'):  # noqa: F821
+        """Init ValueTable object."""
         super().__init__(parent)
         self.setWordWrap(False)
         self.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
@@ -56,7 +60,10 @@ class ValueTable(QTableWidget):
 
 
 class VTWindow(QDialog):
+    """Value table window."""
+
     def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
+        """Init VTWindow object."""
         super().__init__(parent)
         self.setWindowTitle("Value table")
         self.setLayout(QVBoxLayout())

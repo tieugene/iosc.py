@@ -1,6 +1,6 @@
 """Comtrade wrapper."""
 # 1. std
-from typing import Union, Optional, List, Dict, Any
+from typing import Union, Optional, List, Dict, Any, TypeAlias
 import pathlib
 import cmath
 import datetime
@@ -25,27 +25,33 @@ class SanityChkError(RuntimeError):
     msg: str
 
     def __init__(self, msg: str):
+        """Init SanityChkError object."""
         super().__init__(self)
         self.msg = msg
 
     def __str__(self):
+        """:return: String error representation."""
         return f"Sanity check error: {self.msg}"
 
 
-class Signal:
+ABChannel: TypeAlias = Union[AnalogChannel, StatusChannel]
+
+
+class __Signal:
     """Signal base.
 
     :todo: add uplink/parent (osc)
     """
 
     _is_bool: bool
-    _raw2: Union[AnalogChannel, StatusChannel]
+    _raw2: ABChannel
     _i_: int  # Signal order number (through analog > status)
     _value: np.array  # list of values
     # __osc: 'MyComtrade'
 
-    def __init__(self, raw2: Union[AnalogChannel, StatusChannel], i: int):
-        """
+    def __init__(self, raw2: ABChannel, i: int):
+        """Init Signal pbject.
+
         :param raw2: Raw wrapped comtrade signal object
         :param i: Order number of signal through all
         """
@@ -54,32 +60,33 @@ class Signal:
 
     @property
     def is_bool(self) -> bool:
-        """Whether signal is binary (bool)."""
+        """:return: Whether signal is binary (bool)."""
         return self._is_bool
 
     @property
     def i(self) -> int:
-        """Order number in common signal list."""
+        """:return: Order number in common signal list."""
         return self.__i
 
     @property
     def sid(self) -> str:
-        """Signal name."""
+        """:return: Signal name."""
         return self._raw2.name
 
     @property
     def ph(self) -> str:  # transparent
-        """Signal phase (A|B|C)."""
+        """:return: Signal phase (A|B|C)."""
         return self._raw2.ph
 
 
-class StatusSignal(Signal):
+class StatusSignal(__Signal):
     """Binary/Boolean signal wrapper."""
 
     _is_bool = True
 
     def __init__(self, raw: Comtrade, i: int):
-        """
+        """Init StatusSignal object.
+
         :param raw: Raw comtrade object
         :param i: Order numer of signal through same type (!)
         """
@@ -88,11 +95,11 @@ class StatusSignal(Signal):
 
     @property
     def value(self) -> np.array:
-        """Sample values."""
+        """:return: Sample values."""
         return self._value
 
 
-class AnalogSignal(Signal):
+class AnalogSignal(__Signal):
     """Analog signal wrapper."""
 
     _is_bool = False
@@ -102,6 +109,7 @@ class AnalogSignal(Signal):
     __value_shifted: np.array
 
     def __init__(self, raw: Comtrade, i: int, parent: 'MyComtrade'):
+        """Init AnalogSignal object."""
         super().__init__(raw.cfg.analog_channels[i], i)
         self._value = raw.analog[i]
         self.__parent = parent
@@ -129,37 +137,37 @@ class AnalogSignal(Signal):
 
     @property
     def value(self) -> np.array:
-        """Sample values depending on 'shifted' state."""
+        """:return: Sample values depending on 'shifted' state."""
         return self.__value_shifted if self.__parent.shifted else self._value
 
     @property
     def v_min(self) -> float:
-        """Minimal sample value (not shifted)."""
+        """:return: Minimal sample value (not shifted)."""
         return min(self.value)
 
     @property
     def v_max(self) -> float:
-        """Maxomal sample value (not shifted)."""
+        """:return: Maxomal sample value (not shifted)."""
         return max(self.value)
 
     @property
     def uu(self) -> str:  # transparent
-        """Bundled Unit as is."""
+        """:return: Bundled Unit as is."""
         return self._raw2.uu
 
     @property
     def primary(self) -> float:  # transparent
-        """Primary multiplier."""
+        """:return: Primary multiplier."""
         return self._raw2.primary
 
     @property
     def secondary(self) -> float:  # transparent
-        """Secondary multiplier."""
+        """:return: Secondary multiplier."""
         return self._raw2.secondary
 
     @property
     def pors(self) -> str:  # transparent
-        """Primary-or-Secondary (main signal value)."""
+        """:return: Primary-or-Secondary (main signal value)."""
         return self._raw2.pors
 
     def get_mult(self, ps: bool) -> float:
@@ -176,7 +184,7 @@ class AnalogSignal(Signal):
         return self.__uu_orig
 
     def as_str(self, y: float, pors: bool) -> str:
-        """String representation of signal value (real only).
+        """Get string representation of signal value (real only).
 
         :param y: Signal value (real)
         :param pors: False=primary, True=secondary
@@ -193,7 +201,7 @@ class AnalogSignal(Signal):
         return "%.3f %s" % (pors_y, uu)
 
     def as_str_full(self, v: Union[float, complex], pors: bool) -> str:
-        """String representation of signal value (real or complex).
+        """Get string representation of signal value (real or complex).
 
         :param v: Signal value
         :param pors: False=primary, True=secondary
@@ -205,6 +213,9 @@ class AnalogSignal(Signal):
             return self.as_str(v, pors)
 
 
+ABSignal: TypeAlias = Union[StatusSignal, AnalogSignal]
+
+
 class MyComtrade:
     """Comtrade wrapper."""
 
@@ -212,9 +223,10 @@ class MyComtrade:
     __x_shifted: bool  # FIXME: dynamic
     path: pathlib.Path
     x: np.array
-    y: List[Union[StatusSignal, AnalogSignal]]
+    y: List[ABSignal]
 
     def __init__(self, path: pathlib.Path):
+        """Init MyComtrade object."""
         self._raw = Comtrade()
         self.__x_shifted = False
         self.path = path  # TODO: rm
@@ -250,12 +262,12 @@ class MyComtrade:
 
     @property
     def total_samples(self) -> int:  # transparent
-        """Samples in signal."""
+        """:return: Samples in signal."""
         return self._raw.total_samples
 
     @property
     def rate(self) -> float:  # transparent
-        """Sample rate, Hz.
+        """:return: Sample rate, Hz.
 
         :todo: int
         """
@@ -268,12 +280,12 @@ class MyComtrade:
 
     @property
     def spp(self) -> int:
-        """Samples per period."""
+        """:return: Samples per period."""
         return int(round(self.rate / self._raw.frequency))
 
     @property
     def shifted(self) -> bool:
-        """Whether osc switched to shifted mode."""
+        """:return: Whether osc switched to shifted mode."""
         return self.__x_shifted
 
     @shifted.setter
@@ -283,17 +295,17 @@ class MyComtrade:
 
     @property
     def x_min(self) -> float:
-        """1st sample time (ms)."""
+        """:return: 1st sample time, ms."""
         return self.x[0]
 
     @property
     def x_max(self) -> float:
-        """Last sample time (ms)."""
+        """:return: Last sample time, ms."""
         return self.x[-1]
 
     @property
     def x_size(self) -> float:
-        """Signal width (ms)."""
+        """:return: Signal width, ms."""
         return self.x[-1] - self.x[0]
 
     def __load(self):
@@ -325,7 +337,6 @@ class MyComtrade:
 
     def __sanity_check(self):
         """Check data usability."""
-
         def __chk_freq() -> Optional[str]:
             """Check freq = 50/60."""
             if self._raw.cfg.frequency not in {50, 60}:

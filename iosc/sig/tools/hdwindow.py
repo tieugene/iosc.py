@@ -1,6 +1,4 @@
-"""Harminic Diagram (HD).
-Main window."""
-# 1. std
+"""Harminic Diagram (HD). Main window."""
 # 2. 3rd
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIcon
@@ -14,6 +12,7 @@ from iosc.sig.tools.hdtable import HDTable
 
 class HDWindow(QDialog):
     """Main HD window."""
+
     __ptr_uid: int
     __i: int
     __ass_list: list[AnalogSignalSuit]  # just shortcut
@@ -27,6 +26,7 @@ class HDWindow(QDialog):
     signal_ptr_moved = pyqtSignal(int)
 
     def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
+        """Init HDWindow object."""
         super().__init__(parent)
         self.__ptr_uid = 0  # MainPtr
         self.__i = parent.main_ptr_i
@@ -44,7 +44,7 @@ class HDWindow(QDialog):
 
     @property
     def t_i(self):
-        """Current MainPtr.i"""
+        """:return: Current ptr position (sample number)."""
         return self.__i
 
     def __mk_widgets(self):
@@ -62,11 +62,13 @@ class HDWindow(QDialog):
         self.sa.setWidgetResizable(True)
 
     def __mk_actions(self):
+        # noinspection PyArgumentList
         self.action_settings = QAction(QIcon.fromTheme("document-properties"),
                                        "&Select signals",
                                        self,
                                        shortcut="Ctrl+S",
                                        triggered=self.__do_settings)
+        # noinspection PyArgumentList
         self.action_close = QAction(QIcon.fromTheme("window-close"),
                                     "&Close",
                                     self,
@@ -104,6 +106,7 @@ class HDWindow(QDialog):
             self.__slot_ptr_moved(i)  # Plan B: get from parent
 
     def slot_ptr_switch(self, uid: int):
+        """Switch between pointers."""
         if uid != self.__ptr_uid:  # skip if not changed
             self.__ptr_uid = uid
             self.__slot_ptr_moved(self.parent().tmp_ptr_i[uid] if uid else self.parent().main_ptr_i)

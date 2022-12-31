@@ -16,34 +16,45 @@ IntX2 = Tuple[int, int]
 
 
 class MsrPtrItem(QGraphicsLineItem):
+    """MsrPtr representation."""
+
     __x: float
 
     def __init__(self, x: float, color: QColor, parent: 'AGraphItem'):
+        """Init MsrPtrItem object."""
         super().__init__(parent)
         self.__x = x
         self.setPen(ThinPen(color, PENSTYLE_PTR_MSR))
 
     def set_size(self, s: QSizeF):
+        """Set object size."""
         x = s.width() * self.__x
         self.setLine(x, 0, x, s.height())
 
     def update_visibility(self, v: bool):
+        """Show/hide pointer."""
         self.setVisible(v)
 
 
 class LvlPtrItem(QGraphicsLineItem):
+    """LvlPtr representation."""
+
     y: float
 
     def __init__(self, y: float, color: QColor, parent: 'AGraphItem'):
+        """Init LvlPtrItem object."""
         super().__init__(parent)
         self.y = y
         self.setPen(ThinPen(color, PENSTYLE_PTR_LVL))
 
     def update_visibility(self, v: bool):
+        """Show/hide pointer."""
         self.setVisible(v)
 
 
 class AGraphItem(QGraphicsPathItem):
+    """Analog signal representation."""
+
     ymin: float  # Adjusted normalized min (-1..0 ... 0..1)
     ymax: float  # Adjusted normalized min
     __nvalue: List[float]  # normalized values slice
@@ -51,6 +62,7 @@ class AGraphItem(QGraphicsPathItem):
     lvl_ptr: List[LvlPtrItem]
 
     def __init__(self, ss: AnalogSignalSuit, i_range: IntX2):
+        """Init AGraphItem."""
         super().__init__()
         amin = min(0.0, ss.signal.v_min)  # adjusted absolute value
         amax = max(0.0, ss.signal.v_max)
@@ -73,7 +85,8 @@ class AGraphItem(QGraphicsPathItem):
             self.lvl_ptr.append(LvlPtrItem(y, ss.color, self))
 
     def set_size(self, s: QSizeF, ymax: float):
-        """
+        """Set object size.
+
         :param s: Dest size of graph (e.g. 1077 x 28/112 for Landscape
         :param ymax: Normalized Y to shift down (in screen)
         """
@@ -92,6 +105,7 @@ class AGraphItem(QGraphicsPathItem):
             lptr.setLine(0, y, s.width(), y)
 
     def update_ptrs_visibility(self, v: bool):
+        """Show/hide ptr."""
         for mptr in self.msr_ptr:
             mptr.update_visibility(v)
         for lptr in self.lvl_ptr:
@@ -99,11 +113,14 @@ class AGraphItem(QGraphicsPathItem):
 
 
 class BGraphItem(QGraphicsPolygonItem):
+    """Status signal representation."""
+
     __value: List[int]  # values slice
     ymin: float = 0.0
     ymax: float = H_B_MULT
 
     def __init__(self, ss: StatusSignalSuit, i_range: IntX2):
+        """Init BGraphItem object."""
         super().__init__()
         self.__value = ss.signal.value[i_range[0]:i_range[1] + 1]  # just copy
         self.setPen(ThinPen(ss.color))
@@ -112,10 +129,11 @@ class BGraphItem(QGraphicsPolygonItem):
         self.__set_size(1, 1)
 
     def set_size(self, s: QSizeF, ymax: float):
-        """
-        L: s=(1077 x 28/112)
+        """Set object size.
+
         :param s: Size of graph
         :param ymax: Normalized Y to shift down (in screen)
+        :note: L: s=(1077 x 28/112)
         """
         self.prepareGeometryChange()  # not helps
         self.__set_size(s.width() / (len(self.__value) - 1), s.height(), ymax)
@@ -130,9 +148,12 @@ class BGraphItem(QGraphicsPolygonItem):
 
 
 class BarLabelItem(RectTextItem):
+    """Label part of signal bar."""
+
     __sb: SignalBar
-    """Label part of signal bar"""
+
     def __init__(self, sb: SignalBar):
+        """Init BarLabelItem object."""
         super().__init__(ClipedRichTextItem())
         self.__sb = sb
         self.update_text()
@@ -140,7 +161,8 @@ class BarLabelItem(RectTextItem):
 
     @staticmethod
     def __gc2str(c: Qt.GlobalColor) -> str:
-        """
+        """HTML representation of QGlobalColor value.
+
         :param c: Global color
         :return: HTML-compatible string representation
         """
@@ -154,6 +176,7 @@ class BarLabelItem(RectTextItem):
         ])
 
     def update_text(self, prn_values: bool = False):
+        """Update labels."""
         self.text.setHtml(self.__html(prn_values))
 
 
@@ -162,6 +185,7 @@ class BarGraphItem(GroupItem):
 
     Used in: RowItem > … > Print
     """
+
     __graph: List[Union[AGraphItem, BGraphItem]]
     __y0line: QGraphicsLineItem  # Y=0 line
     __ymin: float  # Best Y-min normalized
@@ -169,6 +193,7 @@ class BarGraphItem(GroupItem):
     __is_bool: bool
 
     def __init__(self, sb: SignalBar, i_range: IntX2):
+        """Init BarGraphItem object."""
         super().__init__()
         self.__graph = list()
         self.__ymin = self.__ymax = 0.0  # same as self.__y0line
@@ -191,6 +216,7 @@ class BarGraphItem(GroupItem):
         self.setY(H_ROW_GAP)
 
     def set_size(self, s: QSize):
+        """Set object size."""
         h_norm = self.__ymax - self.__ymin  # normalized height, ≥ 1
         s_local = QSizeF(s.width(), (s.height() - H_ROW_GAP * 2) / h_norm)
         for gi in self.__graph:
@@ -200,6 +226,7 @@ class BarGraphItem(GroupItem):
             self.__y0line.setLine(0, y0px, s.width(), y0px)
 
     def update_ptrs_visibility(self, v: bool):
+        """Show/hide pointers."""
         for gi in self.__graph:
             if isinstance(gi, AGraphItem):
                 gi.update_ptrs_visibility(v)
@@ -207,6 +234,7 @@ class BarGraphItem(GroupItem):
 
 class RowItem(GroupItem):
     """Used in: TablePayload > … > View/Print."""
+
     __sb: SignalBar
     __plot: 'PlotPrint'  # noqa: F821; ref to father
     __label: BarLabelItem  # left side
@@ -214,6 +242,7 @@ class RowItem(GroupItem):
     __uline: QGraphicsLineItem  # underline
 
     def __init__(self, sb: SignalBar, plot: 'PlotPrint'):  # noqa: F821
+        """Init RowItem object."""
         super().__init__()
         self.__sb = sb
         self.__plot = plot
@@ -231,6 +260,7 @@ class RowItem(GroupItem):
         self.addToGroup(self.__uline)
 
     def update_size(self):
+        """Update geometry."""
         w = self.__plot.w_full - W_LABEL
         h = self.__plot.h_row(self.__sb)
         self.__label.set_height(h - 1)
@@ -238,7 +268,9 @@ class RowItem(GroupItem):
         self.__uline.setLine(0, h - 1, self.__plot.w_full, h - 1)
 
     def update_labels(self):
+        """Show/hide signal labels."""
         self.__label.update_text(self.__plot.prn_values)
 
     def update_ptrs_visibility(self):
+        """Show/hide pointers."""
         self.__graph.update_ptrs_visibility(self.__plot.prn_ptrs)

@@ -1,3 +1,4 @@
+"""OMP map."""
 # 1. std
 import json
 import pathlib
@@ -16,11 +17,14 @@ OUT_NAME = ('uasc', 'ubsc', 'ucsc', 'iasc', 'ibsc', 'icsc', 'uapr', 'iapr')
 
 
 class SignalBox(QComboBox):
+    """Signal selector."""
+
     __no: int
     __parent: 'OMPMapWindow'
     signal_idx_chgd = pyqtSignal(int, int)
 
     def __init__(self, no: int, parent: 'OMPMapWindow'):
+        """Init SignalBox object."""
         super().__init__(parent)
         self.__no = no
         self.__parent = parent
@@ -36,12 +40,15 @@ class SignalBox(QComboBox):
 
 
 class OMPMapWindow(QDialog):
+    """OMP map window."""
+
     oscwin: 'ComtradeWidget'  # noqa: F821
     __button_box: QDialogButtonBox
     __map: List[int]  # map itself
     exec_1: bool  # Indicates 1st exec_
 
     def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
+        """Init OMPMapWindow object."""
         super().__init__(parent)
         self.oscwin = parent
         self.__map = [-1] * 6
@@ -55,6 +62,7 @@ class OMPMapWindow(QDialog):
 
     @property
     def map(self) -> List[int]:
+        """:return: OMP map itself."""
         return self.__map
 
     def __mk_widgets(self):
@@ -81,7 +89,8 @@ class OMPMapWindow(QDialog):
         self.setLayout(lt)
 
     def __get_rc_widget(self, r: int, c: int) -> Union[SignalBox, QLabel]:
-        """
+        """Get widget in row/col position.
+
         :param r: Row
         :param c: Column
         :return: Widget at position(r,c)
@@ -89,7 +98,7 @@ class OMPMapWindow(QDialog):
         return self.layout().itemAtPosition(r, c).widget()
 
     def __data_autofill(self):
-        """Find correspondent signals"""
+        """Find corresponding signals."""
         for r, lbl in enumerate(CORR_SIG):
             if (idx := self.oscwin.osc.find_signal(lbl)) is not None:
                 self.__get_rc_widget(r + 1, 1).setCurrentIndex(idx + 1)
@@ -106,13 +115,14 @@ class OMPMapWindow(QDialog):
         return hrm1(self.oscwin.osc.y[__y_i].value, __i, self.oscwin.osc.spp)
 
     def __slot_chg_signal(self, row: int, y_i: int):
-        """
+        """Change signal values on demand.
+
         :param row: SignalBox row (from 0)
         :param y_i: Signal no
-        :return:
         """
         def __h1_str(__y_i: int, __i: int) -> str:
-            """
+            """Get 1st harmonic of signal as string.
+
             :param __y_i: Number of signal
             :param __i: Number of X-point
             :return: String repr of 1st harmonic y_i-th signal in point Xi
@@ -132,6 +142,7 @@ class OMPMapWindow(QDialog):
             self.__data_store()
 
     def exec_(self) -> int:
+        """Open dialog and return result."""
         if self.exec_1:
             self.exec_1 = False
         else:
@@ -139,6 +150,7 @@ class OMPMapWindow(QDialog):
         return super().exec_()
 
     def data_save(self, fn: pathlib.Path):
+        """Save OMP values into file."""
         data = [self.__h1(self.__map[i], self.oscwin.sc_ptr_i) for i in range(len(self.__map))]
         data.append(self.__h1(self.__map[0], self.oscwin.pr_ptr_i))
         data.append(self.__h1(self.__map[3], self.oscwin.pr_ptr_i))

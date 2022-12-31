@@ -1,4 +1,4 @@
-"""Main print preview dialog"""
+"""Main print preview dialog."""
 from typing import Optional
 
 from PyQt5.QtCore import Qt
@@ -12,6 +12,8 @@ from .render import PlotPrint
 
 
 class PDFOutPreviewDialog(QPrintPreviewDialog):
+    """Custom print preview dialog."""
+
     __parent: 'ComtradeWidget'  # noqa: F821
     __render: Optional[PlotPrint]
     __1stime: bool
@@ -20,6 +22,7 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
     __actions_to_print: QActionGroup
 
     def __init__(self, __printer: PdfPrinter, parent: 'ComtradeWidget'):  # noqa: F821
+        """Init PDFOutPreviewDialog object."""
         super().__init__(__printer, parent)
         self.__parent = parent
         self.__render = None
@@ -32,6 +35,7 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
         self.setWindowModality(Qt.WindowModality.WindowModal)
 
     def __mk_actions(self):
+        # noinspection PyArgumentList
         self.__act_opt_values = QAction(
             QIcon.fromTheme(
                 "list-add",
@@ -42,6 +46,7 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
             checkable=True,
             toggled=self.__slot_option_values
         )
+        # noinspection PyArgumentList
         self.__act_opt_ptrs = QAction(
             QIcon.fromTheme(
                 "insert-link",
@@ -55,6 +60,7 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
 
     def __repreview(self):
         """Update preview.
+
         :note: workaround to find built-in QPrintPreviewWidget and force it to update
         """
         if (wdg := self.findChild(QPrintPreviewWidget)) is not None:
@@ -69,6 +75,10 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
         self.__repreview()
 
     def open(self):
+        """Inherited.
+
+        Inject hack to refresh plot on some changes.
+        """
         self.__render = PlotPrint(self.__parent)
         self.paintRequested.connect(self.__render.slot_paint_request)
         super().open()
@@ -78,6 +88,7 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
             self.__repreview()
 
     def clean_up(self):
+        """Clean plot."""
         self.paintRequested.disconnect(self.__render.slot_paint_request)
         self.__render.deleteLater()
         self.__render = None

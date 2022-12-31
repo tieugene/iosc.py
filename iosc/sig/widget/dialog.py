@@ -1,4 +1,4 @@
-"""Edit dialogs"""
+"""Edit dialogs."""
 # 1. std
 from typing import Optional, Union
 # 2. 3rd
@@ -8,10 +8,9 @@ from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, Q
     QInputDialog, QWidget, QDoubleSpinBox, QListWidget, QVBoxLayout, QListWidgetItem
 
 
-# 3. local
-
-
 class SignalPropertiesDialog(QDialog):
+    """Base class for editing signal properties."""
+
     _ss: Union['StatusSignalSuit', 'AnalogSignalSuit']  # noqa: F821
     _color: QColor
     f_name: QLineEdit
@@ -21,6 +20,7 @@ class SignalPropertiesDialog(QDialog):
     _layout: QFormLayout
 
     def __init__(self, ss: Union['StatusSignalSuit', 'AnalogSignalSuit'], parent=None):  # noqa: F821
+        """Init SignalPropertiesDialog object."""
         super().__init__(parent)
         # 1. store args
         self._ss = ss
@@ -60,11 +60,15 @@ class SignalPropertiesDialog(QDialog):
 
 
 class StatusSignalPropertiesDialog(SignalPropertiesDialog):
+    """Edit B-signal properties dialog."""
+
     def __init__(self, ss: 'StatusSignalSuit', parent=None):  # noqa: F821
+        """Init StatusSignalPropertiesDialog object."""
         super().__init__(ss, parent)
         self.f_type.setText("Status")
 
     def execute(self) -> bool:
+        """Open dialog and return result."""
         if self.exec_():
             self._ss.color = self._color
             return True
@@ -72,6 +76,8 @@ class StatusSignalPropertiesDialog(SignalPropertiesDialog):
 
 
 class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
+    """Edit A-signal properties."""
+
     f_uu: QLineEdit
     f_pmult: QLineEdit
     f_smult: QLineEdit
@@ -79,6 +85,7 @@ class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
     f_style: QComboBox
 
     def __init__(self, ss: 'AnalogSignalSuit', parent=None):  # noqa: F821
+        """Init AnalogSignalPropertiesDialog object."""
         super().__init__(ss, parent)
         self.f_type.setText("Analog")
         self.f_uu = QLineEdit(self._ss.signal.uu)
@@ -100,6 +107,7 @@ class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
         self._layout.insertRow(7, "Line type", self.f_style)  # QInputDialog.getItem()
 
     def execute(self) -> bool:
+        """Open doialog and return result."""
         if self.exec_():
             self._ss.line_style = self.f_style.currentIndex()
             self._ss.color = self._color
@@ -108,6 +116,7 @@ class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
 
 
 def get_new_omp_width(parent: QWidget, old_value: int) -> Optional[int]:
+    """:return: New OMP ptrs distance."""
     new_value, ok = QInputDialog.getInt(
         parent,
         "Distance between PR and SC",
@@ -121,11 +130,14 @@ def get_new_omp_width(parent: QWidget, old_value: int) -> Optional[int]:
 
 
 class TmpPtrDialog(QDialog):
+    """Add/Edit TmpPtr dialog."""
+
     f_val: QDoubleSpinBox
     f_name: QLineEdit
     button_box: QDialogButtonBox
 
     def __init__(self, data: tuple[float, float, float, float, str], parent=None):
+        """Init TmpPtrDialog object."""
         super().__init__(parent)
         # 1. store args
         # 2. set widgets
@@ -151,6 +163,8 @@ class TmpPtrDialog(QDialog):
 
 
 class SelectSignalsDialog(QDialog):
+    """Select signal dialog."""
+
     f_signals: QListWidget
     button_all: QPushButton
     button_none: QPushButton
@@ -158,6 +172,7 @@ class SelectSignalsDialog(QDialog):
     button_box: QDialogButtonBox
 
     def __init__(self, ass_list: list['AnalogSignalSuit'], ass_used: set[int] = (), parent=None):  # noqa: F821
+        """Init SelectSignalsDialog object."""
         super().__init__(parent)
         self.setWindowTitle("Select signals")
         self._mk_widgets()
@@ -222,6 +237,7 @@ class SelectSignalsDialog(QDialog):
         self.__select(False)
 
     def execute(self) -> Optional[list[int]]:
+        """Open dialog and return result."""
         if self.exec_():
             retvalue = list()
             for i in range(self.f_signals.count()):
@@ -231,11 +247,14 @@ class SelectSignalsDialog(QDialog):
 
 
 class MsrPtrDialog(QDialog):
+    """Add/Edit MsrPtr dialog."""
+
     f_val: QDoubleSpinBox
     f_func: QComboBox
     button_box: QDialogButtonBox
 
     def __init__(self, data: tuple[float, float, float, float, int], parent=None):
+        """Init MsrPtrDialog object."""
         super().__init__(parent)
         # 1. store args
         # 2. set widgets
@@ -263,10 +282,13 @@ class MsrPtrDialog(QDialog):
 
 
 class LvlPtrDialog(QDialog):
+    """Add/Edit LvlPtr dialog."""
+
     f_val: QDoubleSpinBox
     button_box: QDialogButtonBox
 
     def __init__(self, data: tuple[float, float, float], parent=None):
+        """Init LvlPtrDialog object."""
         super().__init__(parent)
         # 1. store args
         # 2. set widgets

@@ -1,3 +1,4 @@
+"""Osc window top things (time scale with dependencies)."""
 # 2. 3rd
 from PyQt5.QtCore import QMargins, Qt, pyqtSignal
 from PyQt5.QtGui import QResizeEvent
@@ -7,10 +8,13 @@ import iosc.const
 from iosc.sig.widget.common import OneBarPlot, OneRowBar
 
 
-class PtrLabel(QCPItemText):
+class __PtrLabel(QCPItemText):
+    """Base class for ptr's top labels."""
+
     _oscwin: 'ComtradeWidget'  # noqa: F821
 
     def __init__(self, parent: 'TimeAxisPlot'):
+        """Init __PtrLabel object."""
         super().__init__(parent)
         self._oscwin = parent.parent().parent()
         self.setTextAlignment(Qt.AlignCenter)
@@ -24,7 +28,8 @@ class PtrLabel(QCPItemText):
         return "%.2f" % x
 
     def _update_ptr(self, i: int):
-        """Repaint/__move main ptr value label (%.2f)
+        """Repaint/__move main ptr value label (%.2f).
+
         :fixme: draw in front of ticks
         """
         x = self._oscwin.i2x(i)
@@ -33,8 +38,11 @@ class PtrLabel(QCPItemText):
         self.parentPlot().replot()
 
 
-class PtrLabelMain(PtrLabel):
+class PtrLabelMain(__PtrLabel):
+    """Top MainPtr label."""
+
     def __init__(self, parent: 'TimeAxisPlot'):
+        """Init PtrLabelMain object."""
         super().__init__(parent)
         self.setBrush(iosc.const.BRUSH_PTR_MAIN)  # rect
         self.__slot_ptr_move(self._oscwin.main_ptr_i)
@@ -44,11 +52,14 @@ class PtrLabelMain(PtrLabel):
         self._update_ptr(i)
 
 
-class PtrLabelTmp(PtrLabel):
+class PtrLabelTmp(__PtrLabel):
+    """Top TmpPtr label."""
+
     _uid: int
     _name: str
 
     def __init__(self, parent: 'TimeAxisPlot', uid: int):
+        """Init PtrLabelTmp object."""
         super().__init__(parent)
         self._uid = uid
         self._name = ''
@@ -61,10 +72,12 @@ class PtrLabelTmp(PtrLabel):
 
     @property
     def name(self) -> str:
+        """:return: Top TmpPtr label."""
         return self._name
 
     @name.setter
     def name(self, s: str):
+        """Set top TmpPtr label."""
         self._name = s
 
     def __slot_ptr_move(self, uid: int, i: int):
@@ -73,11 +86,14 @@ class PtrLabelTmp(PtrLabel):
 
 
 class TimeAxisPlot(OneBarPlot):
+    """Top time scale graphics."""
+
     __main_ptr_label: PtrLabelMain
     _tmp_ptr: dict[int, PtrLabelTmp]
     signal_width_changed = pyqtSignal(int)
 
     def __init__(self, parent: 'TopBar'):  # noqa: F821
+        """Init TimeAxisPlot object."""
         super().__init__(parent)
         self.__main_ptr_label = PtrLabelMain(self)
         self._tmp_ptr = dict()
@@ -92,6 +108,7 @@ class TimeAxisPlot(OneBarPlot):
         self._oscwin.signal_ptr_del_tmp.connect(self._slot_ptr_del_tmp)
 
     def resizeEvent(self, event: QResizeEvent):
+        """Inherited."""
         super().resizeEvent(event)
         if event.oldSize().width() != (w := event.size().width()):
             self.signal_width_changed.emit(w)
@@ -101,26 +118,31 @@ class TimeAxisPlot(OneBarPlot):
         self.replot()
 
     def get_tmp_ptr_name(self, uid: id):
+        """:return: TmpPtr label."""
         return self._tmp_ptr[uid].name
 
     def set_tmp_ptr_name(self, uid: id, name: str):
+        """Set MtpPtr label."""
         self._tmp_ptr[uid].name = name
 
     def _slot_ptr_add_tmp(self, uid: int):
-        """Add new TmpPtr"""
+        """Add new TmpPtr."""
         self._tmp_ptr[uid] = PtrLabelTmp(self, uid)
 
     def _slot_ptr_del_tmp(self, uid: int):
-        """Del TmpPtr"""
+        """Del TmpPtr."""
         self.removeItem(self._tmp_ptr[uid])
         del self._tmp_ptr[uid]
         self.replot()
 
 
 class TimeAxisBar(OneRowBar):
+    """Top time scale."""
+
     plot: TimeAxisPlot  # rewrite
 
     def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
+        """Init TimeAxisBar object."""
         super().__init__(parent)
         self._label.setText('ms')
         self.plot = TimeAxisPlot(self)

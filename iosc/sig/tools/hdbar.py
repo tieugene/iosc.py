@@ -1,3 +1,4 @@
+"""Hamonic diagram bar."""
 # 2. 3rd
 from PyQt5.QtCore import QMargins
 from PyQt5.QtGui import QFont, QColor
@@ -12,10 +13,15 @@ WIDTH_HRM_LEGEND = 35
 
 
 class SignalHarmBar(QWidget):
+    """One signal harmonic bar."""
+
     class _Text(QWidget):
+        """Harmonic bar label."""
+
         subj: QLabel
 
         def __init__(self, parent: 'SignalHarmBar'):
+            """Init _Text object."""
             super().__init__(parent)
             self.subj = QLabel(self)
             self.subj.setFont(FONT_STD)
@@ -25,13 +31,18 @@ class SignalHarmBar(QWidget):
             self.layout().addWidget(self.subj)
 
         def set_text(self, text: str):
+            """Set harmonic bar label text."""
             self.subj.setText(text)
 
     class _Space(QFrame):
+        """Space stub for harmonic diagram bar."""
+
         def __init__(self, parent: 'SignalHarmBar'):
+            """Init _Space object."""
             super().__init__(parent)
 
         def set_color(self, color: QColor):
+            """Set harmonic bar space bg color."""
             self.setStyleSheet("background-color: %s" % color2style(color))
 
     h_no: int
@@ -41,7 +52,8 @@ class SignalHarmBar(QWidget):
     pad: _Space
     """One harmonic row"""
     def __init__(self, h_no: int, parent: 'HDBar'):
-        """
+        """Init SignalHarmBar object.
+
         :param h_no: Harmonic number
         :param parent: Subj
         """
@@ -71,16 +83,21 @@ class SignalHarmBar(QWidget):
         self.layout().addWidget(self.pad)
 
     def set_value(self, v: int, v_max: int):
+        """Set harminic diagram bar value."""
         self.legend.set_text(f"{v}%")
         self.layout().setStretchFactor(self.indic, v)
         self.layout().setStretchFactor(self.pad, v_max - v)
 
     def set_color(self, color: QColor):
+        """Set harminic diagram bar color."""
         self.indic.set_color(color)
 
 
 class SignalTitleBar(QWidget):
+    """Signal title bar."""
+
     def __init__(self, text: str, color: QColor, parent: 'HDBar'):
+        """Init SignalTitleBar object."""
         super().__init__(parent)
         self.setLayout(QHBoxLayout())
         self.layout().addWidget(QLabel(text, self))
@@ -88,16 +105,19 @@ class SignalTitleBar(QWidget):
         self.set_color(color)
 
     def set_color(self, color: QColor):
+        """Set signal title bg color."""
         self.setStyleSheet("background-color: %s" % color2style(color))
 
 
 class HDBar(QWidget):
     """One signal's row."""
+
     __ss: AnalogSignalSuit
     title: SignalTitleBar
     harm: list[SignalHarmBar]
 
     def __init__(self, ss: AnalogSignalSuit, parent: 'HDTable'):  # noqa: F821
+        """Init HDBar object."""
         super().__init__(parent)
         self.__ss = ss
         self.title = SignalTitleBar(ss.signal.sid, ss.color, self)

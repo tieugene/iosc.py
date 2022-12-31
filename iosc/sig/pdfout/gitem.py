@@ -1,4 +1,4 @@
-"""QGraphicsItem successors (application independent)"""
+"""QGraphicsItem successors (application independent)."""
 # 1. std
 from typing import Union
 # 2. 3rd
@@ -16,6 +16,7 @@ class ThinPen(QPen):
     """Non-scalable QPen."""
 
     def __init__(self, color: Qt.GlobalColor, style: Qt.PenStyle = None):
+        """Init ThinPen object."""
         super().__init__(color)
         self.setCosmetic(True)
         if style is not None:
@@ -33,6 +34,7 @@ class PlainTextItem(QGraphicsSimpleTextItem):
     """
 
     def __init__(self, txt: str, color: Qt.GlobalColor = None):
+        """Init PlainTextItem object."""
         super().__init__(txt)
         self.setFont(FONT_MAIN)
         if color:
@@ -44,6 +46,7 @@ class RichTextItem(QGraphicsTextItem):
     """Non-scalable rich text."""
 
     def __init__(self, txt: str = None):
+        """Init RichTextItem object."""
         super().__init__(txt)
         self.setFont(FONT_MAIN)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIgnoresTransformations)
@@ -53,6 +56,7 @@ class GroupItem(QGraphicsItemGroup):
     """Custom item group."""
 
     def __init__(self):
+        """Init GroupItem object."""
         super().__init__()
 
     def boundingRect(self) -> QRectF:  # set_size() fix
@@ -67,6 +71,7 @@ class TCPlainTextItem(PlainTextItem):
     __br: QRectF  # boundingRect()
 
     def __init__(self, txt: str):
+        """Init TCPlainTextItem object."""
         super().__init__(txt)
         self.__br = super().boundingRect()
 
@@ -87,7 +92,9 @@ class ClipedPlainTextItem(PlainTextItem):
 
     Used in: RecTextItem
     """
+
     def __init__(self, txt: str, color: Qt.GlobalColor = None):
+        """Init ClipedPlainTextItem object."""
         super().__init__(txt, color)
 
     def boundingRect(self) -> QRectF:  # fix for upper br: return clipped size
@@ -101,6 +108,7 @@ class ClipedRichTextItem(RichTextItem):
     """Clipped rich text."""
 
     def __init__(self, txt: str = None):
+        """Init ClipedRichTextItem object."""
         super().__init__(txt)
 
     def boundingRect(self) -> QRectF:  # fix for upper br: return clipped size
@@ -115,6 +123,7 @@ class GraphViewBase(QGraphicsView):
     """Basic QGraphicsView parent (auto-resizing)."""
 
     def __init__(self, parent: QWidget = None):
+        """Init GraphViewBase object."""
         super().__init__(parent)
         self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.BoundingRectViewportUpdate)
 
@@ -137,6 +146,7 @@ class RectTextItem(GroupItem):
     rect: QGraphicsRectItem
 
     def __init__(self, txt: Union[ClipedPlainTextItem, ClipedRichTextItem]):
+        """Init RectTextItem object."""
         super().__init__()
         # text
         self.text = txt

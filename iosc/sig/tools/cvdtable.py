@@ -1,17 +1,22 @@
+"""Circular Vector Diagram. Table part things."""
+# 1. std
 import cmath
 import math
-
+# 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
-
+# x. const
 TABLE_HEAD = ("Name", "Module", "Angle", "Re", "Im")
 
 
 class CVDTable(QTableWidget):
+    """Circular Vector Diagram. Table part."""
+
     __parent: 'CVDWindow'  # noqa: F821
     __trace_items: bool  # process item changing
 
     def __init__(self, parent: 'CVDWindow'):  # noqa: F821
+        """Init CVDTable object."""
         super().__init__(parent)
         self.__parent = parent
         self.__trace_items = False
@@ -41,9 +46,9 @@ class CVDTable(QTableWidget):
         self.resizeColumnsToContents()
 
     def refresh_signals(self):
-        """Refresh row values by ptr"""
+        """Refresh row values by ptr."""
         def __norm_angle(a: float):
-            """Normalize angle (-235>+45), deg"""
+            """Normalize angle (-235>+45), deg."""
             if a < -180:
                 return a + 360
             elif a > 180:

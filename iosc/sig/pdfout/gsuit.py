@@ -22,6 +22,7 @@ class HeaderItem(RectTextItem):
     __plot: 'PlotPrint'  # noqa: F821
 
     def __init__(self, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):  # noqa: F821
+        """Init HeaderItem object."""
         info = oscwin.osc.info
         super().__init__(ClipedPlainTextItem(
             f"{oscwin.osc.path}"
@@ -44,7 +45,8 @@ class VItem(GroupItem):
     _text: TCPlainTextItem
 
     def __init__(self, color: Qt.GlobalColor, plot: 'PlotPrint'):  # noqa: F821
-        """
+        """Init VItem object.
+
         :param plot: Parent plot
         """
         super().__init__()
@@ -74,7 +76,8 @@ class TableCanvas(GroupItem):
         __text: TCPlainTextItem
 
         def __init__(self, x: float, label: str, plot: 'PlotPrint'):  # noqa: F821
-            """
+            """Init GridItem object.
+
             :param x: Normalized X-position, 0..1
             :param label: Text to label
             :param plot: Parent plot
@@ -97,7 +100,8 @@ class TableCanvas(GroupItem):
         __i: int
 
         def __init__(self, i: int, color: Qt.GlobalColor, plot: 'PlotPrint', pen_style: Qt.PenStyle = None):  # noqa: F821
-            """
+            """Init PtrItem object.
+
             :param i: Xindex of pointer
             :param color: Subj
             :param plot: Parent plot
@@ -133,6 +137,7 @@ class TableCanvas(GroupItem):
     __ptrs: List[PtrItem]  # pointers
 
     def __init__(self, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):  # noqa: F821
+        """Init TableCanvas object."""
         super().__init__()
         self.__plot = plot
         self.__header = HeaderItem(oscwin, plot)
@@ -217,6 +222,7 @@ class TablePayload(GroupItem):
     __rowitem: list[RowItem]
 
     def __init__(self, sblist: SignalBarList, plot: 'PlotPrint'):  # noqa: F821
+        """Init TablePayload object."""
         super().__init__()
         self.__rowitem = list()
         y = 0
@@ -255,6 +261,7 @@ class PlotScene(QGraphicsScene):
     __payload: TablePayload
 
     def __init__(self, sblist: SignalBarList, oscwin: 'ComtradeWidget', plot: 'PlotPrint'):  # noqa: F821
+        """Init PlotScene."""
         super().__init__()
         self.__canvas = TableCanvas(oscwin, plot)
         self.__payload = TablePayload(sblist, plot)

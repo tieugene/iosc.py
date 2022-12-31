@@ -1,4 +1,4 @@
-"""Mainwidget widget lists"""
+"""Mainwidget widget lists."""
 # 1. std
 from typing import Tuple, Optional
 # 2. 3rd
@@ -12,13 +12,18 @@ from iosc.sig.widget.finder import FindDialog
 
 
 class SignalBarTable(QTableWidget):
+    """Signal bar table."""
+
     class DropmarkerStyle(QProxyStyle):
+        """Highlight table item as drop dest."""
+
         def drawPrimitive(
                 self,
                 element: QStyle.PrimitiveElement,
                 option: QStyleOption,
                 painter: QPainter,
                 widget: QWidget = None) -> None:
+            """Inherited."""
             if element == self.PE_IndicatorItemViewItemDrop and not option.rect.isNull():
                 pen = painter.pen()
                 pen.setColor(Qt.red)
@@ -30,6 +35,7 @@ class SignalBarTable(QTableWidget):
     __find_dialog: Optional[FindDialog]
 
     def __init__(self, oscwin: 'ComtradeWidget'):  # noqa: F821
+        """Init SignalBarTable object."""
         super().__init__()  # Parent will be QSplitter
         self.oscwin = oscwin
         self.setColumnCount(2)
@@ -60,11 +66,13 @@ class SignalBarTable(QTableWidget):
         self.oscwin.signal_resize_col_ctrl.connect(self.__slot_resize_col_ctrl)
 
     def insertRow(self, row: int):
+        """Inherited."""
         super().insertRow(row)
         for i in range(row + 1, len(self.bars)):
             self.bars[i].row = i
 
     def removeRow(self, row: int):
+        """Inherited."""
         super().removeRow(row)
         for i in range(row, len(self.bars)):
             self.bars[i].row = i
@@ -89,6 +97,7 @@ class SignalBarTable(QTableWidget):
 
     def __chk_dnd_event(self, src_object, dst_row_num: int, over: bool) -> int:
         """Check whether drop event acceptable.
+
         :param src_object: Source object
         :param dst_row_num: Destination object row number
         :param over: Source object overlaps (True) or insert before (False) destination object
@@ -113,10 +122,12 @@ class SignalBarTable(QTableWidget):
         return 0
 
     def dragEnterEvent(self, event: QDragEnterEvent):
+        """Inherited."""
         if self.__chk_dnd_source(event):
             super().dragEnterEvent(event)  # paint decoration + accept
 
     def dragMoveEvent(self, event: QDragMoveEvent):
+        """Inherited."""
         super().dragMoveEvent(event)  # paint decoration
         dst_row_num, over = self.__drop_on(event)
         # TODO: cache prev
@@ -126,6 +137,7 @@ class SignalBarTable(QTableWidget):
             event.ignore()
 
     def dropEvent(self, event: QDropEvent):
+        """Inherited."""
         if event.isAccepted():
             super().dropEvent(event)
             return
@@ -147,16 +159,18 @@ class SignalBarTable(QTableWidget):
         self.setColumnWidth(0, x)
 
     def bar_insert(self, row: int = -1) -> SignalBar:
+        """Insert new signal bar."""
         return SignalBar(self, row)
 
     def bar_move(self, row: int, other_bar: SignalBar):
-        """Move self bar content to other"""
+        """Move self bar content to other table."""
         bar = self.bars[row]
         for i in range(bar.sig_count):
             bar.sig_move(0, other_bar)
         other_bar.gfx.plot.replot()
 
     def resize_y_all(self, inc: bool):
+        """Resize all bars height by + or -20%."""
         mult = 1.2 if inc else 1 / 1.2
         for bar in self.bars:
             if not bar.is_bool():

@@ -1,3 +1,4 @@
+"""CVD dialog."""
 # 1. std
 from typing import Optional
 # 2. 3rd
@@ -9,7 +10,8 @@ from iosc.sig.widget.dialog import SelectSignalsDialog
 
 
 class SelectCVDSignalsDialog(SelectSignalsDialog):
-    """Select signals to show and base signal"""
+    """Select signals to show and base signal."""
+
     f_base_signal: QComboBox
 
     def __init__(
@@ -19,6 +21,7 @@ class SelectCVDSignalsDialog(SelectSignalsDialog):
             ass_base: int = 0,
             parent=None
     ):
+        """Init SelectCVDSignalsDialog object."""
         super().__init__(ass_list, ass_used, parent)
         self.f_base_signal = QComboBox(self)
         for i, ss in enumerate(ass_list):
@@ -31,7 +34,8 @@ class SelectCVDSignalsDialog(SelectSignalsDialog):
         self.layout().insertWidget(3, self.f_base_signal)
 
     def execute(self) -> Optional[tuple[list[int], int]]:
-        """
+        """Open dialog and return result.
+
         :return: None if Cancel, list of selected items if ok
         """
         if self.exec_():

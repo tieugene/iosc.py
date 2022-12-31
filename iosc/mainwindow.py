@@ -28,6 +28,7 @@ class MainWindow(QMainWindow):
     act_about: QAction
 
     def __init__(self, _: list):
+        """Init MainWindow object."""
         super().__init__()
         self.__mk_widgets()
         self.__mk_actions()

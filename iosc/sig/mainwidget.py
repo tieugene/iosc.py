@@ -1,4 +1,5 @@
 """Signal tab widget.
+
 RTFM context menu: examples/webenginewidgets/tabbedbrowser
 """
 import json
@@ -31,6 +32,7 @@ from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
 
 class ComtradeWidget(QWidget):
     """Main osc window."""
+
     # inner vars
     __father: 'ComtradeTabWidget'  # noqa: F821; real parent
     osc: mycomtrade.MyComtrade
@@ -113,6 +115,7 @@ class ComtradeWidget(QWidget):
     signal_ptr_moved_tmp = pyqtSignal(int, int)  # refresh SignalChartWidget on Tmp Ptr moved
 
     def __init__(self, osc: mycomtrade.MyComtrade, parent: 'ComtradeTabWidget'):  # noqa: F821
+        """Init ComtradeWidget object."""
         super().__init__(parent)
         self.__father = parent
         self.osc = osc
@@ -141,22 +144,22 @@ class ComtradeWidget(QWidget):
         self.__mk_connections()
 
     def x_px_width_us(self) -> int:
-        """Current px width (μs)."""
+        """:return: Current px width, μs."""
         return iosc.const.X_PX_WIDTH_uS[self.x_zoom]
 
     # property
     def x_width_px(self) -> int:
-        """Current graph width, px (?)."""
+        """:return: Current graph width, px."""
         return round(self.osc.x_size * 1000 / self.x_px_width_us())
 
     # property
     def x_sample_width_px(self) -> int:
-        """Current width of samples interval (px)."""
+        """:return: Current width of samples interval, px."""
         return round(self.x_width_px() / self.osc.total_samples)
 
     @property
     def main_ptr_i(self) -> int:
-        """Sample number of main pointer."""
+        """:return: Sample number of main pointer."""
         return self.__main_ptr_i
 
     @property
@@ -182,14 +185,20 @@ class ComtradeWidget(QWidget):
 
     @omp_width.setter
     def omp_width(self, i):
-        """:fixme: UB"""
+        """Set OMP ptrs distance.
+
+        :fixme: UB
+        """
         # self.__omp_width = i
         # self.signal_omp_width_changed.emit()
         print(i)
 
     @property
     def shifted(self):
-        """:fixme: rm?"""
+        """:return: Whether osc signals are shifted.
+
+        :fixme: rm?
+        """
         return self.osc.shifted
 
     def x2i(self, x: float) -> int:
@@ -513,7 +522,7 @@ class ComtradeWidget(QWidget):
         self.xscroll_bar.signal_update_plots.connect(self.timestamps_bar.plot.slot_rerange)
 
     def __set_data(self):
-        """Initial fill out signal tables."""
+        """Fill out signal tables 1st time."""
         for sig in self.osc.y:
             if not sig.is_bool:
                 self.analog_table.bar_insert().sig_add(ass := AnalogSignalSuit(sig, self))  # FIXME: default height
@@ -524,7 +533,8 @@ class ComtradeWidget(QWidget):
     def __ofg_store(self) -> dict:
         """Collect osc settings to save.
 
-        :todo: capsulate"""
+        :todo: capsulate
+        """
         data = {
             'ver': iosc.const.OFG_VER,
             'xzoom': self.x_zoom,
@@ -603,7 +613,8 @@ class ComtradeWidget(QWidget):
     def __cfg_restore(self, data: dict):
         """Restore osc from *.ofg content.
 
-        :todo: capsulate"""
+        :todo: capsulate
+        """
         if data['ver'] != iosc.const.OFG_VER:
             QMessageBox.critical(self, "OFG loading error", f"Incompatible version: {data['ver']}")
         # 1. clean
@@ -726,7 +737,8 @@ class ComtradeWidget(QWidget):
 
         :param uid: Pinter uniq id.
         :param i: Sample number.
-        :todo: optional name:str"""
+        :todo: optional name:str
+        """
         self.__tmp_ptr_i[uid] = i
         self.signal_ptr_add_tmp.emit(uid)  # create them ...
         # self.slot_ptr_moved_tmp(uid, self.__main_ptr_i)  # ... and __move
@@ -750,8 +762,9 @@ class ComtradeWidget(QWidget):
 
     def __do_file_info(self):
         """Show misc osc info."""
+
         def tr(name: str, value: Any):
-            """HTML <tr> constructor"""
+            """HTML <tr> constructor."""
             return f"<tr><th>{name}:</th><td>{value}</td></tr>"
 
         msg = QMessageBox(QMessageBox.Icon.Information, "Comtrade file info", "Summary")
@@ -929,7 +942,8 @@ class ComtradeWidget(QWidget):
     def resize_col_ctrl(self, dx: int):
         """Resize left column in signal tables.
 
-        Used by: ctrl.VLine"""
+        Used by: ctrl.VLine
+        """
         if self.col_ctrl_width + dx > iosc.const.COL0_WIDTH_MIN:
             self.col_ctrl_width += dx
             self.signal_resize_col_ctrl.emit(self.col_ctrl_width)
@@ -964,21 +978,24 @@ class ComtradeWidget(QWidget):
 
         :param uid: TmpPtr uniq id
         :param i: Sample to move to
-        Used by: ptr.TmpPtr"""
+        Used by: ptr.TmpPtr
+        """
         self.__tmp_ptr_i[uid] = i
         self.signal_ptr_moved_tmp.emit(uid, i)
 
     def slot_ptr_del_tmp(self, uid: int):
         """Del tmp pointer in all child widgets.
 
-        :param uid: TmpPtr uniq id"""
+        :param uid: TmpPtr uniq id
+        """
         del self.__tmp_ptr_i[uid]
         self.signal_ptr_del_tmp.emit(uid)
 
     def slot_ptr_edit_tmp(self, uid: int):
         """Edit tmp pointer.
 
-        :param uid: TmpPtr uniq id"""
+        :param uid: TmpPtr uniq id
+        """
         v = self.i2x(self.__tmp_ptr_i[uid])
         name = self.timeaxis_bar.plot.get_tmp_ptr_name(uid)
         form = TmpPtrDialog((v, self.osc.x_min, self.osc.x_max, 1000 / self.osc.rate, name))

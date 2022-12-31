@@ -15,6 +15,7 @@ class ComtradeTabWidget(QTabWidget):
     """Oscillogramm tabs container."""
 
     def __init__(self, parent: 'MainWindow'):  # noqa: F821
+        """Init ComtradeTabWidget object."""
         super().__init__(parent)
         self.setTabsClosable(True)
         self.tabCloseRequested.connect(self.slot_tab_close)
@@ -25,7 +26,7 @@ class ComtradeTabWidget(QTabWidget):
 
         :note: If addTab() after show(), set .updatesEnabled = False B4 changes and = True after changes
          (to prevent flicker)
-         """
+        """
         QGuiApplication.setOverrideCursor(Qt.WaitCursor)
         self.setUpdatesEnabled(False)
         try:
