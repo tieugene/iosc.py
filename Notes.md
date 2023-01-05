@@ -1,11 +1,30 @@
 # Notes
 
-- IDEA: store signal xPtrs in Signal
-- X-scale glitch:
-  + &check; Start
-  + &check; X-zoom in
-  + &check; X-resize to max
-  + &times; X-zoom out
+## Math (20230105):
+
+- 'Math' to separate section
+- From simple to complex
+- Group then by conversion(?)/Arithm/Simmetric
+- For each group:
+  + Common part
+  + Differences (each)
+- For all - Comparing to ordinar A-sig::
+  + Similarity (e.g. pointers)
+  + Difference
+- CRUD:
+  + 'C' - described (in progress)
+  + 'R' - partialy; e.g.:
+    - Switcher reaction:
+      + As&hellip; (nothing to do?)
+      + PorS (=> switch source)
+      + Orig/Centered (?)
+  + 'U' - none
+  + 'D' - none
+- Del pictures:
+  + not add something
+  + but conflicts with text
+  + TR is _what_ to do but pictures describe _how_ to do
+- 'Use as ordinary' need separate section
 
 ## Signal table:
 
@@ -45,70 +64,8 @@
   
 Line = QFrame().setFrameShape(QtWidgets.QFrame.VLine)
 
-## YSlider
-
-Variants:
-
-- *chg pagestep (range = base * zoom_y_max)*
-- ~~chg range (page = base)~~
-
-## X-scaling:
-
-- Main value: precision (px/s):
-  + min: ... (1px = 1ms, grid = 100ms, 1s == 1 Kpx)
-  + max: ... (1px = 1&mu;s, grid = 0.1ms, 1s = 1 Mpx)
-- Steps (10):
-  + prec (px/s): 1/2/5 * 10&#8319; (n = 3..6) = 1K..1M
-  + px weight (&mu;s/px): 1..1000
-
-### 2do:
-
-Dst:
-- XScroller
-- TopBar
-- BarPlot
-
-Src:
-- [x] Signal windows resize (TopBar):
-  + [x] XScroller:
-    * [x] setPageSize(TopBar width)
-    * [x] setMaximum(x_width - pageSize())
-    * [x] [setValue(recalc)]
-  + [x] TopBar/BarPlot: rerange_x
-- [x] x-zoom:
-  + [x] XScroller:
-    * [x] setMaximum(x_width - pageSize())
-    * [x] [setValue(recalc)]
-  + [x] TopBar/BarPlot:
-    * [x] rerange_x
-    * [x] grid
-- [x] XScroller value change:
-  + [x] TopBar/BarPlot: rerange_x
-
-## Samples:
-
-- `IMF3R-7783--13-03-11-15-19-07.cfg`:
-  + Samples: 120
-  + Freq: 50 Hz
-  + Rate: 600 Hz
-  + SPP: 12
-  + Sample width, ms: 1.(6)
-  + Z-point: &numero;49
-
 ## RTFM
 
 - [PyQt5 Tutorial](https://www.pythonguis.com/pyqt5-tutorial/)
 - [Another tutorial](https://www.bogotobogo.com/Qt/)
 - [Qt](https://evileg.com/ru/knowledge/qt/):
-
-### CVD
-
-- PqyQt5/examples/:
-  + widgets/windowsflags.py
-  + graphicsview/diagramscene/py (gfx items)
-- [QCPPolarGraph announce](https://www.qcustomplot.com/index.php/news)
-- Habr:
-  + [good](https://habr.com/ru/post/182142/)
-  + [bad1](https://habr.com/ru/post/182614/)
-  + [bad2](https://habr.com/ru/post/183432/)
-  + [code](https://github.com/DancingOnWater/GraphicsScenePlot)
