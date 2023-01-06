@@ -3,7 +3,7 @@ from typing import Optional
 
 from PyQt5.QtWidgets import QInputDialog
 
-from iosc.sig.widget.common import SignalSuit
+from iosc.sig.widget.sigsuit import SignalSuit
 
 
 class FindDialog(QInputDialog):

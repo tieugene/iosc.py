@@ -27,7 +27,7 @@ from iosc.sig.widget.finder import FindDialog
 from iosc.sig.widget.section import SignalBarTable
 from iosc.sig.widget.bottom import TimeStampsBar, XScroller
 from iosc.sig.widget.top import TimeAxisBar
-from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit, ABSignalSuit
+from iosc.sig.widget.sigsuit import StatusSignalSuit, AnalogSignalSuit, ABSignalSuit
 from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
 
 

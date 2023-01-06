@@ -15,7 +15,8 @@ from PyQt5.QtWidgets import QWidget, QGraphicsObject, QGraphicsEllipseItem, QGra
     QStyleOptionGraphicsItem
 # 3. local
 from iosc.sig.tools.util import sign_b2n
-from iosc.sig.widget.common import AnalogSignalSuit
+from iosc.sig.widget.sigsuit import AnalogSignalSuit
+
 # x. consts
 RAD = 100  # Radius of chart
 DRAD_AXIS_LABEL = 0  # Distance from end of line to label margin

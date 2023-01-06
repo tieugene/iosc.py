@@ -4,7 +4,7 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QToolBar, QAction, QScrollArea, QVBoxLayout, QWidget, QSizePolicy
 # 3. local
-from iosc.sig.widget.common import AnalogSignalSuit
+from iosc.sig.widget.sigsuit import AnalogSignalSuit
 from iosc.sig.widget.dialog import SelectSignalsDialog
 from iosc.sig.tools.ptrswitcher import PtrSwitcher
 from iosc.sig.tools.hdtable import HDTable

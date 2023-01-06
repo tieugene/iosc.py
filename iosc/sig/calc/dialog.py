@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QPushButton, QColorDialog, QComboBox
 # 3. local
-from iosc.sig.widget.common import AnalogSignalSuit
+from iosc.sig.widget.sigsuit import AnalogSignalSuit
 
 
 class LineStyleSelector(QComboBox):

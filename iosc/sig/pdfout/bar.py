@@ -8,7 +8,8 @@ from PyQt5.QtWidgets import QGraphicsPathItem, QGraphicsPolygonItem, QGraphicsLi
 # 3. local
 from .const import H_B_MULT, W_LABEL, H_ROW_GAP
 from .gitem import ThinPen, RectTextItem, ClipedRichTextItem, GroupItem
-from iosc.sig.widget.common import AnalogSignalSuit, StatusSignalSuit, SignalBar
+from ..widget.sigsuit import StatusSignalSuit, AnalogSignalSuit
+from ..widget.sigbar import SignalBar
 from ...const import PENSTYLE_PTR_MSR, PENSTYLE_PTR_LVL
 
 # x. const

@@ -10,7 +10,7 @@ from .const import PORTRAIT, W_PAGE, H_ROW_BASE, H_HEADER, H_BOTTOM
 from .gitem import GraphViewBase
 from .gsuit import PlotScene
 from .pdfprinter import PdfPrinter
-from iosc.sig.widget.common import SignalBarList, SignalBar
+from ..widget.sigbar import SignalBar, SignalBarList
 
 
 class PlotPrint(GraphViewBase):

@@ -5,7 +5,8 @@ from PyQt5.QtGui import QFont, QColor
 from PyQt5.QtWidgets import QWidget, QLabel, QHBoxLayout, QFrame, QVBoxLayout
 # 3. locals
 from iosc.sig.tools.util import color2style
-from iosc.sig.widget.common import AnalogSignalSuit
+from iosc.sig.widget.sigsuit import AnalogSignalSuit
+
 # x. const
 FONT_STD = QFont('mono', 8)
 WIDTH_HRM_TITLE = 70

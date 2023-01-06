@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QGraphicsScene, QGraphicsLineItem, QGraphicsRectItem
 from .const import W_LABEL, H_HEADER, H_BOTTOM
 from .gitem import ThinPen, RectTextItem, ClipedPlainTextItem, GroupItem, TCPlainTextItem
 from .bar import RowItem
-from iosc.sig.widget.common import SignalBarList
+from ..widget.sigbar import SignalBarList
 from ...const import COLOR_PTR_MAIN, COLOR_PTR_OMP, COLOR_PTR_TMP, PENSTYLE_PTR_TMP
 
 # x. const

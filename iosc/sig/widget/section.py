@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QDropEvent, QDragEnterEvent, QDragMoveEvent, QPainter
 from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QProxyStyle, QStyle, QStyleOption
 # 3. local
-from iosc.sig.widget.common import SignalBar, SignalBarList
+from iosc.sig.widget.sigbar import SignalBar, SignalBarList
 from iosc.sig.widget.ctrl import BarCtrlWidget
 from iosc.sig.widget.finder import FindDialog
 

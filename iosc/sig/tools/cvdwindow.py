@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QDialog, QAction, QVBoxLayout, QToolBar, QSplitter, 
 from iosc.sig.tools.cvdtable import CVDTable
 from iosc.sig.tools.cvdwidget import CVDiagramView
 from iosc.sig.tools.ptrswitcher import PtrSwitcher
-from iosc.sig.widget.common import AnalogSignalSuit
+from iosc.sig.widget.sigsuit import AnalogSignalSuit
 from iosc.sig.tools.cvddialog import SelectCVDSignalsDialog
 
 
