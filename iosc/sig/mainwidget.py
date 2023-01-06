@@ -87,6 +87,7 @@ class ComtradeWidget(QWidget):
     action_omp_map: QAction
     action_omp_save: QAction
     action_signal_find: QAction
+    action_math_module: QAction
     # widgets
     menubar: QMenuBar
     toolbar: QToolBar
@@ -313,11 +314,6 @@ class ComtradeWidget(QWidget):
                                          self,
                                          triggered=self.__do_xzoom_out)
         # noinspection PyArgumentList
-        self.action_unhide = QAction(QIcon.fromTheme("edit-undo"),
-                                     "&Unhide all",
-                                     self,
-                                     triggered=self.__do_unhide)
-        # noinspection PyArgumentList
         self.action_shift_not = QAction(svg_icon(ESvgSrc.ShiftOrig),
                                         "&Original",
                                         self,
@@ -366,6 +362,20 @@ class ComtradeWidget(QWidget):
                                           self,
                                           checkable=True)
         # noinspection PyArgumentList
+        self.action_unhide = QAction(QIcon.fromTheme("edit-undo"),
+                                     "&Unhide all",
+                                     self,
+                                     triggered=self.__do_signal_unhide)
+        # noinspection PyArgumentList
+        self.action_signal_find = QAction("Find...",
+                                          self,
+                                          shortcut="Ctrl+F",
+                                          triggered=self.__do_signal_find)
+        # noinspection PyArgumentList
+        self.action_math_module = QAction("Module",
+                                          self,
+                                          triggered=self.__do_math_module)
+        # noinspection PyArgumentList
         self.action_ptr_add_tmp = QAction("Add temporary pointer",
                                           self,
                                           triggered=self.__do_ptr_add_tmp)
@@ -412,11 +422,6 @@ class ComtradeWidget(QWidget):
         self.action_omp_save = QAction("OMP save",
                                        self,
                                        triggered=self.__do_omp_save)
-        # noinspection PyArgumentList
-        self.action_signal_find = QAction("Find...",
-                                          self,
-                                          shortcut="Ctrl+F",
-                                          triggered=self.__do_signal_find)
         self.action_shift = QActionGroup(self)
         self.action_shift.addAction(self.action_shift_not).setChecked(True)
         self.action_shift.addAction(self.action_shift_yes)
@@ -472,10 +477,12 @@ class ComtradeWidget(QWidget):
             self.action_viewas_hrm3,
             self.action_viewas_hrm5
         ))
-        self.menubar.addMenu("&Signal").addActions((
+        menu_signal = self.menubar.addMenu("&Signal")
+        menu_signal.addActions((
             self.action_unhide,
             self.action_signal_find
         ))
+        menu_signal.addMenu("Maths").addMenu("Conversions").addAction(self.action_math_module)
         self.menubar.addMenu("&Pointers").addActions((
             self.action_ptr_add_tmp,
             self.action_ptr_add_msr,
@@ -839,13 +846,16 @@ class ComtradeWidget(QWidget):
             with open(fn[0], 'rt') as fp:  # FIXME: encoding
                 self.__cfg_restore(json.load(fp))
 
-    def __do_unhide(self):
+    def __do_signal_unhide(self):
         """Unhide all signals."""
         self.signal_unhide_all.emit()
 
     def __do_signal_find(self):
         """Open 'Find signal' dialog."""
         FindDialog(self).exec_()
+
+    def __do_math_module(self):
+        ...
 
     def __do_resize_y_all_inc(self):
         self.analog_table.resize_y_all(True)

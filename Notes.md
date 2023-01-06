@@ -14,10 +14,11 @@
 - CRUD:
   + 'C' - described (in progress)
   + 'R' - partialy; e.g.:
-    - Switcher reaction:
+    - Switchers reaction:
       + As&hellip; (nothing to do?)
       + PorS (=> switch source)
       + Orig/Centered (?)
+    - Tools
   + 'U' - none
   + 'D' - none
 - Del pictures:
