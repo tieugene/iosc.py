@@ -16,6 +16,7 @@ from iosc.core import mycomtrade
 from iosc.core.tocsv import export_to_csv
 from iosc.icon import svg_icon, ESvgSrc
 from iosc.core.convtrade import convert, ConvertError
+from iosc.sig.calc.dialog import MathModuleDialog
 from iosc.sig.pdfout.dialog import PDFOutPreviewDialog
 from iosc.sig.pdfout.pdfprinter import PdfPrinter
 from iosc.sig.tools.cvdwindow import CVDWindow
@@ -855,7 +856,7 @@ class ComtradeWidget(QWidget):
         FindDialog(self).exec_()
 
     def __do_math_module(self):
-        ...
+        MathModuleDialog(self.ass_list).exec()
 
     def __do_resize_y_all_inc(self):
         self.analog_table.resize_y_all(True)
