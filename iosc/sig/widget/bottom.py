@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QScrollBar
 from QCustomPlot_PyQt5 import QCPItemText
 # 4. local
 import iosc.const
-from iosc.sig.widget.common import OneBarPlot, OneRowBar
+from iosc.sig.widget.slick import SlickPanelPlot, SlickPanelWidget
 
 
 class __PtrLabel(QCPItemText):
@@ -70,7 +70,7 @@ class PtrLabelTmp(__PtrLabel):
             self._update_ptr(i)
 
 
-class TimeStampsPlot(OneBarPlot):
+class TimeStampsPlot(SlickPanelPlot):
     """Bottom time scale graphics."""
 
     __zero_ptr_label: QCPItemText
@@ -109,7 +109,7 @@ class TimeStampsPlot(OneBarPlot):
         self.replot()
 
 
-class TimeStampsBar(OneRowBar):
+class TimeStampsBar(SlickPanelWidget):
     """Bottom time scale panel."""
 
     def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821

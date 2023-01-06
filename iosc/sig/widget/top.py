@@ -5,7 +5,7 @@ from PyQt5.QtGui import QResizeEvent
 from QCustomPlot_PyQt5 import QCPItemText, QCPAxis, QCPAxisTickerFixed
 # 3. local
 import iosc.const
-from iosc.sig.widget.common import OneBarPlot, OneRowBar
+from iosc.sig.widget.slick import SlickPanelPlot, SlickPanelWidget
 
 
 class __PtrLabel(QCPItemText):
@@ -85,7 +85,7 @@ class PtrLabelTmp(__PtrLabel):
             self._update_ptr(i)
 
 
-class TimeAxisPlot(OneBarPlot):
+class TimeAxisPlot(SlickPanelPlot):
     """Top time scale graphics."""
 
     __main_ptr_label: PtrLabelMain
@@ -136,7 +136,7 @@ class TimeAxisPlot(OneBarPlot):
         self.replot()
 
 
-class TimeAxisBar(OneRowBar):
+class TimeAxisBar(SlickPanelWidget):
     """Top time scale."""
 
     plot: TimeAxisPlot  # rewrite

@@ -11,7 +11,7 @@ from QCustomPlot_PyQt5 import QCustomPlot
 import iosc.const
 
 
-class OneBarPlot(QCustomPlot):
+class SlickPanelPlot(QCustomPlot):
     """Parent for top/bottom bars plots."""
 
     def __init__(self, parent: QWidget):
@@ -49,19 +49,19 @@ class OneBarPlot(QCustomPlot):
         self.replot()
 
 
-class OneRowBar(QWidget):
+class SlickPanelWidget(QWidget):
     """Base for top/bottom panels."""
 
     class RStub(QScrollBar):
         """Right stub to align against signal bars."""
 
-        def __init__(self, parent: 'OneRowBar' = None):
+        def __init__(self, parent: 'SlickPanelWidget' = None):
             """Init RStub object."""
             super().__init__(Qt.Vertical, parent)
             self.setFixedHeight(0)
 
     _label: QLabel
-    plot: OneBarPlot
+    plot: SlickPanelPlot
 
     def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         """Init OneRowBar object."""
