@@ -26,6 +26,7 @@
   + but conflicts with text
   + TR is _what_ to do but pictures describe _how_ to do
 - 'Use as ordinary' need separate section
+- WTF [non-]harmonic signal?
 
 ## Signal table:
 

@@ -45,7 +45,7 @@ class __Signal:
 
     _is_bool: bool
     _raw2: ABChannel
-    _i_: int  # Signal order number (through analog > status)
+    _i_: int  # Signal order number (through analog > status); FIXME: rm?
     _value: np.array  # list of values
     # __osc: 'MyComtrade'
 
