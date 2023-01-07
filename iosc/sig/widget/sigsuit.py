@@ -1,6 +1,6 @@
 """SignalSuit and successors"""
 # 1. std
-from typing import Optional, Union, TypeAlias
+from typing import Optional, Union, TypeAlias, Dict, Any
 # 2. 3rd
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from PyQt5.QtGui import QColor, QBrush, QPen
@@ -171,11 +171,24 @@ class AnalogSignalSuit(SignalSuit):
 
     @property
     def uu(self) -> str:
-        """:return: Signal unit
+        """:return: Signal unit.
 
-        :note: Used in: CVDTable.refresh_signals()
+        :note: Used in: CVDTable.refresh_signals(), AnalogSignalPropertiesDialog.__init__()
         """
         return self.signal.uu
+
+    @property
+    def info(self) -> Dict[str, Any]:
+        """Misc signal info.
+
+        :return: Dict with signal info.
+        :note: Used in: AnalogSignalPropertiesDialog.__init__()
+        """
+        return {
+            'p': self.signal.primary,  # float
+            's': self.signal.secondary,  # float
+            'pors': self.signal.pors  # str
+        }
 
     @property
     def range_y(self) -> QCPRange:

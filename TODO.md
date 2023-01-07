@@ -7,7 +7,7 @@ Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
   + [x] is_bool
   + [x] sid
   + [x] uu
-  + [ ] info (4 properties)
+  + [x] info (primary, secondary, pors)
   + [ ] v_min
   + [ ] v_max
   + [ ] i (?)

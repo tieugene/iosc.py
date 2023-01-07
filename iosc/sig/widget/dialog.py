@@ -87,14 +87,15 @@ class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
     def __init__(self, ss: 'AnalogSignalSuit', parent=None):  # noqa: F821
         """Init AnalogSignalPropertiesDialog object."""
         super().__init__(ss, parent)
+        info = self._ss.info
         self.f_type.setText("Analog")
-        self.f_uu = QLineEdit(self._ss.signal.uu)
+        self.f_uu = QLineEdit(self._ss.uu)
         self.f_uu.setReadOnly(True)
-        self.f_pmult = QLineEdit(str(self._ss.signal.primary))
+        self.f_pmult = QLineEdit(str(info['p']))
         self.f_pmult.setReadOnly(True)
-        self.f_smult = QLineEdit(str(self._ss.signal.secondary))
+        self.f_smult = QLineEdit(str(info['s']))
         self.f_smult.setReadOnly(True)
-        self.f_pors = QLineEdit(self._ss.signal.pors)
+        self.f_pors = QLineEdit(info['pors'])
         self.f_pors.setReadOnly(True)
         self.f_style = QComboBox(self)
         self.f_style.addItems(("Solid", "Dotted", "Dash-dotted"))
