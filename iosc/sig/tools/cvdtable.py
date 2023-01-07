@@ -40,7 +40,7 @@ class CVDTable(QTableWidget):
                     if c:
                         self.item(r, c).setTextAlignment(Qt.AlignRight)
             self.item(r, 0).setCheckState(Qt.Checked)
-            self.item(r, 0).setText(ss.signal.sid)
+            self.item(r, 0).setText(ss.sid)
             self.item(r, 0).setForeground(ss.color)
         self.refresh_signals()
         self.resizeColumnsToContents()

@@ -151,7 +151,7 @@ class CVDiagramObject(QGraphicsObject):
             pen = QPen(self.__ss.color)
             pen.setCosmetic(True)
             self.__arrow = CVDiagramObject.Arrow(self, angle, RAD, self.__ss.color)
-            self.__label = CVDiagramObject.Label(self, self.__ss.signal.sid, angle, RAD, self.__ss.color)
+            self.__label = CVDiagramObject.Label(self, self.__ss.sid, angle, RAD, self.__ss.color)
             self.__ss.signal_chg_color.connect(self.__slot_update_color)
 
         def boundingRect(self) -> QRectF:

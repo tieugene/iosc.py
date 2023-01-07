@@ -26,7 +26,7 @@ class SignalPropertiesDialog(QDialog):
         self._ss = ss
         self._color = ss.color
         # 2. set widgets
-        self.f_name = QLineEdit(ss.signal.sid, self)
+        self.f_name = QLineEdit(ss.sid, self)
         self.f_name.setReadOnly(True)
         self.f_type = QLineEdit()
         self.f_type.setReadOnly(True)
@@ -207,7 +207,7 @@ class SelectSignalsDialog(QDialog):
 
     def _set_data(self, ass_list: list['AnalogSignalSuit'], ass_used: set[int]):  # noqa: F821
         for i, ss in enumerate(ass_list):
-            item = QListWidgetItem(ss.signal.sid, self.f_signals)
+            item = QListWidgetItem(ss.sid, self.f_signals)
             item.setForeground(ss.color)
             item.setFlags(item.flags() & (~Qt.ItemIsUserCheckable))
             if i in ass_used:

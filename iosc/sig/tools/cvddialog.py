@@ -27,7 +27,7 @@ class SelectCVDSignalsDialog(SelectSignalsDialog):
         for i, ss in enumerate(ass_list):
             pixmap = QPixmap(16, 16)
             pixmap.fill(ss.color)
-            self.f_base_signal.addItem(QIcon(pixmap), ss.signal.sid)
+            self.f_base_signal.addItem(QIcon(pixmap), ss.sid)
         if ass_base is not None:
             self.f_base_signal.setCurrentIndex(ass_base)
         self.layout().insertWidget(2, QLabel("Base:", self))

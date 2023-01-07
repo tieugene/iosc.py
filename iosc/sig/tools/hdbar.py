@@ -121,7 +121,7 @@ class HDBar(QWidget):
         """Init HDBar object."""
         super().__init__(parent)
         self.__ss = ss
-        self.title = SignalTitleBar(ss.signal.sid, ss.color, self)
+        self.title = SignalTitleBar(ss.sid, ss.color, self)
         self.harm = list()
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(self.title)

@@ -26,7 +26,7 @@ class SignalSelector(QComboBox):
         """Init SignalSelector object."""
         super().__init__(parent)
         for i, ss in enumerate(ass_list):
-            self.addItem(ss.signal.sid)
+            self.addItem(ss.sid)
             self.setItemData(self.count() - 1, i)  # FIXME: ss itself
 
 

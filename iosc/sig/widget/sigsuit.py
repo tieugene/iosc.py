@@ -49,6 +49,11 @@ class SignalSuit(QObject):
         return self.signal.is_bool
 
     @property
+    def sid(self) -> str:
+        """:return: Signal ID (name)"""
+        return self.signal.sid
+
+    @property
     def hidden(self) -> bool:
         """:return: Whether SignalSuit is hidden."""
         return self._hidden

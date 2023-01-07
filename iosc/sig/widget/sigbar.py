@@ -71,7 +71,7 @@ class SignalBar(QObject):
             retvalue = True
             for ss in self.signals:
                 if not ss.hidden or w_hidden:
-                    retvalue &= ss.signal.is_bool
+                    retvalue &= ss.is_bool
             return retvalue
 
     def suicide(self):
@@ -104,8 +104,8 @@ class SignalBar(QObject):
         ss.embed(self, len(self.signals))
         self.signals.append(ss)
         if is_bool_b4 is None:  # 1st signal
-            self.height = iosc.const.BAR_HEIGHT_D if ss.signal.is_bool else iosc.const.BAR_HEIGHT_A_DEFAULT
-        elif is_bool_b4 and not ss.signal.is_bool:  # Analog join to status-only
+            self.height = iosc.const.BAR_HEIGHT_D if ss.is_bool else iosc.const.BAR_HEIGHT_A_DEFAULT
+        elif is_bool_b4 and not ss.is_bool:  # Analog join to status-only
             self.height = iosc.const.BAR_HEIGHT_A_DEFAULT
         # else: do nothing
         self.update_stealth()
@@ -149,7 +149,7 @@ class SignalBar(QObject):
     def find_signal(self, text: str) -> Optional[SignalSuit]:
         """Try to find signal by substring @ name."""
         for ss in self.signals:
-            if (not ss.hidden) and (text in ss.signal.sid):
+            if (not ss.hidden) and (text in ss.sid):
                 return ss
 
 
