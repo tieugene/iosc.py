@@ -6,7 +6,7 @@ Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 - [ ] Isolate `mycomtrade.*`:
   + [x] is_bool
   + [x] sid
-  + [ ] uu
+  + [x] uu
   + [ ] info (4 properties)
   + [ ] v_min
   + [ ] v_max

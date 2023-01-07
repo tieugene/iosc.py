@@ -170,6 +170,14 @@ class AnalogSignalSuit(SignalSuit):
         self.oscwin.signal_chged_shift.connect(self.__slot_reload_data)
 
     @property
+    def uu(self) -> str:
+        """:return: Signal unit
+
+        :note: Used in: CVDTable.refresh_signals()
+        """
+        return self.signal.uu
+
+    @property
     def range_y(self) -> QCPRange:
         """:return: Min and max signal values."""
         retvalue = self.graph.data().valueRange()[0]
