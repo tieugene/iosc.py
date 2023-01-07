@@ -3,7 +3,7 @@
 Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 
 - [x] 1-button centered
-- [ ] Isolate `mycomtrade.*`:
+- [ ] Protected `SignalSuit._signal`:
   + [x] is_bool
   + [x] sid
   + [x] uu
@@ -16,6 +16,6 @@ Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 
 ## Hierarchy:
 
-- `sigsuit.SignalSuit`: GUI wrapper for mycomtrade.*
-- `mycomtrade.*`: helping wrapper
-- `comtrade.*`: raw osc data as is
+- `sigsuit.SignalSuit`: GUI wrapper for&hellip;
+- &rdsh;`mycomtrade.*`: non-GUI wrapper for&hellip;
+- &rdsh;`comtrade.*`: raw osc data
