@@ -264,7 +264,7 @@ class BarCtrlWidget(QWidget):
 
     def sig_add(self, ss: 'SignalSuit') -> Union[StatusSignalLabel, AnalogSignalLabel]:  # noqa: F821
         """Add signal suit."""
-        return StatusSignalLabel(ss, self.lst) if ss.signal.is_bool else AnalogSignalLabel(ss, self.lst)
+        return StatusSignalLabel(ss, self.lst) if ss.is_bool else AnalogSignalLabel(ss, self.lst)
 
     def sig_del(self, i: int):
         """Del signal suit."""

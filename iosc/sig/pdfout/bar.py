@@ -200,11 +200,11 @@ class BarGraphItem(GroupItem):
         self.__ymin = self.__ymax = 0.0  # same as self.__y0line
         self.__is_bool = True
         for d in sb.signals:
-            self.__graph.append(BGraphItem(d, i_range) if d.signal.is_bool else AGraphItem(d, i_range))
+            self.__graph.append(BGraphItem(d, i_range) if d.is_bool else AGraphItem(d, i_range))
             self.addToGroup(self.__graph[-1])
             self.__ymin = min(self.__ymin, self.__graph[-1].ymin)
             self.__ymax = max(self.__ymax, self.__graph[-1].ymax)
-            self.__is_bool &= d.signal.is_bool
+            self.__is_bool &= d.is_bool
             # if not d.signal.is_bool:
             #    for mptr in self.__graph[-1].msr_ptr:
             #        self.addToGroup(mptr)

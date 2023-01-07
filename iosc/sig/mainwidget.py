@@ -565,7 +565,7 @@ class ComtradeWidget(QWidget):
                         'show': not ss.hidden,
                         'color': int(ss.color.rgba64()),
                     }
-                    if not ss.signal.is_bool:
+                    if not ss.is_bool:
                         s_data['style'] = ss.line_style
                         if ss.msr_ptr:
                             ptrs = []
@@ -622,7 +622,7 @@ class ComtradeWidget(QWidget):
             for bar in table.bars[::-1]:  # reverse order
                 for ss in bar.signals:
                     sss[ss.signal.i] = ss
-                    if not ss.signal.is_bool:
+                    if not ss.is_bool:
                         for uid in tuple(ss.msr_ptr.keys()):  # fix dynamic
                             ss.del_ptr_msr(uid)
                         for uid in tuple(ss.lvl_ptr.keys()):  # fix dynamic
@@ -640,7 +640,7 @@ class ComtradeWidget(QWidget):
                     dst_bar.sig_add(ss)
                     ss.hidden = not src_ss['show']  # show
                     ss.color = QColor.fromRgba64(QRgba64.fromRgba64(src_ss['color']))  # color
-                    if not ss.signal.is_bool:
+                    if not ss.is_bool:
                         ss.line_style = src_ss['style']  # style
                         for ptr in src_ss.get('ptr_msr', []):  # MsrPtr
                             ss.add_ptr_msr(ptr['uid'], ptr['xi'], ptr['f'])

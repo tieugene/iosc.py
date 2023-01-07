@@ -21,7 +21,7 @@ class SignalSuit(QObject):
     """Base signal container class."""
 
     oscwin: 'ComtradeWidget'  # noqa: F821
-    signal: mycomtrade.ABSignal  # FIXME: __
+    signal: mycomtrade.ABSignal  # FIXME: _
     bar: Optional['HDBar']  # noqa: F821
     num: Optional[int]  # order number in bar
     _label: Optional[Union[StatusSignalLabel, AnalogSignalLabel]]
@@ -42,6 +42,11 @@ class SignalSuit(QObject):
         self._hidden = False
         self.color = iosc.const.COLOR_SIG_DEFAULT.get(self.signal.ph.lower(), iosc.const.COLOR_SIG_UNKNOWN)
         oscwin.signal_x_zoom.connect(self.__slot_retick)
+
+    @property
+    def is_bool(self) -> bool:
+        """:return: Whether signal is discrete"""
+        return self.signal.is_bool
 
     @property
     def hidden(self) -> bool:
