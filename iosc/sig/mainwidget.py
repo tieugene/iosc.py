@@ -63,9 +63,7 @@ class ComtradeWidget(QWidget):
     action_zoom_x_in: QAction
     action_zoom_x_out: QAction
     action_unhide: QAction
-    action_shift: QActionGroup
-    action_shift_not: QAction
-    action_shift_yes: QAction
+    action_centered: QAction
     action_pors: QActionGroup
     action_pors_pri: QAction
     action_pors_sec: QAction
@@ -315,15 +313,12 @@ class ComtradeWidget(QWidget):
                                          self,
                                          triggered=self.__do_xzoom_out)
         # noinspection PyArgumentList
-        self.action_shift_not = QAction(svg_icon(ESvgSrc.ShiftOrig),
-                                        "&Original",
-                                        self,
-                                        checkable=True)
-        # noinspection PyArgumentList
-        self.action_shift_yes = QAction(svg_icon(ESvgSrc.ShiftCentered),
-                                        "&Centered",
-                                        self,
-                                        checkable=True)
+        self.action_centered = QAction(svg_icon(ESvgSrc.ShiftCentered),
+                                       "&Centered",
+                                       self,
+                                       checkable=True,
+                                       triggered=self.__do_centered
+                                       )
         # noinspection PyArgumentList
         self.action_pors_pri = QAction(svg_icon(ESvgSrc.PorsP),
                                        "&Pri",
@@ -423,9 +418,6 @@ class ComtradeWidget(QWidget):
         self.action_omp_save = QAction("OMP save",
                                        self,
                                        triggered=self.__do_omp_save)
-        self.action_shift = QActionGroup(self)
-        self.action_shift.addAction(self.action_shift_not).setChecked(True)
-        self.action_shift.addAction(self.action_shift_yes)
         self.action_pors = QActionGroup(self)
         self.action_pors.addAction(self.action_pors_pri)
         self.action_pors.addAction(self.action_pors_sec).setChecked(True)
@@ -459,11 +451,8 @@ class ComtradeWidget(QWidget):
             self.action_resize_y_in,
             self.action_resize_y_out,
             self.action_zoom_x_in,
-            self.action_zoom_x_out
-        ))
-        menu_view.addMenu("Original/Shifted").addActions((
-            self.action_shift_not,
-            self.action_shift_yes
+            self.action_zoom_x_out,
+            self.action_centered
         ))
         menu_view.addMenu("Pri/Sec").addActions((
             self.action_pors_pri,
@@ -512,8 +501,7 @@ class ComtradeWidget(QWidget):
         self.toolbar.addAction(self.action_resize_y_out)
         self.toolbar.addAction(self.action_zoom_x_in)
         self.toolbar.addAction(self.action_zoom_x_out)
-        self.toolbar.addAction(self.action_shift_not)
-        self.toolbar.addAction(self.action_shift_yes)
+        self.toolbar.addAction(self.action_centered)
         self.toolbar.addAction(self.action_pors_pri)
         self.toolbar.addAction(self.action_pors_sec)
         self.toolbar.addWidget(self.viewas_toolbutton)
@@ -521,7 +509,6 @@ class ComtradeWidget(QWidget):
 
     def __mk_connections(self):
         """Link required signals/slots."""
-        self.action_shift.triggered.connect(self.__do_shift)
         self.action_pors.triggered.connect(self.__do_pors)
         self.action_viewas.triggered.connect(self.__do_viewas)
         self.xscroll_bar.valueChanged.connect(self.timeaxis_bar.plot.slot_rerange_force)
@@ -667,9 +654,7 @@ class ComtradeWidget(QWidget):
         # - modes
         # -- shift
         if data['mode']['shift']:
-            self.action_shift_yes.setChecked(True)
-        else:
-            self.action_shift_not.setChecked(True)
+            self.action_centered.setChecked(True)
         # -- pors
         if data['mode']['pors']:
             self.action_pors_sec.setChecked(True)
@@ -874,8 +859,9 @@ class ComtradeWidget(QWidget):
         """X-zoom out action."""
         self.__update_xzoom(self.x_zoom + 1)
 
-    def __do_shift(self, _: QAction):
-        self.osc.shifted = self.action_shift_yes.isChecked()
+    def __do_centered(self, v: bool):
+        print(v)
+        self.osc.shifted = self.action_centered.isChecked()
         self.signal_chged_shift.emit()
 
     def __do_pors(self, _: QAction):
