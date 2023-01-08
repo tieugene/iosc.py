@@ -9,7 +9,7 @@ from QCustomPlot_PyQt5 import QCPGraph, QCPScatterStyle, QCPRange
 import iosc.const
 from iosc.core import mycomtrade
 from iosc.core.sigfunc import func_list, hrm1, hrm2, hrm3, hrm5
-from iosc.sig.widget.ctrl import StatusSignalLabel, AnalogSignalLabel
+from iosc.sig.widget.ctrl import ABSignalLabel
 from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
 from iosc.sig.widget.ptr import MsrPtr, LvlPtr
 # x. const
@@ -20,11 +20,11 @@ HRM_N2F = {1: hrm1, 2: hrm2, 3: hrm3, 5: hrm5}
 class SignalSuit(QObject):
     """Base signal container class."""
 
+    _signal: mycomtrade.ABSignal
     oscwin: 'ComtradeWidget'  # noqa: F821
-    signal: mycomtrade.ABSignal  # FIXME: _
     bar: Optional['HDBar']  # noqa: F821
     num: Optional[int]  # order number in bar
-    _label: Optional[Union[StatusSignalLabel, AnalogSignalLabel]]
+    _label: Optional[ABSignalLabel]
     graph: Optional[QCPGraph]
     _hidden: bool
     color: QColor
@@ -34,24 +34,24 @@ class SignalSuit(QObject):
         """Init SignalSuit object."""
         super().__init__()
         self.oscwin = oscwin
-        self.signal = signal
+        self._signal = signal
         self.bar = None
         self.num = None  # signal order number in bar
         self._label = None
         self.graph = None
         self._hidden = False
-        self.color = iosc.const.COLOR_SIG_DEFAULT.get(self.signal.ph.lower(), iosc.const.COLOR_SIG_UNKNOWN)
+        self.color = iosc.const.COLOR_SIG_DEFAULT.get(self._signal.ph.lower(), iosc.const.COLOR_SIG_UNKNOWN)
         oscwin.signal_x_zoom.connect(self.__slot_retick)
 
     @property
     def is_bool(self) -> bool:
         """:return: Whether signal is discrete"""
-        return self.signal.is_bool
+        return self._signal.is_bool
 
     @property
     def sid(self) -> str:
         """:return: Signal ID (name)"""
-        return self.signal.sid
+        return self._signal.sid
 
     @property
     def i(self) -> int:
@@ -62,7 +62,7 @@ class SignalSuit(QObject):
         - CDVWindow._do_settings()
         - HDWindow._do_settings()
         """
-        return self.signal.i
+        return self._signal.i
 
     @property
     def hidden(self) -> bool:
@@ -84,7 +84,7 @@ class SignalSuit(QObject):
         :param i1: End index
         :return: Signal values in range.
         """
-        return self.signal.value[i0:i1 + 1]
+        return self._signal.value[i0:i1 + 1]
 
     # @property
     # def range_y(self) -> QCPRange:  # virtual
@@ -163,11 +163,11 @@ class StatusSignalSuit(SignalSuit):
     @property
     def _data_y(self) -> List[float]:
         """Used in: self.graph.setData()"""
-        return [v * 2 / 3 for v in self.signal.value]
+        return [v * 2 / 3 for v in self._signal.value]
 
     def sig2str_i(self, i: int) -> str:
         """:return: string repr of signal in sample #i."""
-        return str(self.signal.value[i])
+        return str(self._signal.value[i])
 
     def _set_style(self):
         super()._set_style()
@@ -205,7 +205,7 @@ class AnalogSignalSuit(SignalSuit):
         - CVDTable.refresh_signals()
         - AnalogSignalPropertiesDialog.__init__()
         """
-        return self.signal.uu
+        return self._signal.uu
 
     @property
     def info(self) -> Dict[str, Any]:
@@ -216,9 +216,9 @@ class AnalogSignalSuit(SignalSuit):
         - AnalogSignalPropertiesDialog.__init__()
         """
         return {
-            'p': self.signal.primary,  # float
-            's': self.signal.secondary,  # float
-            'pors': self.signal.pors  # str
+            'p': self._signal.primary,  # float
+            's': self._signal.secondary,  # float
+            'pors': self._signal.pors  # str
         }
 
     @property
@@ -232,10 +232,10 @@ class AnalogSignalSuit(SignalSuit):
     @property
     def _data_y(self) -> List[float]:
         """Used in: self.graph.setData()"""
-        divider = max(abs(min(self.signal.value)), abs(max(self.signal.value)))
+        divider = max(abs(min(self._signal.value)), abs(max(self._signal.value)))
         if divider == 0.0:
             divider = 1.0
-        return [v / divider for v in self.signal.value]
+        return [v / divider for v in self._signal.value]
 
     @property
     def v_min(self) -> float:
@@ -245,7 +245,7 @@ class AnalogSignalSuit(SignalSuit):
         - AGraphItem.__init__
         - LvlPtr
         """
-        return self.signal.v_min
+        return self._signal.v_min
 
     @property
     def v_max(self) -> float:
@@ -255,7 +255,7 @@ class AnalogSignalSuit(SignalSuit):
         - AGraphItem.__init__
         - LvlPtr
         """
-        return self.signal.v_max
+        return self._signal.v_max
 
     @property
     def pors_mult(self) -> float:
@@ -264,7 +264,7 @@ class AnalogSignalSuit(SignalSuit):
         Used in:
         - LvlPtr
         """
-        return self.signal.get_mult(self.oscwin.show_sec)
+        return self._signal.get_mult(self.oscwin.show_sec)
 
     def _set_style(self):
         super()._set_style()
@@ -321,7 +321,7 @@ class AnalogSignalSuit(SignalSuit):
         - self.sig2str_i()
         - LvlPtr.__slot_update_text()
         """
-        return self.signal.as_str(y, self.oscwin.show_sec)
+        return self._signal.as_str(y, self.oscwin.show_sec)
 
     def sig2str_i(self, i: int) -> str:
         """:return: string repr of signal in sample #i.
@@ -336,8 +336,8 @@ class AnalogSignalSuit(SignalSuit):
         - AnalogSignalLable._value_str()
         - MsrPtr.__slot_update_text()
         """
-        v = func_list[self.oscwin.viewas](self.signal.value, i, self.oscwin.osc.spp)
-        return self.signal.as_str_full(v, self.oscwin.show_sec)
+        v = func_list[self.oscwin.viewas](self._signal.value, i, self.oscwin.osc.spp)
+        return self._signal.as_str_full(v, self.oscwin.show_sec)
 
     def hrm(self, hrm_no: int, t_i: int) -> complex:
         """Harmonic #1 of the signal.
@@ -347,7 +347,7 @@ class AnalogSignalSuit(SignalSuit):
         :param t_i: Point of x-axis
         :return: Complex value of harmonic
         """
-        return HRM_N2F[hrm_no](self.signal.value, t_i, self.oscwin.osc.spp)
+        return HRM_N2F[hrm_no](self._signal.value, t_i, self.oscwin.osc.spp)
 
     def __slot_reload_data(self):
         self._set_data()

@@ -1,6 +1,6 @@
 """Contorl (left) side of signal bars."""
 # 1. std
-from typing import Union
+from typing import Union, TypeAlias
 # 2. Std
 from PyQt5.QtCore import QMargins, Qt, QPoint, QRect, QMimeData
 from PyQt5.QtGui import QBrush, QMouseEvent, QPixmap, QFontMetrics, QPainter, QPen, QDrag
@@ -54,6 +54,9 @@ class AnalogSignalLabel(__SignalLabel):
         super().__init__(ss, parent)
         self.ss.bar.table.oscwin.signal_chged_pors.connect(self.slot_update_value)
         self.ss.bar.table.oscwin.signal_chged_func.connect(self.slot_update_value)
+
+
+ABSignalLabel: TypeAlias = Union[AnalogSignalLabel, StatusSignalLabel]
 
 
 class BarCtrlWidget(QWidget):
@@ -114,7 +117,7 @@ class BarCtrlWidget(QWidget):
 
         def __slot_context_menu(self, point: QPoint):
             self.clearSelection()
-            item: Union[StatusSignalLabel, AnalogSignalLabel] = self.itemAt(point)
+            item: ABSignalLabel = self.itemAt(point)
             if not item:
                 return
             context_menu = QMenu()
@@ -253,7 +256,7 @@ class BarCtrlWidget(QWidget):
         self.layout().setContentsMargins(QMargins())
         self.layout().setSpacing(0)
 
-    def sig_add(self, ss: 'SignalSuit') -> Union[StatusSignalLabel, AnalogSignalLabel]:  # noqa: F821
+    def sig_add(self, ss: 'SignalSuit') -> ABSignalLabel:  # noqa: F821
         """Add signal suit."""
         return StatusSignalLabel(ss, self.lst) if ss.is_bool else AnalogSignalLabel(ss, self.lst)
 
