@@ -78,6 +78,14 @@ class SignalSuit(QObject):
             self._hidden = hide
             self.bar.update_stealth()
 
+    def v_slice(self, i0: int, i1: int) -> List[float | int]:
+        """Get slice of signal values from i0-th to i1-th *including*.
+        :param i0: Start index
+        :param i1: End index
+        :return: Signal values in range.
+        """
+        return self.signal.value[i0:i1 + 1]
+
     # @property
     # def range_y(self) -> QCPRange:  # virtual
 
@@ -154,6 +162,7 @@ class StatusSignalSuit(SignalSuit):
 
     @property
     def _data_y(self) -> List[float]:
+        """Used in: self.graph.setData()"""
         return [v * 2 / 3 for v in self.signal.value]
 
     def sig2str_i(self, i: int) -> str:
@@ -222,6 +231,7 @@ class AnalogSignalSuit(SignalSuit):
 
     @property
     def _data_y(self) -> List[float]:
+        """Used in: self.graph.setData()"""
         divider = max(abs(min(self.signal.value)), abs(max(self.signal.value)))
         if divider == 0.0:
             divider = 1.0

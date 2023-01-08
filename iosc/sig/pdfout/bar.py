@@ -70,7 +70,7 @@ class AGraphItem(QGraphicsPathItem):
         asize = amax - amin
         self.ymin = amin / asize
         self.ymax = amax / asize
-        self.__nvalue = [v / asize for v in ss.signal.value[i_range[0]:i_range[1] + 1]]
+        self.__nvalue = [v / asize for v in ss.v_slice(i_range[0], i_range[1])]
         self.setPen(ThinPen(ss.color))
         pp = QPainterPath()
         # default: x=0..SAMPLES, y=(-1..0)..(0..1)
@@ -123,7 +123,7 @@ class BGraphItem(QGraphicsPolygonItem):
     def __init__(self, ss: StatusSignalSuit, i_range: IntX2):
         """Init BGraphItem object."""
         super().__init__()
-        self.__value = ss.signal.value[i_range[0]:i_range[1] + 1]  # just copy
+        self.__value = ss.v_slice(i_range[0], i_range[1])  # just copy
         self.setPen(ThinPen(ss.color))
         self.setBrush(QBrush(ss.color))  # , Qt.BrushStyle.Dense1Pattern
         self.setOpacity(0.5)
