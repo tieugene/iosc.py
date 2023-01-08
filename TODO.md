@@ -1,13 +1,11 @@
 # TODO
 
-Current job: [0.3.5. CleanUp](https://github.com/tieugene/iosc.py/milestone/16)
+Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 
-- [x] 1-button centered
-- [ ] Isolate `mycomtrade.*`
-- [ ] Add module to signals
+- [ ] Add 'module' to signals
 
 ## Hierarchy:
 
-- `sigsuit.SignalSuit`: GUI wrapper for mycomtrade.*
-- `mycomtrade.*`: helping wrapper
-- `comtrade.*`: raw osc data as is
+- `sigsuit.SignalSuit`: GUI wrapper for&hellip;
+- &rdsh;`mycomtrade.*`: non-GUI wrapper for&hellip;
+- &rdsh;`comtrade.*`: raw osc data

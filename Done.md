@@ -196,3 +196,15 @@ Behavior:
 - [x] [X-zoom glitches](https://github.com/tieugene/iosc.py/issues/203)
 - [x] [Find over all](https://github.com/tieugene/iosc.py/issues/232)
 - [x] [Docstrings](https://github.com/tieugene/iosc.py/issues/236)
+
+## 0.3.5:
+- [x] 1-button centered
+- [x] Protected `SignalSuit._signal`:
+  + [x] is_bool
+  + [x] sid
+  + [x] uu
+  + [x] info (primary, secondary, pors)
+  + [x] i (cfg_save/_restore, CDVWindow/HDWindow._do_settings())
+  + [x] v_min, v_max (AGraphItem, LvlPtr)
+  + [x] get_mult() => pors_mult (LvlPtr)
+  + [x] values => v_slice() (AGraphItem, BGraphItem)

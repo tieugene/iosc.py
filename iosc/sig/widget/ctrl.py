@@ -1,6 +1,6 @@
 """Contorl (left) side of signal bars."""
 # 1. std
-from typing import Union
+from typing import Union, TypeAlias
 # 2. Std
 from PyQt5.QtCore import QMargins, Qt, QPoint, QRect, QMimeData
 from PyQt5.QtGui import QBrush, QMouseEvent, QPixmap, QFontMetrics, QPainter, QPen, QDrag
@@ -27,7 +27,7 @@ class __SignalLabel(QListWidgetItem):
 
     @property
     def _value_str(self) -> str:
-        return ''  # stub
+        return self.ss.sig2str_i(self.ss.bar.table.oscwin.main_ptr_i)
 
     def set_color(self):
         """Update signal label color."""
@@ -35,7 +35,7 @@ class __SignalLabel(QListWidgetItem):
 
     def slot_update_value(self):
         """Update ctrl widget value."""
-        self.setText("%s\n%s" % (self.ss.signal.sid, self._value_str))
+        self.setText("%s\n%s" % (self.ss.sid, self._value_str))
 
 
 class StatusSignalLabel(__SignalLabel):
@@ -44,11 +44,6 @@ class StatusSignalLabel(__SignalLabel):
     def __init__(self, ss: 'StatusSignalSuit', parent: 'BarCtrlWidget.SignalLabelList' = None):  # noqa: F821
         """Init StatusSignalLabel object."""
         super().__init__(ss, parent)
-
-    @property
-    def _value_str(self) -> str:
-        """:return: String representation of current value."""
-        return str(self.ss.signal.value[self.ss.bar.table.oscwin.main_ptr_i])
 
 
 class AnalogSignalLabel(__SignalLabel):
@@ -60,9 +55,8 @@ class AnalogSignalLabel(__SignalLabel):
         self.ss.bar.table.oscwin.signal_chged_pors.connect(self.slot_update_value)
         self.ss.bar.table.oscwin.signal_chged_func.connect(self.slot_update_value)
 
-    @property
-    def _value_str(self) -> str:
-        return self.ss.sig2str_i(self.ss.bar.table.oscwin.main_ptr_i)
+
+ABSignalLabel: TypeAlias = Union[AnalogSignalLabel, StatusSignalLabel]
 
 
 class BarCtrlWidget(QWidget):
@@ -83,7 +77,7 @@ class BarCtrlWidget(QWidget):
 
         def __start_drag(self):
             def _mk_icon() -> QPixmap:
-                __txt = self.parent().bar.signals[0].signal.sid
+                __txt = self.parent().bar.signals[0].sid
                 br = QFontMetrics(iosc.const.FONT_DND).boundingRect(__txt)  # sig0 = 1, -11, 55, 14
                 __pix = QPixmap(br.width() + 2, br.height() + 2)  # TODO: +4
                 __pix.fill(Qt.transparent)
@@ -123,7 +117,7 @@ class BarCtrlWidget(QWidget):
 
         def __slot_context_menu(self, point: QPoint):
             self.clearSelection()
-            item: Union[StatusSignalLabel, AnalogSignalLabel] = self.itemAt(point)
+            item: ABSignalLabel = self.itemAt(point)
             if not item:
                 return
             context_menu = QMenu()
@@ -143,7 +137,7 @@ class BarCtrlWidget(QWidget):
         def startDrag(self, supported_actions: Union[Qt.DropActions, Qt.DropAction]):
             """Imherited."""
             def _mk_icon() -> QPixmap:
-                __txt = self.currentItem().ss.signal.sid
+                __txt = self.currentItem().ss.sid
                 br = QFontMetrics(iosc.const.FONT_DND).boundingRect(__txt)  # sig0 = 1, -11, 55, 14
                 __pix = QPixmap(br.width() + 1, br.height() + 1)
                 __pix.fill(Qt.transparent)
@@ -262,9 +256,9 @@ class BarCtrlWidget(QWidget):
         self.layout().setContentsMargins(QMargins())
         self.layout().setSpacing(0)
 
-    def sig_add(self, ss: 'SignalSuit') -> Union[StatusSignalLabel, AnalogSignalLabel]:  # noqa: F821
+    def sig_add(self, ss: 'SignalSuit') -> ABSignalLabel:  # noqa: F821
         """Add signal suit."""
-        return StatusSignalLabel(ss, self.lst) if ss.signal.is_bool else AnalogSignalLabel(ss, self.lst)
+        return StatusSignalLabel(ss, self.lst) if ss.is_bool else AnalogSignalLabel(ss, self.lst)
 
     def sig_del(self, i: int):
         """Del signal suit."""

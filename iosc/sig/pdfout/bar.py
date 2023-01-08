@@ -65,12 +65,12 @@ class AGraphItem(QGraphicsPathItem):
     def __init__(self, ss: AnalogSignalSuit, i_range: IntX2):
         """Init AGraphItem."""
         super().__init__()
-        amin = min(0.0, ss.signal.v_min)  # adjusted absolute value
-        amax = max(0.0, ss.signal.v_max)
+        amin = min(0.0, ss.v_min)  # adjusted absolute value
+        amax = max(0.0, ss.v_max)
         asize = amax - amin
         self.ymin = amin / asize
         self.ymax = amax / asize
-        self.__nvalue = [v / asize for v in ss.signal.value[i_range[0]:i_range[1] + 1]]
+        self.__nvalue = [v / asize for v in ss.v_slice(i_range[0], i_range[1])]
         self.setPen(ThinPen(ss.color))
         pp = QPainterPath()
         # default: x=0..SAMPLES, y=(-1..0)..(0..1)
@@ -123,7 +123,7 @@ class BGraphItem(QGraphicsPolygonItem):
     def __init__(self, ss: StatusSignalSuit, i_range: IntX2):
         """Init BGraphItem object."""
         super().__init__()
-        self.__value = ss.signal.value[i_range[0]:i_range[1] + 1]  # just copy
+        self.__value = ss.v_slice(i_range[0], i_range[1])  # just copy
         self.setPen(ThinPen(ss.color))
         self.setBrush(QBrush(ss.color))  # , Qt.BrushStyle.Dense1Pattern
         self.setOpacity(0.5)
@@ -200,11 +200,11 @@ class BarGraphItem(GroupItem):
         self.__ymin = self.__ymax = 0.0  # same as self.__y0line
         self.__is_bool = True
         for d in sb.signals:
-            self.__graph.append(BGraphItem(d, i_range) if d.signal.is_bool else AGraphItem(d, i_range))
+            self.__graph.append(BGraphItem(d, i_range) if d.is_bool else AGraphItem(d, i_range))
             self.addToGroup(self.__graph[-1])
             self.__ymin = min(self.__ymin, self.__graph[-1].ymin)
             self.__ymax = max(self.__ymax, self.__graph[-1].ymax)
-            self.__is_bool &= d.signal.is_bool
+            self.__is_bool &= d.is_bool
             # if not d.signal.is_bool:
             #    for mptr in self.__graph[-1].msr_ptr:
             #        self.addToGroup(mptr)

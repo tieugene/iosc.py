@@ -31,7 +31,7 @@ class SignalBox(QComboBox):
         self.addItem('')
         self.setItemData(0, -1)
         for i, ss in enumerate(parent.oscwin.ass_list):
-            self.addItem(ss.signal.sid)
+            self.addItem(ss.sid)
             self.setItemData(self.count() - 1, i)
         self.currentIndexChanged.connect(self.__slot_idx_chgd)
 

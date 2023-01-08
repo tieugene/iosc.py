@@ -104,8 +104,8 @@ class CVDWindow(QDialog):
         self.toolbar.addAction(self.action_close)
 
     def __do_settings(self):
-        ss_used_i = set([ss.signal.i for ss in self.ss_used])  # WARN: works if ss.signal.i <=> self.__ass_list[i]
-        ss_base_i = self.ss_base.signal.i
+        ss_used_i = set([ss.i for ss in self.ss_used])  # WARN: works if ss.signal.i <=> self.__ass_list[i]
+        ss_base_i = self.ss_base.i
         retvalue = SelectCVDSignalsDialog(self.__ass_list, ss_used_i, ss_base_i).execute()
         if retvalue is not None:
             self.ss_used.clear()

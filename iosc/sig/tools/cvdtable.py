@@ -40,7 +40,7 @@ class CVDTable(QTableWidget):
                     if c:
                         self.item(r, c).setTextAlignment(Qt.AlignRight)
             self.item(r, 0).setCheckState(Qt.Checked)
-            self.item(r, 0).setText(ss.signal.sid)
+            self.item(r, 0).setText(ss.sid)
             self.item(r, 0).setForeground(ss.color)
         self.refresh_signals()
         self.resizeColumnsToContents()
@@ -60,7 +60,7 @@ class CVDTable(QTableWidget):
         i = self.__parent.t_i
         for r, ss in enumerate(self.__parent.ss_used):
             v: complex = ss.hrm(1, i)
-            uu = ss.signal.uu
+            uu = ss.uu
             self.item(r, 1).setText("%.1f %s" % (abs(v), uu))
             self.item(r, 2).setText("%.1f°" % __norm_angle(math.degrees(cmath.phase(v) - self.__parent.get_base_angle())))
             self.item(r, 3).setText("%.1f %s" % (v.real, uu))
