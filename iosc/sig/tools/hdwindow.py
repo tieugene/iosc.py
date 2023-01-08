@@ -86,7 +86,7 @@ class HDWindow(QDialog):
         self.toolbar.addAction(self.action_close)
 
     def __do_settings(self):
-        ss_used_i = set([ss.signal.i for ss in self.ss_used])  # WARN: works if ss.signal.i <=> self.__ass_list[i]
+        ss_used_i = set([ss.i for ss in self.ss_used])  # WARN: works if ss.i <=> self.__ass_list[i]
         retvalue = SelectSignalsDialog(self.__ass_list, ss_used_i).execute()
         if retvalue is not None:
             self.ss_used.clear()

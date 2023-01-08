@@ -1,6 +1,6 @@
 """SignalSuit and successors"""
 # 1. std
-from typing import Optional, Union, TypeAlias, Dict, Any
+from typing import Optional, Union, TypeAlias, Dict, Any, List
 # 2. 3rd
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from PyQt5.QtGui import QColor, QBrush, QPen
@@ -52,6 +52,17 @@ class SignalSuit(QObject):
     def sid(self) -> str:
         """:return: Signal ID (name)"""
         return self.signal.sid
+
+    @property
+    def i(self) -> int:
+        """:return: Signal order number in osc signal list.
+        Used in:
+        - ComtradeWidget.cfg_save()
+        - ComtradeWidget.cfg_restore()
+        - CDVWindow._do_settings()
+        - HDWindow._do_settings()
+        """
+        return self.signal.i
 
     @property
     def hidden(self) -> bool:
@@ -138,7 +149,7 @@ class StatusSignalSuit(SignalSuit):
         return QCPRange(0.0, 1.0)
 
     @property
-    def _data_y(self) -> list:
+    def _data_y(self) -> List[float]:
         return [v * 2 / 3 for v in self.signal.value]
 
     def _set_style(self):
@@ -173,7 +184,9 @@ class AnalogSignalSuit(SignalSuit):
     def uu(self) -> str:
         """:return: Signal unit.
 
-        :note: Used in: CVDTable.refresh_signals(), AnalogSignalPropertiesDialog.__init__()
+        Used in:
+        - CVDTable.refresh_signals()
+        - AnalogSignalPropertiesDialog.__init__()
         """
         return self.signal.uu
 
@@ -182,7 +195,8 @@ class AnalogSignalSuit(SignalSuit):
         """Misc signal info.
 
         :return: Dict with signal info.
-        :note: Used in: AnalogSignalPropertiesDialog.__init__()
+        Used in:
+        - AnalogSignalPropertiesDialog.__init__()
         """
         return {
             'p': self.signal.primary,  # float

@@ -560,7 +560,7 @@ class ComtradeWidget(QWidget):
                     b_data['yzoom'] = bar.zoom_y
                 for ss in bar.signals:
                     s_data = {
-                        'i': ss.signal.i,
+                        'i': ss.i,
                         # 'num': ss.num,  # FIXME: ×?
                         'show': not ss.hidden,
                         'color': int(ss.color.rgba64()),
@@ -586,14 +586,14 @@ class ComtradeWidget(QWidget):
         if self.cvdwin:
             tool['cvd'] = {
                 'show': self.cvdwin.isVisible(),
-                'base': self.cvdwin.ss_base.signal.i,
-                'used': [ss.signal.i for ss in self.cvdwin.ss_used]
+                'base': self.cvdwin.ss_base.i,
+                'used': [ss.i for ss in self.cvdwin.ss_used]
             }
         # - HD
         if self.hdwin:
             tool['hd'] = {
                 'show': self.hdwin.isVisible(),
-                'used': [ss.signal.i for ss in self.hdwin.ss_used]
+                'used': [ss.i for ss in self.hdwin.ss_used]
             }
         # - OMP
         if self.ompmapwin:
@@ -621,7 +621,7 @@ class ComtradeWidget(QWidget):
         for table in (self.analog_table, self.status_table):
             for bar in table.bars[::-1]:  # reverse order
                 for ss in bar.signals:
-                    sss[ss.signal.i] = ss
+                    sss[ss.i] = ss
                     if not ss.is_bool:
                         for uid in tuple(ss.msr_ptr.keys()):  # fix dynamic
                             ss.del_ptr_msr(uid)
