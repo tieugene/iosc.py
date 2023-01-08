@@ -27,7 +27,7 @@ class __SignalLabel(QListWidgetItem):
 
     @property
     def _value_str(self) -> str:
-        return ''  # stub
+        return self.ss.sig2str_i(self.ss.bar.table.oscwin.main_ptr_i)
 
     def set_color(self):
         """Update signal label color."""
@@ -45,11 +45,6 @@ class StatusSignalLabel(__SignalLabel):
         """Init StatusSignalLabel object."""
         super().__init__(ss, parent)
 
-    @property
-    def _value_str(self) -> str:
-        """:return: String representation of current value."""
-        return str(self.ss.signal.value[self.ss.bar.table.oscwin.main_ptr_i])
-
 
 class AnalogSignalLabel(__SignalLabel):
     """A-signal label."""
@@ -59,10 +54,6 @@ class AnalogSignalLabel(__SignalLabel):
         super().__init__(ss, parent)
         self.ss.bar.table.oscwin.signal_chged_pors.connect(self.slot_update_value)
         self.ss.bar.table.oscwin.signal_chged_func.connect(self.slot_update_value)
-
-    @property
-    def _value_str(self) -> str:
-        return self.ss.sig2str_i(self.ss.bar.table.oscwin.main_ptr_i)
 
 
 class BarCtrlWidget(QWidget):

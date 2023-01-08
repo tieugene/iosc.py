@@ -78,9 +78,13 @@ class SignalSuit(QObject):
             self._hidden = hide
             self.bar.update_stealth()
 
-    @property
-    def _data_y(self) -> List[float]:
-        ...  # stub
+    # @property
+    # def range_y(self) -> QCPRange:  # virtual
+
+    # @property
+    # def _data_y(self) -> List[float]:  # virtual
+
+    # def sig2str_i(self, i: int) -> str:  # virtual
 
     def get_label_html(self, with_values: bool = False) -> Optional[str]:
         """HTML-compatible label."""
@@ -151,6 +155,10 @@ class StatusSignalSuit(SignalSuit):
     @property
     def _data_y(self) -> List[float]:
         return [v * 2 / 3 for v in self.signal.value]
+
+    def sig2str_i(self, i: int) -> str:
+        """:return: string repr of signal in sample #i."""
+        return str(self.signal.value[i])
 
     def _set_style(self):
         super()._set_style()
