@@ -9,8 +9,8 @@ Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
   + [x] uu
   + [x] info (primary, secondary, pors)
   + [x] i (cfg_save/_restore, CDVWindow/HDWindow._do_settings())
-  + [ ] v_min, v_max (AGraphItem, LvlPtr)
-  + [ ] get_mult (LvlPtr)
+  + [x] v_min, v_max (AGraphItem, LvlPtr)
+  + [x] get_mult() => pors_mult (LvlPtr)
   + [ ] value[s]
 - [ ] Add 'module' to signals
 

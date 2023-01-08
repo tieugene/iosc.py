@@ -57,8 +57,8 @@ class SignalSuit(QObject):
     def i(self) -> int:
         """:return: Signal order number in osc signal list.
         Used in:
-        - ComtradeWidget.cfg_save()
-        - ComtradeWidget.cfg_restore()
+        - ComtradeWidget.cfg_save()  # cvd, hd
+        - ComtradeWidget.cfg_restore()  # cvd, hd
         - CDVWindow._do_settings()
         - HDWindow._do_settings()
         """
@@ -79,8 +79,8 @@ class SignalSuit(QObject):
             self.bar.update_stealth()
 
     @property
-    def _data_y(self) -> list:
-        return []  # stub
+    def _data_y(self) -> List[float]:
+        ...  # stub
 
     def get_label_html(self, with_values: bool = False) -> Optional[str]:
         """HTML-compatible label."""
@@ -213,11 +213,40 @@ class AnalogSignalSuit(SignalSuit):
         return retvalue
 
     @property
-    def _data_y(self) -> list:
+    def _data_y(self) -> List[float]:
         divider = max(abs(min(self.signal.value)), abs(max(self.signal.value)))
         if divider == 0.0:
             divider = 1.0
         return [v / divider for v in self.signal.value]
+
+    @property
+    def v_min(self) -> float:
+        """:return: Min signal value.
+
+        Used in:
+        - AGraphItem.__init__
+        - LvlPtr
+        """
+        return self.signal.v_min
+
+    @property
+    def v_max(self) -> float:
+        """:return: Max signal value.
+
+        Used in:
+        - AGraphItem.__init__
+        - LvlPtr
+        """
+        return self.signal.v_max
+
+    @property
+    def pors_mult(self) -> float:
+        """:return: Multiplier pri vs sec according to current pors switch.
+
+        Used in:
+        - LvlPtr
+        """
+        return self.signal.get_mult(self.oscwin.show_sec)
 
     def _set_style(self):
         super()._set_style()

@@ -477,7 +477,7 @@ class LvlPtr(QCPItemStraightLine):
         self.__tip = self._Tip(self.parentPlot())
         # self.setPen(iosc.const.PEN_PTR_OMP)
         self.__set_color()
-        self.__mult = max(max(self.__ss.signal.v_max, 0), abs(min(0, self.__ss.signal.v_min)))  # mult-r rediced<>real
+        self.__mult = max(max(self.__ss.v_max, 0), abs(min(0, self.__ss.v_min)))  # mult-r rediced<>real
         self.y_reduced = self.__ss.lvl_ptr[self.__uid][1]
         self.__ss.lvl_ptr[self.__uid][0] = self
         self.__oscwin.lvl_ptr_uids.add(self.__uid)
@@ -505,12 +505,12 @@ class LvlPtr(QCPItemStraightLine):
     @property
     def y_reduced_min(self) -> float:
         """:return: Min adjusted signal value."""
-        return self.__ss.signal.v_min / self.__mult
+        return self.__ss.v_min / self.__mult
 
     @property
     def y_reduced_max(self) -> float:
         """:return: Max adjusted signal value."""
-        return self.__ss.signal.v_max / self.__mult
+        return self.__ss.v_max / self.__mult
 
     @property
     def y_reduced(self) -> float:
@@ -556,7 +556,7 @@ class LvlPtr(QCPItemStraightLine):
         :param y: Value to redice
         :return: porsed y
         """
-        return y * self.__ss.signal.get_mult(self.__oscwin.show_sec)
+        return y * self.__ss.pors_mult
 
     def __slot_update_text(self):
         self.__tip.setText("L%d: %s" % (self.__uid, self.__ss.sig2str(self.y_real)))
@@ -625,12 +625,12 @@ class LvlPtr(QCPItemStraightLine):
         # pors all values
         form = LvlPtrDialog((
             self.__y_pors(self.y_real),
-            self.__y_pors(self.__ss.signal.v_min),
-            self.__y_pors(self.__ss.signal.v_max)
+            self.__y_pors(self.__ss.v_min),
+            self.__y_pors(self.__ss.v_max)
         ))
         if form.exec_():
             # unpors back
-            self.y_real = form.f_val.value() / self.__ss.signal.get_mult(self.__oscwin.show_sec)
+            self.y_real = form.f_val.value() / self.__ss.pors_mult
 
     def suicide(self):
         """Self destroy."""

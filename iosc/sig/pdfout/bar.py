@@ -65,8 +65,8 @@ class AGraphItem(QGraphicsPathItem):
     def __init__(self, ss: AnalogSignalSuit, i_range: IntX2):
         """Init AGraphItem."""
         super().__init__()
-        amin = min(0.0, ss.signal.v_min)  # adjusted absolute value
-        amax = max(0.0, ss.signal.v_max)
+        amin = min(0.0, ss.v_min)  # adjusted absolute value
+        amax = max(0.0, ss.v_max)
         asize = amax - amin
         self.ymin = amin / asize
         self.ymax = amax / asize
