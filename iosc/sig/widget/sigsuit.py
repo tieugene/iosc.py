@@ -83,6 +83,10 @@ class SignalSuit(QObject):
         :param i0: Start index
         :param i1: End index
         :return: Signal values in range.
+
+        Used:
+        - AGraphItem | / (v_max - v_min)
+        - BGraphItem
         """
         return self._signal.value[i0:i1 + 1]
 
@@ -231,8 +235,8 @@ class AnalogSignalSuit(SignalSuit):
 
     @property
     def _data_y(self) -> List[float]:
-        """Used in: self.graph.setData()"""
-        divider = max(abs(min(self._signal.value)), abs(max(self._signal.value)))
+        """Used: self.graph.setData()"""
+        divider = max(abs(self._signal.v_min), abs(self._signal.v_max))
         if divider == 0.0:
             divider = 1.0
         return [v / divider for v in self._signal.value]
@@ -241,7 +245,7 @@ class AnalogSignalSuit(SignalSuit):
     def v_min(self) -> float:
         """:return: Min signal value.
 
-        Used in:
+        Used:
         - AGraphItem.__init__
         - LvlPtr
         """
@@ -251,7 +255,7 @@ class AnalogSignalSuit(SignalSuit):
     def v_max(self) -> float:
         """:return: Max signal value.
 
-        Used in:
+        Used:
         - AGraphItem.__init__
         - LvlPtr
         """
@@ -261,7 +265,7 @@ class AnalogSignalSuit(SignalSuit):
     def pors_mult(self) -> float:
         """:return: Multiplier pri vs sec according to current pors switch.
 
-        Used in:
+        Used:
         - LvlPtr
         """
         return self._signal.get_mult(self.oscwin.show_sec)
@@ -318,7 +322,6 @@ class AnalogSignalSuit(SignalSuit):
         - pors (global)
         - orig/shifted (global, indirect).
         Used in:
-        - self.sig2str_i()
         - LvlPtr.__slot_update_text()
         """
         return self._signal.as_str(y, self.oscwin.show_sec)
@@ -342,10 +345,12 @@ class AnalogSignalSuit(SignalSuit):
     def hrm(self, hrm_no: int, t_i: int) -> complex:
         """Harmonic #1 of the signal.
 
-        Used by CVD.
         :param hrm_no: Harmonic no (1, 2, 3, 5)
         :param t_i: Point of x-axis
         :return: Complex value of harmonic
+
+        Used:
+        - CVD
         """
         return HRM_N2F[hrm_no](self._signal.value, t_i, self.oscwin.osc.spp)
 

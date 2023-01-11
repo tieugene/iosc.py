@@ -75,7 +75,11 @@ class __Signal:
 
     @property
     def ph(self) -> str:  # transparent
-        """:return: Signal phase (A|B|C)."""
+        """:return: Signal phase (A|B|C).
+
+        Used:
+        - SignalSuit.__init__()  # color
+        """
         return self._raw2.ph
 
 
@@ -95,7 +99,16 @@ class StatusSignal(__Signal):
 
     @property
     def value(self) -> np.array:
-        """:return: Sample values."""
+        """:return: Sample values.
+
+        Used:
+        - export_to_csv()  # entry
+        - SignalSuit.v_slice()  # slice
+        - StatusSignalSuit:
+          + _data_y()  # list
+          + sig2str_i()  # entry
+        - ValueTable.__init__()  # entry
+        """
         return self._value
 
 
@@ -107,12 +120,14 @@ class AnalogSignal(__Signal):
     __mult: tuple[float, float]
     __uu_orig: str  # original uu (w/o m/k)
     __value_shifted: np.array
+    __y_center: float  # just cache
 
     def __init__(self, raw: Comtrade, i: int, parent: 'MyComtrade'):
         """Init AnalogSignal object."""
         super().__init__(raw.cfg.analog_channels[i], i)
         self._value = raw.analog[i]
         self.__parent = parent
+        self.__y_center = np.average(self._value)
         self.__value_shifted = self._value - np.average(self._value)
         # pri/sec multipliers
         if self._raw2.uu.startswith('m'):
@@ -136,38 +151,40 @@ class AnalogSignal(__Signal):
         self.__mult = (pri * uu, sec * uu)
 
     @property
-    def value(self) -> np.array:
-        """:return: Sample values depending on 'shifted' state."""
-        return self.__value_shifted if self.__parent.shifted else self._value
-
-    @property
-    def v_min(self) -> float:
-        """:return: Minimal sample value (not shifted)."""
-        return min(self.value)
-
-    @property
-    def v_max(self) -> float:
-        """:return: Maxomal sample value (not shifted)."""
-        return max(self.value)
-
-    @property
     def uu(self) -> str:  # transparent
         """:return: Bundled Unit as is."""
         return self._raw2.uu
 
     @property
+    def uu_orig(self) -> str:
+        """:return: Cleaned unit (e.g. kV => V)."""
+        return self.__uu_orig
+
+    @property
     def primary(self) -> float:  # transparent
-        """:return: Primary multiplier."""
+        """:return: Primary multiplier.
+        Used:
+        - AnalogSignalSuit.info()
+        """
         return self._raw2.primary
 
     @property
     def secondary(self) -> float:  # transparent
-        """:return: Secondary multiplier."""
+        """:return: Secondary multiplier.
+        Used:
+        - AnalogSignalSuit.info()
+        """
         return self._raw2.secondary
 
     @property
     def pors(self) -> str:  # transparent
-        """:return: Primary-or-Secondary (main signal value)."""
+        """Get default value type (Primary or Secondary).
+
+        :return: Primary-or-Secondary (main signal value).
+        :todo: return True if Secondary
+        Used:
+        - AnalogSignalSuit.info()
+        """
         return self._raw2.pors
 
     def get_mult(self, ps: bool) -> float:
@@ -175,13 +192,54 @@ class AnalogSignal(__Signal):
 
         :param ps: False=primary, True=secondary
         :return: Multiplier
+        Used:
+        - self.as_str()
+        - AnalogSignalSuit.pors_mult()
+        - export_to_csv()
         """
         return self.__mult[int(ps)]
 
     @property
-    def uu_orig(self) -> str:
-        """:return: Cleaned unit (e.g. kV => V)."""
-        return self.__uu_orig
+    def value(self) -> np.array:
+        """:return: Sample values depending on 'shifted' state.
+        :todo: f(y_centered, pors, func)
+
+        Used:
+        - export_to_csv()  # entry; | pors
+        - SignalSuit.v_slice()  # slice; | normalize
+        - AnalogSignalSuit:
+          + _data_y()  # list; | normalize
+          + sig2str_i()  # entry; | pors, func
+          + hrm()  # entry; | func
+        - ValueTable.__init__()  # entry; | func
+        - OMPMapWindow._h1()  # entry; func
+        """
+        return self.__value_shifted if self.__parent.shifted else self._value
+
+    @property
+    def v_min(self) -> float:
+        """Git min value.
+
+        :return: Minimal sample value.
+        :todo: f(y_centered, pors)
+        Used:
+        - AnalogSignalSuit.v_min()
+        - ValueTable.__init__()
+        """
+        return min(self.value)
+
+    @property
+    def v_max(self) -> float:
+        """Get max value.
+
+        :return: Maximal sample value.
+        :todo: f(shift, pors)
+
+        Used:
+        - AnalogSignalSuit.v_max()
+        - ValueTable.__init__()
+        """
+        return max(self.value)
 
     def as_str(self, y: float, pors: bool) -> str:
         """Get string representation of signal value (real only).
@@ -189,6 +247,9 @@ class AnalogSignal(__Signal):
         :param y: Signal value (real)
         :param pors: False=primary, True=secondary
         :return: String repr of signal.
+        Used:
+        - self.as_str_full()
+        - AnalogSignalSuit.sig2str()
         """
         pors_y = y * self.get_mult(pors)
         uu = self.uu_orig
@@ -206,6 +267,10 @@ class AnalogSignal(__Signal):
         :param v: Signal value
         :param pors: False=primary, True=secondary
         :return: String repr of signal (any form)
+        Used:
+        - AnalogSignalSuit.sig2str_i()
+        - ValueTable.__init__()
+        - OMPMapWindow.__h1_str()
         """
         if isinstance(v, complex):  # hrm1
             return "%s / %.3f°" % (self.as_str(abs(v), pors), math.degrees(cmath.phase(v)))
