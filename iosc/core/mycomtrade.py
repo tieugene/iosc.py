@@ -243,7 +243,7 @@ class AnalogSignal(__Signal):
         :todo: slice
         """
 
-    def v_min(self, y_cnt: bool) -> float:
+    def v_min(self, y_centered: bool) -> float:
         """Get min value.
 
         :return: Minimal sample value.
@@ -253,9 +253,9 @@ class AnalogSignal(__Signal):
         - ValueTable.__init__()
         """
         retvalue = min(self._value)
-        return retvalue if not y_cnt else retvalue + self.__y_center
+        return retvalue - self.__y_center if y_centered else retvalue
 
-    def v_max(self, y_cnt: bool) -> float:
+    def v_max(self, y_centered: bool) -> float:
         """Get max value.
 
         :return: Maximal sample value.
@@ -265,7 +265,7 @@ class AnalogSignal(__Signal):
         - ValueTable.__init__()
         """
         retvalue = max(self._value)
-        return retvalue if not y_cnt else retvalue + self.__y_center
+        return retvalue - self.__y_center if y_centered else retvalue
 
     def as_str(self, y: float, pors: bool) -> str:
         """Get string representation of signal value (real only).

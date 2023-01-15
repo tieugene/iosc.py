@@ -3,8 +3,8 @@
 Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 
 - [ ] #111 Dynamic 'shift':
-  + [x] mycomtrade.values(shift)
-  + [ ] mycomtrade.value(i, shift, pors, func)
+  + [x] MyComtrade.values(shift)
+  + [ ] MyComtrade.value(i, shift, pors, func)
 -[ ] FIXME: LvlPtr limits vs y_centered
 - [ ] Add 'module' to signals
 
