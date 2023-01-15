@@ -88,7 +88,7 @@ class SignalSuit(QObject):
         - AGraphItem | / (v_max - v_min)
         - BGraphItem
         """
-        return self._signal.value[i0:i1 + 1]
+        return self._signal.values(self.oscwin.shifted)[i0:i1 + 1]
 
     # @property
     # def range_y(self) -> QCPRange:  # virtual
@@ -167,7 +167,7 @@ class StatusSignalSuit(SignalSuit):
     @property
     def _data_y(self) -> List[float]:
         """Used in: self.graph.setData()"""
-        return [v * 2 / 3 for v in self._signal.value]
+        return [v * 2 / 3 for v in self._signal.values()]
 
     def sig2str_i(self, i: int) -> str:
         """:return: string repr of signal in sample #i."""
@@ -236,10 +236,10 @@ class AnalogSignalSuit(SignalSuit):
     @property
     def _data_y(self) -> List[float]:
         """Used: self.graph.setData()"""
-        divider = max(abs(self._signal.v_min), abs(self._signal.v_max))
+        divider = max(abs(self.v_min), abs(self.v_max))
         if divider == 0.0:
             divider = 1.0
-        return [v / divider for v in self._signal.value]
+        return [v / divider for v in self._signal.values(self.oscwin.shifted)]
 
     @property
     def v_min(self) -> float:
@@ -249,7 +249,7 @@ class AnalogSignalSuit(SignalSuit):
         - AGraphItem.__init__
         - LvlPtr
         """
-        return self._signal.v_min
+        return self._signal.v_min(self.oscwin.shifted)
 
     @property
     def v_max(self) -> float:
@@ -259,7 +259,7 @@ class AnalogSignalSuit(SignalSuit):
         - AGraphItem.__init__
         - LvlPtr
         """
-        return self._signal.v_max
+        return self._signal.v_max(self.oscwin.shifted)
 
     @property
     def pors_mult(self) -> float:

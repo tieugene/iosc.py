@@ -103,11 +103,20 @@ class StatusSignal(__Signal):
 
         Used:
         - export_to_csv()  # entry
-        - SignalSuit.v_slice()  # slice
-        - StatusSignalSuit:
-          + _data_y()  # list
-          + sig2str_i()  # entry
+        - StatusSignalSuit.sig2str_i()  # entry
         - ValueTable.__init__()  # entry
+        """
+        return self._value
+
+    def values(self, _=None) -> List[float]:
+        """Get values.
+
+        :param _: Y-centered
+        :return: Values
+        :todo: slice
+        Used:
+        - SignalSuit.v_slice() | xGraphItem  # slice; | normalize
+        - StatusSignalSuit._data_y()  # list; | normalize
         """
         return self._value
 
@@ -206,9 +215,7 @@ class AnalogSignal(__Signal):
 
         Used:
         - export_to_csv()  # entry; | pors
-        - SignalSuit.v_slice()  # slice; | normalize
         - AnalogSignalSuit:
-          + _data_y()  # list; | normalize
           + sig2str_i()  # entry; | pors, func
           + hrm()  # entry; | func
         - ValueTable.__init__()  # entry; | func
@@ -216,9 +223,28 @@ class AnalogSignal(__Signal):
         """
         return self.__value_shifted if self.__parent.shifted else self._value
 
-    @property
-    def v_min(self) -> float:
-        """Git min value.
+    def values(self, y_centered: bool) -> List[float]:
+        """Get values.
+
+        :param y_centered: Y-centered
+        :return: Adjusted Values
+        :todo: slice
+        Used:
+        - SignalSuit.v_slice() | xGraphItem  # slice; | normalize
+        - AnalogSignalSuit._data_y()  # list; | normalize
+        """
+        return [v - self.__y_center for v in self._value] if y_centered else self._value
+
+    def avalues(self, y_centered: bool) -> List[float]:
+        """Get adjusted values: -1 <= (y_min,y_max) <= 1.
+
+        :param y_centered: Y-centered
+        :return: Adjusted Values
+        :todo: slice
+        """
+
+    def v_min(self, y_cnt: bool) -> float:
+        """Get min value.
 
         :return: Minimal sample value.
         :todo: f(y_centered, pors)
@@ -226,20 +252,20 @@ class AnalogSignal(__Signal):
         - AnalogSignalSuit.v_min()
         - ValueTable.__init__()
         """
-        return min(self.value)
+        retvalue = min(self._value)
+        return retvalue if not y_cnt else retvalue + self.__y_center
 
-    @property
-    def v_max(self) -> float:
+    def v_max(self, y_cnt: bool) -> float:
         """Get max value.
 
         :return: Maximal sample value.
         :todo: f(shift, pors)
-
         Used:
         - AnalogSignalSuit.v_max()
         - ValueTable.__init__()
         """
-        return max(self.value)
+        retvalue = max(self._value)
+        return retvalue if not y_cnt else retvalue + self.__y_center
 
     def as_str(self, y: float, pors: bool) -> str:
         """Get string representation of signal value (real only).
@@ -293,7 +319,7 @@ class MyComtrade:
     def __init__(self, path: pathlib.Path):
         """Init MyComtrade object."""
         self._raw = Comtrade()
-        self.__x_shifted = False
+        self.__x_shifted = False  # TODO: rm
         self.path = path  # TODO: rm
         self.__load()
         self.__sanity_check()

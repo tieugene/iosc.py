@@ -41,8 +41,8 @@ class ValueTable(QTableWidget):
             self.setItem(r, 0, QTableWidgetItem(s.sid))  # 0. sig name
             if not s.is_bool:  # 1. type
                 self.setItem(r, 1, QTableWidgetItem(type_name))
-            self.setItem(r, 2, QTableWidgetItem(str(0 if s.is_bool else s.v_min)))  # 2. Min
-            self.setItem(r, 3, QTableWidgetItem(str(1 if s.is_bool else s.v_max)))  # 3. Max
+            self.setItem(r, 2, QTableWidgetItem(str(0 if s.is_bool else s.v_min(oscwin.shifted))))  # 2. Min
+            self.setItem(r, 3, QTableWidgetItem(str(1 if s.is_bool else s.v_max(oscwin.shifted))))  # 3. Max
             if s.is_bool:  # 4. MainPtr
                 v = str(s.value[oscwin.main_ptr_i])
             else:

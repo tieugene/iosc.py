@@ -67,7 +67,7 @@ class AGraphItem(QGraphicsPathItem):
         super().__init__()
         amin = min(0.0, ss.v_min)  # adjusted absolute value
         amax = max(0.0, ss.v_max)
-        asize = amax - amin
+        asize = amax - amin  # FIXME: /0
         self.ymin = amin / asize
         self.ymax = amax / asize
         self.__nvalue = [v / asize for v in ss.v_slice(i_range[0], i_range[1])]
