@@ -211,15 +211,15 @@ class AnalogSignal(__Signal):
     @property
     def value(self) -> np.array:
         """:return: Sample values depending on 'shifted' state.
-        :todo: f(y_centered, pors, func)
+        :todo: f(i, y_centered, pors, func)
 
         Used:
-        - export_to_csv()  # entry; | pors
+        - export_to_csv()  # entry; [yc?,] pors [, func=0]
         - AnalogSignalSuit:
-          + sig2str_i()  # entry; | pors, func
-          + hrm()  # entry; | func
-        - ValueTable.__init__()  # entry; | func
-        - OMPMapWindow._h1()  # entry; func
+          + sig2str_i()  # entry; pors, func
+          + hrm()  # entry; [yc?,] [pors,] func
+        - ValueTable.__init__()  # entry; [yc?,] [pors?] func
+        - OMPMapWindow._h1()  # entry; yc=False, pors, func=h1
         """
         return self.__value_shifted if self.__parent.shifted else self._value
 

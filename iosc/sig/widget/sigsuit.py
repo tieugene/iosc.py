@@ -351,6 +351,7 @@ class AnalogSignalSuit(SignalSuit):
 
         Used:
         - CVD
+        - HDBar
         """
         return HRM_N2F[hrm_no](self._signal.value, t_i, self.oscwin.osc.spp)
 
