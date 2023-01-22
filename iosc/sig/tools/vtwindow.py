@@ -44,15 +44,17 @@ class ValueTable(QTableWidget):
             self.setItem(r, 2, QTableWidgetItem(str(0 if s.is_bool else s.v_min(oscwin.shifted))))  # 2. Min
             self.setItem(r, 3, QTableWidgetItem(str(1 if s.is_bool else s.v_max(oscwin.shifted))))  # 3. Max
             if s.is_bool:  # 4. MainPtr
-                v = str(s.value[oscwin.main_ptr_i])
+                v = str(s.value(oscwin.main_ptr_i))
             else:
-                v = s.as_str_full(func(s.value, oscwin.main_ptr_i, spp), pors)
+                # v = s.as_str_full(func(s.value, oscwin.main_ptr_i, spp), pors)
+                v = s.as_str_full(s.value(oscwin.main_ptr_i, oscwin.shifted, pors), pors)
             self.setItem(r, 4, QTableWidgetItem(v))
             for c, tmp_i in enumerate(oscwin.tmp_ptr_i.values()):  # 5. TmpPtr[]
                 if s.is_bool:
-                    v = str(s.value[tmp_i])
+                    v = str(s.value(tmp_i))
                 else:
-                    v = s.as_str_full(func(s.value, tmp_i, spp), pors)
+                    # v = s.as_str_full(func(s.value, tmp_i, spp), pors)
+                    v = s.as_str_full(s.value(tmp_i, oscwin.shifted, pors), pors)
                 self.setItem(r, c + 5, QTableWidgetItem(v))
         # 3. the end
         self.resizeRowsToContents()

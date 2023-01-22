@@ -14,6 +14,7 @@ COL_LEFT = ("Ua", "Ub", "Uc", "Ia", "Ib", "Ic", "Ua,pr", "Ia,pr")
 COL_RIGHT = ("SC ptr", "SC ptr", "SC ptr", "SC ptr", "SC ptr", "SC ptr", "PR ptr", "PR ptr")
 CORR_SIG = ('Ua', 'Ub', 'Uc', 'Ia', 'Ib', 'Ic')
 OUT_NAME = ('uasc', 'ubsc', 'ucsc', 'iasc', 'ibsc', 'icsc', 'uapr', 'iapr')
+HRM1_NUMBER = 3  # FIXME: hardcoded
 
 
 class SignalBox(QComboBox):
@@ -112,7 +113,8 @@ class OMPMapWindow(QDialog):
             self.__get_rc_widget(i + 1, 1).setCurrentIndex(self.__map[i] + 1)
 
     def __h1(self, __y_i: int, __i: int) -> complex:
-        return hrm1(self.oscwin.osc.y[__y_i].value, __i, self.oscwin.osc.spp)
+        # return hrm1(self.oscwin.osc.y[__y_i].value, __i, self.oscwin.osc.spp)
+        return self.oscwin.osc.y[__y_i].value(__i, self.oscwin.shifted, self.oscwin.show_sec, HRM1_NUMBER)
 
     def __slot_chg_signal(self, row: int, y_i: int):
         """Change signal values on demand.

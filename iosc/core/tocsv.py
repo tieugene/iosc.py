@@ -8,10 +8,11 @@ import datetime
 from iosc.core import mycomtrade
 
 
-def export_to_csv(osc: mycomtrade.MyComtrade, pors: bool, dst: pathlib.Path):
+def export_to_csv(osc: mycomtrade.MyComtrade, y_centered: bool, pors: bool, dst: pathlib.Path):
     """Export osc into CSV file.
 
     :param osc: Osc to export
+    :param y_centered: Subj
     :param pors: Current Primary/Secondary state
     :param dst: Destination file
     """
@@ -33,7 +34,5 @@ def export_to_csv(osc: mycomtrade.MyComtrade, pors: bool, dst: pathlib.Path):
                 (osc.trigger_timestamp + datetime.timedelta(milliseconds=osc.x[i])).time().isoformat()
             ]
             for j in range(len(osc.y)):
-                s = osc.y[j]
-                v = s.value[i]
-                data.append(v if s.is_bool else v * s.get_mult(pors))
+                data.append(osc.y[j].value(i, y_centered, pors))
             csv_writer.writerow(data)

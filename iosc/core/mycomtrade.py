@@ -10,6 +10,7 @@ import chardet
 import numpy as np
 # 3. local
 from .comtrade import Comtrade, AnalogChannel, StatusChannel
+from .sigfunc import func_list
 
 # x. const
 ERR_DSC_FREQ = "Oscillogramm freq. must be 50 or 60 Hz.\nWe have %d"
@@ -97,8 +98,7 @@ class StatusSignal(__Signal):
         super().__init__(raw.cfg.status_channels[i], i + raw.cfg.analog_count)
         self._value = raw.status[i]
 
-    @property
-    def value(self) -> np.array:
+    def value(self, i: int, _=None, __=None, ___=None) -> int:
         """:return: Sample values.
 
         Used:
@@ -106,12 +106,11 @@ class StatusSignal(__Signal):
         - StatusSignalSuit.sig2str_i()  # entry
         - ValueTable.__init__()  # entry
         """
-        return self._value
+        return self._value[i]
 
     def values(self, _=None) -> List[float]:
         """Get values.
 
-        :param _: Y-centered
         :return: Values
         :todo: slice
         Used:
@@ -208,20 +207,29 @@ class AnalogSignal(__Signal):
         """
         return self.__mult[int(ps)]
 
-    @property
-    def value(self) -> np.array:
+    def value(self, i: int, y_centered: bool, pors: Optional[bool] = None, func: int = 0) -> Union[float, complex]:
         """:return: Sample values depending on 'shifted' state.
         :todo: f(i, y_centered, pors, func)
 
         Used:
         - export_to_csv()  # entry; [yc?,] pors [, func=0]
         - AnalogSignalSuit:
-          + sig2str_i()  # entry; pors, func
+          + sig2str_i()  # entry; [yc,] pors, func
           + hrm()  # entry; [yc?,] [pors,] func
         - ValueTable.__init__()  # entry; [yc?,] [pors?] func
         - OMPMapWindow._h1()  # entry; yc=False, pors, func=h1
         """
-        return self.__value_shifted if self.__parent.shifted else self._value
+        if func:
+            v = func_list[func](self.values(y_centered), i, self.__parent.spp)
+            # FIXME: pors
+        else:
+            v = self._value[i]
+            if y_centered:
+                v -= self.__y_center
+            if pors is not None:
+                v *= self.get_mult(pors)
+        return v
+        # return self.__value_shifted if self.__parent.shifted else self._value
 
     def values(self, y_centered: bool) -> List[float]:
         """Get values.

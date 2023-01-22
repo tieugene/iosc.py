@@ -171,7 +171,7 @@ class StatusSignalSuit(SignalSuit):
 
     def sig2str_i(self, i: int) -> str:
         """:return: string repr of signal in sample #i."""
-        return str(self._signal.value[i])
+        return str(self._signal.value(i))
 
     def _set_style(self):
         super()._set_style()
@@ -339,8 +339,12 @@ class AnalogSignalSuit(SignalSuit):
         - AnalogSignalLable._value_str()
         - MsrPtr.__slot_update_text()
         """
-        v = func_list[self.oscwin.viewas](self._signal.value, i, self.oscwin.osc.spp)
-        return self._signal.as_str_full(v, self.oscwin.show_sec)
+        # v = func_list[self.oscwin.viewas](self._signal.value, i, self.oscwin.osc.spp)
+        # return self._signal.as_str_full(v, self.oscwin.show_sec)
+        return self._signal.as_str_full(
+            self._signal.value(i, self.oscwin.shifted, self.oscwin.show_sec, self.oscwin.viewas),
+            self.oscwin.show_sec
+        )
 
     def hrm(self, hrm_no: int, t_i: int) -> complex:
         """Harmonic #1 of the signal.
@@ -353,7 +357,8 @@ class AnalogSignalSuit(SignalSuit):
         - CVD
         - HDBar
         """
-        return HRM_N2F[hrm_no](self._signal.value, t_i, self.oscwin.osc.spp)
+        # return HRM_N2F[hrm_no](self._signal.value, t_i, self.oscwin.osc.spp)
+        return self._signal.value(t_i, self.oscwin.shifted, self.oscwin.show_sec, HRM_N2F[hrm_no])
 
     def __slot_reload_data(self):
         self._set_data()

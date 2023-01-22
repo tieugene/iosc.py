@@ -8,6 +8,18 @@ Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 -[ ] FIXME: LvlPtr limits vs y_centered
 - [ ] Add 'module' to signals
 
+- [ ] 2.3.4.3.1. Common (actions, menu, base things)
+- [ ] 2.3.4.3.2. F-sequence
+- [ ] 2.3.4.3.3. R-sequence
+- [ ] 2.3.4.3.4. 0-sequence
+- [ ] 2.3.4.3.5. Add-cross
+- [ ] 2.3.4.3.6. Mult-cross
+- [ ] 2.3.4.3.7. Mult-const
+- [ ] 2.3.4.3.8. Module
+- [ ] 2.3.4.3.9. Angle
+- [ ] 2.3.4.3.10. Real part
+- [ ] 2.3.4.3.11. Image part
+
 ## Adjusted
 
 min| max | Δ | Si | Sa | Gi | Ga |
