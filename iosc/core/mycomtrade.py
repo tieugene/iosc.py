@@ -275,7 +275,7 @@ class AnalogSignal(__Signal):
         retvalue = max(self._value)
         return retvalue - self.__y_center if y_centered else retvalue
 
-    def as_str(self, y: float, pors: bool) -> str:
+    def as_str(self, y: float) -> str:
         """Get string representation of signal value (real only).
 
         :param y: Signal value (real)
@@ -285,17 +285,17 @@ class AnalogSignal(__Signal):
         - self.as_str_full()
         - AnalogSignalSuit.sig2str()
         """
-        pors_y = y * self.get_mult(pors)
+        pors_y = y   # * self.get_mult(pors)
         uu = self.uu_orig
-        if abs(pors_y) < 1:
-            pors_y *= 1000
+        if abs(y) < 1:
+            y *= 1000
             uu = 'm' + uu
-        elif abs(pors_y) > 1000:
-            pors_y /= 1000
+        elif abs(y) > 1000:
+            y /= 1000
             uu = 'k' + uu
-        return "%.3f %s" % (pors_y, uu)
+        return "%.3f %s" % (y, uu)
 
-    def as_str_full(self, v: Union[float, complex], pors: bool) -> str:
+    def as_str_full(self, v: Union[float, complex]) -> str:
         """Get string representation of signal value (real or complex).
 
         :param v: Signal value
@@ -307,9 +307,9 @@ class AnalogSignal(__Signal):
         - OMPMapWindow.__h1_str()
         """
         if isinstance(v, complex):  # hrm1
-            return "%s / %.3f°" % (self.as_str(abs(v), pors), math.degrees(cmath.phase(v)))
+            return "%s / %.3f°" % (self.as_str(abs(v)), math.degrees(cmath.phase(v)))
         else:
-            return self.as_str(v, pors)
+            return self.as_str(v)
 
 
 ABSignal: TypeAlias = Union[StatusSignal, AnalogSignal]

@@ -324,7 +324,7 @@ class AnalogSignalSuit(SignalSuit):
         Used in:
         - LvlPtr.__slot_update_text()
         """
-        return self._signal.as_str(y, self.oscwin.show_sec)
+        return self._signal.as_str(y)
 
     def sig2str_i(self, i: int) -> str:
         """:return: string repr of signal in sample #i.
@@ -342,8 +342,7 @@ class AnalogSignalSuit(SignalSuit):
         # v = func_list[self.oscwin.viewas](self._signal.value, i, self.oscwin.osc.spp)
         # return self._signal.as_str_full(v, self.oscwin.show_sec)
         return self._signal.as_str_full(
-            self._signal.value(i, self.oscwin.shifted, self.oscwin.show_sec, self.oscwin.viewas),
-            self.oscwin.show_sec
+            self._signal.value(i, self.oscwin.shifted, self.oscwin.show_sec, self.oscwin.viewas)
         )
 
     def hrm(self, hrm_no: int, t_i: int) -> complex:

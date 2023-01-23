@@ -130,7 +130,7 @@ class OMPMapWindow(QDialog):
             :return: String repr of 1st harmonic y_i-th signal in point Xi
             """
             if __y_i >= 0:
-                return self.oscwin.osc.y[__y_i].as_str_full(self.__h1(__y_i, __i), self.oscwin.show_sec)
+                return self.oscwin.osc.y[__y_i].as_str_full(self.__h1(__y_i, __i))
             else:
                 return ''
         self.__get_rc_widget(row + 1, 2).setText(__h1_str(y_i, self.oscwin.sc_ptr_i))
