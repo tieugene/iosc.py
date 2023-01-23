@@ -207,7 +207,7 @@ class AnalogSignal(__Signal):
         """
         return self.__mult[int(ps)]
 
-    def value(self, i: int, y_centered: bool, pors: Optional[bool] = None, func: int = 0) -> Union[float, complex]:
+    def value(self, i: int, y_centered: bool, pors: bool, func: int = 0) -> Union[float, complex]:
         """:return: Sample values depending on 'shifted' state.
         :todo: f(i, y_centered, pors, func)
 
@@ -221,14 +221,9 @@ class AnalogSignal(__Signal):
         """
         if func:
             v = func_list[func](self.values(y_centered), i, self.__parent.spp)
-            # FIXME: pors
         else:
-            v = self._value[i]
-            if y_centered:
-                v -= self.__y_center
-            if pors is not None:
-                v *= self.get_mult(pors)
-        return v
+            v = self._value[i] - self.__y_center if y_centered else self._value[i]
+        return v * self.get_mult(pors)
         # return self.__value_shifted if self.__parent.shifted else self._value
 
     def values(self, y_centered: bool) -> List[float]:
@@ -279,13 +274,11 @@ class AnalogSignal(__Signal):
         """Get string representation of signal value (real only).
 
         :param y: Signal value (real)
-        :param pors: False=primary, True=secondary
         :return: String repr of signal.
         Used:
         - self.as_str_full()
         - AnalogSignalSuit.sig2str()
         """
-        pors_y = y   # * self.get_mult(pors)
         uu = self.uu_orig
         if abs(y) < 1:
             y *= 1000
@@ -299,7 +292,6 @@ class AnalogSignal(__Signal):
         """Get string representation of signal value (real or complex).
 
         :param v: Signal value
-        :param pors: False=primary, True=secondary
         :return: String repr of signal (any form)
         Used:
         - AnalogSignalSuit.sig2str_i()

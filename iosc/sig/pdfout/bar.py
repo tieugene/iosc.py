@@ -67,7 +67,9 @@ class AGraphItem(QGraphicsPathItem):
         super().__init__()
         amin = min(0.0, ss.v_min)  # adjusted absolute value
         amax = max(0.0, ss.v_max)
-        asize = amax - amin  # FIXME: /0
+        asize = amax - amin
+        if asize == 0:  # TODO: quick hack against /0
+            asize = 1
         self.ymin = amin / asize
         self.ymax = amax / asize
         self.__nvalue = [v / asize for v in ss.v_slice(i_range[0], i_range[1])]
@@ -219,6 +221,8 @@ class BarGraphItem(GroupItem):
     def set_size(self, s: QSize):
         """Set object size."""
         h_norm = self.__ymax - self.__ymin  # normalized height, ≥ 1
+        if h_norm == 0:  # TODO: fast hack
+            h_norm = 1
         s_local = QSizeF(s.width(), (s.height() - H_ROW_GAP * 2) / h_norm)
         for gi in self.__graph:
             gi.set_size(s_local, self.__ymax)
