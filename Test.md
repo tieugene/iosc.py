@@ -26,8 +26,8 @@
   + [ ] ~~MsrPtr(?, ?, f=const)~~
   + [ ] ~~LvlPtr(?, ?, ?)~~
 - [ ] Tools:
-  + [ ] CVD(F, ps, f=h1): SIGABRT
-  + [ ] HD(F, *, f=h0..5): SIGABRT
-  + [ ] VT(F, ps, f)
+  + [ ] CVD(F, ps, f=h1): **SIGABRT**
+  + [ ] HD(F, *, f=h0..5): **SIGABRT**
+  + [x] VT(F, ps, f)
   + [ ] OMP map(F, p, f=h1)
   + [ ] OMP save(F, p, f=h1)
