@@ -7,7 +7,6 @@ from typing import Union, List
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox
 # 3. local
-from iosc.core.sigfunc import hrm1
 # x. const
 ROW_HEAD = ("OMP signal", "Osc. signal", "Value", "Time")
 COL_LEFT = ("Ua", "Ub", "Uc", "Ia", "Ib", "Ic", "Ua,pr", "Ia,pr")
@@ -113,8 +112,11 @@ class OMPMapWindow(QDialog):
             self.__get_rc_widget(i + 1, 1).setCurrentIndex(self.__map[i] + 1)
 
     def __h1(self, __y_i: int, __i: int) -> complex:
-        # return hrm1(self.oscwin.osc.y[__y_i].value, __i, self.oscwin.osc.spp)
-        return self.oscwin.osc.y[__y_i].value(__i, self.oscwin.shifted, self.oscwin.show_sec, HRM1_NUMBER)
+        """Get value of __y_i-th signal in __i-th point.
+
+        Not centered, primary.
+        """
+        return self.oscwin.osc.y[__y_i].value(__i, False, False, HRM1_NUMBER)
 
     def __slot_chg_signal(self, row: int, y_i: int):
         """Change signal values on demand.
