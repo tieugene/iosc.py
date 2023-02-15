@@ -806,7 +806,7 @@ class ComtradeWidget(QWidget):
             "Comma separated values (*.csv)"
         )
         if fn[0]:
-            export_to_csv(self.osc, self.shifted, self.show_sec, pathlib.Path(fn[0]))
+            export_to_csv(self.osc, self.show_sec, pathlib.Path(fn[0]))
 
     def __do_cfg_save(self):
         """Save osc settings."""

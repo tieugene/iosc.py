@@ -10,22 +10,24 @@
 
 #### Try 3:
 - LvlPtr PorS &cross;
-- ValueTable lies
 - CVD segfault
 - HD segfault
+- VT lies
 
 ### Deps F(c, ps, f):
 
+(`osc1`)
+
 - [ ] File:
-  + [ ] CSV(F, ps, 0)
-  + [ ] PDF(?, ?, ?)
+  + [x] CSV(F, ps, 0)
+  + [ ] ~~PDF(?, ?, ?)~~
 - [ ] Ptr:
-  + [ ] MainPtr(c, ps, f)
-  + [ ] MsrPtr(?, ?, f=const)
-  + [ ] LvlPtr(?, ?, ?)
+  + [x] MainPtr(c, ps, f)
+  + [ ] ~~MsrPtr(?, ?, f=const)~~
+  + [ ] ~~LvlPtr(?, ?, ?)~~
 - [ ] Tools:
-  + [ ] CVD(F, ps, f=h1)
-  + [ ] HD(F, *, f=h0..5)
+  + [ ] CVD(F, ps, f=h1): SIGABRT
+  + [ ] HD(F, *, f=h0..5): SIGABRT
   + [ ] VT(F, ps, f)
   + [ ] OMP map(F, p, f=h1)
   + [ ] OMP save(F, p, f=h1)
