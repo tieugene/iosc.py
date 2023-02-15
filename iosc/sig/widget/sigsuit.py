@@ -14,7 +14,8 @@ from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPro
 from iosc.sig.widget.ptr import MsrPtr, LvlPtr
 # x. const
 PEN_STYLE = (Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)
-HRM_N2F = {1: hrm1, 2: hrm2, 3: hrm3, 5: hrm5}
+# HRM_N2F = {1: hrm1, 2: hrm2, 3: hrm3, 5: hrm5} bad way
+HRM_N2F = {1: 3, 2: 4, 3: 5, 5: 6}  # harm no => func no
 
 
 class SignalSuit(QObject):

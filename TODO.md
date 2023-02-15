@@ -5,6 +5,7 @@ Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 - [ ] #111 Dynamic 'shift':
   + [x] MyComtrade.values(shift)
   + [x] MyComtrade.value(i, shift, pors, func)
+  + [ ] SVD, HD: SIGABRT
 - [ ] FIXME: LvlPtr limits vs y_centered
 - [ ] Add 'module' to signals
 
