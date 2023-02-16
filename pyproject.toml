@@ -1,0 +1,47 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools", "wheel"]
+
+[project]
+name = "iosc"
+dynamic = ["version"]
+description = "Comtrade viewer"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {file = "LICENSE"}
+authors = [
+  {name = "TI_Eugene", email = "ti.eugene@gmail.com"},
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "qcustomplot-pyqt5",
+  "chardet",
+  "numpy"
+]
+urls.Homepage = "https://github.com/tieugene/iosc.py"
+urls.Source = "https://github.com/tieugene/iosc.py"
+
+[project.scripts]
+kitpos = "iosc.mainwindow:main"
+
+[tool.setuptools]
+packages = ["iosc"]
+
+[tool.setuptools.dynamic]
+version = {attr = "iosc.__version__"}
+
+[tool.pep8]
+max-line-length = "120"
+
+[tool.flake8]
+max-line-length = 120
+
+[tool.pylint]
+max-line-length = 120
+disable = [
+  "W0511",  # `to do` keywords
+]
