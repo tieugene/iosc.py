@@ -1,4 +1,5 @@
 # Test
+
 ## 0.3.4 => 0.3.5
 
 ### Deps F(c, ps, f):
@@ -7,11 +8,11 @@
 
 - [ ] File:
   + [x] CSV(F, ps, 0)
-  + [ ] ~~PDF(?, ?, ?)~~
+  + [ ] PDF(c, ps, f)
 - [ ] Ptr:
   + [x] MainPtr(c, ps, f)
-  + [ ] ~~MsrPtr(?, ?, f=const)~~
-  + [ ] ~~LvlPtr(?, ?, ?)~~
+  + [ ] MsrPtr(c, ps, f=const)
+  + [ ] LvlPtr(c, ps, 0)
 - [x] Tools:
   + [x] CVD(F, ps, f=h1)
   + [x] HD(F, *, f=h0..5)
@@ -19,7 +20,7 @@
   + [x] OMP map(F, p, f=h1)
   + [x] OMP save(F, p, f=h1)
 
-##### Calls:
+### Calls:
 - [ ] AnalogSignalLabel.slot_update_value()
 - [ ] &rdsh;ASignalLabel.__value_str
 - [ ] &rdsh;ASignalSuit.sig2str_i(self.ss.bar.table.oscwin.main_ptr_i)

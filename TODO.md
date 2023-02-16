@@ -2,12 +2,32 @@
 
 Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 
-- [ ] #111 Dynamic 'shift':
+- [x] #111 Dynamic 'shift':
   + [x] MyComtrade.values(shift)
   + [x] MyComtrade.value(i, shift, pors, func)
-  + [ ] SVD, HD: SIGABRT
 - [ ] FIXME: LvlPtr limits vs y_centered
-- [ ] Add 'module' to signals
+- [ ] FIXME: SC/PR top labels
+- [ ] FIXME: ValueTable(func)
+- [ ] FIXME: Harm. 0..5
+
+## Adjusted
+
+min|max| Δ | Si | Sa | Gi | Ga
+---|---|---|----|----|----|----
+
+### ASignalSuit._data_y():
+```py
+divider = max(abs(self.v_min), abs(self.v_max))
+[v / divider for v in values]
+```
+
+### AGraphItem.__init__():
+```py
+amin = min(0.0, ss.v_min)  # adjusted absolute value
+amax = max(0.0, ss.v_max)
+divider = amax - amin
+[v / divider for v in values]
+```
 
 ## Calculated signals
 
@@ -25,28 +45,3 @@ Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
   - [ ] 2.4.1.4.1. F-sequence
   - [ ] 2.4.1.4.2. R-sequence
   - [ ] 2.4.1.4.3. 0-sequence
-
-## Adjusted
-
-min| max | Δ | Si | Sa | Gi | Ga |
----|---|
-
-### ASignalSuit._data_y():
-```py
-divider = max(abs(self.v_min), abs(self.v_max))
-[v / divider for v in values]
-```
-
-### AGraphItem.__init__():
-```py
-amin = min(0.0, ss.v_min)  # adjusted absolute value
-amax = max(0.0, ss.v_max)
-divider = amax - amin
-[v / divider for v in values]
-```
-
-## Hierarchy:
-
-- `sigsuit.SignalSuit`: GUI wrapper for&hellip;
-- &rdsh;`mycomtrade.*`: non-GUI wrapper for&hellip;
-- &rdsh;`comtrade.*`: raw osc data
