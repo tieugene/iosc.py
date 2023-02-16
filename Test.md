@@ -12,9 +12,9 @@
   + [x] MainPtr(c, ps, f)
   + [ ] ~~MsrPtr(?, ?, f=const)~~
   + [ ] ~~LvlPtr(?, ?, ?)~~
-- [ ] Tools:
-  + [ ] CVD(F, ps, f=h1): **SIGABRT**
-  + [ ] HD(F, *, f=h0..5): **SIGABRT**
+- [x] Tools:
+  + [x] CVD(F, ps, f=h1)
+  + [x] HD(F, *, f=h0..5)
   + [x] VT(F, ps, f)
   + [x] OMP map(F, p, f=h1)
   + [x] OMP save(F, p, f=h1)
