@@ -2,10 +2,7 @@
 
 Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 
-- [x] #111 Dynamic 'shift':
-  + [x] MyComtrade.values(shift)
-  + [x] MyComtrade.value(i, shift, pors, func)
-- [ ] FIXME: LvlPtr limits vs y_centered
+- [ ] FIXME: LvlPtr: centered (limits), pors
 - [ ] FIXME: SC/PR top labels
 - [ ] FIXME: ValueTable(func)
 - [ ] FIXME: Harm. 0..5
