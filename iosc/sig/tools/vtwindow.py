@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QTableWidget, QDialog, QVBoxLayout, QTableWidgetItem
 from iosc.core.sigfunc import func_list
 # x. const
 TYPE_NAME = ("As is", "Mid", "Eff", "H1", "H2", "H3", "H5")
+CENTERED = False  # use not centered values
 
 
 class ValueTable(QTableWidget):
@@ -41,18 +42,20 @@ class ValueTable(QTableWidget):
             self.setItem(r, 0, QTableWidgetItem(s.sid))  # 0. sig name
             if not s.is_bool:  # 1. type
                 self.setItem(r, 1, QTableWidgetItem(type_name))
-            self.setItem(r, 2, QTableWidgetItem(str(0 if s.is_bool else s.v_min)))  # 2. Min
-            self.setItem(r, 3, QTableWidgetItem(str(1 if s.is_bool else s.v_max)))  # 3. Max
+            self.setItem(r, 2, QTableWidgetItem(str(0 if s.is_bool else s.v_min(CENTERED))))  # 2. Min
+            self.setItem(r, 3, QTableWidgetItem(str(1 if s.is_bool else s.v_max(CENTERED))))  # 3. Max
             if s.is_bool:  # 4. MainPtr
-                v = str(s.value[oscwin.main_ptr_i])
+                v = str(s.value(oscwin.main_ptr_i))
             else:
-                v = s.as_str_full(func(s.value, oscwin.main_ptr_i, spp), pors)
+                # v = s.as_str_full(func(s.value, oscwin.main_ptr_i, spp), pors)
+                v = s.as_str_full(s.value(oscwin.main_ptr_i, CENTERED, pors))
             self.setItem(r, 4, QTableWidgetItem(v))
             for c, tmp_i in enumerate(oscwin.tmp_ptr_i.values()):  # 5. TmpPtr[]
                 if s.is_bool:
-                    v = str(s.value[tmp_i])
+                    v = str(s.value(tmp_i))
                 else:
-                    v = s.as_str_full(func(s.value, tmp_i, spp), pors)
+                    # v = s.as_str_full(func(s.value, tmp_i, spp), pors)
+                    v = s.as_str_full(s.value(tmp_i, CENTERED, pors))
                 self.setItem(r, c + 5, QTableWidgetItem(v))
         # 3. the end
         self.resizeRowsToContents()

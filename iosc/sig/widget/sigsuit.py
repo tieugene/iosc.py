@@ -14,7 +14,8 @@ from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPro
 from iosc.sig.widget.ptr import MsrPtr, LvlPtr
 # x. const
 PEN_STYLE = (Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)
-HRM_N2F = {1: hrm1, 2: hrm2, 3: hrm3, 5: hrm5}
+# HRM_N2F = {1: hrm1, 2: hrm2, 3: hrm3, 5: hrm5} bad way
+HRM_N2F = {1: 3, 2: 4, 3: 5, 5: 6}  # harm no => func no
 
 
 class SignalSuit(QObject):
@@ -83,8 +84,12 @@ class SignalSuit(QObject):
         :param i0: Start index
         :param i1: End index
         :return: Signal values in range.
+
+        Used:
+        - AGraphItem | / (v_max - v_min)
+        - BGraphItem
         """
-        return self._signal.value[i0:i1 + 1]
+        return self._signal.values(self.oscwin.shifted)[i0:i1 + 1]
 
     # @property
     # def range_y(self) -> QCPRange:  # virtual
@@ -163,11 +168,11 @@ class StatusSignalSuit(SignalSuit):
     @property
     def _data_y(self) -> List[float]:
         """Used in: self.graph.setData()"""
-        return [v * 2 / 3 for v in self._signal.value]
+        return [v * 2 / 3 for v in self._signal.values()]
 
     def sig2str_i(self, i: int) -> str:
         """:return: string repr of signal in sample #i."""
-        return str(self._signal.value[i])
+        return str(self._signal.value(i))
 
     def _set_style(self):
         super()._set_style()
@@ -231,37 +236,37 @@ class AnalogSignalSuit(SignalSuit):
 
     @property
     def _data_y(self) -> List[float]:
-        """Used in: self.graph.setData()"""
-        divider = max(abs(min(self._signal.value)), abs(max(self._signal.value)))
+        """Used: self.graph.setData()"""
+        divider = max(abs(self.v_min), abs(self.v_max))
         if divider == 0.0:
             divider = 1.0
-        return [v / divider for v in self._signal.value]
+        return [v / divider for v in self._signal.values(self.oscwin.shifted)]
 
     @property
     def v_min(self) -> float:
         """:return: Min signal value.
 
-        Used in:
+        Used:
         - AGraphItem.__init__
         - LvlPtr
         """
-        return self._signal.v_min
+        return self._signal.v_min(self.oscwin.shifted)
 
     @property
     def v_max(self) -> float:
         """:return: Max signal value.
 
-        Used in:
+        Used:
         - AGraphItem.__init__
         - LvlPtr
         """
-        return self._signal.v_max
+        return self._signal.v_max(self.oscwin.shifted)
 
     @property
     def pors_mult(self) -> float:
         """:return: Multiplier pri vs sec according to current pors switch.
 
-        Used in:
+        Used:
         - LvlPtr
         """
         return self._signal.get_mult(self.oscwin.show_sec)
@@ -318,10 +323,9 @@ class AnalogSignalSuit(SignalSuit):
         - pors (global)
         - orig/shifted (global, indirect).
         Used in:
-        - self.sig2str_i()
         - LvlPtr.__slot_update_text()
         """
-        return self._signal.as_str(y, self.oscwin.show_sec)
+        return self._signal.as_str(y)
 
     def sig2str_i(self, i: int) -> str:
         """:return: string repr of signal in sample #i.
@@ -336,18 +340,25 @@ class AnalogSignalSuit(SignalSuit):
         - AnalogSignalLable._value_str()
         - MsrPtr.__slot_update_text()
         """
-        v = func_list[self.oscwin.viewas](self._signal.value, i, self.oscwin.osc.spp)
-        return self._signal.as_str_full(v, self.oscwin.show_sec)
+        # v = func_list[self.oscwin.viewas](self._signal.value, i, self.oscwin.osc.spp)
+        # return self._signal.as_str_full(v, self.oscwin.show_sec)
+        return self._signal.as_str_full(
+            self._signal.value(i, self.oscwin.shifted, self.oscwin.show_sec, self.oscwin.viewas)
+        )
 
     def hrm(self, hrm_no: int, t_i: int) -> complex:
         """Harmonic #1 of the signal.
 
-        Used by CVD.
         :param hrm_no: Harmonic no (1, 2, 3, 5)
         :param t_i: Point of x-axis
         :return: Complex value of harmonic
+
+        Used:
+        - CVD
+        - HDBar
         """
-        return HRM_N2F[hrm_no](self._signal.value, t_i, self.oscwin.osc.spp)
+        # return HRM_N2F[hrm_no](self._signal.value, t_i, self.oscwin.osc.spp)
+        return self._signal.value(t_i, self.oscwin.shifted, self.oscwin.show_sec, HRM_N2F[hrm_no])
 
     def __slot_reload_data(self):
         self._set_data()

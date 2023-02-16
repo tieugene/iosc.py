@@ -7,13 +7,13 @@ from typing import Union, List
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox
 # 3. local
-from iosc.core.sigfunc import hrm1
 # x. const
 ROW_HEAD = ("OMP signal", "Osc. signal", "Value", "Time")
 COL_LEFT = ("Ua", "Ub", "Uc", "Ia", "Ib", "Ic", "Ua,pr", "Ia,pr")
 COL_RIGHT = ("SC ptr", "SC ptr", "SC ptr", "SC ptr", "SC ptr", "SC ptr", "PR ptr", "PR ptr")
 CORR_SIG = ('Ua', 'Ub', 'Uc', 'Ia', 'Ib', 'Ic')
 OUT_NAME = ('uasc', 'ubsc', 'ucsc', 'iasc', 'ibsc', 'icsc', 'uapr', 'iapr')
+HRM1_NUMBER = 3  # FIXME: hardcoded
 
 
 class SignalBox(QComboBox):
@@ -112,7 +112,11 @@ class OMPMapWindow(QDialog):
             self.__get_rc_widget(i + 1, 1).setCurrentIndex(self.__map[i] + 1)
 
     def __h1(self, __y_i: int, __i: int) -> complex:
-        return hrm1(self.oscwin.osc.y[__y_i].value, __i, self.oscwin.osc.spp)
+        """Get value of __y_i-th signal in __i-th point.
+
+        Not centered, primary.
+        """
+        return self.oscwin.osc.y[__y_i].value(__i, False, False, HRM1_NUMBER)
 
     def __slot_chg_signal(self, row: int, y_i: int):
         """Change signal values on demand.
@@ -128,7 +132,7 @@ class OMPMapWindow(QDialog):
             :return: String repr of 1st harmonic y_i-th signal in point Xi
             """
             if __y_i >= 0:
-                return self.oscwin.osc.y[__y_i].as_str_full(self.__h1(__y_i, __i), self.oscwin.show_sec)
+                return self.oscwin.osc.y[__y_i].as_str_full(self.__h1(__y_i, __i))
             else:
                 return ''
         self.__get_rc_widget(row + 1, 2).setText(__h1_str(y_i, self.oscwin.sc_ptr_i))

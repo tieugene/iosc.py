@@ -10,6 +10,7 @@ import chardet
 import numpy as np
 # 3. local
 from .comtrade import Comtrade, AnalogChannel, StatusChannel
+from .sigfunc import func_list
 
 # x. const
 ERR_DSC_FREQ = "Oscillogramm freq. must be 50 or 60 Hz.\nWe have %d"
@@ -75,7 +76,11 @@ class __Signal:
 
     @property
     def ph(self) -> str:  # transparent
-        """:return: Signal phase (A|B|C)."""
+        """:return: Signal phase (A|B|C).
+
+        Used:
+        - SignalSuit.__init__()  # color
+        """
         return self._raw2.ph
 
 
@@ -93,9 +98,25 @@ class StatusSignal(__Signal):
         super().__init__(raw.cfg.status_channels[i], i + raw.cfg.analog_count)
         self._value = raw.status[i]
 
-    @property
-    def value(self) -> np.array:
-        """:return: Sample values."""
+    def value(self, i: int, _=None, __=None, ___=None) -> int:
+        """:return: Sample values.
+
+        Used:
+        - export_to_csv()  # entry
+        - StatusSignalSuit.sig2str_i()  # entry
+        - ValueTable.__init__()  # entry
+        """
+        return self._value[i]
+
+    def values(self, _=None) -> List[float]:
+        """Get values.
+
+        :return: Values
+        :todo: slice
+        Used:
+        - SignalSuit.v_slice() | xGraphItem  # slice; | normalize
+        - StatusSignalSuit._data_y()  # list; | normalize
+        """
         return self._value
 
 
@@ -107,12 +128,14 @@ class AnalogSignal(__Signal):
     __mult: tuple[float, float]
     __uu_orig: str  # original uu (w/o m/k)
     __value_shifted: np.array
+    __y_center: float  # just cache
 
     def __init__(self, raw: Comtrade, i: int, parent: 'MyComtrade'):
         """Init AnalogSignal object."""
         super().__init__(raw.cfg.analog_channels[i], i)
         self._value = raw.analog[i]
         self.__parent = parent
+        self.__y_center = np.average(self._value)
         self.__value_shifted = self._value - np.average(self._value)
         # pri/sec multipliers
         if self._raw2.uu.startswith('m'):
@@ -136,38 +159,40 @@ class AnalogSignal(__Signal):
         self.__mult = (pri * uu, sec * uu)
 
     @property
-    def value(self) -> np.array:
-        """:return: Sample values depending on 'shifted' state."""
-        return self.__value_shifted if self.__parent.shifted else self._value
-
-    @property
-    def v_min(self) -> float:
-        """:return: Minimal sample value (not shifted)."""
-        return min(self.value)
-
-    @property
-    def v_max(self) -> float:
-        """:return: Maxomal sample value (not shifted)."""
-        return max(self.value)
-
-    @property
     def uu(self) -> str:  # transparent
         """:return: Bundled Unit as is."""
         return self._raw2.uu
 
     @property
+    def uu_orig(self) -> str:
+        """:return: Cleaned unit (e.g. kV => V)."""
+        return self.__uu_orig
+
+    @property
     def primary(self) -> float:  # transparent
-        """:return: Primary multiplier."""
+        """:return: Primary multiplier.
+        Used:
+        - AnalogSignalSuit.info()
+        """
         return self._raw2.primary
 
     @property
     def secondary(self) -> float:  # transparent
-        """:return: Secondary multiplier."""
+        """:return: Secondary multiplier.
+        Used:
+        - AnalogSignalSuit.info()
+        """
         return self._raw2.secondary
 
     @property
     def pors(self) -> str:  # transparent
-        """:return: Primary-or-Secondary (main signal value)."""
+        """Get default value type (Primary or Secondary).
+
+        :return: Primary-or-Secondary (main signal value).
+        :todo: return True if Secondary
+        Used:
+        - AnalogSignalSuit.info()
+        """
         return self._raw2.pors
 
     def get_mult(self, ps: bool) -> float:
@@ -175,42 +200,108 @@ class AnalogSignal(__Signal):
 
         :param ps: False=primary, True=secondary
         :return: Multiplier
+        Used:
+        - self.as_str()
+        - AnalogSignalSuit.pors_mult()
+        - export_to_csv()
         """
         return self.__mult[int(ps)]
 
-    @property
-    def uu_orig(self) -> str:
-        """:return: Cleaned unit (e.g. kV => V)."""
-        return self.__uu_orig
+    def value(self, i: int, y_centered: bool, pors: bool, func: int = 0) -> Union[float, complex]:
+        """:return: Sample values depending on 'shifted' state.
+        :todo: f(i, y_centered, pors, func)
 
-    def as_str(self, y: float, pors: bool) -> str:
+        Used:
+        - export_to_csv()  # entry; [yc?,] pors [, func=0]
+        - AnalogSignalSuit:
+          + sig2str_i()  # entry; [yc,] pors, func
+          + hrm()  # entry; [yc?,] [pors,] func
+        - ValueTable.__init__()  # entry; [yc?,] [pors?] func
+        - OMPMapWindow._h1()  # entry; yc=False, pors, func=h1
+        """
+        if func:
+            v = func_list[func](self.values(y_centered), i, self.__parent.spp)
+        else:
+            v = self._value[i] - self.__y_center if y_centered else self._value[i]
+        return v * self.get_mult(pors)
+        # return self.__value_shifted if self.__parent.shifted else self._value
+
+    def values(self, y_centered: bool) -> List[float]:
+        """Get values.
+
+        :param y_centered: Y-centered
+        :return: Adjusted Values
+        :todo: slice
+        Used:
+        - SignalSuit.v_slice() | xGraphItem  # slice; | normalize
+        - AnalogSignalSuit._data_y()  # list; | normalize
+        """
+        return [v - self.__y_center for v in self._value] if y_centered else self._value
+
+    def avalues(self, y_centered: bool) -> List[float]:
+        """Get adjusted values: -1 <= (y_min,y_max) <= 1.
+
+        :param y_centered: Y-centered
+        :return: Adjusted Values
+        :todo: slice
+        """
+
+    def v_min(self, y_centered: bool) -> float:
+        """Get min value.
+
+        :return: Minimal sample value.
+        :todo: f(y_centered, pors)
+        Used:
+        - AnalogSignalSuit.v_min()
+        - ValueTable.__init__()
+        """
+        retvalue = min(self._value)
+        return retvalue - self.__y_center if y_centered else retvalue
+
+    def v_max(self, y_centered: bool) -> float:
+        """Get max value.
+
+        :return: Maximal sample value.
+        :todo: f(shift, pors)
+        Used:
+        - AnalogSignalSuit.v_max()
+        - ValueTable.__init__()
+        """
+        retvalue = max(self._value)
+        return retvalue - self.__y_center if y_centered else retvalue
+
+    def as_str(self, y: float) -> str:
         """Get string representation of signal value (real only).
 
         :param y: Signal value (real)
-        :param pors: False=primary, True=secondary
         :return: String repr of signal.
+        Used:
+        - self.as_str_full()
+        - AnalogSignalSuit.sig2str()
         """
-        pors_y = y * self.get_mult(pors)
         uu = self.uu_orig
-        if abs(pors_y) < 1:
-            pors_y *= 1000
+        if abs(y) < 1:
+            y *= 1000
             uu = 'm' + uu
-        elif abs(pors_y) > 1000:
-            pors_y /= 1000
+        elif abs(y) > 1000:
+            y /= 1000
             uu = 'k' + uu
-        return "%.3f %s" % (pors_y, uu)
+        return "%.3f %s" % (y, uu)
 
-    def as_str_full(self, v: Union[float, complex], pors: bool) -> str:
+    def as_str_full(self, v: Union[float, complex]) -> str:
         """Get string representation of signal value (real or complex).
 
         :param v: Signal value
-        :param pors: False=primary, True=secondary
         :return: String repr of signal (any form)
+        Used:
+        - AnalogSignalSuit.sig2str_i()
+        - ValueTable.__init__()
+        - OMPMapWindow.__h1_str()
         """
         if isinstance(v, complex):  # hrm1
-            return "%s / %.3f°" % (self.as_str(abs(v), pors), math.degrees(cmath.phase(v)))
+            return "%s / %.3f°" % (self.as_str(abs(v)), math.degrees(cmath.phase(v)))
         else:
-            return self.as_str(v, pors)
+            return self.as_str(v)
 
 
 ABSignal: TypeAlias = Union[StatusSignal, AnalogSignal]
@@ -228,7 +319,7 @@ class MyComtrade:
     def __init__(self, path: pathlib.Path):
         """Init MyComtrade object."""
         self._raw = Comtrade()
-        self.__x_shifted = False
+        self.__x_shifted = False  # TODO: rm
         self.path = path  # TODO: rm
         self.__load()
         self.__sanity_check()

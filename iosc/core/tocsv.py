@@ -33,7 +33,5 @@ def export_to_csv(osc: mycomtrade.MyComtrade, pors: bool, dst: pathlib.Path):
                 (osc.trigger_timestamp + datetime.timedelta(milliseconds=osc.x[i])).time().isoformat()
             ]
             for j in range(len(osc.y)):
-                s = osc.y[j]
-                v = s.value[i]
-                data.append(v if s.is_bool else v * s.get_mult(pors))
+                data.append(osc.y[j].value(i, False, pors))
             csv_writer.writerow(data)

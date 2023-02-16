@@ -860,7 +860,6 @@ class ComtradeWidget(QWidget):
         self.__update_xzoom(self.x_zoom + 1)
 
     def __do_centered(self, v: bool):
-        print(v)
         self.osc.shifted = self.action_centered.isChecked()
         self.signal_chged_shift.emit()
 
