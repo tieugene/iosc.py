@@ -45,11 +45,36 @@ class PtrLabelMain(__PtrLabel):
         """Init PtrLabelMain object."""
         super().__init__(parent)
         self.setBrush(iosc.const.BRUSH_PTR_MAIN)  # rect
-        self.__slot_ptr_move(self._oscwin.main_ptr_i)
-        self._oscwin.signal_ptr_moved_main.connect(self.__slot_ptr_move)
+        self._update_ptr(self._oscwin.main_ptr_i)
+        self._oscwin.signal_ptr_moved_main.connect(self._update_ptr)
 
-    def __slot_ptr_move(self, i: int):
-        self._update_ptr(i)
+
+class PtrLabelSC(__PtrLabel):
+    """Top SCPtr labels base."""
+
+    def __init__(self, parent: 'TimeAxisPlot'):
+        """Init PtrLabelOMP object."""
+        super().__init__(parent)
+        self.setBrush(iosc.const.BRUSH_PTR_OMP)  # rect
+        self._update_ptr(self._oscwin.sc_ptr_i)
+        self._oscwin.signal_ptr_moved_sc.connect(self._update_ptr)
+
+    def _mk_text(self, x: float):
+        return "SC: %.2f" % x
+
+
+class PtrLabelPR(__PtrLabel):
+    """Top PRPtr labels base."""
+
+    def __init__(self, parent: 'TimeAxisPlot'):
+        """Init PtrLabelPR object."""
+        super().__init__(parent)
+        self.setBrush(iosc.const.BRUSH_PTR_OMP)  # rect
+        self._update_ptr(self._oscwin.pr_ptr_i)
+        self._oscwin.signal_ptr_moved_pr.connect(self._update_ptr)
+
+    def _mk_text(self, x: float):
+        return "PR: %.2f" % x
 
 
 class PtrLabelTmp(__PtrLabel):
@@ -89,6 +114,8 @@ class TimeAxisPlot(SlickPanelPlot):
     """Top time scale graphics."""
 
     __main_ptr_label: PtrLabelMain
+    __sc_ptr_label: PtrLabelSC
+    __pr_ptr_label: PtrLabelPR
     _tmp_ptr: dict[int, PtrLabelTmp]
     signal_width_changed = pyqtSignal(int)
 
@@ -96,6 +123,8 @@ class TimeAxisPlot(SlickPanelPlot):
         """Init TimeAxisPlot object."""
         super().__init__(parent)
         self.__main_ptr_label = PtrLabelMain(self)
+        self.__sc_ptr_label = PtrLabelSC(self)
+        self.__pr_ptr_label = PtrLabelPR(self)
         self._tmp_ptr = dict()
         # self.xAxis.setTickLabels(True)  # default
         # self.xAxis.setTicks(True)  # default

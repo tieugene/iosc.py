@@ -110,6 +110,7 @@ class ComtradeWidget(QWidget):
     signal_x_zoom = pyqtSignal()
     signal_ptr_moved_main = pyqtSignal(int)  # refresh Signal(Ctrl/Chart)View on MainPtr moved
     signal_ptr_moved_sc = pyqtSignal(int)  # refresh SignalChartWidget on OMP SC Ptr moved
+    signal_ptr_moved_pr = pyqtSignal(int)  # refresh SignalChartWidget on OMP PR Ptr moved
     signal_ptr_add_tmp = pyqtSignal(int)  # add new TmpPtr in each SignalChartWidget
     signal_ptr_del_tmp = pyqtSignal(int)  # rm TmpPtr from each SignalChartWidget
     signal_ptr_moved_tmp = pyqtSignal(int, int)  # refresh SignalChartWidget on Tmp Ptr moved
@@ -176,7 +177,7 @@ class ComtradeWidget(QWidget):
     def pr_ptr_i(self) -> Optional[int]:
         """Sample number of slave (left) OMP pointer."""
         if self.__sc_ptr_i is not None:
-            return self.__sc_ptr_i + self.osc.spp * self.__omp_width
+            return self.__sc_ptr_i - self.osc.spp * self.__omp_width
 
     @property
     def omp_width(self) -> Optional[int]:
@@ -968,6 +969,7 @@ class ComtradeWidget(QWidget):
         """
         self.__sc_ptr_i = i
         self.signal_ptr_moved_sc.emit(i)
+        self.signal_ptr_moved_pr.emit(self.pr_ptr_i)
 
     def slot_ptr_moved_tmp(self, uid: int, i: int):
         """Move tmp pointer in child widgets.
