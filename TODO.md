@@ -3,8 +3,6 @@
 Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 
 - [ ] #245: MyComtrade.avalues()  (AnalogSignalSuit._data_y(), SignalSuit.v_slice() | xGraphItem.init())
-- [ ] #248: SC/PR top labels
-- [ ] #249: Harm. 0..5
 - [ ] #250: LvlPtr: centered (limits), pors
 
 ## Adjusted

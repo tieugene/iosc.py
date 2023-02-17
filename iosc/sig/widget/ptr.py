@@ -3,7 +3,7 @@
 from typing import Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal
-from PyQt5.QtGui import QBrush, QColor, QFont, QMouseEvent, QCursor, QPen
+from PyQt5.QtGui import QBrush, QFont, QMouseEvent, QCursor, QPen
 from PyQt5.QtWidgets import QWidget, QMenu
 from QCustomPlot_PyQt5 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect, QCPGraph
 # 3. local
@@ -104,9 +104,9 @@ class Ptr(QCPItemTracer):
 
 
 class SCPtr(Ptr):
-    """OMP SC (Short Circuit) pointer."""
+    """OMP SC (Short Circuit, right) pointer."""
 
-    __pr_ptr: VLine  # Sibling PR pointer
+    __pr_ptr: VLine  # Sibling PR (left) pointer
     __x_limit: tuple[float, float]
 
     def __init__(self, graph: QCPGraph, root: QWidget):
@@ -169,6 +169,7 @@ class SCPtr(Ptr):
 
 
 class _TipBase(QCPItemText):
+    """Tip (on way) base class."""
     def __init__(self, cp: QCustomPlot):
         super().__init__(cp)
         self.setFont(QFont('mono', 8))
@@ -187,7 +188,7 @@ class _PowerPtr(Ptr):
             super().__init__(cp)
             self.setColor(Qt.black)  # text
             self.setPen(Qt.red)
-            self.setBrush(QBrush(QColor(255, 170, 0)))  # rect
+            self.setBrush(iosc.const.BRUSH_TIP)  # rect
 
         def move2x(self, x: float, x_old: float):
             """Move tip to x-position."""
@@ -202,8 +203,8 @@ class _PowerPtr(Ptr):
         def __init__(self, cp: QCustomPlot):
             """Init _Rect object."""
             super().__init__(cp)
-            self.setPen(QColor(255, 170, 0, 128))
-            self.setBrush(QColor(255, 170, 0, 128))
+            self.setPen(iosc.const.COLOR_RECT)
+            self.setBrush(iosc.const.COLOR_RECT)
 
         def set2x(self, x: float):
             """Set starting point."""
