@@ -48,14 +48,14 @@ class ValueTable(QTableWidget):
                 v = str(s.value(oscwin.main_ptr_i))
             else:
                 # v = s.as_str_full(func(s.value, oscwin.main_ptr_i, spp), pors)
-                v = s.as_str_full(s.value(oscwin.main_ptr_i, CENTERED, pors))
+                v = s.as_str_full(s.value(oscwin.main_ptr_i, CENTERED, pors, oscwin.viewas))
             self.setItem(r, 4, QTableWidgetItem(v))
             for c, tmp_i in enumerate(oscwin.tmp_ptr_i.values()):  # 5. TmpPtr[]
                 if s.is_bool:
                     v = str(s.value(tmp_i))
                 else:
                     # v = s.as_str_full(func(s.value, tmp_i, spp), pors)
-                    v = s.as_str_full(s.value(tmp_i, CENTERED, pors))
+                    v = s.as_str_full(s.value(tmp_i, CENTERED, pors, oscwin.viewas))
                 self.setItem(r, c + 5, QTableWidgetItem(v))
         # 3. the end
         self.resizeRowsToContents()
