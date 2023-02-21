@@ -8,11 +8,12 @@ from QCustomPlot_PyQt5 import QCPGraph, QCPScatterStyle, QCPRange
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.core.sigfunc import func_list, hrm1, hrm2, hrm3, hrm5
 from iosc.sig.widget.ctrl import ABSignalLabel
 from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
 from iosc.sig.widget.ptr import MsrPtr, LvlPtr
 # x. const
+H_B_MAX = 1.0
+H_B_MULT = 2 / 3  # Height multiplier for B-sigal graph against A-signal one, 0..1
 PEN_STYLE = (Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)
 # HRM_N2F = {1: hrm1, 2: hrm2, 3: hrm3, 5: hrm5} bad way
 HRM_N2F = {1: 3, 2: 4, 3: 5, 5: 6}  # harm no => func no
@@ -78,18 +79,6 @@ class SignalSuit(QObject):
             self.graph.setVisible(not hide)
             self._hidden = hide
             self.bar.update_stealth()
-
-    def v_slice(self, i0: int, i1: int) -> List[float | int]:
-        """Get slice of signal values from i0-th to i1-th *including*.
-        :param i0: Start index
-        :param i1: End index
-        :return: Signal values in range.
-
-        Used:
-        - AGraphItem | / (v_max - v_min)
-        - BGraphItem
-        """
-        return self._signal.values(self.oscwin.shifted)[i0:i1 + 1]
 
     # @property
     # def range_y(self) -> QCPRange:  # virtual
@@ -163,12 +152,12 @@ class StatusSignalSuit(SignalSuit):
 
         For calculating parent plot y-size.
         """
-        return QCPRange(0.0, 1.0)
+        return QCPRange(0.0, H_B_MAX)
 
     @property
     def _data_y(self) -> List[float]:
         """Used in: self.graph.setData()"""
-        return [v * 2 / 3 for v in self._signal.values()]
+        return [v * H_B_MULT * H_B_MAX for v in self._signal.values()]
 
     def sig2str_i(self, i: int) -> str:
         """:return: string repr of signal in sample #i."""
@@ -185,6 +174,16 @@ class StatusSignalSuit(SignalSuit):
         if StatusSignalPropertiesDialog(self).execute():
             self._set_style()
             self.graph.parentPlot().replot()
+
+    def a_values(self) -> List[int]:
+        """Get slice of signal values from i0-th to i1-th *including*.
+        :return: Signal values in range.
+
+        Used:
+        - BGraphItem.__init__()
+        :todo: slice
+        """
+        return self._signal.values()
 
 
 class AnalogSignalSuit(SignalSuit):
@@ -230,17 +229,20 @@ class AnalogSignalSuit(SignalSuit):
     def range_y(self) -> QCPRange:
         """:return: Min and max signal values."""
         retvalue = self.graph.data().valueRange()[0]
-        if retvalue.lower == retvalue.upper == 0.0:
-            retvalue = QCPRange(-1.0, 1.0)
-        return retvalue
+        return QCPRange(-0.5, 0.5) if retvalue.lower == retvalue.upper == 0.0 else retvalue
 
     @property
     def _data_y(self) -> List[float]:
-        """Used: self.graph.setData()"""
-        divider = max(abs(self.v_min), abs(self.v_max))
-        if divider == 0.0:
-            divider = 1.0
-        return [v / divider for v in self._signal.values(self.oscwin.shifted)]
+        """Normalized y-values ()
+
+        Used:
+        - self.graph.setData()
+        """
+        # plan A: -1…0.(9) … -1…1 … 0.(9)…1 … => Δ=0…2
+        # divider = max(abs(self.v_min), abs(self.v_max)) or 1.0
+        # return [v / divider for v in self._signal.values(self.oscwin.shifted)]
+        # plan B
+        return self.a_values()
 
     @property
     def v_min(self) -> float:
@@ -261,6 +263,39 @@ class AnalogSignalSuit(SignalSuit):
         - LvlPtr
         """
         return self._signal.v_max(self.oscwin.shifted)
+
+    def a_values(self) -> List[float]:
+        """Get adjusted values.
+
+        Used:
+        - AGraphItem.__init__()
+        :todo: slice
+        """
+        return self._signal.a_values(self.oscwin.shifted)
+
+    def a_v_min(self) -> float:
+        """Get adjusted min value.
+
+        Used:
+        - AGraphItem.__init__()
+        """
+        return self._signal.a_v_min(self.oscwin.shifted)
+
+    def a_v_max(self) -> float:
+        """Get adjusted max value.
+
+        Used:
+        - AGraphItem.__init__()
+        """
+        return self._signal.a_v_max(self.oscwin.shifted)
+
+    def a_div(self):
+        """Get adjusted devider.
+
+        Used:
+        - AGraphItem.__init__()  # for LvlPtr
+        """
+        return self._signal.a_div(self.oscwin.shifted)
 
     @property
     def pors_mult(self) -> float:

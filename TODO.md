@@ -2,27 +2,17 @@
 
 Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 
-- [ ] #245: MyComtrade.avalues()  (AnalogSignalSuit._data_y(), SignalSuit.v_slice() | xGraphItem.init())
 - [ ] #250: LvlPtr: centered (limits), pors
+  + [ ] LvlPtr: 0…1 of y_min…y_max ∨ 0
 
-## Adjusted
-
-min|max| Δ | Si | Sa | Gi | Ga
----|---|---|----|----|----|----
-
-### ASignalSuit._data_y():
-```py
-divider = max(abs(self.v_min), abs(self.v_max))
-[v / divider for v in values]
-```
-
-### AGraphItem.__init__():
-```py
-amin = min(0.0, ss.v_min)  # adjusted absolute value
-amax = max(0.0, ss.v_max)
-divider = amax - amin
-[v / divider for v in values]
-```
+## debug:
+- &check; v_min
+- &check; v_max
+- &cross; a_min(True) (0.12 but -0.5)
+- &cross; a_max(True) (1.12 but 0.5)
+- &check; a_div
+- &cross; min_a(True) (as a_min)
+- &cross; max_a(True) (as a_max)
 
 ## Calculated signals
 
