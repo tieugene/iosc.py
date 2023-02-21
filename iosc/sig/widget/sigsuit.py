@@ -8,7 +8,6 @@ from QCustomPlot_PyQt5 import QCPGraph, QCPScatterStyle, QCPRange
 # 3. local
 import iosc.const
 from iosc.core import mycomtrade
-from iosc.core.sigfunc import func_list, hrm1, hrm2, hrm3, hrm5
 from iosc.sig.widget.ctrl import ABSignalLabel
 from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
 from iosc.sig.widget.ptr import MsrPtr, LvlPtr
@@ -78,18 +77,6 @@ class SignalSuit(QObject):
             self.graph.setVisible(not hide)
             self._hidden = hide
             self.bar.update_stealth()
-
-    def v_slice(self, i0: int, i1: int) -> List[float | int]:
-        """Get slice of signal values from i0-th to i1-th *including*.
-        :param i0: Start index
-        :param i1: End index
-        :return: Signal values in range.
-
-        Used:
-        - AGraphItem | / (v_max - v_min)
-        - BGraphItem
-        """
-        return self._signal.values(self.oscwin.shifted)[i0:i1 + 1]
 
     # @property
     # def range_y(self) -> QCPRange:  # virtual
@@ -186,6 +173,16 @@ class StatusSignalSuit(SignalSuit):
             self._set_style()
             self.graph.parentPlot().replot()
 
+    def values(self) -> List[int]:
+        """Get slice of signal values from i0-th to i1-th *including*.
+        :return: Signal values in range.
+
+        Used:
+        - BGraphItem.__init__()
+        :todo: slice
+        """
+        return self._signal.values()
+
 
 class AnalogSignalSuit(SignalSuit):
     """Inner Analog signal container."""
@@ -236,10 +233,12 @@ class AnalogSignalSuit(SignalSuit):
 
     @property
     def _data_y(self) -> List[float]:
-        """Used: self.graph.setData()"""
-        divider = max(abs(self.v_min), abs(self.v_max))
-        if divider == 0.0:
-            divider = 1.0
+        """Normalized y-values ()
+
+        Used:
+        - self.graph.setData()
+        """
+        divider = max(abs(self.v_min), abs(self.v_max)) or 1.0
         return [v / divider for v in self._signal.values(self.oscwin.shifted)]
 
     @property
@@ -261,6 +260,39 @@ class AnalogSignalSuit(SignalSuit):
         - LvlPtr
         """
         return self._signal.v_max(self.oscwin.shifted)
+
+    def a_values(self) -> List[float]:
+        """Get adjusted values.
+
+        Used:
+        - AGraphItem.__init__()
+        :todo: slice
+        """
+        return self._signal.a_values(self.oscwin.shifted)
+
+    def a_v_min(self) -> float:
+        """Get adjusted min value.
+
+        Used:
+        - AGraphItem.__init__()
+        """
+        return self._signal.a_v_min(self.oscwin.shifted)
+
+    def a_v_max(self) -> float:
+        """Get adjusted max value.
+
+        Used:
+        - AGraphItem.__init__()
+        """
+        return self._signal.a_v_max(self.oscwin.shifted)
+
+    def a_div(self):
+        """Get adjusted devider.
+
+        Used:
+        - AGraphItem.__init__()  # for LvlPtr
+        """
+        return self._signal.a_div(self.oscwin.shifted)
 
     @property
     def pors_mult(self) -> float:

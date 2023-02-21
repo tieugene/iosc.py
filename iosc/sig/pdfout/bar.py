@@ -57,7 +57,7 @@ class AGraphItem(QGraphicsPathItem):
     """Analog signal representation."""
 
     ymin: float  # Adjusted normalized min (-1..0 ... 0..1)
-    ymax: float  # Adjusted normalized min
+    ymax: float  # Adjusted normalized max
     __nvalue: List[float]  # normalized values slice
     msr_ptr: List[MsrPtrItem]
     lvl_ptr: List[LvlPtrItem]
@@ -65,14 +65,9 @@ class AGraphItem(QGraphicsPathItem):
     def __init__(self, ss: AnalogSignalSuit, i_range: IntX2):
         """Init AGraphItem."""
         super().__init__()
-        amin = min(0.0, ss.v_min)  # adjusted absolute value
-        amax = max(0.0, ss.v_max)
-        asize = amax - amin
-        if asize == 0:  # TODO: quick hack against /0
-            asize = 1
-        self.ymin = amin / asize
-        self.ymax = amax / asize
-        self.__nvalue = [v / asize for v in ss.v_slice(i_range[0], i_range[1])]
+        self.ymin = ss.a_v_min()
+        self.ymax = ss.a_v_max()
+        self.__nvalue = ss.a_values()[i_range[0]:i_range[1]]  # TODO: ..:i_range[1]+1?
         self.setPen(ThinPen(ss.color))
         pp = QPainterPath()
         # default: x=0..SAMPLES, y=(-1..0)..(0..1)
@@ -84,7 +79,7 @@ class AGraphItem(QGraphicsPathItem):
                 self.msr_ptr.append(MsrPtrItem((i - i_range[0]) / (i_range[1] - i_range[0]), ss.color, self))
         self.lvl_ptr = list()
         for lptr in ss.lvl_ptr.values():
-            y = lptr[0].y_real / asize
+            y = lptr[0].y_real / ss.a_div()  # FIXME:
             self.lvl_ptr.append(LvlPtrItem(y, ss.color, self))
 
     def set_size(self, s: QSizeF, ymax: float):
@@ -125,7 +120,7 @@ class BGraphItem(QGraphicsPolygonItem):
     def __init__(self, ss: StatusSignalSuit, i_range: IntX2):
         """Init BGraphItem object."""
         super().__init__()
-        self.__value = ss.v_slice(i_range[0], i_range[1])  # just copy
+        self.__value = ss.values()[i_range[0]:i_range[1]]  # just copy; FIXME: ..:i_range[1]+1?
         self.setPen(ThinPen(ss.color))
         self.setBrush(QBrush(ss.color))  # , Qt.BrushStyle.Dense1Pattern
         self.setOpacity(0.5)

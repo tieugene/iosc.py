@@ -199,6 +199,7 @@ class ComtradeWidget(QWidget):
         """:return: Whether osc signals are shifted.
 
         :fixme: rm?
+        :todo: mv to 'centered'
         """
         return self.osc.shifted
 

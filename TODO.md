@@ -2,26 +2,22 @@
 
 Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 
-- [ ] #245: MyComtrade.avalues()  (AnalogSignalSuit._data_y(), SignalSuit.v_slice() | xGraphItem.init())
+- [ ] #245: MyComtrade.avalues():
+  + [x] `StatusSignalSuit.values()`/`AnalogSignalSuit.a_values()` | `xGraphItem.__init__()`: -1…0.(9) … -0.5…0.5 … 0.(9)…1 … Δ=0…1
+  + [ ] `AnalogSignalSuit._data_y()` | `.graph.setData()`: -1…0.(9) … -1…1 … 0.(9)…1 … => Δ=0…2
+  + [ ] FIXME: PDF(~~y-centered~~)
+  + [ ] LvlPtr: 0…1 of y_min…y_max ∨ 0
 - [ ] #250: LvlPtr: centered (limits), pors
 
 ## Adjusted
 
-min|max| Δ | Si | Sa | Gi | Ga
----|---|---|----|----|----|----
-
-### ASignalSuit._data_y():
 ```py
-divider = max(abs(self.v_min), abs(self.v_max))
-[v / divider for v in values]
-```
-
-### AGraphItem.__init__():
-```py
-amin = min(0.0, ss.v_min)  # adjusted absolute value
-amax = max(0.0, ss.v_max)
-divider = amax - amin
-[v / divider for v in values]
+# sig.widget.sigsuit.ASignalSuit._data_y()
+divider = max(abs(ss.v_min), abs(ss.v_max))
+# sig.pdfout.bar.AGraphItem.__init__()
+divider = max(0.0, ss.v_max) - min(0.0, ss.v_min)
+# common
+[v / divider for v in ss.values]
 ```
 
 ## Calculated signals
