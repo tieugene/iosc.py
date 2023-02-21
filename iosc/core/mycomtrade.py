@@ -274,7 +274,7 @@ class AnalogSignal(__Signal):
         return self.__y_max - self.__y_center if y_centered else self.__y_max
 
     def a_values(self, y_centered: bool) -> List[float]:
-        """Get adjusted values:
+        """Get adjusted values (-1…0.(9) … -0.5…0.5 … 0.(9)…1 … Δ=0…1):
         - -1 <= (y_min,y_max) <= 1
         - Δ(y_min,y_max,0) = 1
 
@@ -283,7 +283,7 @@ class AnalogSignal(__Signal):
         :todo: slice
         """
         divider = self.__a_div_centered if y_centered else self.__a_div
-        return [v / divider for v in self._value]
+        return [v / divider for v in self.values(y_centered)]
 
     def a_v_min(self, y_centered: bool) -> float:
         """Get adjusted min value.
@@ -291,7 +291,7 @@ class AnalogSignal(__Signal):
         :return: Minimal adjusted sample value.
         Used: TODO
         """
-        return self.__y_min / self.__a_div_centered if y_centered else self.__a_min
+        return self.v_min(y_centered) / self.__a_div_centered if y_centered else self.__a_min
 
     def a_v_max(self, y_centered: bool) -> float:
         """Get adjusted max value.
@@ -299,7 +299,7 @@ class AnalogSignal(__Signal):
         :return: Maximal adjusted sample value.
         Used: TODO
         """
-        return self.__y_max / self.__a_div_centered if y_centered else self.__a_max
+        return self.v_max(y_centered) / self.__a_div_centered if y_centered else self.__a_max
 
     def a_div(self, y_centered: bool) -> float:
         return self.__a_div_centered if y_centered else self.__a_div

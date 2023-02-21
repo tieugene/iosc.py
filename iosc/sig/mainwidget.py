@@ -762,6 +762,21 @@ class ComtradeWidget(QWidget):
             """HTML <tr> constructor."""
             return f"<tr><th>{name}:</th><td>{value}</td></tr>"
 
+        def __debug(i: int) -> str:
+            sig = self.osc.y[i]
+            a = sig.a_values(False)
+            a_c = sig.a_values(True)
+            return\
+                f"Name: {sig.sid} (raw | centered)\n" \
+                f"v_min= {sig.v_min(False):7.2f} | {sig.v_min(True):7.2f}\n" \
+                f"v_max= {sig.v_max(False):7.2f} | {sig.v_max(True):7.2f}\n" \
+                f"a_min= {sig.a_v_min(False):7.2f} | {sig.a_v_min(True):7.2f}\n" \
+                f"a_max= {sig.a_v_max(False):7.2f} | {sig.a_v_max(True):7.2f}\n" \
+                f"a_div= {sig.a_div(False):7.2f} | {sig.a_div(True):7.2f}\n" \
+                f"min_a= {min(a):7.2f} | {min(a_c):7.2f}\n" \
+                f"max_a= {max(a):7.2f} | {max(a_c):7.2f}\n"
+
+        # print(__debug(1))
         msg = QMessageBox(QMessageBox.Icon.Information, "Comtrade file info", "Summary")
         # plan A:
         # msg.setDetailedText(self.osc.cfg_summary())
@@ -861,7 +876,7 @@ class ComtradeWidget(QWidget):
         """X-zoom out action."""
         self.__update_xzoom(self.x_zoom + 1)
 
-    def __do_centered(self, v: bool):
+    def __do_centered(self, _: bool):
         self.osc.shifted = self.action_centered.isChecked()
         self.signal_chged_shift.emit()
 

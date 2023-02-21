@@ -238,8 +238,10 @@ class AnalogSignalSuit(SignalSuit):
         Used:
         - self.graph.setData()
         """
+        # plan A: -1…0.(9) … -1…1 … 0.(9)…1 … => Δ=0…2
         # divider = max(abs(self.v_min), abs(self.v_max)) or 1.0
         # return [v / divider for v in self._signal.values(self.oscwin.shifted)]
+        # plan B
         return self.a_values()
 
     @property
