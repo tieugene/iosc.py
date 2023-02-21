@@ -12,6 +12,8 @@ from iosc.sig.widget.ctrl import ABSignalLabel
 from iosc.sig.widget.dialog import StatusSignalPropertiesDialog, AnalogSignalPropertiesDialog
 from iosc.sig.widget.ptr import MsrPtr, LvlPtr
 # x. const
+H_B_MAX = 1.0
+H_B_MULT = 2 / 3  # Height multiplier for B-sigal graph against A-signal one, 0..1
 PEN_STYLE = (Qt.SolidLine, Qt.DotLine, Qt.DashDotDotLine)
 # HRM_N2F = {1: hrm1, 2: hrm2, 3: hrm3, 5: hrm5} bad way
 HRM_N2F = {1: 3, 2: 4, 3: 5, 5: 6}  # harm no => func no
@@ -150,12 +152,12 @@ class StatusSignalSuit(SignalSuit):
 
         For calculating parent plot y-size.
         """
-        return QCPRange(0.0, 1.0)
+        return QCPRange(0.0, H_B_MAX)
 
     @property
     def _data_y(self) -> List[float]:
         """Used in: self.graph.setData()"""
-        return [v * 2 / 3 for v in self._signal.values()]
+        return [v * H_B_MULT * H_B_MAX for v in self._signal.values()]
 
     def sig2str_i(self, i: int) -> str:
         """:return: string repr of signal in sample #i."""
@@ -173,7 +175,7 @@ class StatusSignalSuit(SignalSuit):
             self._set_style()
             self.graph.parentPlot().replot()
 
-    def values(self) -> List[int]:
+    def a_values(self) -> List[int]:
         """Get slice of signal values from i0-th to i1-th *including*.
         :return: Signal values in range.
 
@@ -227,9 +229,7 @@ class AnalogSignalSuit(SignalSuit):
     def range_y(self) -> QCPRange:
         """:return: Min and max signal values."""
         retvalue = self.graph.data().valueRange()[0]
-        if retvalue.lower == retvalue.upper == 0.0:
-            retvalue = QCPRange(-1.0, 1.0)
-        return retvalue
+        return QCPRange(-0.5, 0.5) if retvalue.lower == retvalue.upper == 0.0 else retvalue
 
     @property
     def _data_y(self) -> List[float]:
@@ -238,8 +238,9 @@ class AnalogSignalSuit(SignalSuit):
         Used:
         - self.graph.setData()
         """
-        divider = max(abs(self.v_min), abs(self.v_max)) or 1.0
-        return [v / divider for v in self._signal.values(self.oscwin.shifted)]
+        # divider = max(abs(self.v_min), abs(self.v_max)) or 1.0
+        # return [v / divider for v in self._signal.values(self.oscwin.shifted)]
+        return self.a_values()
 
     @property
     def v_min(self) -> float:

@@ -120,7 +120,7 @@ class BGraphItem(QGraphicsPolygonItem):
     def __init__(self, ss: StatusSignalSuit, i_range: IntX2):
         """Init BGraphItem object."""
         super().__init__()
-        self.__value = ss.values()[i_range[0]:i_range[1]]  # just copy; FIXME: ..:i_range[1]+1?
+        self.__value = ss.a_values()[i_range[0]:i_range[1]]  # just copy; FIXME: ..:i_range[1]+1?
         self.setPen(ThinPen(ss.color))
         self.setBrush(QBrush(ss.color))  # , Qt.BrushStyle.Dense1Pattern
         self.setOpacity(0.5)

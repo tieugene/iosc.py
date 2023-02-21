@@ -4,8 +4,9 @@ Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 
 - [ ] #245: MyComtrade.avalues():
   + [x] `StatusSignalSuit.values()`/`AnalogSignalSuit.a_values()` | `xGraphItem.__init__()`: -1…0.(9) … -0.5…0.5 … 0.(9)…1 … Δ=0…1
-  + [ ] `AnalogSignalSuit._data_y()` | `.graph.setData()`: -1…0.(9) … -1…1 … 0.(9)…1 … => Δ=0…2
+  + [x] `AnalogSignalSuit._data_y()` | `.graph.setData()`: -1…0.(9) … -1…1 … 0.(9)…1 … => Δ=0…2
   + [ ] FIXME: PDF(~~y-centered~~)
+  + [ ] FIXME: Screen(~~y-centered~~)
   + [ ] LvlPtr: 0…1 of y_min…y_max ∨ 0
 - [ ] #250: LvlPtr: centered (limits), pors
 
