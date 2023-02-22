@@ -3,14 +3,14 @@
 Current job: [0.3.5. Pre-Math cleanup](https://github.com/tieugene/iosc.py/milestone/17)
 
 - [ ] #250: LvlPtr: centered (limits), pors
-  + [x] FIXME: Label lies
-  + [x] FIXME: Move limits (a_v_min bad)
-  + [x] FIXME: PorS switch: text not changed
-  + [ ] FIXME: Centered switch: strange
   + [ ] ComtradeWidget.__ofg_store(): ?
   + [ ] ComtradeWidget.__cfg_restore()
   + [ ] &rdsh;AnalogSignalSuit.add_ptr_lvl()
   + [ ] &rdsh;.__init__(): ?
+  + [x] FIXME: Label lies
+  + [x] FIXME: Move limits (a_v_min bad)
+  + [x] FIXME: PorS switch: text not changed
+  + [x] FIXME: Centered switch: strange
 
 ## Calculated signals
 

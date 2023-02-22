@@ -485,7 +485,7 @@ class LvlPtr(QCPItemStraightLine):
         self.__slot_move()
         self.selectionChanged.connect(self.__selection_chg)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
-        # self.__oscwin.signal_chged_shift.connect(self.__slot_move)  # behavior undefined
+        self.__oscwin.signal_chged_shift.connect(self.__slot_move)  # behavior undefined
         self.__oscwin.signal_chged_pors.connect(self.__slot_update_text)
 
     @property
