@@ -442,7 +442,7 @@ class AnalogSignalSuit(SignalSuit):
         Call from ComtradeWidget.
         """
         # self.lvl_ptr.add(LvlPtr(self, self.oscwin, uid, y or self.range_y.upper))
-        self.lvl_ptr[uid] = [None, y or self.range_y.upper]
+        self.lvl_ptr[uid] = [None, y or 1.0]
         LvlPtr(self, uid)
 
     def del_ptr_lvl(self, uid: int):

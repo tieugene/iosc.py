@@ -509,11 +509,19 @@ class LvlPtr(QCPItemStraightLine):
         return self.__y_rel
 
     def __get_y_scr(self) -> float:
-        """Convert relative value into screen y-coord."""
+        """Convert relative value into screen y-coord.
+
+        Used:
+        - .__slot_move()
+        """
         return (a_min := self.__ss.a_v_min()) + self.__y_rel * (self.__ss.a_v_max() - a_min)
 
     def __set_y_scr(self, v: float):
-        """Convert screen y-coord into relative value."""
+        """Convert screen y-coord into relative value.
+
+        Used:
+        - .mouseMoveEvent()
+        """
         self.__y_rel = (v - (a_min := self.__ss.a_v_min())) / (self.__ss.a_v_max() - a_min)
 
     def get_y_nat(self) -> float:

@@ -4,7 +4,7 @@ Current job: [0.3.5. Pre-Math cleanup](https://github.com/tieugene/iosc.py/miles
 
 - [ ] #250: LvlPtr: centered (limits), pors
   + [ ] ComtradeWidget.__ofg_store(): ?
-  + [ ] ComtradeWidget.__cfg_restore()
+  + [ ] ComtradeWidget.__ofg_restore()
   + [ ] &rdsh;AnalogSignalSuit.add_ptr_lvl()
   + [ ] &rdsh;.__init__(): ?
   + [x] FIXME: Label lies

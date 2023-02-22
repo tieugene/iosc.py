@@ -607,7 +607,7 @@ class ComtradeWidget(QWidget):
             data['tool'] = tool
         return data
 
-    def __cfg_restore(self, data: dict):
+    def __ofg_restore(self, data: dict):
         """Restore osc from *.ofg content.
 
         :todo: capsulate
@@ -849,7 +849,7 @@ class ComtradeWidget(QWidget):
         )
         if fn[0]:
             with open(fn[0], 'rt') as fp:  # FIXME: encoding
-                self.__cfg_restore(json.load(fp))
+                self.__ofg_restore(json.load(fp))
 
     def __do_signal_unhide(self):
         """Unhide all signals."""
