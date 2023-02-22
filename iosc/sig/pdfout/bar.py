@@ -65,8 +65,8 @@ class AGraphItem(QGraphicsPathItem):
     def __init__(self, ss: AnalogSignalSuit, i_range: IntX2):
         """Init AGraphItem."""
         super().__init__()
-        self.ymin = ss.a_v_min()
-        self.ymax = ss.a_v_max()
+        self.ymin = ss.a_v_min()  # FIXME: .a_min()?
+        self.ymax = ss.a_v_max()  # FIXME: .a_max()?
         self.__nvalue = ss.a_values()[i_range[0]:i_range[1]]  # TODO: ..:i_range[1]+1?
         self.setPen(ThinPen(ss.color))
         pp = QPainterPath()
@@ -79,7 +79,7 @@ class AGraphItem(QGraphicsPathItem):
                 self.msr_ptr.append(MsrPtrItem((i - i_range[0]) / (i_range[1] - i_range[0]), ss.color, self))
         self.lvl_ptr = list()
         for lptr in ss.lvl_ptr.values():
-            y = lptr[0].y_real / ss.a_div()  # FIXME:
+            y = lptr[0].get_y_nat() / ss.a_div()  # FIXME:
             self.lvl_ptr.append(LvlPtrItem(y, ss.color, self))
 
     def set_size(self, s: QSizeF, ymax: float):

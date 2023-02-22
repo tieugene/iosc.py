@@ -264,6 +264,14 @@ class AnalogSignalSuit(SignalSuit):
         """
         return self._signal.v_max(self.oscwin.shifted)
 
+    def a_div(self):
+        """Get adjusted devider.
+
+        Used:
+        - AGraphItem.__init__()  # for LvlPtr
+        """
+        return self._signal.a_div(self.oscwin.shifted)
+
     def a_values(self) -> List[float]:
         """Get adjusted values.
 
@@ -278,6 +286,7 @@ class AnalogSignalSuit(SignalSuit):
 
         Used:
         - AGraphItem.__init__()
+        - LvlPtr
         """
         return self._signal.a_v_min(self.oscwin.shifted)
 
@@ -286,16 +295,23 @@ class AnalogSignalSuit(SignalSuit):
 
         Used:
         - AGraphItem.__init__()
+        - LvlPtr
         """
         return self._signal.a_v_max(self.oscwin.shifted)
 
-    def a_div(self):
-        """Get adjusted devider.
+    def a_min(self) -> float:
+        """Get adjusted min value.
 
         Used:
-        - AGraphItem.__init__()  # for LvlPtr
         """
-        return self._signal.a_div(self.oscwin.shifted)
+        return self._signal.a_min(self.oscwin.shifted)
+
+    def a_max(self) -> float:
+        """Get adjusted max value.
+
+        Used:
+        """
+        return self._signal.a_max(self.oscwin.shifted)
 
     @property
     def pors_mult(self) -> float:
@@ -426,7 +442,7 @@ class AnalogSignalSuit(SignalSuit):
         Call from ComtradeWidget.
         """
         # self.lvl_ptr.add(LvlPtr(self, self.oscwin, uid, y or self.range_y.upper))
-        self.lvl_ptr[uid] = [None, y or self.range_y.upper]
+        self.lvl_ptr[uid] = [None, y or 1.0]
         LvlPtr(self, uid)
 
     def del_ptr_lvl(self, uid: int):

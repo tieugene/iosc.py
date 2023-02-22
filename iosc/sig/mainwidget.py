@@ -577,7 +577,7 @@ class ComtradeWidget(QWidget):
                         if ss.lvl_ptr:
                             ptrs = []
                             for uid, v in ss.lvl_ptr.items():
-                                ptrs.append({'uid': uid, 'y': v[0].y_reduced})
+                                ptrs.append({'uid': uid, 'y': v[0].get_y_rel()})
                             s_data['ptr_lvl'] = ptrs
                     b_data['s'].append(s_data)
                 t_data.append(b_data)
@@ -607,7 +607,7 @@ class ComtradeWidget(QWidget):
             data['tool'] = tool
         return data
 
-    def __cfg_restore(self, data: dict):
+    def __ofg_restore(self, data: dict):
         """Restore osc from *.ofg content.
 
         :todo: capsulate
@@ -768,13 +768,15 @@ class ComtradeWidget(QWidget):
             a_c = sig.a_values(True)
             return\
                 f"Name: {sig.sid} (raw | centered)\n" \
-                f"v_min= {sig.v_min(False):7.2f} | {sig.v_min(True):7.2f}\n" \
-                f"v_max= {sig.v_max(False):7.2f} | {sig.v_max(True):7.2f}\n" \
-                f"a_min= {sig.a_v_min(False):7.2f} | {sig.a_v_min(True):7.2f}\n" \
-                f"a_max= {sig.a_v_max(False):7.2f} | {sig.a_v_max(True):7.2f}\n" \
-                f"a_div= {sig.a_div(False):7.2f} | {sig.a_div(True):7.2f}\n" \
-                f"min_a= {min(a):7.2f} | {min(a_c):7.2f}\n" \
-                f"max_a= {max(a):7.2f} | {max(a_c):7.2f}\n"
+                f"v_min=   {sig.v_min(False):8.3f} | {sig.v_min(True):8.3f}\n" \
+                f"v_max=   {sig.v_max(False):8.3f} | {sig.v_max(True):8.3f}\n" \
+                f"a_div=   {sig.a_div(False):8.3f} | {sig.a_div(True):8.3f}\n" \
+                f"a_min=   {sig.a_min(False):8.3f} | {sig.a_min(True):8.3f}\n" \
+                f"a_max=   {sig.a_max(False):8.3f} | {sig.a_max(True):8.3f}\n" \
+                f"a_v_min= {sig.a_v_min(False):8.3f} | {sig.a_v_min(True):8.3f}\n" \
+                f"a_v_max= {sig.a_v_max(False):8.3f} | {sig.a_v_max(True):8.3f}\n" \
+                f"min_a=   {min(a):8.3f} | {min(a_c):8.3f}\n" \
+                f"max_a=   {max(a):8.3f} | {max(a_c):8.3f}\n"
 
         # print(__debug(1))
         msg = QMessageBox(QMessageBox.Icon.Information, "Comtrade file info", "Summary")
@@ -847,7 +849,7 @@ class ComtradeWidget(QWidget):
         )
         if fn[0]:
             with open(fn[0], 'rt') as fp:  # FIXME: encoding
-                self.__cfg_restore(json.load(fp))
+                self.__ofg_restore(json.load(fp))
 
     def __do_signal_unhide(self):
         """Unhide all signals."""
