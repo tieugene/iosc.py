@@ -577,7 +577,7 @@ class ComtradeWidget(QWidget):
                         if ss.lvl_ptr:
                             ptrs = []
                             for uid, v in ss.lvl_ptr.items():
-                                ptrs.append({'uid': uid, 'y': v[0].y_rel})
+                                ptrs.append({'uid': uid, 'y': v[0].get_y_rel()})
                             s_data['ptr_lvl'] = ptrs
                     b_data['s'].append(s_data)
                 t_data.append(b_data)

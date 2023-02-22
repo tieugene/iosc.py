@@ -3,10 +3,9 @@
 Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 
 - [ ] #250: LvlPtr: centered (limits), pors
-  + [ ] LvlPtr: 0…1 of y_min…y_max ∨ 0
-  + [ ] .mouseMoveEvent(): y_screen>_y
-  + [ ] .__edit_self(): _y>y_sig[] | y_sig>_y
-  + [ ] .__slot_update_text(): _y>y_sig
+  + [ ] FIXME: Centered switch: strange
+  + [ ] FIXME: PorS switch: text not changed
+  + [ ] FIXME: Move limits (a_v_min bad)
   + [ ] ComtradeWidget.__ofg_store(): ?
   + [ ] ComtradeWidget.__cfg_restore()
   + [ ] &rdsh;AnalogSignalSuit.add_ptr_lvl()
