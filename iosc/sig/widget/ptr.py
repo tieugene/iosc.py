@@ -482,10 +482,10 @@ class LvlPtr(QCPItemStraightLine):
         self.__ss.lvl_ptr[self.__uid][0] = self
         self.__oscwin.lvl_ptr_uids.add(self.__uid)
         self.__set_color()
-        self.__move()
+        self.__slot_move()
         self.selectionChanged.connect(self.__selection_chg)
         self.signal_rmb_clicked.connect(self.__slot_context_menu)
-        # self.__oscwin.signal_chged_shift.connect(self.__slot_update_text)  # behavior undefined
+        # self.__oscwin.signal_chged_shift.connect(self.__slot_move)  # behavior undefined
         self.__oscwin.signal_chged_pors.connect(self.__slot_update_text)
 
     @property
@@ -517,10 +517,17 @@ class LvlPtr(QCPItemStraightLine):
         self.__y_rel = (v - (a_min := self.__ss.a_v_min())) / (self.__ss.a_v_max() - a_min)
 
     def get_y_nat(self) -> float:
-        """Get natural (real) signal value in the level."""
+        """Get natural (real) signal value in the level.
+
+        Used:
+        - .__edit_self()
+        - .__slot_update_text()
+        - AGraphItem.__init__()
+        :todo: * self.__ss.a_div()
+        """
         return (v_min := self.__ss.v_min) + self.__y_rel * (self.__ss.v_max - v_min)
 
-    def __move(self):
+    def __slot_move(self):
         """Move ptr to screen y-coord."""
         y = self.__get_y_scr()
         self.point1.setCoords(self.__oscwin.osc.x_min, y)
@@ -580,7 +587,7 @@ class LvlPtr(QCPItemStraightLine):
         y_reduced_new = self.parentPlot().yAxis.pixelToCoord(event.pos().y())
         if self.__ss.a_v_min() <= y_reduced_new <= self.__ss.a_v_max():
             self.__set_y_scr(y_reduced_new)
-            self.__move()
+            self.__slot_move()
 
     def __switch_cursor(self, selected: bool):
         if selected:
@@ -623,7 +630,7 @@ class LvlPtr(QCPItemStraightLine):
         if form.exec_():
             # unpors back
             self.__y_rel = (form.f_val.value() - form.f_val.minimum()) / (form.f_val.maximum() - form.f_val.minimum())
-            self.__move()
+            self.__slot_move()
 
     def suicide(self):
         """Self destroy."""

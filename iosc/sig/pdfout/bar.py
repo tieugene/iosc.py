@@ -65,8 +65,8 @@ class AGraphItem(QGraphicsPathItem):
     def __init__(self, ss: AnalogSignalSuit, i_range: IntX2):
         """Init AGraphItem."""
         super().__init__()
-        self.ymin = ss.a_v_min()
-        self.ymax = ss.a_v_max()
+        self.ymin = ss.a_v_min()  # FIXME: .a_min()?
+        self.ymax = ss.a_v_max()  # FIXME: .a_max()?
         self.__nvalue = ss.a_values()[i_range[0]:i_range[1]]  # TODO: ..:i_range[1]+1?
         self.setPen(ThinPen(ss.color))
         pp = QPainterPath()

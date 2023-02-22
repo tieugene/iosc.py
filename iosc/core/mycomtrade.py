@@ -133,8 +133,9 @@ class AnalogSignal(__Signal):
     __y_center: float
     # __value_centered: np.array
     __a_div: float  # divider for adjusted values
-    __a_min: float
-    __a_max: float
+    __a_div_centered: float  # divider for adjusted y-centered values
+    # __a_min: float
+    # __a_max: float
 
     def __init__(self, raw: Comtrade, i: int, parent: 'MyComtrade'):
         """Init AnalogSignal object."""
@@ -147,8 +148,8 @@ class AnalogSignal(__Signal):
         self.__y_center = np.average(self._value)  # TODO: (max+min)/2
         # self.__value_centered = self._value - self.__y_center
         self.__a_div = (a_max := max(0.0, self.__y_max)) - (a_min := min(0.0, self.__y_min)) or 1.0  # w/ /0 protection
-        self.__a_min = a_min / self.__a_div
-        self.__a_max = a_max / self.__a_div
+        # self.__a_min = a_min / self.__a_div
+        # self.__a_max = a_max / self.__a_div
         self.__a_div_centered = self.__y_max - self.__y_min or 1.0
         # pri/sec multipliers
         if self._raw2.uu.startswith('m'):
@@ -221,8 +222,7 @@ class AnalogSignal(__Signal):
         return self.__mult[int(ps)]
 
     def value(self, i: int, y_centered: bool, pors: bool, func: int = 0) -> Union[float, complex]:
-        """:return: Sample values depending on 'shifted' state.
-        :todo: slice
+        """Get sample value depending on 'centerd', PorS and function.
 
         Used:
         - export_to_csv()  # entry; [yc?,] pors [, func=0]
@@ -231,6 +231,7 @@ class AnalogSignal(__Signal):
           + hrm()  # entry; [yc?,] [pors,] func
         - ValueTable.__init__()  # entry; [yc?,] [pors?] func
         - OMPMapWindow._h1()  # entry; yc=False, pors, func=h1
+        :todo: slice
         """
         if func:
             v = func_list[func](self.values(y_centered), i, self.__parent.spp)
@@ -240,7 +241,7 @@ class AnalogSignal(__Signal):
         # return self.__value_centered if self.__parent.shifted else self._value
 
     def values(self, y_centered: bool) -> List[float]:
-        """Get values.
+        """Get raw values.
 
         :param y_centered: Y-centered
         :return: Adjusted Values
@@ -252,7 +253,7 @@ class AnalogSignal(__Signal):
         return [v - self.__y_center for v in self._value] if y_centered else self._value
 
     def v_min(self, y_centered: bool) -> float:
-        """Get min value.
+        """Get raw min value.
 
         :return: Minimal sample value.
         :todo: f(y_centered, pors)
@@ -263,7 +264,7 @@ class AnalogSignal(__Signal):
         return self.__y_min - self.__y_center if y_centered else self.__y_min
 
     def v_max(self, y_centered: bool) -> float:
-        """Get max value.
+        """Get raw max value.
 
         :return: Maximal sample value.
         :todo: f(shift, pors)
@@ -273,6 +274,14 @@ class AnalogSignal(__Signal):
         """
         return self.__y_max - self.__y_center if y_centered else self.__y_max
 
+    def a_div(self, y_centered: bool) -> float:
+        """Get adjust divider.
+
+        Used (ext):
+        - ASignalSuit.a_div()
+        """
+        return self.__a_div_centered if y_centered else self.__a_div
+
     def a_values(self, y_centered: bool) -> List[float]:
         """Get adjusted values (-1…0.(9) … -0.5…0.5 … 0.(9)…1 … Δ=0…1):
         - -1 <= (y_min,y_max) <= 1
@@ -280,29 +289,36 @@ class AnalogSignal(__Signal):
 
         :param y_centered: Y-centered
         :return: Adjusted Values
+        Usage (Ext):
+        - ASignalSuit.a_values()
         :todo: slice
         """
-        divider = self.__a_div_centered if y_centered else self.__a_div
+        divider = self.a_div(y_centered)
         return [v / divider for v in self.values(y_centered)]
 
     def a_v_min(self, y_centered: bool) -> float:
-        """Get adjusted min value.
+        """Get adjusted raw min value.
 
-        :return: Minimal adjusted sample value.
-        Used: TODO
+        Usage (ext):
+        - ASignalSuit.a_v_min()
         """
-        return self.v_min(y_centered) / self.__a_div_centered if y_centered else self.__a_min
+        return self.v_min(y_centered) / self.a_div(y_centered)
 
     def a_v_max(self, y_centered: bool) -> float:
-        """Get adjusted max value.
+        """Get adjusted raw max value.
 
-        :return: Maximal adjusted sample value.
-        Used: TODO
+        Usage (ext):
+        - ASignalSuit.a_v_min()
         """
-        return self.v_max(y_centered) / self.__a_div_centered if y_centered else self.__a_max
+        return self.v_max(y_centered) / self.a_div(y_centered)
 
-    def a_div(self, y_centered: bool) -> float:
-        return self.__a_div_centered if y_centered else self.__a_div
+    def a_min(self, y_centered: bool) -> float:
+        """Get adjusted min signal y-space (inc. Y=0)."""
+        return min(0.0, self.a_v_min(y_centered))
+
+    def a_max(self, y_centered: bool) -> float:
+        """Get adjusted max signal y-space (inc. Y=0)."""
+        return max(0.0, self.a_v_max(y_centered))
 
     def as_str(self, y: float) -> str:
         """Get string representation of signal value (real only).
