@@ -525,7 +525,15 @@ class LvlPtr(QCPItemStraightLine):
         - AGraphItem.__init__()
         :todo: * self.__ss.a_div()
         """
-        return (v_min := self.__ss.v_min) + self.__y_rel * (self.__ss.v_max - v_min)
+        return self.__y_pors((v_min := self.__ss.v_min) + self.__y_rel * (self.__ss.v_max - v_min))
+
+    def __y_pors(self, v: float) -> float:
+        """Reduce value according go global pors mode.
+
+        :param v: Value to PorS
+        :return: PorS'ed v
+        """
+        return v * self.__ss.pors_mult
 
     def __slot_move(self):
         """Move ptr to screen y-coord."""
@@ -613,19 +621,11 @@ class LvlPtr(QCPItemStraightLine):
             self.__ss.del_ptr_lvl(self.__uid)
 
     def __edit_self(self):
-        def __y_pors(__y: float) -> float:
-            """Reduce value according go global pors mode.
-
-            :param __y: Value to redice
-            :return: pors'ed y
-            """
-            return __y * self.__ss.pors_mult
-
         # pors all values
         form = LvlPtrDialog((
-            __y_pors(self.get_y_nat()),
-            __y_pors(self.__ss.v_min),
-            __y_pors(self.__ss.v_max)
+            self.get_y_nat(),
+            self.__y_pors(self.__ss.v_min),
+            self.__y_pors(self.__ss.v_max)
         ))
         if form.exec_():
             # unpors back
