@@ -79,7 +79,7 @@ class AGraphItem(QGraphicsPathItem):
                 self.msr_ptr.append(MsrPtrItem((i - i_range[0]) / (i_range[1] - i_range[0]), ss.color, self))
         self.lvl_ptr = list()
         for lptr in ss.lvl_ptr.values():
-            y = lptr[0].y_real / ss.a_div()  # FIXME:
+            y = lptr[0].get_y_real() / ss.a_div()  # FIXME:
             self.lvl_ptr.append(LvlPtrItem(y, ss.color, self))
 
     def set_size(self, s: QSizeF, ymax: float):

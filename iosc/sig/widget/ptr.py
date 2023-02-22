@@ -466,6 +466,7 @@ class LvlPtr(QCPItemStraightLine):
     __oscwin: 'ComtradeWidget'  # noqa: F821
     __uid: int  # uniq id
     __tip: _Tip
+    __y_rel: float  # 0..1 (Ymin..Ymax)
     __mult: float  # multiplier reduced<>real
     signal_rmb_clicked = pyqtSignal(QPointF)
 
@@ -479,7 +480,9 @@ class LvlPtr(QCPItemStraightLine):
         # self.setPen(iosc.const.PEN_PTR_OMP)
         self.__set_color()
         self.__mult = max(max(self.__ss.v_max, 0), abs(min(0, self.__ss.v_min)))  # mult-r rediced<>real
-        self.y_reduced = self.__ss.lvl_ptr[self.__uid][1]
+        # print(self.__ss.lvl_ptr[self.__uid][1])
+        self.__y_rel = self.__ss.lvl_ptr[self.__uid][1]
+        self.__set_y_screen(self.__ss.lvl_ptr[self.__uid][1])  # FIXME: rm
         self.__ss.lvl_ptr[self.__uid][0] = self
         self.__oscwin.lvl_ptr_uids.add(self.__uid)
         self.selectionChanged.connect(self.__selection_chg)
@@ -504,40 +507,27 @@ class LvlPtr(QCPItemStraightLine):
         return self.__uid
 
     @property
-    def y_reduced_min(self) -> float:
-        """:return: Min adjusted signal value."""
-        return self.__ss.v_min / self.__mult
+    def y_rel(self) -> float:
+        """Get relative (Ymin..Ymax) ptr position, 0..1."""
+        return self.__y_rel
 
-    @property
-    def y_reduced_max(self) -> float:
-        """:return: Max adjusted signal value."""
-        return self.__ss.v_max / self.__mult
-
-    @property
-    def y_reduced(self) -> float:
-        """:return: Adjusted (-1..1) level value."""
+    def get_y_screen(self) -> float:
         return self.point1.coords().y()
 
-    @y_reduced.setter
-    def y_reduced(self, y: float):
-        """Set adjusted level value.
-
-        :note: for  QCPItemLine: s/point1/start/, s/point2/end/
-        """
+    def __set_y_screen(self, y: float):
+        """Move ptr to screen y-height."""
         self.point1.setCoords(self.__oscwin.osc.x_min, y)
         self.point2.setCoords(self.__oscwin.osc.x_max, y)
-        self.__tip.position.setCoords(0, self.y_reduced)  # FIXME: x = ?
-        self.__tip.setPositionAlignment(Qt.AlignLeft | (Qt.AlignTop if self.y_reduced > 0 else Qt.AlignBottom))
+        self.__tip.position.setCoords(0, y)  # FIXME: x = ?
+        self.__tip.setPositionAlignment(Qt.AlignLeft | (Qt.AlignTop if y > 0 else Qt.AlignBottom))
         self.__slot_update_text()
 
-    @property
-    def y_real(self) -> float:
+    def get_y_real(self) -> float:
         """:return: Real signal value in the level."""
-        return self.y_reduced * self.__mult
+        return self.get_y_screen() * self.__mult
 
-    @y_real.setter
-    def y_real(self, y: float):
-        self.y_reduced = y / self.__mult
+    def __set_y_real(self, y: float):
+        self.__set_y_screen(y / self.__mult)
 
     def __set_color(self):
         pen = QPen(iosc.const.PENSTYLE_PTR_LVL)
@@ -551,16 +541,8 @@ class LvlPtr(QCPItemStraightLine):
         self.__set_color()
         self.parentPlot().replot()
 
-    def __y_pors(self, y: float) -> float:
-        """Reduce value according go global pors mode.
-
-        :param y: Value to redice
-        :return: porsed y
-        """
-        return y * self.__ss.pors_mult
-
     def __slot_update_text(self):
-        self.__tip.setText("L%d: %s" % (self.__uid, self.__ss.sig2str(self.y_real)))
+        self.__tip.setText("L%d: %s" % (self.__uid, self.__ss.sig2str(self.get_y_real())))
         self.parentPlot().replot()  # TODO: don't to this on total repaint
 
     def mousePressEvent(self, event: QMouseEvent, _):
@@ -596,8 +578,10 @@ class LvlPtr(QCPItemStraightLine):
             return
         event.accept()
         y_reduced_new = self.parentPlot().yAxis.pixelToCoord(event.pos().y())
-        if self.y_reduced_min <= y_reduced_new <= self.y_reduced_max:
-            self.y_reduced = y_reduced_new
+        __y_min = self.__ss.v_min / self.__mult
+        __y_max = self.__ss.v_max / self.__mult
+        if __y_min <= y_reduced_new <= __y_max:
+            self.__set_y_screen(y_reduced_new)
 
     def __switch_cursor(self, selected: bool):
         if selected:
@@ -623,19 +607,27 @@ class LvlPtr(QCPItemStraightLine):
             self.__ss.del_ptr_lvl(self.__uid)
 
     def __edit_self(self):
+        def __y_pors(__y: float) -> float:
+            """Reduce value according go global pors mode.
+
+            :param y: Value to redice
+            :return: porsed y
+            """
+            return __y * self.__ss.pors_mult
+
         # pors all values
         form = LvlPtrDialog((
-            self.__y_pors(self.y_real),
-            self.__y_pors(self.__ss.v_min),
-            self.__y_pors(self.__ss.v_max)
+            __y_pors(self.get_y_real()),
+            __y_pors(self.__ss.v_min),
+            __y_pors(self.__ss.v_max)
         ))
         if form.exec_():
             # unpors back
-            self.y_real = form.f_val.value() / self.__ss.pors_mult
+            self.__set_y_real(form.f_val.value() / self.__ss.pors_mult)
 
     def suicide(self):
         """Self destroy."""
-        self.__ss.lvl_ptr[self.__uid][1] = self.y_reduced
+        self.__ss.lvl_ptr[self.__uid][1] = self.y_rel
         self.parentPlot().removeItem(self.__tip)
         self.parentPlot().removeItem(self)
         self.__oscwin.lvl_ptr_uids.remove(self.__uid)

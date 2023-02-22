@@ -4,15 +4,14 @@ Current job: [0.3.5. Math](https://github.com/tieugene/iosc.py/milestone/17)
 
 - [ ] #250: LvlPtr: centered (limits), pors
   + [ ] LvlPtr: 0…1 of y_min…y_max ∨ 0
-
-## debug:
-- &check; v_min
-- &check; v_max
-- &cross; a_min(True) (0.12 but -0.5)
-- &cross; a_max(True) (1.12 but 0.5)
-- &check; a_div
-- &cross; min_a(True) (as a_min)
-- &cross; max_a(True) (as a_max)
+  + [ ] .mouseMoveEvent(): y_screen>_y
+  + [ ] .__edit_self(): _y>y_sig[] | y_sig>_y
+  + [ ] .__slot_update_text(): _y>y_sig
+  + [ ] ComtradeWidget.__ofg_store(): ?
+  + [ ] ComtradeWidget.__cfg_restore()
+  + [ ] &rdsh;AnalogSignalSuit.add_ptr_lvl()
+  + [ ] &rdsh;.__init__(): ?
+  + [ ] chg(center, pors)
 
 ## Calculated signals
 
