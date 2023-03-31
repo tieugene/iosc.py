@@ -7,8 +7,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QGuiApplication
 from PyQt5.QtWidgets import QTabWidget, QMainWindow, QMessageBox
 # 3. local
-from core.mycomtrade import MyComtrade, SanityChkError
-from sig.mainwidget import ComtradeWidget
+from iosc.core.mycomtrade import MyComtrade, SanityChkError
+from iosc.sig.mainwidget import ComtradeWidget
 
 
 class ComtradeTabWidget(QTabWidget):

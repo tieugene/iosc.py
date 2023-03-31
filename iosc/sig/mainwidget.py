@@ -122,11 +122,11 @@ class ComtradeWidget(QWidget):
         self.osc = osc
         self.col_ctrl_width = iosc.const.COL0_WIDTH_INIT
         self.__main_ptr_i = self.x2i(0.0)  # default: Z (Osc1: 600)
-        if osc.chk_gap_l() or osc.chk_gap_r():
+        if osc.bad_gap_l() or osc.bad_gap_r():
             self.__sc_ptr_i = self.__omp_width = None
         else:
-            self.__sc_ptr_i = self.__main_ptr_i + 2 * self.osc.spp
-            self.__omp_width = 3
+            self.__sc_ptr_i = self.__main_ptr_i + self.osc.spp
+            self.__omp_width = 2
         self.__tmp_ptr_i = {}
         self.msr_ptr_uids = set()
         self.lvl_ptr_uids = set()
@@ -143,6 +143,8 @@ class ComtradeWidget(QWidget):
         self.__set_data()
         self.__update_xzoom_actions()
         self.__mk_connections()
+        if self.__sc_ptr_i is None:
+            QMessageBox.warning(self, "OMP error", f"Unable to set OMP pointers: too few osc width.")
 
     def x_px_width_us(self) -> int:
         """:return: Current px width, μs."""

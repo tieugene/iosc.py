@@ -7,8 +7,8 @@ from PyQt5.QtCore import Qt, QCoreApplication
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, QApplication
 # 3. local
-from _version import __version__
-from maintabber import ComtradeTabWidget, MAIN_TAB
+from iosc._version import __version__
+from iosc.maintabber import ComtradeTabWidget, MAIN_TAB
 
 # x. const
 MAIN_MENU = True  # FIXME: False => hot keys not work
@@ -121,7 +121,7 @@ class MainWindow(QMainWindow):
             self.tabs.add_chart_tab(pathlib.Path(fn[0]))
 
 
-def main() -> int:
+def main():
     """Application entry point."""
     # QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
@@ -131,4 +131,8 @@ def main() -> int:
     mw.resize(int(available_geometry.width() * 3 / 4), int(available_geometry.height() * 3 / 4))
     mw.show()
     mw.handle_cli()
-    return app.exec_()
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()

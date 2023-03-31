@@ -123,8 +123,9 @@ class TimeAxisPlot(SlickPanelPlot):
         """Init TimeAxisPlot object."""
         super().__init__(parent)
         self.__main_ptr_label = PtrLabelMain(self)
-        self.__sc_ptr_label = PtrLabelSC(self)
-        self.__pr_ptr_label = PtrLabelPR(self)
+        if parent.parent().sc_ptr_i:
+            self.__sc_ptr_label = PtrLabelSC(self)
+            self.__pr_ptr_label = PtrLabelPR(self)
         self._tmp_ptr = dict()
         # self.xAxis.setTickLabels(True)  # default
         # self.xAxis.setTicks(True)  # default
