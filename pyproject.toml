@@ -26,7 +26,7 @@ urls.Homepage = "https://github.com/tieugene/iosc.py"
 urls.Source = "https://github.com/tieugene/iosc.py"
 
 [project.scripts]
-kitpos = "iosc.mainwindow:main"
+iosc = "iosc.mainwindow:main"
 
 [tool.setuptools]
 packages = ["iosc"]

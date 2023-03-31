@@ -15,6 +15,10 @@ BuildRequires:	%{py3_dist numpy}
 BuildRequires:	%{py3_dist chardet}
 # python3-qcustomplot-pyqt5
 BuildRequires:	%{py3_dist qcustomplot-pyqt5}
+# python3-devel
+# BuildRequires:	pkgconfig(python)
+# python3-pip
+# BuildRequires:	%%{py3_dist pip)
 
 %description
 %{summary}.
@@ -35,7 +39,7 @@ BuildRequires:	%{py3_dist qcustomplot-pyqt5}
 %pyproject_save_files %{name}
 
 
-%files
+%files -f %{pyproject_files}
 %doc README.md
 %license LICENSE
 %{_bindir}/%{name}
