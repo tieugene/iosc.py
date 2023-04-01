@@ -31,6 +31,34 @@ from iosc.sig.widget.sigsuit import StatusSignalSuit, AnalogSignalSuit, ABSignal
 from iosc.sig.widget.dialog import TmpPtrDialog, SelectSignalsDialog
 
 
+class OMPPtr:
+    """OMP pointers."""
+    __osc: mycomtrade.MyComtrade
+    __i0: int  # t=0
+    w_max: int  # pre-calculated (on load) max wwidth
+    i_sc: int  # SC pointer position, sample no; former __sc_ptr_i, sc_ptr_i
+    w: int  # width, periods; former __omp_width omp_width
+    # depend
+    i_sc_min: int  # precalculated min i, depends on PR<=w; = max(T, )
+    i_sc_max: int  # precalcultaed max i, depends on PR<=w; = min(tmax, )
+
+    def __init__(self, osc: mycomtrade.MyComtrade, i0: int):
+        self.__osc = osc
+        self.__i0 = i0
+        self.w_max = (self.__osc.total_samples - 1) // self.__osc.spp
+        self.i_sc = i0 + self.__osc.spp
+        self.w = 2
+        self.i_sc_min = max(self.__i0 + self.__osc.spp, self.__osc.spp * self.w) - 1
+        self.i_sc_max = min(self.__osc.total_samples, self.__i0 + self.__osc.spp * self.w - 1) - 1
+
+    @property
+    def i_pr(self) -> int:  # former pr_ptr_i
+        return self.i_sc - self.__osc.spp * self.w + 1
+
+    def set_w(self, w: int):
+        print(self.w, '=>', w)
+
+
 class ComtradeWidget(QWidget):
     """Main osc window."""
 
@@ -40,11 +68,10 @@ class ComtradeWidget(QWidget):
     col_ctrl_width: int
     # inner vars
     __main_ptr_i: int  # current Main Ptr index in source arrays
-    __sc_ptr_i: Optional[int]  # current OMP SC Ptr index in source arrays
+    omp_ptr: Optional[OMPPtr]
     __tmp_ptr_i: dict[int, int]  # current Tmp Ptr indexes in source arrays: ptr_uid => x_idx
     msr_ptr_uids: set[int]  # MsrPtr uids
     lvl_ptr_uids: set[int]  # LvlPtr uids
-    __omp_width: Optional[int]  # distance from OMP PR and SC pointers, periods
     __shifted: bool  # original/shifted selector
     x_zoom: int
     show_sec: bool  # pri/sec selector
@@ -123,10 +150,9 @@ class ComtradeWidget(QWidget):
         self.col_ctrl_width = iosc.const.COL0_WIDTH_INIT
         self.__main_ptr_i = self.x2i(0.0)  # default: Z (Osc1: 600)
         if osc.bad_gap_l() or osc.bad_gap_r():
-            self.__sc_ptr_i = self.__omp_width = None
+            self.omp_ptr = None
         else:
-            self.__sc_ptr_i = self.__main_ptr_i + self.osc.spp
-            self.__omp_width = 2
+            self.omp_ptr = OMPPtr(osc, self.__main_ptr_i)
         self.__tmp_ptr_i = {}
         self.msr_ptr_uids = set()
         self.lvl_ptr_uids = set()
@@ -143,7 +169,7 @@ class ComtradeWidget(QWidget):
         self.__set_data()
         self.__update_xzoom_actions()
         self.__mk_connections()
-        if self.__sc_ptr_i is None:
+        if not self.omp_ptr:
             QMessageBox.warning(self, "OMP error", f"Unable to set OMP pointers: too few osc width.")
 
     def x_px_width_us(self) -> int:
@@ -169,32 +195,6 @@ class ComtradeWidget(QWidget):
     def tmp_ptr_i(self) -> Dict[int, int]:
         """Requisitions of tmp pointers."""
         return self.__tmp_ptr_i
-
-    @property
-    def sc_ptr_i(self) -> Optional[int]:
-        """Sample number of master (SC, right) OMP pointer."""
-        return self.__sc_ptr_i
-
-    @property
-    def pr_ptr_i(self) -> Optional[int]:
-        """Sample number of slave (left) OMP pointer."""
-        if self.__sc_ptr_i is not None:
-            return self.__sc_ptr_i - self.osc.spp * self.__omp_width
-
-    @property
-    def omp_width(self) -> Optional[int]:
-        """Distance between SC pointers, periods."""
-        return self.__omp_width
-
-    @omp_width.setter
-    def omp_width(self, i):
-        """Set OMP ptrs distance.
-
-        :fixme: UB
-        """
-        # self.__omp_width = i
-        # self.signal_omp_width_changed.emit()
-        print(i)
 
     @property
     def shifted(self):
@@ -436,8 +436,8 @@ class ComtradeWidget(QWidget):
         self.action_viewas_is.setChecked(True)
         self.action_zoom_x_out.setEnabled(False)
         # specials
-        self.action_omp_map.setEnabled(self.__sc_ptr_i is not None)
-        self.action_omp_save.setEnabled(self.__sc_ptr_i is not None)
+        self.action_omp_map.setEnabled(bool(self.omp_ptr))
+        self.action_omp_save.setEnabled(bool(self.omp_ptr))
 
     def __mk_menu(self):
         """Make local (osc) menu."""
@@ -547,8 +547,8 @@ class ComtradeWidget(QWidget):
             },
             'table': []
         }
-        if self.__sc_ptr_i is not None:
-            data['ptr']['omp'] = {'xi': self.__sc_ptr_i, 'w': self.__omp_width}
+        if bool(self.omp_ptr):
+            data['ptr']['omp'] = {'xi': self.omp_ptr.i_sc, 'w': self.omp_ptr.w}
         if self.__tmp_ptr_i:
             tmp = []
             for uid, i in self.__tmp_ptr_i.items():
@@ -672,7 +672,7 @@ class ComtradeWidget(QWidget):
         # - MainPtr
         self.slot_ptr_moved_main(data['ptr']['main'])
         # - SC ptrs
-        if self.__sc_ptr_i is not None:
+        if bool(self.omp_ptr):
             self.slot_ptr_moved_sc(data['ptr']['omp']['xi'])  # TODO: width
         # - Tmp ptrs
         for ptr in data['ptr'].get('tmp', []):
@@ -932,14 +932,14 @@ class ComtradeWidget(QWidget):
         VTWindow(self).exec_()
 
     def __do_omp_map(self):
-        if self.__sc_ptr_i is None:
+        if not self.omp_ptr:
             return
         if not self.ompmapwin:
             self.ompmapwin = OMPMapWindow(self)
         self.ompmapwin.exec_()
 
     def __do_omp_save(self):
-        if self.__sc_ptr_i is None:
+        if not self.omp_ptr:
             return
         if not self.ompmapwin:
             QMessageBox.critical(self, "OMP save error", "OMP map was not call somewhen")
@@ -987,9 +987,9 @@ class ComtradeWidget(QWidget):
         - [TimeAxisPlot (x)]
         - SignalChartWidget
         """
-        self.__sc_ptr_i = i
+        self.omp_ptr.i_sc = i
         self.signal_ptr_moved_sc.emit(i)
-        self.signal_ptr_moved_pr.emit(self.pr_ptr_i)
+        self.signal_ptr_moved_pr.emit(self.omp_ptr.i_pr)
 
     def slot_ptr_moved_tmp(self, uid: int, i: int):
         """Move tmp pointer in child widgets.

@@ -109,7 +109,7 @@ class BarPlotWidget(QWidget):
             self.__decorate()
             self.__set_data()
             self._main_ptr = MainPtr(self.graph(0), self._oscwin)  # after graph()
-            self._sc_ptr = SCPtr(self.graph(0), self._oscwin) if self._oscwin.sc_ptr_i else None
+            self._sc_ptr = SCPtr(self.graph(0), self._oscwin) if self._oscwin.omp_ptr else None
             self._tmp_ptr = dict()  # FIXME: load existing
             for uid in self._oscwin.tmp_ptr_i.keys():
                 self._slot_ptr_add_tmp(uid)

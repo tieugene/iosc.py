@@ -135,11 +135,11 @@ class OMPMapWindow(QDialog):
                 return self.oscwin.osc.y[__y_i].as_str_full(self.__h1(__y_i, __i))
             else:
                 return ''
-        self.__get_rc_widget(row + 1, 2).setText(__h1_str(y_i, self.oscwin.sc_ptr_i))
+        self.__get_rc_widget(row + 1, 2).setText(__h1_str(y_i, self.oscwin.omp_ptr.i_sc))
         if row in {0, 3}:
             dst_row = 7 if row == 0 else 8
             self.__get_rc_widget(dst_row, 1).setText(self.__get_rc_widget(row + 1, 1).currentText())
-            self.__get_rc_widget(dst_row, 2).setText(__h1_str(y_i, self.oscwin.pr_ptr_i))
+            self.__get_rc_widget(dst_row, 2).setText(__h1_str(y_i, self.oscwin.omp_ptr.i_pr))
 
     def __slot_post_close(self, result: int):
         if result:  # Ok
@@ -155,9 +155,9 @@ class OMPMapWindow(QDialog):
 
     def data_save(self, fn: pathlib.Path):
         """Save OMP values into file."""
-        data = [self.__h1(self.__map[i], self.oscwin.sc_ptr_i) for i in range(len(self.__map))]
-        data.append(self.__h1(self.__map[0], self.oscwin.pr_ptr_i))
-        data.append(self.__h1(self.__map[3], self.oscwin.pr_ptr_i))
+        data = [self.__h1(self.__map[i], self.oscwin.omp_ptr.i_sc) for i in range(len(self.__map))]
+        data.append(self.__h1(self.__map[0], self.oscwin.omp_ptr.i_pr))
+        data.append(self.__h1(self.__map[3], self.oscwin.omp_ptr.i_pr))
         out_obj = {}
         for i, d in enumerate(data):
             out_obj[OUT_NAME[i] + 'r'] = data[i].real
