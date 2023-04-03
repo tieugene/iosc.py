@@ -4,9 +4,7 @@ from typing import Dict
 
 from PyQt5.QtCore import QRegExp, Qt, QFile
 from PyQt5.QtGui import QPalette
-from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QApplication, QStyleFactory, \
-    QCommonStyle, QCheckBox
-
+from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QApplication, QStyleFactory, QCheckBox
 # x. const
 REG_EXP = QRegExp(r'.(.*)\+?Style')
 
