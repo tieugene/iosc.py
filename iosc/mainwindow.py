@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToo
 # 3. local
 from iosc._version import __version__
 from iosc.maintabber import ComtradeTabWidget, MAIN_TAB
+from iosc.prefs import AppSettingsDialog
 
 # x. const
 MAIN_MENU = True  # FIXME: False => hot keys not work
@@ -24,6 +25,7 @@ class MainWindow(QMainWindow):
     tabs: ComtradeTabWidget
     act_bar: QToolBar
     act_file_open: QAction
+    act_settings: QAction
     act_exit: QAction
     act_about: QAction
 
@@ -46,6 +48,19 @@ class MainWindow(QMainWindow):
     def __mk_actions(self):
         """Create qctions required."""
         # noinspection PyArgumentList
+        self.act_file_open = QAction(QIcon.fromTheme("document-open"),
+                                     "&Open",
+                                     self,
+                                     shortcut="Ctrl+O",
+                                     statusTip="Load comtrade file",
+                                     triggered=self.__do_file_open)
+        # noinspection PyArgumentList
+        self.act_settings = QAction(QIcon.fromTheme("preferences-system"),
+                                    "&Settings",
+                                    self,
+                                    statusTip="Settings",
+                                    triggered=self.__do_settings)
+        # noinspection PyArgumentList
         self.act_exit = QAction(QIcon.fromTheme("application-exit"),
                                 "E&xit",
                                 self,
@@ -58,18 +73,12 @@ class MainWindow(QMainWindow):
                                  self,
                                  statusTip="Show the application's About box",
                                  triggered=self.__do_about)
-        # noinspection PyArgumentList
-        self.act_file_open = QAction(QIcon.fromTheme("document-open"),
-                                     "&Open",
-                                     self,
-                                     shortcut="Ctrl+O",
-                                     statusTip="Load comtrade file",
-                                     triggered=self.__do_file_open)
 
     def __mk_menu(self):
         """Create main application menu."""
         self.menuBar().addMenu("&File").addActions((
             self.act_file_open,
+            self.act_settings,
             self.act_exit
         ))
         self.menuBar().addMenu("&Help").addAction(self.act_about)
@@ -101,14 +110,6 @@ class MainWindow(QMainWindow):
             else:
                 self.tabs.add_chart_tab(file)
 
-    # actions
-    def __do_about(self):
-        """Show 'About' message box."""
-        # QMessageBox.about(self, "About iOsc.py", ABOUT_STR)
-        dialog = QMessageBox(QMessageBox.Information, "About iOsc.py", ABOUT_STR % __version__, QMessageBox.Ok, self)
-        dialog.setTextFormat(Qt.RichText)
-        dialog.exec_()
-
     def __do_file_open(self):
         """Open comtrade file."""
         fn = QFileDialog.getOpenFileName(
@@ -119,6 +120,18 @@ class MainWindow(QMainWindow):
         )
         if fn[0]:
             self.tabs.add_chart_tab(pathlib.Path(fn[0]))
+
+    def __do_settings(self):
+        dialog = AppSettingsDialog(self)
+        dialog.exec_()
+
+    # actions
+    def __do_about(self):
+        """Show 'About' message box."""
+        # QMessageBox.about(self, "About iOsc.py", ABOUT_STR)
+        dialog = QMessageBox(QMessageBox.Information, "About iOsc.py", ABOUT_STR % __version__, QMessageBox.Ok, self)
+        dialog.setTextFormat(Qt.RichText)
+        dialog.exec_()
 
 
 def main():

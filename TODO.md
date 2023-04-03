@@ -1,34 +1,21 @@
 # TODO
 
 ## 0.3.6: OMP, ru, styling
-- [ ] #152 ~~, #153~~ Механизм управления указками ОМП
-- [ ] #258, #259 Руссификация интерфейса
+- [x] #152 ~~, #153~~ Механизм управления указками ОМП
+  - [ ] Save/restore
 - [ ] #260 Включение возможности изменения стиля Qt приложения
+- [ ] #258, #259 Руссификация интерфейса
 
-### OMP:
-- [x] ptrs in samples
-- [x] Limit:
-  + [x] osc must be -2T..T
-  + [x] or:
-    * [x] warning window
-    * [x] OMP ptrs disabled
-    * [x] "OMP map" disabled
-    * [x] "OMP save" disabled
-- [x] Initial positions: PD=-T, SC=+T
-- [ ] Moves:
-  + [ ] PD=t<sub>min</sub>..t&#8320;-1, by SC
-  + [ ] SC=T..t<sub>max</sub>
-- [ ] Chg (on 2-click):
-  - 2..10 (T)
-  - increase:
-    + SC moves right
-    + if &gt; t<sub>max</sub> => t<sub>max</sub> and
-    + PD moves left
-  - decrease:
-    + SC moves left
-    + if &lt; T => T and
-    + PD moves right
-- [ ] Save/restore
+### Styling:
+- `QApplication.style()/.setStyle()`
+- `QApplication.palette()/.setPalette()`
+- `QApplication.instance().setStyleSheet()`
+- `QStyleFactory[.keys()]`
+
+So:
+- select style
+- set palette from style
+- [set stylesheet]
 
 ## 0.3.7: Deploy
 - [ ] Доработка/тестирование на версиях:
