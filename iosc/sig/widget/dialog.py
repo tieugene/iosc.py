@@ -116,15 +116,15 @@ class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
         return False
 
 
-def get_new_omp_width(parent: QWidget, old_value: int) -> Optional[int]:
+def get_new_omp_width(parent: QWidget, old_value: int, max_v: int) -> Optional[int]:
     """:return: New OMP ptrs distance."""
     new_value, ok = QInputDialog.getInt(
         parent,
         "Distance between PR and SC",
         "Main frequency periods number",
         old_value,
-        1,
-        10
+        2,
+        max_v
     )
     if ok and new_value != old_value:
         return new_value

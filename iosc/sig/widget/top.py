@@ -56,7 +56,7 @@ class PtrLabelSC(__PtrLabel):
         """Init PtrLabelOMP object."""
         super().__init__(parent)
         self.setBrush(iosc.const.BRUSH_PTR_OMP)  # rect
-        self._update_ptr(self._oscwin.sc_ptr_i)
+        self._update_ptr(self._oscwin.omp_ptr.i_sc)
         self._oscwin.signal_ptr_moved_sc.connect(self._update_ptr)
 
     def _mk_text(self, x: float):
@@ -70,7 +70,7 @@ class PtrLabelPR(__PtrLabel):
         """Init PtrLabelPR object."""
         super().__init__(parent)
         self.setBrush(iosc.const.BRUSH_PTR_OMP)  # rect
-        self._update_ptr(self._oscwin.pr_ptr_i)
+        self._update_ptr(self._oscwin.omp_ptr.i_pr)
         self._oscwin.signal_ptr_moved_pr.connect(self._update_ptr)
 
     def _mk_text(self, x: float):
@@ -123,8 +123,9 @@ class TimeAxisPlot(SlickPanelPlot):
         """Init TimeAxisPlot object."""
         super().__init__(parent)
         self.__main_ptr_label = PtrLabelMain(self)
-        self.__sc_ptr_label = PtrLabelSC(self)
-        self.__pr_ptr_label = PtrLabelPR(self)
+        if parent.parent().omp_ptr:
+            self.__sc_ptr_label = PtrLabelSC(self)
+            self.__pr_ptr_label = PtrLabelPR(self)
         self._tmp_ptr = dict()
         # self.xAxis.setTickLabels(True)  # default
         # self.xAxis.setTicks(True)  # default

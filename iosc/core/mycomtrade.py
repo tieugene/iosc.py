@@ -460,19 +460,23 @@ class MyComtrade:
         else:
             self._raw.load(str(self.path))
 
-    def chk_gap_l(self) -> Optional[str]:
-        """Check that OMP fits (left sife)."""
+    def bad_gap_l(self) -> Optional[str]:
+        """Check that OMP fits (left sife).
+        :return: True if tmin > -2T
+        """
         # FIXME: _sample.bad/short_L/live/R001_124-2014_05_26_05_09_46.cfg
         # __gap_real: float = (self._raw.trigger_timestamp - self._raw.start_timestamp).total_seconds()
         __gap_real = self._raw.trigger_time - self._raw.time[0]
-        __gap_min: float = 1 / self._raw.frequency
+        __gap_min: float = 2 / self._raw.frequency
         if __gap_real < __gap_min:
             return ERR_DSC_GAPL % (__gap_min * 1000, __gap_real * 1000)
 
-    def chk_gap_r(self) -> Optional[str]:
-        """Check that OMP fits (right side)."""
+    def bad_gap_r(self) -> Optional[str]:
+        """Check that OMP fits (right side).
+        :return: True if tmax < T
+        """
         __gap_real = self._raw.time[-1] - self._raw.trigger_time
-        __gap_min = 2 / self._raw.frequency
+        __gap_min = 1 / self._raw.frequency
         if __gap_real < __gap_min:
             return ERR_DSC_GAPR % (__gap_min * 1000, __gap_real * 1000)
 
@@ -499,9 +503,9 @@ class MyComtrade:
             raise SanityChkError(e)
         if e := __chk_rate_odd():
             raise SanityChkError(e)
-        # if e := self.chk_gap_l():
+        # if e := self.bad_gap_l():
         #    raise SanityChkError(e)
-        # if e := self.chk_gap_r():
+        # if e := self.bad_gap_r():
         #    raise SanityChkError(e)
         # TODO: xz == sample ±½
         # TODO: Δ samples == ±½ sample
@@ -509,7 +513,7 @@ class MyComtrade:
 
     def __setup(self):
         """Translate loaded data into app usable."""
-        self.x = [1000 * (t - self._raw.trigger_time) for t in self._raw.time]
+        self.x = [1000 * (t - self._raw.trigger_time) for t in self._raw.time]  # us => ms
         self.y = list()
         for i in range(self._raw.analog_count):
             self.y.append(AnalogSignal(self._raw, i, self))
