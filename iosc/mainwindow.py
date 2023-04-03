@@ -3,7 +3,7 @@
 import pathlib
 import sys
 # 2. 3rd
-from PyQt5.QtCore import Qt, QCoreApplication
+from PyQt5.QtCore import Qt, QCoreApplication, QStandardPaths
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, QApplication
 # 3. local
@@ -17,6 +17,7 @@ ABOUT_STR = '''Qt powered comtrade viewer/analyzer.<br/>
 Version: %s<br/>
 Developed for <a href="https://ntkpribor.ru/">&laquo;NTK Priborenergo&raquo;, Ltd.</a><br/>
 <sub>&copy; <a href="https://www.eap.su">TI_Eugene</a></sub>'''
+SHARES_DIR: pathlib.PosixPath
 
 
 class MainWindow(QMainWindow):
@@ -122,7 +123,7 @@ class MainWindow(QMainWindow):
             self.tabs.add_chart_tab(pathlib.Path(fn[0]))
 
     def __do_settings(self):
-        dialog = AppSettingsDialog(self)
+        dialog = AppSettingsDialog(SHARES_DIR / 'qss', self)
         dialog.execute()
 
     # actions
@@ -136,9 +137,12 @@ class MainWindow(QMainWindow):
 
 def main():
     """Application entry point."""
+    global SHARES_DIR
     # QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
     app.setApplicationVersion(__version__)
+    SHARES_DIR = pathlib.Path(__file__).resolve().parent  # Prod: QStandardPaths.[App[Local]]DataLocation
+    # tmp = QStandardPaths.locate(QStandardPaths.DataLocation, 'qss', QStandardPaths.LocateDirectory)
     mw: MainWindow = MainWindow(sys.argv)
     available_geometry = app.desktop().availableGeometry(mw)  # 0, 0, 1280, 768 (display height - taskbar)
     mw.resize(int(available_geometry.width() * 3 / 4), int(available_geometry.height() * 3 / 4))
