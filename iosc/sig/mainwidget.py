@@ -35,9 +35,9 @@ class OMPPtr:
     """OMP pointers."""
     __osc: mycomtrade.MyComtrade
     __i0: int  # t=0
-    w_max: int  # pre-calculated (on load) max wwidth
     i_sc: int  # SC pointer position, sample no; former __sc_ptr_i, sc_ptr_i
     w: int  # width, periods; former __omp_width omp_width
+    w_max: int  # pre-calculated (on load) max wwidth
     # depend
     i_sc_min: int  # precalculated min i, depends on PR<=w; = max(T, )
     i_sc_max: int  # precalcultaed max i, depends on PR<=w; = min(tmax, )
@@ -45,29 +45,32 @@ class OMPPtr:
     def __init__(self, osc: mycomtrade.MyComtrade, i0: int):
         self.__osc = osc
         self.__i0 = i0
-        self.w_max = (self.__osc.total_samples - 1) // self.__osc.spp
         self.i_sc = i0 + self.__osc.spp
         self.w = 2
-        self.i_sc_min = max(self.__i0 + self.__osc.spp, self.__osc.spp * self.w) - 1
-        self.i_sc_max = min(self.__osc.total_samples, self.__i0 + self.__osc.spp * self.w - 1) - 1
+        self.w_max = min((self.__osc.total_samples - 1) // self.__osc.spp, 10)
+        self.__upd_i_sc_limits()
 
     @property
     def i_pr(self) -> int:  # former pr_ptr_i
-        return self.i_sc - self.__osc.spp * self.w + 1
+        return self.i_sc - self.__osc.spp * self.w
 
     def set_w(self, w_new: int):
+        """Update PR-SC distance."""
         if w_new == self.w:
             return
-        w_old = self.w
-        # recalc i_sc_x
-        self.i_sc += (w_new - w_old) * self.__osc.spp
-        if self.i_sc > self.i_sc_max:
-            self.i_sc = self.i_sc_max
-        if self.i_sc < self.i_sc_min:
-            self.i_sc = self.i_sc_min
-        # on change direction:
-        # move SC
-        print(self.w, '=>', w_new)
+        self.i_sc += (w_new - self.w) * self.__osc.spp
+        if w_new > self.w:
+            if self.i_sc > self.__osc.total_samples - 1:
+                self.i_sc = self.__osc.total_samples - 1
+        else:
+            if self.i_sc < self.__i0 + self.__osc.spp:
+                self.i_sc = self.__i0 + self.__osc.spp
+        self.w = w_new
+        self.__upd_i_sc_limits()
+
+    def __upd_i_sc_limits(self):
+        self.i_sc_min = max(self.__i0 + self.__osc.spp, self.__osc.spp * self.w)
+        self.i_sc_max = min(self.__osc.total_samples - 1, self.__i0 + self.__osc.spp * self.w - 1)
 
 
 class ComtradeWidget(QWidget):

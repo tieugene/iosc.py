@@ -142,18 +142,21 @@ class SCPtr(Ptr):
             return
         event.accept()
         x_ms: float = self._mouse2ms(event)  # ms, realative to z-point
-        i_new = self._oscwin.x2i(x_ms)
-        if (i_new == self.i) or (i_new < self._oscwin.omp_ptr.i_sc_min) or (i_new > self._oscwin.omp_ptr.i_sc_max):
+        if (x_ms < self._oscwin.i2x(self._oscwin.omp_ptr.i_sc_min))\
+                or (x_ms > self._oscwin.i2x(self._oscwin.omp_ptr.i_sc_max)):
             return
+        i_old = self.i
         self.setGraphKey(x_ms)
         self.updatePosition()  # mandatory
-        self.signal_ptr_moved.emit(i_new)  # replot will be after PR moving
+        if self.i != i_old:
+            self.signal_ptr_moved.emit(self.i)  # replot will be after PR moving
 
     def mouseDoubleClickEvent(self, event: QMouseEvent, _):
         """Inherited."""
         event.accept()
-        if new_omp_width := get_new_omp_width(self._oscwin, self._oscwin.omp_ptr.w):
+        if new_omp_width := get_new_omp_width(self._oscwin, self._oscwin.omp_ptr.w, self._oscwin.omp_ptr.w_max):
             self._oscwin.omp_ptr.set_w(new_omp_width)
+            self.signal_ptr_moved.emit(self._oscwin.omp_ptr.i_sc)
 
 
 class _TipBase(QCPItemText):
