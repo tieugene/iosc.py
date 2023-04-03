@@ -123,7 +123,7 @@ class MainWindow(QMainWindow):
 
     def __do_settings(self):
         dialog = AppSettingsDialog(self)
-        dialog.exec_()
+        dialog.execute()
 
     # actions
     def __do_about(self):

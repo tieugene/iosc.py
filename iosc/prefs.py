@@ -14,7 +14,7 @@ class AppSettingsDialog(QDialog):
     f_qss: QComboBox
     button_box: QDialogButtonBox
     _layout: QFormLayout
-    _old_style: QCommonStyle
+    _old_style_name: str  # QCommonStyle
     _old_palette: QPalette
     _old_qss: str
 
@@ -22,15 +22,14 @@ class AppSettingsDialog(QDialog):
         """Init AppSettingsDialog object."""
         super().__init__(parent)
         # 1. store old
-        self._old_style = QApplication.style()
-        _old_style_name = self._old_style.metaObject().className()
+        self._old_style_name = QApplication.style().metaObject().className()
         self._old_palette: QPalette = QApplication.palette()
-        if REG_EXP.exactMatch(_old_style_name):
-            _old_style_name = REG_EXP.cap(1)
+        if REG_EXP.exactMatch(self._old_style_name):
+            self._old_style_name = REG_EXP.cap(1)
         # 2. set widgets
         self.f_style = QComboBox(self)
         self.f_style.addItems(QStyleFactory.keys())
-        self.f_style.setCurrentIndex(self.f_style.findText(_old_style_name, Qt.MatchContains))
+        self.f_style.setCurrentIndex(self.f_style.findText(self._old_style_name, Qt.MatchContains))
         self.f_palette = QCheckBox(self)
         self.f_qss = QComboBox(self)
         # self.f_style.setCurrentIndex(self._ss.line_style)
@@ -52,12 +51,18 @@ class AppSettingsDialog(QDialog):
         # 5. go
         self.setWindowTitle("Application settings")
 
-    def __style_changed(self, idx: int):
-        # print(idx, type(idx), self.f_style.currentText())
+    def __style_changed(self, _: int):  # idx:int 0+
         QApplication.setStyle(QStyleFactory.create(self.f_style.currentText()))
         if self.f_palette.isChecked():
             QApplication.setPalette(QApplication.style().standardPalette())
-        # QApplication.setStyle(QStyleFactory.create(styleName))
 
     def __palette_changed(self, v: bool):
         QApplication.setPalette(QApplication.style().standardPalette() if v else self._old_palette)
+
+    def execute(self) -> bool:
+        """Open doialog and return result."""
+        if not self.exec_():
+            QApplication.setStyle(self._old_style_name)
+            QApplication.setPalette(self._old_palette)
+            return False
+        return True
