@@ -55,8 +55,19 @@ class OMPPtr:
     def i_pr(self) -> int:  # former pr_ptr_i
         return self.i_sc - self.__osc.spp * self.w + 1
 
-    def set_w(self, w: int):
-        print(self.w, '=>', w)
+    def set_w(self, w_new: int):
+        if w_new == self.w:
+            return
+        w_old = self.w
+        # recalc i_sc_x
+        self.i_sc += (w_new - w_old) * self.__osc.spp
+        if self.i_sc > self.i_sc_max:
+            self.i_sc = self.i_sc_max
+        if self.i_sc < self.i_sc_min:
+            self.i_sc = self.i_sc_min
+        # on change direction:
+        # move SC
+        print(self.w, '=>', w_new)
 
 
 class ComtradeWidget(QWidget):

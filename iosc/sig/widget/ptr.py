@@ -107,7 +107,6 @@ class SCPtr(Ptr):
     """OMP SC (Short Circuit, right) pointer."""
 
     __pr_ptr: VLine  # Sibling PR (left) pointer
-    __x_limit: tuple[float, float]
 
     def __init__(self, graph: QCPGraph, root: QWidget):
         """Init SCPtr object."""
@@ -115,19 +114,10 @@ class SCPtr(Ptr):
         self.setPen(iosc.const.PEN_PTR_OMP)
         self.__pr_ptr = VLine(graph.parentPlot())
         self.__pr_ptr.setPen(iosc.const.PEN_PTR_OMP)
-        self.__set_limits()
         self.__slot_ptr_move(self._oscwin.omp_ptr.i_sc, False)
         self.selectionChanged.connect(self.__selection_chg)
         self.signal_ptr_moved.connect(self._oscwin.slot_ptr_moved_sc)
         self._oscwin.signal_ptr_moved_sc.connect(self.__slot_ptr_move)
-
-    def __set_limits(self):
-        """Set limits for moves."""
-        i_z = self._oscwin.x2i(0.0)
-        self.__x_limit = (
-            self._oscwin.i2x(i_z + 1),
-            self._oscwin.i2x(i_z + self._oscwin.omp_ptr.w * self._oscwin.osc.spp - 1)
-        )
 
     def __selection_chg(self, selection: bool):
         self._switch_cursor(selection)
@@ -152,14 +142,12 @@ class SCPtr(Ptr):
             return
         event.accept()
         x_ms: float = self._mouse2ms(event)  # ms, realative to z-point
-        # TODO: convert to index then do the job
-        if not (self.__x_limit[0] <= x_ms <= self.__x_limit[1]):
+        i_new = self._oscwin.x2i(x_ms)
+        if (i_new == self.i) or (i_new < self._oscwin.omp_ptr.i_sc_min) or (i_new > self._oscwin.omp_ptr.i_sc_max):
             return
-        i_old: int = self.i
         self.setGraphKey(x_ms)
         self.updatePosition()  # mandatory
-        if i_old != (i_new := self.i):
-            self.signal_ptr_moved.emit(i_new)  # replot will be after PR moving
+        self.signal_ptr_moved.emit(i_new)  # replot will be after PR moving
 
     def mouseDoubleClickEvent(self, event: QMouseEvent, _):
         """Inherited."""
