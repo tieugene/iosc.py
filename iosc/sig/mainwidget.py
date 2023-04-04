@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional, List
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QCloseEvent, QHideEvent, QShowEvent, QColor, QRgba64
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QMenuBar, QToolBar, QAction, QMessageBox, QFileDialog,\
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QMenuBar, QToolBar, QAction, QMessageBox, QFileDialog, \
     QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
 import iosc.const
@@ -184,7 +184,7 @@ class ComtradeWidget(QWidget):
         self.__update_xzoom_actions()
         self.__mk_connections()
         if not self.omp_ptr:
-            QMessageBox.warning(self, "OMP error", f"Unable to set OMP pointers: too few osc width.")
+            QMessageBox.warning(self, self.tr("OMP error"), self.tr("Unable to set OMP pointers: too few osc width."))
 
     def x_px_width_us(self) -> int:
         """:return: Current px width, μs."""
@@ -775,7 +775,7 @@ class ComtradeWidget(QWidget):
     def __do_file_info(self):
         """Show misc osc info."""
 
-        def tr(name: str, value: Any):
+        def t_r(name: str, value: Any):
             """HTML <tr> constructor."""
             return f"<tr><th>{name}:</th><td>{value}</td></tr>"
 
@@ -783,7 +783,7 @@ class ComtradeWidget(QWidget):
             sig = self.osc.y[i]
             a = sig.a_values(False)
             a_c = sig.a_values(True)
-            return\
+            return \
                 f"Name: {sig.sid} (raw | centered)\n" \
                 f"v_min=   {sig.v_min(False):8.3f} | {sig.v_min(True):8.3f}\n" \
                 f"v_max=   {sig.v_max(False):8.3f} | {sig.v_max(True):8.3f}\n" \
@@ -796,25 +796,25 @@ class ComtradeWidget(QWidget):
                 f"max_a=   {max(a):8.3f} | {max(a_c):8.3f}\n"
 
         # print(__debug(1))
-        msg = QMessageBox(QMessageBox.Icon.Information, "Comtrade file info", "Summary")
+        msg = QMessageBox(QMessageBox.Icon.Information, self.tr("Comtrade file info"), self.tr("Summary"))
         # plan A:
         # msg.setDetailedText(self.osc.cfg_summary())
         # plan B
         info = self.osc.info
         txt = "<html><body><table><tbody>"
-        txt += tr("File", self.osc.path)  # was self.osc.raw.cfg.filepath
-        txt += tr("Station name", info['station_name'])
-        txt += tr("Station id", info['rec_dev_id'])
-        txt += tr("Comtrade ver.", info['rev_year'])
-        txt += tr("File format", self.osc.ft)
-        txt += tr("Analog chs.", info['analog_count'])
-        txt += tr("Status chs.", info['status_count'])
-        txt += tr("Time", f"{info['start_timestamp']}&hellip;{self.osc.trigger_timestamp}"
-                          f" with &times; {info['timemult']}")
-        txt += tr("Time base", info['time_base'])
-        txt += tr("Line freq, Hz", info['frequency'])
-        txt += tr("Samples", self.osc.total_samples)
-        txt += tr("Sample rate:", f"{self.osc.rate} Hz")
+        txt += t_r(self.tr("File"), self.osc.path)  # was self.osc.raw.cfg.filepath
+        txt += t_r(self.tr("Station name"), info['station_name'])
+        txt += t_r(self.tr("Station id"), info['rec_dev_id'])
+        txt += t_r(self.tr("Comtrade ver."), info['rev_year'])
+        txt += t_r(self.tr("File format"), self.osc.ft)
+        txt += t_r(self.tr("Analog chs."), info['analog_count'])
+        txt += t_r(self.tr("Status chs."), info['status_count'])
+        txt += t_r(self.tr("Time"), f"{info['start_timestamp']}&hellip;{self.osc.trigger_timestamp}"
+                               f" with &times; {info['timemult']}")
+        txt += t_r(self.tr("Time base"), info['time_base'])
+        txt += t_r(self.tr("Line freq, Hz"), info['frequency'])
+        txt += t_r(self.tr("Samples"), self.osc.total_samples)
+        txt += t_r(self.tr("Sample rate"), f"{self.osc.rate} Hz")
         txt += "<tbody></table></body><html>"
         msg.setText(txt)
         msg.setTextFormat(Qt.RichText)
