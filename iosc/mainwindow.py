@@ -3,13 +3,14 @@
 import pathlib
 import sys
 # 2. 3rd
-from PyQt5.QtCore import Qt, QCoreApplication, QStandardPaths
+from PyQt5.QtCore import Qt, QCoreApplication, QStandardPaths, QSettings
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, QApplication
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, \
+    QApplication, QStyleFactory
 # 3. local
 from iosc._version import __version__
 from iosc.maintabber import ComtradeTabWidget, MAIN_TAB
-from iosc.prefs import AppSettingsDialog
+from iosc.prefs import AppSettingsDialog, load_style
 
 # x. const
 MAIN_MENU = True  # FIXME: False => hot keys not work
@@ -29,10 +30,13 @@ class MainWindow(QMainWindow):
     act_settings: QAction
     act_exit: QAction
     act_about: QAction
+    __settings: QSettings
 
     def __init__(self, _: list):
         """Init MainWindow object."""
         super().__init__()
+        self.__settings = QSettings()
+        load_style(self.__settings, SHARES_DIR)
         self.__mk_widgets()
         self.__mk_actions()
         self.__mk_menu()
@@ -123,7 +127,7 @@ class MainWindow(QMainWindow):
             self.tabs.add_chart_tab(pathlib.Path(fn[0]))
 
     def __do_settings(self):
-        dialog = AppSettingsDialog(SHARES_DIR / 'qss', self)
+        dialog = AppSettingsDialog(self.__settings, SHARES_DIR, self)
         dialog.execute()
 
     # actions
@@ -140,6 +144,9 @@ def main():
     global SHARES_DIR
     # QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
+    app.setOrganizationName('TI_Eugene')
+    app.setOrganizationDomain('eap.su')
+    app.setApplicationName('iOsc')
     app.setApplicationVersion(__version__)
     SHARES_DIR = pathlib.Path(__file__).resolve().parent  # Prod: QStandardPaths.[App[Local]]DataLocation
     # tmp = QStandardPaths.locate(QStandardPaths.DataLocation, 'qss', QStandardPaths.LocateDirectory)

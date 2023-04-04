@@ -1,46 +1,70 @@
-"""Applications settings."""
+"""Applications settings.
+Location:
+- Linux: ~/.config/TI_Eugene/iOsc.conf
+"""
 import pathlib
-from typing import Dict
+from typing import Dict, List
 
-from PyQt5.QtCore import QRegExp, Qt, QFile
+from PyQt5.QtCore import QRegExp, Qt, QSettings
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QApplication, QStyleFactory, QCheckBox
-# x. const
-REG_EXP = QRegExp(r'.(.*)\+?Style')
+
+
+def load_style(settings: QSettings, shares_dir: pathlib.PosixPath):
+    """Setup style with settings."""
+    if style_name := settings.value('style'):
+        style = QStyleFactory.create(style_name)
+    else:
+        style = ''
+    QApplication.setStyle(style)
+    if settings.value('palette'):
+        palette = QApplication.style().standardPalette()
+    else:
+        palette = QPalette()
+    QApplication.setPalette(palette)
+    if qss_name := settings.value('qss'):
+        qss_file = shares_dir.joinpath('qss', qss_name).with_suffix('.qss')
+        with open(qss_file.as_posix(), 'rt') as file:
+            qss = file.read()
+    else:
+        qss = ''
+    QApplication.instance().setStyleSheet(qss)
+
+
+def _load_qss(shares_dir: pathlib.PosixPath) -> Dict[str, str]:
+    """Load styles from data folder"""
+    retvalue = {'---': ''}
+    for f in shares_dir.joinpath('qss').iterdir():
+        with open(f.as_posix(), 'rt') as file:
+            retvalue[f.stem] = file.read()
+    return retvalue
 
 
 class AppSettingsDialog(QDialog):
-    _qss_dir: pathlib.PosixPath
-    _old_style_name: str  # QCommonStyle
-    _old_palette: QPalette
-    _old_qss: str
-    _styles: Dict[str, str]
+    _settings: QSettings
+    _shares_dir: pathlib.PosixPath
+    _style: List[str]
+    _qss: Dict[str, str]
     f_style: QComboBox
     f_palette: QCheckBox
     f_qss: QComboBox
     button_box: QDialogButtonBox
     _layout: QFormLayout
 
-    def __init__(self, qss_dir: pathlib.PosixPath, parent=None):
+    def __init__(self, settings: QSettings, shares_dir: pathlib.PosixPath, parent=None):
         """Init AppSettingsDialog object."""
         super().__init__(parent)
-        self._styles = {'---': ''}
-        self._qss_dir = qss_dir
-        self.__load_styles(qss_dir)
-        # 1. store old
-        self._old_style_name = QApplication.style().metaObject().className()
-        self._old_palette: QPalette = QApplication.palette()
-        if REG_EXP.exactMatch(self._old_style_name):
-            self._old_style_name = REG_EXP.cap(1)
-        # print(list(qss_dir.iterdir()))
+        self._settings = settings
+        self._shares_dir = shares_dir
+        self._style = ['---']
+        self._style.extend(QStyleFactory.keys())
+        self._qss = _load_qss(shares_dir)
         # 2. set widgets
         self.f_style = QComboBox(self)
-        self.f_style.addItems(QStyleFactory.keys())
-        self.f_style.setCurrentIndex(self.f_style.findText(self._old_style_name, Qt.MatchContains))
+        self.f_style.addItems(self._style)
         self.f_palette = QCheckBox(self)
         self.f_qss = QComboBox(self)
-        self.f_qss.addItems(self._styles.keys())
-        # self.f_style.setCurrentIndex(self._ss.line_style)
+        self.f_qss.addItems(self._qss.keys())
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         # 3. set layout
         self._layout = QFormLayout(self)
@@ -50,36 +74,53 @@ class AppSettingsDialog(QDialog):
         self._layout.addRow(self.button_box)
         self._layout.setVerticalSpacing(0)
         self.setLayout(self._layout)
+        # 4. set initial
+        if style := settings.value('style'):
+            idx = self.f_style.findText(style)
+        else:
+            idx = 0
+        self.f_style.setCurrentIndex(idx)
+        if settings.value('palette'):
+            self.f_palette.setChecked(True)
+        if qss := settings.value('qss'):
+            idx = self.f_qss.findText(qss)
+        else:
+            idx = 0
+        self.f_qss.setCurrentIndex(idx)
         # 5. set signals
-        self.f_style.activated.connect(self.__style_changed)
-        self.f_palette.toggled.connect(self.__palette_changed)
-        self.f_qss.activated.connect(self.__qss_changed)
+        self.f_style.activated.connect(self.__on_chg_style)
+        self.f_palette.toggled.connect(self.__on_chg_palette)
+        self.f_qss.activated.connect(self.__on_chg_qss)
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
         # 6. go
         self.setWindowTitle("Application settings")
 
-    def __load_styles(self, qss_dir: pathlib.PosixPath):
-        for f in qss_dir.iterdir():
-            file = QFile(f.as_posix())
-            file.open(QFile.ReadOnly)
-            self._styles[f.stem] = str(file.readAll(), encoding='utf8')
+    def __on_chg_style(self, idx: int):  # idx:int 0+
+        QApplication.setStyle(QStyleFactory.create(self.f_style.currentText()) if idx else '')
+        QApplication.setPalette(QApplication.style().standardPalette() if self.f_palette.isChecked() else QPalette())
 
-    def __style_changed(self, _: int):  # idx:int 0+
-        QApplication.setStyle(QStyleFactory.create(self.f_style.currentText()))
-        if self.f_palette.isChecked():
-            QApplication.setPalette(QApplication.style().standardPalette())
+    def __on_chg_palette(self, v: bool):
+        QApplication.setPalette(QApplication.style().standardPalette() if v else QPalette())
 
-    def __palette_changed(self, v: bool):
-        QApplication.setPalette(QApplication.style().standardPalette() if v else self._old_palette)
-
-    def __qss_changed(self, v: bool):
-        QApplication.instance().setStyleSheet(self._styles[self.f_qss.currentText()])
+    def __on_chg_qss(self, v: bool):
+        QApplication.instance().setStyleSheet(self._qss[self.f_qss.currentText()])
 
     def execute(self) -> bool:
-        """Open doialog and return result."""
-        if not self.exec_():
-            QApplication.setStyle(self._old_style_name)
-            QApplication.setPalette(self._old_palette)
-            return False
-        return True
+        """Open dialog and return result."""
+        if self.exec_():  # True: save settings
+            if self.f_style.currentIndex() > 0:
+                self._settings.setValue('style', self.f_style.currentText())
+            else:
+                self._settings.remove('style')
+            if self.f_palette.isChecked():
+                self._settings.setValue('palette', True)
+            else:
+                self._settings.remove('palette')
+            if self.f_qss.currentIndex() > 0:
+                self._settings.setValue('qss', self.f_qss.currentText())
+            else:
+                self._settings.remove('qss')
+            return True
+        load_style(self._settings, self._shares_dir)  # False: restore style
+        return False

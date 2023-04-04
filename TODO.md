@@ -3,19 +3,8 @@
 ## 0.3.6: OMP, ru, styling
 - [x] #152 ~~, #153~~ Механизм управления указками ОМП
   - [ ] Save/restore
-- [ ] #260 Включение возможности изменения стиля Qt приложения
+- [x] #260 Включение возможности изменения стиля Qt приложения
 - [ ] #258, #259 Руссификация интерфейса
-
-### Styling:
-- `QApplication.style()/.setStyle()`
-- `QApplication.palette()/.setPalette()`
-- `QApplication.instance().setStyleSheet()`
-- `QStyleFactory[.keys()]`
-
-So:
-- select style
-- set palette from style
-- [set stylesheet]
 
 ## 0.3.7: Deploy
 - [ ] Доработка/тестирование на версиях:
