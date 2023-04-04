@@ -982,7 +982,7 @@ class ComtradeWidget(QWidget):
             self,
             self.tr("Save OMP values"),
             str(pathlib.Path(self.osc.filepath).with_suffix('.uim')),
-            self.tr("U,I mesurements (*.uim)")
+            self.tr("U,I measurements (*.uim)")
         )
         if fn[0]:
             self.ompmapwin.data_save(pathlib.Path(fn[0]))
