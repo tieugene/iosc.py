@@ -2,11 +2,11 @@
 # 1. std
 import cmath
 import math
+from typing import Tuple
 # 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 # x. const
-TABLE_HEAD = ("Name", "Module", "Angle", "Re", "Im")
 
 
 class CVDTable(QTableWidget):
@@ -14,17 +14,19 @@ class CVDTable(QTableWidget):
 
     __parent: 'CVDWindow'  # noqa: F821
     __trace_items: bool  # process item changing
+    TABLE_HEAS: Tuple[str]
 
     def __init__(self, parent: 'CVDWindow'):  # noqa: F821
         """Init CVDTable object."""
         super().__init__(parent)
+        self.TABLE_HEAD = (self.tr("Name"), self.tr("Module"), self.tr("Angle"), self.tr("Re"), self.tr("Im"))
         self.__parent = parent
         self.__trace_items = False
-        self.setColumnCount(len(TABLE_HEAD))
+        self.setColumnCount(len(self.TABLE_HEAD))
         self.horizontalHeader().setStretchLastSection(True)
-        self.horizontalHeader().setSectionResizeMode(len(TABLE_HEAD) - 1, QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(len(self.TABLE_HEAD) - 1, QHeaderView.Stretch)
         self.setVerticalScrollMode(self.ScrollPerPixel)
-        self.setHorizontalHeaderLabels(TABLE_HEAD)
+        self.setHorizontalHeaderLabels(self.TABLE_HEAD)
         self.setSelectionMode(self.NoSelection)
         self.resizeRowsToContents()
         self.itemChanged.connect(self.__slot_item_chgd)

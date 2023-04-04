@@ -40,7 +40,7 @@ class CVDWindow(QDialog):
         self.__mk_layout()
         self.__mk_actions()
         self.__mk_toolbar()
-        self.setWindowTitle("Vector Diagram")
+        self.setWindowTitle(self.tr("Vector Diagram"))
         self.setWindowModality(Qt.WindowModality.NonModal)
         # self.setWindowFlag(Qt.Dialog)
         parent.signal_ptr_moved_main.connect(self.__slot_ptr_moved_main)
@@ -82,13 +82,13 @@ class CVDWindow(QDialog):
     def __mk_actions(self):
         # noinspection PyArgumentList
         self.action_settings = QAction(QIcon.fromTheme("document-properties"),
-                                       "&Select signals",
+                                       self.tr("&Select signals"),
                                        self,
                                        shortcut="Ctrl+S",
                                        triggered=self.__do_settings)
         # noinspection PyArgumentList
         self.action_close = QAction(QIcon.fromTheme("window-close"),
-                                    "&Close",
+                                    self.tr("&Close"),
                                     self,
                                     shortcut="Ctrl+V",
                                     triggered=self.close)

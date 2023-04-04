@@ -2,9 +2,8 @@
 # 2. 3rd
 from PyQt5.QtWidgets import QTableWidget, QDialog, QVBoxLayout, QTableWidgetItem, QAbstractItemView
 # 3. local
-from iosc.core.sigfunc import func_list
+# from iosc.core.sigfunc import func_list
 # x. const
-TYPE_NAME = ("As is", "Mid", "Eff", "H1", "H2", "H3", "H5")
 CENTERED = False  # use not centered values
 
 
@@ -23,19 +22,28 @@ class ValueTable(QTableWidget):
     def __init__(self, oscwin: 'ComtradeWidget', parent: 'VTWindow'):  # noqa: F821
         """Init ValueTable object."""
         super().__init__(parent)
+        type_name_list = (
+            self.tr("As is"),
+            self.tr("Mid"),
+            self.tr("Eff"),
+            self.tr("H1"),
+            self.tr("H2"),
+            self.tr("H3"),
+            self.tr("H5")
+        )
         self.setWordWrap(False)
         self.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.setColumnCount(5 + len(oscwin.tmp_ptr_i))
         self.setRowCount(len(oscwin.osc.y))
         # 1. header
-        h = ["Signal", "Type", "Min", "Max", "Main pointer"]
+        h = [self.tr("Signal"), self.tr("Type"), self.tr("Min"), self.tr("Max"), self.tr("Main pointer")]
         for uid, r in oscwin.tmp_ptr_i.items():
             h.append("T%d (%.3f ms)" % (uid, oscwin.osc.x[r]))
         self.setHorizontalHeaderLabels(h)
         # 1.5.
-        type_name = TYPE_NAME[oscwin.viewas]
-        func = func_list[oscwin.viewas]
-        spp = oscwin.osc.spp
+        type_name = type_name_list[oscwin.viewas]
+        # func = func_list[oscwin.viewas]
+        # spp = oscwin.osc.spp
         pors = oscwin.show_sec
         # 2. body
         for r, s in enumerate(oscwin.osc.y):
@@ -68,6 +76,6 @@ class VTWindow(QDialog):
     def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         """Init VTWindow object."""
         super().__init__(parent)
-        self.setWindowTitle("Value table")
+        self.setWindowTitle(self.tr("Value table"))
         self.setLayout(QVBoxLayout())
         self.layout().addWidget(ValueTable(parent, self))
