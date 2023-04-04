@@ -6,47 +6,47 @@
     <message>
         <location filename="../sig/widget/dialog.py" line="91"/>
         <source>Analog</source>
-        <translation type="unfinished"></translation>
+        <translation>Аналоговый</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="101"/>
         <source>Solid</source>
-        <translation type="unfinished"></translation>
+        <translation>Сплошная</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="101"/>
         <source>Dotted</source>
-        <translation type="unfinished"></translation>
+        <translation>Пунктир</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="101"/>
         <source>Dash-dotted</source>
-        <translation type="unfinished"></translation>
+        <translation>Штрих-пунктир</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="104"/>
         <source>Unit</source>
-        <translation type="unfinished"></translation>
+        <translation>Ед.изм.</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="105"/>
         <source>Primary: x</source>
-        <translation type="unfinished"></translation>
+        <translation>Первичный: x</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="106"/>
         <source>Secondary: x</source>
-        <translation type="unfinished"></translation>
+        <translation>Вторичный: x</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="107"/>
         <source>P/S</source>
-        <translation type="unfinished"></translation>
+        <translation>П/В</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="108"/>
         <source>Line type</source>
-        <translation type="unfinished"></translation>
+        <translation>Тип линии</translation>
     </message>
 </context>
 <context>
@@ -54,27 +54,27 @@
     <message>
         <location filename="../sig/tools/cvdtable.py" line="22"/>
         <source>Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Наименование</translation>
     </message>
     <message>
         <location filename="../sig/tools/cvdtable.py" line="22"/>
         <source>Module</source>
-        <translation type="unfinished"></translation>
+        <translation>Модуль</translation>
     </message>
     <message>
         <location filename="../sig/tools/cvdtable.py" line="22"/>
         <source>Angle</source>
-        <translation type="unfinished"></translation>
+        <translation>Угол</translation>
     </message>
     <message>
         <location filename="../sig/tools/cvdtable.py" line="22"/>
         <source>Re</source>
-        <translation type="unfinished"></translation>
+        <translation>Дс</translation>
     </message>
     <message>
         <location filename="../sig/tools/cvdtable.py" line="22"/>
         <source>Im</source>
-        <translation type="unfinished"></translation>
+        <translation>Мн</translation>
     </message>
 </context>
 <context>
@@ -82,17 +82,17 @@
     <message>
         <location filename="../sig/tools/cvdwindow.py" line="43"/>
         <source>Vector Diagram</source>
-        <translation type="unfinished"></translation>
+        <translation>Векторная диаграмма</translation>
     </message>
     <message>
         <location filename="../sig/tools/cvdwindow.py" line="84"/>
         <source>&amp;Select signals</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Выбрать сигналы</translation>
     </message>
     <message>
         <location filename="../sig/tools/cvdwindow.py" line="90"/>
         <source>&amp;Close</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Закрыть</translation>
     </message>
 </context>
 <context>
@@ -100,12 +100,12 @@
     <message>
         <location filename="../maintabber.py" line="35"/>
         <source>Loading error</source>
-        <translation type="unfinished"></translation>
+        <translation>Ошибка загрузки</translation>
     </message>
     <message>
         <location filename="../maintabber.py" line="37"/>
         <source>Sanity check error</source>
-        <translation type="unfinished"></translation>
+        <translation>Ошибка проверки</translation>
     </message>
 </context>
 <context>
@@ -173,7 +173,7 @@
     <message>
         <location filename="../sig/mainwidget.py" line="822"/>
         <source>Time base</source>
-        <translation type="unfinished"></translation>
+        <translation>Базис времени</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="823"/>
@@ -193,272 +193,272 @@
     <message>
         <location filename="../sig/mainwidget.py" line="279"/>
         <source>&amp;Close</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Закрыть</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="285"/>
         <source>&amp;Info</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Информация</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="291"/>
         <source>&amp;Save as...</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранить &amp;как...</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="296"/>
         <source>&amp;Export to CSV</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Экспорт в CSV</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="300"/>
         <source>&amp;Save settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранить &amp;настройки</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="306"/>
         <source>&amp;Load settings</source>
-        <translation type="unfinished"></translation>
+        <translation>За&amp;грузить настройки</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="312"/>
         <source>&amp;Print...</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Печать...</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="318"/>
         <source>Y-Resize +</source>
-        <translation type="unfinished"></translation>
+        <translation>Растянуть по Y</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="323"/>
         <source>Y-Resize -</source>
-        <translation type="unfinished"></translation>
+        <translation>Сжать по Y</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="328"/>
         <source>X-Zoom in</source>
-        <translation type="unfinished"></translation>
+        <translation>Растянуть по X</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="333"/>
         <source>X-Zoom out</source>
-        <translation type="unfinished"></translation>
+        <translation>Сжать по X</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="338"/>
         <source>&amp;Centered</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Центрировано</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="345"/>
         <source>&amp;Primary</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Первичные</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="350"/>
         <source>&amp;Secondary</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Вторичные</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="355"/>
         <source>As &amp;is</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Мгн.</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="359"/>
         <source>&amp;Mid.</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Срд.</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="363"/>
         <source>&amp;Eff.</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Дейст.</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="367"/>
         <source>Hrm. &amp;1</source>
-        <translation type="unfinished"></translation>
+        <translation>Грм. &amp;1</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="371"/>
         <source>Hrm. &amp;2</source>
-        <translation type="unfinished"></translation>
+        <translation>Грм. &amp;2</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="375"/>
         <source>Hrm. &amp;3</source>
-        <translation type="unfinished"></translation>
+        <translation>Грм. &amp;3</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="379"/>
         <source>Hrm. &amp;5</source>
-        <translation type="unfinished"></translation>
+        <translation>Грм. &amp;5</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="383"/>
         <source>&amp;Unhide all</source>
-        <translation type="unfinished"></translation>
+        <translation>Показать &amp;все</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="388"/>
         <source>Find...</source>
-        <translation type="unfinished"></translation>
+        <translation>Найти...</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="393"/>
         <source>Module</source>
-        <translation type="unfinished"></translation>
+        <translation>Модуль</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="397"/>
         <source>Add temporary pointer</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить временную указку</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="401"/>
         <source>Add measure pointers</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить замеры</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="405"/>
         <source>Add level pointers</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить уровни</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="409"/>
         <source>Move main pointer left</source>
-        <translation type="unfinished"></translation>
+        <translation>Главную указку влево</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="414"/>
         <source>Move main pointer right</source>
-        <translation type="unfinished"></translation>
+        <translation>Главную указку вправо</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="419"/>
         <source>Vector chart</source>
-        <translation type="unfinished"></translation>
+        <translation>Векторная диаграмма</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="424"/>
         <source>Harmonic chart</source>
-        <translation type="unfinished"></translation>
+        <translation>Диаграмма гармоник</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="429"/>
         <source>Value table</source>
-        <translation type="unfinished"></translation>
+        <translation>Таблица значений</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="435"/>
         <source>OMP map table</source>
-        <translation type="unfinished"></translation>
+        <translation>Таблица соответсвия для ОМП</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="440"/>
         <source>OMP map save</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранить файл измерений для ОМП</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="462"/>
         <source>&amp;File</source>
-        <translation type="unfinished">&amp;Файл</translation>
+        <translation>&amp;Файл</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="471"/>
         <source>&amp;View</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Вид</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="479"/>
         <source>P/S</source>
-        <translation type="unfinished"></translation>
+        <translation>П/В</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="483"/>
         <source>View as...</source>
-        <translation type="unfinished"></translation>
+        <translation>Показать как...</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="492"/>
         <source>&amp;Signal</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Сигнал</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="498"/>
         <source>&amp;Pointers</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Указки</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="505"/>
         <source>&amp;Tools</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Инструменты</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="636"/>
         <source>OFG loading error</source>
-        <translation type="unfinished"></translation>
+        <translation>Ошибка загрузки OFG</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="636"/>
         <source>Incompatible version: %s</source>
-        <translation type="unfinished"></translation>
+        <translation>Несовместимая версия: %s</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="834"/>
         <source>Save file as %s</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранить файл как %s</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="842"/>
         <source>Converting error</source>
-        <translation type="unfinished"></translation>
+        <translation>Ошибка преобразования</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="846"/>
         <source>Export file as CSV</source>
-        <translation type="unfinished"></translation>
+        <translation>Экспорт файла в CSV</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="846"/>
         <source>Comma separated values (*.csv)</source>
-        <translation type="unfinished"></translation>
+        <translation>Значения, разделенные запятой (*.csv)</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="857"/>
         <source>Save settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранить настройки</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="869"/>
         <source>Oscillogramm configuration (*.ofg)</source>
-        <translation type="unfinished"></translation>
+        <translation>Конфигурация осциллограммы (*.ofg)</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="975"/>
         <source>OMP save error</source>
-        <translation type="unfinished"></translation>
+        <translation>Ощибка сохранения ОМП</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="968"/>
         <source>OMP map was not call somewhen</source>
-        <translation type="unfinished"></translation>
+        <translation>Таблица соответствия для ОМП никогда не вызывалась</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="975"/>
         <source>OMP map is not fully defined</source>
-        <translation type="unfinished"></translation>
+        <translation>Таблица соответсвия для ОМП определена не до конца</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="981"/>
         <source>Save OMP values</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранить значения для ОМП</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="981"/>
-        <source>U,I mesurements (*.uim)</source>
-        <translation type="unfinished"></translation>
+        <source>U,I measurements (*.uim)</source>
+        <translation>Замеры U,I (*.uim)</translation>
     </message>
 </context>
 <context>
@@ -466,7 +466,7 @@
     <message>
         <location filename="../sig/widget/finder.py" line="21"/>
         <source>Search signal</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск сигнала</translation>
     </message>
 </context>
 <context>
@@ -474,17 +474,17 @@
     <message>
         <location filename="../sig/tools/hdwindow.py" line="39"/>
         <source>Harmonic Diagram</source>
-        <translation type="unfinished"></translation>
+        <translation>Диаграмма гармоник</translation>
     </message>
     <message>
         <location filename="../sig/tools/hdwindow.py" line="66"/>
         <source>&amp;Select signals</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Выбрать сигналы</translation>
     </message>
     <message>
         <location filename="../sig/tools/hdwindow.py" line="72"/>
         <source>&amp;Close</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Закрыть</translation>
     </message>
 </context>
 <context>
@@ -493,23 +493,23 @@
         <location filename="../sig/pdfout/gsuit.py" line="27"/>
         <source>
 Station ID: %s, Station name: %s</source>
-        <translation type="unfinished"></translation>
+        <translation>\nИдентификатор устройства: %s, Наименование устройства: %s</translation>
     </message>
     <message>
         <location filename="../sig/pdfout/gsuit.py" line="27"/>
         <source>
 %s values, Trigger time: %s</source>
-        <translation type="unfinished"></translation>
+        <translation>\n%s значений, Время срабатывания: %s</translation>
     </message>
     <message>
         <location filename="../sig/pdfout/gsuit.py" line="27"/>
         <source>Primary</source>
-        <translation type="unfinished"></translation>
+        <translation>Первичные</translation>
     </message>
     <message>
         <location filename="../sig/pdfout/gsuit.py" line="27"/>
         <source>Secondary</source>
-        <translation type="unfinished"></translation>
+        <translation>Вторичные</translation>
     </message>
 </context>
 <context>
@@ -517,17 +517,17 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/calc/dialog.py" line="18"/>
         <source>Solid</source>
-        <translation type="unfinished"></translation>
+        <translation>Сплошная</translation>
     </message>
     <message>
         <location filename="../sig/calc/dialog.py" line="18"/>
         <source>Dotted</source>
-        <translation type="unfinished"></translation>
+        <translation>Пунктир</translation>
     </message>
     <message>
         <location filename="../sig/calc/dialog.py" line="18"/>
         <source>Dash-dotted</source>
-        <translation type="unfinished"></translation>
+        <translation>Штрих-пунктир</translation>
     </message>
 </context>
 <context>
@@ -535,7 +535,7 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/widget/dialog.py" line="290"/>
         <source>Value</source>
-        <translation type="unfinished"></translation>
+        <translation>Значение</translation>
     </message>
 </context>
 <context>
@@ -578,7 +578,7 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../mainwindow.py" line="72"/>
         <source>Show the application&apos;s &apos;About&apos; box</source>
-        <translation>Показывает 'О программе'</translation>
+        <translation>Показывает &apos;О программе&apos;</translation>
     </message>
     <message>
         <location filename="../mainwindow.py" line="80"/>
@@ -623,7 +623,7 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../mainwindow.py" line="110"/>
         <source>&apos;%s&apos; not exists or is not file</source>
-        <translation>'%s' не существует или не файл</translation>
+        <translation>&apos;%s&apos; не существует или не файл</translation>
     </message>
     <message>
         <location filename="../mainwindow.py" line="133"/>
@@ -646,27 +646,27 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/calc/dialog.py" line="46"/>
         <source>Signal module</source>
-        <translation type="unfinished"></translation>
+        <translation>Модуль сигнала</translation>
     </message>
     <message>
         <location filename="../sig/calc/dialog.py" line="62"/>
         <source>Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Наименование</translation>
     </message>
     <message>
         <location filename="../sig/calc/dialog.py" line="63"/>
         <source>Color</source>
-        <translation type="unfinished"></translation>
+        <translation>Цвет</translation>
     </message>
     <message>
         <location filename="../sig/calc/dialog.py" line="64"/>
         <source>Style</source>
-        <translation type="unfinished"></translation>
+        <translation>Стиль</translation>
     </message>
     <message>
         <location filename="../sig/calc/dialog.py" line="65"/>
         <source>Signal</source>
-        <translation type="unfinished"></translation>
+        <translation>Сигнал</translation>
     </message>
 </context>
 <context>
@@ -674,52 +674,52 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/widget/dialog.py" line="254"/>
         <source>As is</source>
-        <translation type="unfinished"></translation>
+        <translation>Мгн. зн.</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="254"/>
         <source>Mid.</source>
-        <translation type="unfinished"></translation>
+        <translation>Срд.</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="254"/>
         <source>Eff.</source>
-        <translation type="unfinished"></translation>
+        <translation>Дейст.</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="254"/>
         <source>H1</source>
-        <translation type="unfinished"></translation>
+        <translation>Г1</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="254"/>
         <source>H2</source>
-        <translation type="unfinished"></translation>
+        <translation>Г2</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="254"/>
         <source>H3</source>
-        <translation type="unfinished"></translation>
+        <translation>Г3</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="254"/>
         <source>H5</source>
-        <translation type="unfinished"></translation>
+        <translation>Г5</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="260"/>
         <source>Value</source>
-        <translation type="unfinished"></translation>
+        <translation>Значение</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="261"/>
         <source>Func.</source>
-        <translation type="unfinished"></translation>
+        <translation>Функ.</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="269"/>
         <source>Measure pointer properties</source>
-        <translation type="unfinished"></translation>
+        <translation>Свойства замера</translation>
     </message>
 </context>
 <context>
@@ -727,47 +727,47 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/tools/ompmap.py" line="53"/>
         <source>OMP signal</source>
-        <translation type="unfinished"></translation>
+        <translation>Сигнал ОМП</translation>
     </message>
     <message>
         <location filename="../sig/tools/ompmap.py" line="53"/>
         <source>Osc. signal</source>
-        <translation type="unfinished"></translation>
+        <translation>Сигнал осц.</translation>
     </message>
     <message>
         <location filename="../sig/tools/ompmap.py" line="53"/>
         <source>Value</source>
-        <translation type="unfinished"></translation>
+        <translation>Значение</translation>
     </message>
     <message>
         <location filename="../sig/tools/ompmap.py" line="53"/>
         <source>Time</source>
-        <translation type="unfinished">Время</translation>
+        <translation>Время</translation>
     </message>
     <message>
         <location filename="../sig/tools/ompmap.py" line="54"/>
         <source>Ua,pr</source>
-        <translation type="unfinished"></translation>
+        <translation>Ua,пд</translation>
     </message>
     <message>
         <location filename="../sig/tools/ompmap.py" line="54"/>
         <source>Ia,pr</source>
-        <translation type="unfinished"></translation>
+        <translation>Ia,пд</translation>
     </message>
     <message>
         <location filename="../sig/tools/ompmap.py" line="55"/>
         <source>SC ptr</source>
-        <translation type="unfinished"></translation>
+        <translation>Укз КЗ</translation>
     </message>
     <message>
         <location filename="../sig/tools/ompmap.py" line="55"/>
         <source>PR ptr</source>
-        <translation type="unfinished"></translation>
+        <translation>Укз ПД</translation>
     </message>
     <message>
         <location filename="../sig/tools/ompmap.py" line="60"/>
         <source>OMP map table</source>
-        <translation type="unfinished"></translation>
+        <translation>Таблица соответсвия для ОМП</translation>
     </message>
 </context>
 <context>
@@ -775,12 +775,12 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/pdfout/dialog.py" line="39"/>
         <source>Print values</source>
-        <translation type="unfinished"></translation>
+        <translation>Печать значений</translation>
     </message>
     <message>
         <location filename="../sig/pdfout/dialog.py" line="50"/>
         <source>Print pointers</source>
-        <translation type="unfinished"></translation>
+        <translation>Печать указок</translation>
     </message>
 </context>
 <context>
@@ -788,12 +788,12 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/widget/ptr.py" line="124"/>
         <source>Distance between PR and SC</source>
-        <translation type="unfinished"></translation>
+        <translation>Расстояние между ПД и КЗ</translation>
     </message>
     <message>
         <location filename="../sig/widget/ptr.py" line="124"/>
         <source>Main frequency periods number</source>
-        <translation type="unfinished"></translation>
+        <translation>Количество периодов основной частоты</translation>
     </message>
 </context>
 <context>
@@ -801,17 +801,17 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/widget/dialog.py" line="164"/>
         <source>Select signals</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбрать сигналы</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="172"/>
         <source>Select all</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбрать все</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="173"/>
         <source>Clean</source>
-        <translation type="unfinished"></translation>
+        <translation>Очистить</translation>
     </message>
 </context>
 <context>
@@ -819,12 +819,12 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/widget/ctrl.py" line="124"/>
         <source>Properties...</source>
-        <translation type="unfinished"></translation>
+        <translation>Свойства...</translation>
     </message>
     <message>
         <location filename="../sig/widget/ctrl.py" line="125"/>
         <source>Hide</source>
-        <translation type="unfinished"></translation>
+        <translation>Скрыть</translation>
     </message>
 </context>
 <context>
@@ -832,22 +832,22 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/widget/dialog.py" line="38"/>
         <source>Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Наименование</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="39"/>
         <source>Type</source>
-        <translation type="unfinished"></translation>
+        <translation>Тип</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="40"/>
         <source>Color</source>
-        <translation type="unfinished"></translation>
+        <translation>Цвет</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="49"/>
         <source>Signal properties</source>
-        <translation type="unfinished"></translation>
+        <translation>Свойства сигнала</translation>
     </message>
 </context>
 <context>
@@ -855,7 +855,7 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/widget/dialog.py" line="68"/>
         <source>Status</source>
-        <translation type="unfinished"></translation>
+        <translation>Дискретный</translation>
     </message>
 </context>
 <context>
@@ -863,7 +863,7 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/widget/top.py" line="177"/>
         <source>ms</source>
-        <translation type="unfinished"></translation>
+        <translation>мс</translation>
     </message>
 </context>
 <context>
@@ -871,17 +871,17 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/widget/dialog.py" line="140"/>
         <source>Value</source>
-        <translation type="unfinished"></translation>
+        <translation>Значение</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="141"/>
         <source>Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Наименование</translation>
     </message>
     <message>
         <location filename="../sig/widget/dialog.py" line="149"/>
         <source>Temporary pointer properties</source>
-        <translation type="unfinished"></translation>
+        <translation>Свойства временной указки</translation>
     </message>
 </context>
 <context>
@@ -889,7 +889,7 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/tools/vtwindow.py" line="79"/>
         <source>Value table</source>
-        <translation type="unfinished"></translation>
+        <translation>Таблица значений</translation>
     </message>
 </context>
 <context>
@@ -897,62 +897,62 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/tools/vtwindow.py" line="25"/>
         <source>As is</source>
-        <translation type="unfinished"></translation>
+        <translation>Мгн.зн.</translation>
     </message>
     <message>
         <location filename="../sig/tools/vtwindow.py" line="25"/>
         <source>Mid</source>
-        <translation type="unfinished"></translation>
+        <translation>Срд</translation>
     </message>
     <message>
         <location filename="../sig/tools/vtwindow.py" line="25"/>
         <source>Eff</source>
-        <translation type="unfinished"></translation>
+        <translation>Дейст</translation>
     </message>
     <message>
         <location filename="../sig/tools/vtwindow.py" line="25"/>
         <source>H1</source>
-        <translation type="unfinished"></translation>
+        <translation>Г1</translation>
     </message>
     <message>
         <location filename="../sig/tools/vtwindow.py" line="25"/>
         <source>H2</source>
-        <translation type="unfinished"></translation>
+        <translation>Г2</translation>
     </message>
     <message>
         <location filename="../sig/tools/vtwindow.py" line="25"/>
         <source>H3</source>
-        <translation type="unfinished"></translation>
+        <translation>Г3</translation>
     </message>
     <message>
         <location filename="../sig/tools/vtwindow.py" line="25"/>
         <source>H5</source>
-        <translation type="unfinished"></translation>
+        <translation>Г5</translation>
     </message>
     <message>
         <location filename="../sig/tools/vtwindow.py" line="39"/>
         <source>Signal</source>
-        <translation type="unfinished"></translation>
+        <translation>Сигнал</translation>
     </message>
     <message>
         <location filename="../sig/tools/vtwindow.py" line="39"/>
         <source>Type</source>
-        <translation type="unfinished"></translation>
+        <translation>Тип</translation>
     </message>
     <message>
         <location filename="../sig/tools/vtwindow.py" line="39"/>
         <source>Min</source>
-        <translation type="unfinished"></translation>
+        <translation>Мин</translation>
     </message>
     <message>
         <location filename="../sig/tools/vtwindow.py" line="39"/>
         <source>Max</source>
-        <translation type="unfinished"></translation>
+        <translation>Макс</translation>
     </message>
     <message>
         <location filename="../sig/tools/vtwindow.py" line="39"/>
         <source>Main pointer</source>
-        <translation type="unfinished"></translation>
+        <translation>Главная указка</translation>
     </message>
 </context>
 <context>
@@ -960,12 +960,12 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/widget/ptr.py" line="626"/>
         <source>Edit...</source>
-        <translation type="unfinished"></translation>
+        <translation>Изменить...</translation>
     </message>
     <message>
         <location filename="../sig/widget/ptr.py" line="627"/>
         <source>Delete</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить</translation>
     </message>
 </context>
 </TS>
