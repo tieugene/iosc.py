@@ -41,7 +41,7 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
                 "list-add",
                 self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogDetailedView)
             ),
-            "Print values",
+            self.tr("Print values"),
             self,
             checkable=True,
             toggled=self.__slot_option_values
@@ -52,7 +52,7 @@ class PDFOutPreviewDialog(QPrintPreviewDialog):
                 "insert-link",
                 self.style().standardIcon(QStyle.StandardPixmap.SP_FileLinkIcon)
             ),
-            "Print pointers",
+            self.tr("Print pointers"),
             self,
             checkable=True,
             toggled=self.__slot_option_ptrs

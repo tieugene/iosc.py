@@ -15,7 +15,7 @@ class LineStyleSelector(QComboBox):
     def __init__(self, parent: QDialog = None):
         """Init LineStyleSelector object."""
         super().__init__(parent)
-        self.addItems(("Solid", "Dotted", "Dash-dotted"))
+        self.addItems((self.tr("Solid"), self.tr("Dotted"), self.tr("Dash-dotted")))
         self.setCurrentIndex(0)
 
 
@@ -43,7 +43,7 @@ class MathModuleDialog(QDialog):
         """Init MathModuleDialog object."""
         super().__init__(parent)
         self._color = QColor(Qt.GlobalColor.black)
-        self.setWindowTitle("Signal module")
+        self.setWindowTitle(self.tr("Signal module"))
         self._mk_widgets(ass_list)
         self._mk_layout()
         self._mk_connections()
@@ -59,10 +59,10 @@ class MathModuleDialog(QDialog):
 
     def _mk_layout(self):
         lt = QFormLayout()
-        lt.addRow("Name", self.f_name)
-        lt.addRow("Color", self.f_color)
-        lt.addRow("Style", self.f_style)
-        lt.addRow("Signal", self.f_signal)
+        lt.addRow(self.tr("Name"), self.f_name)
+        lt.addRow(self.tr("Color"), self.f_color)
+        lt.addRow(self.tr("Style"), self.f_style)
+        lt.addRow(self.tr("Signal"), self.f_signal)
         lt.addRow(self.button_box)
         lt.setVerticalSpacing(0)
         self.setLayout(lt)
