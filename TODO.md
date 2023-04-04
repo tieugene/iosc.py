@@ -5,9 +5,9 @@
 
 ### i18n:
 - Prepare strings (include into `self.tr(...)`)
-- Prepare template: `pylupdate5 iosc/*.py iosc/core/*.py iosc/sig/*.py iosc/sig/*/*.py -ts iosc/i18n/iOsc_ru.ts`
+- Prepare template: `pylupdate5 iosc/*.py iosc/sig/*.py iosc/sig/*/*.py -ts iosc/i18n/iOsc_ru.ts`
 - ~~Mk l10n: `cp i18n/iosc.ts i18n/iosc_ru.ts`~~
-- Translate: `linguist-qt5 iosc/i18n/iosc_ru.ts`
+- Translate: `linguist-qt5 iosc/i18n/iOsc_ru.ts`
 - Compile l10ns: `lrelease-qt5 lrelease-qt5 iosc/i18n/*.ts`
 
 ### l10n:

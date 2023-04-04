@@ -3,7 +3,7 @@
 import pathlib
 import sys
 # 2. 3rd
-from PyQt5.QtCore import Qt, QCoreApplication, QSettings, QTranslator, QLocale, QStandardPaths
+from PyQt5.QtCore import Qt, QCoreApplication, QSettings, QTranslator, QLocale  # , QStandardPaths
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, \
     QApplication
@@ -14,10 +14,6 @@ from iosc.prefs import AppSettingsDialog, load_style
 
 # x. const
 MAIN_MENU = True  # FIXME: False => hot keys not work
-ABOUT_STR = '''Qt powered comtrade viewer/analyzer.<br/>
-Version: %s<br/>
-Developed for <a href="https://ntkpribor.ru/">&laquo;NTK Priborenergo&raquo;, Ltd.</a><br/>
-<sub>&copy; <a href="https://www.eap.su">TI_Eugene</a></sub>'''
 SHARES_DIR: pathlib.PosixPath
 
 
@@ -101,7 +97,7 @@ class MainWindow(QMainWindow):
         # main_tab.layout().addWidget(self.act_bar)
         main_tab.layout().addWidget(QWidget())
         if MAIN_TAB:
-            self.tabs.addTab(main_tab, "File")
+            self.tabs.addTab(main_tab, self.tr("File"))
 
     def handle_cli(self):
         """Process CLI arg."""
@@ -111,7 +107,7 @@ class MainWindow(QMainWindow):
         elif len(argv) == 2:
             file = pathlib.Path(argv[1])
             if not file.is_file():
-                QMessageBox.warning(self, self.tr("CLI error"), f"'{file}' not exists or is not file")
+                QMessageBox.warning(self, self.tr("CLI error"), self.tr("'%s' not exists or is not file") % file)
             else:
                 self.tabs.add_chart_tab(file)
 
@@ -134,7 +130,15 @@ class MainWindow(QMainWindow):
     def __do_about(self):
         """Show 'About' message box."""
         # QMessageBox.about(self, "About iOsc.py", ABOUT_STR)
-        dialog = QMessageBox(QMessageBox.Information, self.tr("About iOsc"), ABOUT_STR % __version__, QMessageBox.Ok, self)
+        dialog = QMessageBox(
+            QMessageBox.Information,
+            self.tr("About iOsc"),
+            self.tr("Qt powered comtrade viewer/analyzer, version %s<br/>") % __version__ +
+            self.tr('Developed for <a href="https://ntkpribor.ru/">&laquo;NTK Priborenergo&raquo;, Ltd.</a><br/>') +
+            '<sub>&copy; <a href="https://www.eap.su">TI_Eugene</a></sub>',
+            QMessageBox.Ok,
+            self
+        )
         dialog.setTextFormat(Qt.RichText)
         dialog.exec_()
 
