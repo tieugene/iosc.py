@@ -561,7 +561,7 @@ class ComtradeWidget(QWidget):
             },
             'table': []
         }
-        if bool(self.omp_ptr):
+        if self.omp_ptr:
             data['ptr']['omp'] = {'xi': self.omp_ptr.i_sc, 'w': self.omp_ptr.w}
         if self.__tmp_ptr_i:
             tmp = []
@@ -686,8 +686,9 @@ class ComtradeWidget(QWidget):
         # - MainPtr
         self.slot_ptr_moved_main(data['ptr']['main'])
         # - SC ptrs
-        if bool(self.omp_ptr):
-            self.slot_ptr_moved_sc(data['ptr']['omp']['xi'])  # TODO: width
+        if self.omp_ptr:
+            self.omp_ptr.w = data['ptr']['omp']['w']  # hack but...
+            self.slot_ptr_moved_sc(data['ptr']['omp']['xi'])
         # - Tmp ptrs
         for ptr in data['ptr'].get('tmp', []):
             self.__ptr_add_tmp(ptr['uid'], ptr['xi'])
