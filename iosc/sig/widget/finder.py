@@ -16,9 +16,9 @@ class FindDialog(QInputDialog):
         super().__init__(parent)
         self.__ss_found = None
         self.setOption(self.InputDialogOption.NoButtons)
-        self.setWindowTitle("Search signal")
+        self.setWindowTitle(self.tr("Search signal"))
         self.setInputMode(self.InputMode.TextInput)
-        self.setLabelText("Search signal")
+        self.setLabelText(self.tr("Search signal"))
         self.textValueChanged.connect(self.__slot_on_the_fly)
         self.finished.connect(self.__slot_post_close)
 

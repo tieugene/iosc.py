@@ -35,9 +35,9 @@ class SignalPropertiesDialog(QDialog):
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         # 3. set layout
         self._layout = QFormLayout(self)  # FIXME: not h-stretchable
-        self._layout.addRow("Name", self.f_name)
-        self._layout.addRow("Type", self.f_type)
-        self._layout.addRow("Color", self.f_color)
+        self._layout.addRow(self.tr("Name"), self.f_name)
+        self._layout.addRow(self.tr("Type"), self.f_type)
+        self._layout.addRow(self.tr("Color"), self.f_color)
         self._layout.addRow(self.button_box)
         self._layout.setVerticalSpacing(0)
         self.setLayout(self._layout)
@@ -46,7 +46,7 @@ class SignalPropertiesDialog(QDialog):
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
         # 5. go
-        self.setWindowTitle("Signal properties")
+        self.setWindowTitle(self.tr("Signal properties"))
 
     def __set_color_button(self):
         self.f_color.setText(self._color.name(QColor.HexRgb))
@@ -65,7 +65,7 @@ class StatusSignalPropertiesDialog(SignalPropertiesDialog):
     def __init__(self, ss: 'StatusSignalSuit', parent=None):  # noqa: F821
         """Init StatusSignalPropertiesDialog object."""
         super().__init__(ss, parent)
-        self.f_type.setText("Status")
+        self.f_type.setText(self.tr("Status"))
 
     def execute(self) -> bool:
         """Open dialog and return result."""
@@ -88,7 +88,7 @@ class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
         """Init AnalogSignalPropertiesDialog object."""
         super().__init__(ss, parent)
         info = self._ss.info
-        self.f_type.setText("Analog")
+        self.f_type.setText(self.tr("Analog"))
         self.f_uu = QLineEdit(self._ss.uu)
         self.f_uu.setReadOnly(True)
         self.f_pmult = QLineEdit(str(info['p']))
@@ -98,14 +98,14 @@ class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
         self.f_pors = QLineEdit(info['pors'])
         self.f_pors.setReadOnly(True)
         self.f_style = QComboBox(self)
-        self.f_style.addItems(("Solid", "Dotted", "Dash-dotted"))
+        self.f_style.addItems((self.tr("Solid"), self.tr("Dotted"), self.tr("Dash-dotted")))
         self.f_style.setCurrentIndex(self._ss.line_style)
         # add them
-        self._layout.insertRow(2, "Unit", self.f_uu)
-        self._layout.insertRow(3, "Primary: x", self.f_pmult)
-        self._layout.insertRow(4, "Secondary: x", self.f_smult)
-        self._layout.insertRow(5, "P/S", self.f_pors)
-        self._layout.insertRow(7, "Line type", self.f_style)  # QInputDialog.getItem()
+        self._layout.insertRow(2, self.tr("Unit"), self.f_uu)
+        self._layout.insertRow(3, self.tr("Primary: x"), self.f_pmult)
+        self._layout.insertRow(4, self.tr("Secondary: x"), self.f_smult)
+        self._layout.insertRow(5, self.tr("P/S"), self.f_pors)
+        self._layout.insertRow(7, self.tr("Line type"), self.f_style)  # QInputDialog.getItem()
 
     def execute(self) -> bool:
         """Open doialog and return result."""
@@ -120,8 +120,8 @@ def get_new_omp_width(parent: QWidget, old_value: int, max_v: int) -> Optional[i
     """:return: New OMP ptrs distance."""
     new_value, ok = QInputDialog.getInt(
         parent,
-        "Distance between PR and SC",
-        "Main frequency periods number",
+        self.tr("Distance between PR and SC"),
+        self.tr("Main frequency periods number"),
         old_value,
         2,
         max_v
@@ -151,8 +151,8 @@ class TmpPtrDialog(QDialog):
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         # 3. set layout
         layout = QFormLayout(self)
-        layout.addRow("Value", self.f_val)
-        layout.addRow("Name", self.f_name)
+        layout.addRow(self.tr("Value"), self.f_val)
+        layout.addRow(self.tr("Name"), self.f_name)
         layout.addRow(self.button_box)
         layout.setVerticalSpacing(0)
         self.setLayout(layout)
@@ -160,7 +160,7 @@ class TmpPtrDialog(QDialog):
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
         # 5. go
-        self.setWindowTitle("Tmp ptr properties")
+        self.setWindowTitle(self.tr("Temporary pointer properties"))
 
 
 class SelectSignalsDialog(QDialog):
@@ -175,7 +175,7 @@ class SelectSignalsDialog(QDialog):
     def __init__(self, ass_list: list['AnalogSignalSuit'], ass_used: set[int] = (), parent=None):  # noqa: F821
         """Init SelectSignalsDialog object."""
         super().__init__(parent)
-        self.setWindowTitle("Select signals")
+        self.setWindowTitle(self.tr("Select signals"))
         self._mk_widgets()
         self._mk_layout()
         self._mk_connections()
@@ -183,8 +183,8 @@ class SelectSignalsDialog(QDialog):
         self.button_box.setFocus()
 
     def _mk_widgets(self):
-        self.button_all = QPushButton("Select all", self)
-        self.button_none = QPushButton("Clean", self)
+        self.button_all = QPushButton(self.tr("Select all"), self)
+        self.button_none = QPushButton(self.tr("Clean"), self)
         self.buttons_select = QDialogButtonBox()
         self.buttons_select.addButton(self.button_all, QDialogButtonBox.AcceptRole)
         self.buttons_select.addButton(self.button_none, QDialogButtonBox.RejectRole)
@@ -265,13 +265,14 @@ class MsrPtrDialog(QDialog):
         self.f_val.setDecimals(3)
         self.f_val.setValue(data[0])
         self.f_func = QComboBox()
-        self.f_func.addItems(("As is", "Mid", "Effective", "H1", "H2", "H3", "H5"))
+        self.f_func.addItems((self.tr("As is"), self.tr("Mid."), self.tr("Eff."),
+                              self.tr("H1"), self.tr("H2"), self.tr("H3"), self.tr("H5")))
         self.f_func.setCurrentIndex(data[4])
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         # 3. set layout
         layout = QFormLayout(self)
-        layout.addRow("Value", self.f_val)
-        layout.addRow("Func", self.f_func)
+        layout.addRow(self.tr("Value"), self.f_val)
+        layout.addRow(self.tr("Func."), self.f_func)
         layout.addRow(self.button_box)
         layout.setVerticalSpacing(0)
         self.setLayout(layout)
@@ -279,7 +280,7 @@ class MsrPtrDialog(QDialog):
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
         # 5. go
-        self.setWindowTitle("Msr ptr properties")  # FIXME: += ' M1: <sid>'
+        self.setWindowTitle(self.tr("Measure pointer properties"))  # FIXME: += ' M1: <sid>'
 
 
 class LvlPtrDialog(QDialog):
@@ -300,7 +301,7 @@ class LvlPtrDialog(QDialog):
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         # 3. set layout
         layout = QFormLayout(self)
-        layout.addRow("Value", self.f_val)
+        layout.addRow(self.tr("Value"), self.f_val)
         layout.addRow(self.button_box)
         layout.setVerticalSpacing(0)
         self.setLayout(layout)

@@ -121,8 +121,8 @@ class BarCtrlWidget(QWidget):
             if not item:
                 return
             context_menu = QMenu()
-            action_sig_property = context_menu.addAction("Properties...")
-            action_sig_hide = context_menu.addAction("Hide")
+            action_sig_property = context_menu.addAction(self.tr("Properties..."))
+            action_sig_hide = context_menu.addAction(self.tr("Hide"))
             chosen_action = context_menu.exec_(self.mapToGlobal(point))
             if chosen_action == action_sig_property:
                 item.ss.do_sig_property()

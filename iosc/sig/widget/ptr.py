@@ -411,8 +411,8 @@ class MsrPtr(Ptr):
 
     def __slot_context_menu(self, pos: QPointF):
         context_menu = QMenu()
-        action_edit = context_menu.addAction("Edit...")
-        action_del = context_menu.addAction("Delete")
+        action_edit = context_menu.addAction(self.tr("Edit..."))
+        action_del = context_menu.addAction(self.tr("Delete"))
         point = self.parentPlot().mapToGlobal(pos.toPoint())
         chosen_action = context_menu.exec_(point)
         if chosen_action == action_edit:
@@ -610,8 +610,8 @@ class LvlPtr(QCPItemStraightLine):
 
     def __slot_context_menu(self, pos: QPointF):
         context_menu = QMenu()
-        action_edit = context_menu.addAction("Edit...")
-        action_del = context_menu.addAction("Delete")
+        action_edit = context_menu.addAction(self.tr("Edit..."))
+        action_del = context_menu.addAction(self.tr("Delete"))
         point = self.parentPlot().mapToGlobal(pos.toPoint())
         chosen_action = context_menu.exec_(point)
         if chosen_action == action_edit:

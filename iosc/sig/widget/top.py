@@ -174,6 +174,6 @@ class TimeAxisBar(SlickPanelWidget):
     def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         """Init TimeAxisBar object."""
         super().__init__(parent)
-        self._label.setText('ms')
+        self._label.setText(self.tr("ms"))
         self.plot = TimeAxisPlot(self)
         self._post_init()
