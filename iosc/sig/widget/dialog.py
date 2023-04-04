@@ -5,7 +5,7 @@ from typing import Optional, Union
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QPushButton, QColorDialog, QLineEdit, \
-    QInputDialog, QWidget, QDoubleSpinBox, QListWidget, QVBoxLayout, QListWidgetItem
+    QDoubleSpinBox, QListWidget, QVBoxLayout, QListWidgetItem
 
 
 class SignalPropertiesDialog(QDialog):
@@ -114,20 +114,6 @@ class AnalogSignalPropertiesDialog(SignalPropertiesDialog):
             self._ss.color = self._color
             return True
         return False
-
-
-def get_new_omp_width(parent: QWidget, old_value: int, max_v: int) -> Optional[int]:
-    """:return: New OMP ptrs distance."""
-    new_value, ok = QInputDialog.getInt(
-        parent,
-        self.tr("Distance between PR and SC"),
-        self.tr("Main frequency periods number"),
-        old_value,
-        2,
-        max_v
-    )
-    if ok and new_value != old_value:
-        return new_value
 
 
 class TmpPtrDialog(QDialog):

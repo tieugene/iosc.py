@@ -4,11 +4,11 @@ from typing import Optional
 # 2. 3rd
 from PyQt5.QtCore import Qt, QMargins, QPointF, pyqtSignal
 from PyQt5.QtGui import QBrush, QFont, QMouseEvent, QCursor, QPen
-from PyQt5.QtWidgets import QWidget, QMenu
+from PyQt5.QtWidgets import QWidget, QMenu, QInputDialog
 from QCustomPlot_PyQt5 import QCPItemTracer, QCustomPlot, QCPItemStraightLine, QCPItemText, QCPItemRect, QCPGraph
 # 3. local
 import iosc.const
-from iosc.sig.widget.dialog import get_new_omp_width, MsrPtrDialog, LvlPtrDialog
+from iosc.sig.widget.dialog import MsrPtrDialog, LvlPtrDialog
 
 
 class VLine(QCPItemStraightLine):
@@ -119,6 +119,19 @@ class SCPtr(Ptr):
         self.signal_ptr_moved.connect(self._oscwin.slot_ptr_moved_sc)
         self._oscwin.signal_ptr_moved_sc.connect(self.__slot_ptr_move)
 
+    def get_new_omp_width(self, parent: QWidget, old_value: int, max_v: int) -> Optional[int]:
+        """:return: New OMP ptrs distance."""
+        new_value, ok = QInputDialog.getInt(
+            parent,
+            self.tr("Distance between PR and SC"),
+            self.tr("Main frequency periods number"),
+            old_value,
+            2,
+            max_v
+        )
+        if ok and new_value != old_value:
+            return new_value
+
     def __selection_chg(self, selection: bool):
         self._switch_cursor(selection)
         self.parentPlot().replot()  # update selection decoration
@@ -154,7 +167,7 @@ class SCPtr(Ptr):
     def mouseDoubleClickEvent(self, event: QMouseEvent, _):
         """Inherited."""
         event.accept()
-        if new_omp_width := get_new_omp_width(self._oscwin, self._oscwin.omp_ptr.w, self._oscwin.omp_ptr.w_max):
+        if new_omp_width := self.get_new_omp_width(self._oscwin, self._oscwin.omp_ptr.w, self._oscwin.omp_ptr.w_max):
             self._oscwin.omp_ptr.set_w(new_omp_width)
             self.signal_ptr_moved.emit(self._oscwin.omp_ptr.i_sc)
 
