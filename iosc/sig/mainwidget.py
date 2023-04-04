@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional, List
 # 2. 3rd
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QCloseEvent, QHideEvent, QShowEvent, QColor, QRgba64
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QMenuBar, QToolBar, QAction, QMessageBox, QFileDialog,\
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QSplitter, QMenuBar, QToolBar, QAction, QMessageBox, QFileDialog, \
     QHBoxLayout, QActionGroup, QToolButton, QMenu
 # 3. local
 import iosc.const
@@ -184,7 +184,11 @@ class ComtradeWidget(QWidget):
         self.__update_xzoom_actions()
         self.__mk_connections()
         if not self.omp_ptr:
-            QMessageBox.warning(self, "OMP error", f"Unable to set OMP pointers: too few osc width.")
+            QMessageBox.warning(
+                self,
+                self.tr("OMP error"),
+                self.tr("Unable to set OMP pointers: too few osc width.")
+            )
 
     def x_px_width_us(self) -> int:
         """:return: Current px width, μs."""
@@ -273,167 +277,167 @@ class ComtradeWidget(QWidget):
         """Make required actions."""
         # noinspection PyArgumentList
         self.action_close = QAction(QIcon.fromTheme("window-close"),
-                                    "&Close",
+                                    self.tr("&Close"),
                                     self,
                                     shortcut="Ctrl+W",
                                     triggered=self.__do_file_close)
         # noinspection PyArgumentList
         self.action_info = QAction(QIcon.fromTheme("dialog-information"),
-                                   "&Info",
+                                   self.tr("&Info"),
                                    self,
                                    shortcut="Ctrl+I",
                                    triggered=self.__do_file_info)
         # noinspection PyArgumentList
         self.action_convert = QAction(QIcon.fromTheme("document-save-as"),
-                                      "&Save as...",
+                                      self.tr("&Save as..."),
                                       self,
                                       triggered=self.__do_file_convert)
         # noinspection PyArgumentList
-        self.action_csv = QAction("&Export to CSV",
+        self.action_csv = QAction(self.tr("&Export to CSV"),
                                   self,
                                   triggered=self.__do_file_csv)
         # noinspection PyArgumentList
         self.action_cfg_save = QAction(QIcon.fromTheme("document-save"),
-                                       "&Save settings",
+                                       self.tr("&Save settings"),
                                        self,
                                        shortcut="Ctrl+S",
                                        triggered=self.__do_cfg_save)
         # noinspection PyArgumentList
         self.action_cfg_load = QAction(QIcon.fromTheme("document-open"),
-                                       "&Load settings",
+                                       self.tr("&Load settings"),
                                        self,
                                        shortcut="Ctrl+L",
                                        triggered=self.__do_cfg_load)
         # noinspection PyArgumentList
         self.action_pdfout = QAction(svg_icon(ESvgSrc.PDF),
-                                     "&Print...",
+                                     self.tr("&Print..."),
                                      self,
                                      shortcut="Ctrl+P",
                                      triggered=self.__print_preview.open)
         # noinspection PyArgumentList
         self.action_resize_y_in = QAction(svg_icon(ESvgSrc.VZoomIn),
-                                          "Y-Resize +",
+                                          self.tr("Y-Resize +"),
                                           self,
                                           triggered=self.__do_resize_y_all_inc)
         # noinspection PyArgumentList
         self.action_resize_y_out = QAction(svg_icon(ESvgSrc.VZoomOut),
-                                           "Y-Resize -",
+                                           self.tr("Y-Resize -"),
                                            self,
                                            triggered=self.__do_resize_y_all_dec)
         # noinspection PyArgumentList
         self.action_zoom_x_in = QAction(svg_icon(ESvgSrc.HZoomIn),
-                                        "X-Zoom in",
+                                        self.tr("X-Zoom in"),
                                         self,
                                         triggered=self.__do_xzoom_in)
         # noinspection PyArgumentList
         self.action_zoom_x_out = QAction(svg_icon(ESvgSrc.HZoomOut),
-                                         "X-Zoom out",
+                                         self.tr("X-Zoom out"),
                                          self,
                                          triggered=self.__do_xzoom_out)
         # noinspection PyArgumentList
         self.action_centered = QAction(svg_icon(ESvgSrc.ShiftCentered),
-                                       "&Centered",
+                                       self.tr("&Centered"),
                                        self,
                                        checkable=True,
                                        triggered=self.__do_centered
                                        )
         # noinspection PyArgumentList
         self.action_pors_pri = QAction(svg_icon(ESvgSrc.PorsP),
-                                       "&Pri",
+                                       self.tr("&Primary"),
                                        self,
                                        checkable=True)
         # noinspection PyArgumentList
         self.action_pors_sec = QAction(svg_icon(ESvgSrc.PorsS),
-                                       "&Sec",
+                                       self.tr("&Secondary"),
                                        self,
                                        checkable=True)
         # noinspection PyArgumentList
-        self.action_viewas_is = QAction("As &is",
+        self.action_viewas_is = QAction(self.tr("As &is"),
                                         self,
                                         checkable=True)
         # noinspection PyArgumentList
-        self.action_viewas_mid = QAction("&Mid",
+        self.action_viewas_mid = QAction(self.tr("&Mid."),
                                          self,
                                          checkable=True)
         # noinspection PyArgumentList
-        self.action_viewas_eff = QAction("&Eff",
+        self.action_viewas_eff = QAction(self.tr("&Eff."),
                                          self,
                                          checkable=True)
         # noinspection PyArgumentList
-        self.action_viewas_hrm1 = QAction("Hrm &1",
+        self.action_viewas_hrm1 = QAction(self.tr("Hrm. &1"),
                                           self,
                                           checkable=True)
         # noinspection PyArgumentList
-        self.action_viewas_hrm2 = QAction("Hrm &2",
+        self.action_viewas_hrm2 = QAction(self.tr("Hrm. &2"),
                                           self,
                                           checkable=True)
         # noinspection PyArgumentList
-        self.action_viewas_hrm3 = QAction("Hrm &3",
+        self.action_viewas_hrm3 = QAction(self.tr("Hrm. &3"),
                                           self,
                                           checkable=True)
         # noinspection PyArgumentList
-        self.action_viewas_hrm5 = QAction("Hrm &5",
+        self.action_viewas_hrm5 = QAction(self.tr("Hrm. &5"),
                                           self,
                                           checkable=True)
         # noinspection PyArgumentList
         self.action_unhide = QAction(QIcon.fromTheme("edit-undo"),
-                                     "&Unhide all",
+                                     self.tr("&Unhide all"),
                                      self,
                                      triggered=self.__do_signal_unhide)
         # noinspection PyArgumentList
-        self.action_signal_find = QAction("Find...",
+        self.action_signal_find = QAction(self.tr("Find..."),
                                           self,
                                           shortcut="Ctrl+F",
                                           triggered=self.__do_signal_find)
         # noinspection PyArgumentList
-        self.action_math_module = QAction("Module",
+        self.action_math_module = QAction(self.tr("Module"),
                                           self,
                                           triggered=self.__do_math_module)
         # noinspection PyArgumentList
-        self.action_ptr_add_tmp = QAction("Add temporary pointer",
+        self.action_ptr_add_tmp = QAction(self.tr("Add temporary pointer"),
                                           self,
                                           triggered=self.__do_ptr_add_tmp)
         # noinspection PyArgumentList
-        self.action_ptr_add_msr = QAction("Add measure pointers",
+        self.action_ptr_add_msr = QAction(self.tr("Add measure pointers"),
                                           self,
                                           triggered=self.__do_ptr_add_msr)
         # noinspection PyArgumentList
-        self.action_ptr_add_lvl = QAction("Add level pointers",
+        self.action_ptr_add_lvl = QAction(self.tr("Add level pointers"),
                                           self,
                                           triggered=self.__do_ptr_add_lvl)
         # noinspection PyArgumentList
-        self.action_mainptr_l = QAction("Move main ptr left",
+        self.action_mainptr_l = QAction(self.tr("Move main pointer left"),
                                         self,
                                         shortcut="Left",
                                         triggered=self.__do_mainptr_l)
         # noinspection PyArgumentList
-        self.action_mainptr_r = QAction("Move main ptr right",
+        self.action_mainptr_r = QAction(self.tr("Move main pointer right"),
                                         self,
                                         shortcut="Right",
                                         triggered=self.__do_mainptr_r)
         # noinspection PyArgumentList
-        self.action_vector_diagram = QAction("Vector chart",
+        self.action_vector_diagram = QAction(self.tr("Vector chart"),
                                              self,
                                              shortcut="Ctrl+V",
                                              triggered=self.__do_vector_diagram)
         # noinspection PyArgumentList
-        self.action_harmonic_diagram = QAction("Harmonic chart",
+        self.action_harmonic_diagram = QAction(self.tr("Harmonic chart"),
                                                self,
                                                shortcut="Ctrl+H",
                                                triggered=self.__do_harmonic_diagram)
         # noinspection PyArgumentList
         self.action_value_table = QAction(QIcon.fromTheme("x-office-spreadsheet"),
-                                          "Value table",
+                                          self.tr("Value table"),
                                           self,
                                           shortcut="Ctrl+T",
                                           triggered=self.__do_value_table)
         # noinspection PyArgumentList
-        self.action_omp_map = QAction("OMP map",
+        self.action_omp_map = QAction(self.tr("OMP map table"),
                                       self,
                                       shortcut="Ctrl+M",
                                       triggered=self.__do_omp_map)
         # noinspection PyArgumentList
-        self.action_omp_save = QAction("OMP save",
+        self.action_omp_save = QAction(self.tr("OMP map save"),
                                        self,
                                        triggered=self.__do_omp_save)
         self.action_pors = QActionGroup(self)
@@ -455,7 +459,7 @@ class ComtradeWidget(QWidget):
 
     def __mk_menu(self):
         """Make local (osc) menu."""
-        self.menubar.addMenu("&File").addActions((
+        self.menubar.addMenu(self.tr("&File")).addActions((
             self.action_info,
             self.action_convert,
             self.action_csv,
@@ -464,7 +468,7 @@ class ComtradeWidget(QWidget):
             self.action_pdfout,
             self.action_close
         ))
-        menu_view = self.menubar.addMenu("&View")
+        menu_view = self.menubar.addMenu(self.tr("&View"))
         menu_view.addActions((
             self.action_resize_y_in,
             self.action_resize_y_out,
@@ -472,11 +476,11 @@ class ComtradeWidget(QWidget):
             self.action_zoom_x_out,
             self.action_centered
         ))
-        menu_view.addMenu("Pri/Sec").addActions((
+        menu_view.addMenu(self.tr("P/S")).addActions((
             self.action_pors_pri,
             self.action_pors_sec
         ))
-        menu_view.addMenu("View as...").addActions((
+        menu_view.addMenu(self.tr("View as...")).addActions((
             self.action_viewas_is,
             self.action_viewas_mid,
             self.action_viewas_eff,
@@ -485,20 +489,20 @@ class ComtradeWidget(QWidget):
             self.action_viewas_hrm3,
             self.action_viewas_hrm5
         ))
-        menu_signal = self.menubar.addMenu("&Signal")
+        menu_signal = self.menubar.addMenu(self.tr("&Signal"))
         menu_signal.addActions((
             self.action_unhide,
             self.action_signal_find
         ))
-        menu_signal.addMenu("Maths").addMenu("Conversions").addAction(self.action_math_module)
-        self.menubar.addMenu("&Pointers").addActions((
+        # menu_signal.addMenu(self.tr("Maths")).addMenu(self.tr("Conversions")).addAction(self.action_math_module)
+        self.menubar.addMenu(self.tr("&Pointers")).addActions((
             self.action_ptr_add_tmp,
             self.action_ptr_add_msr,
             self.action_ptr_add_lvl,
             self.action_mainptr_l,
             self.action_mainptr_r
         ))
-        self.menubar.addMenu("&Tools").addActions((
+        self.menubar.addMenu(self.tr("&Tools")).addActions((
             self.action_vector_diagram,
             self.action_harmonic_diagram,
             self.action_value_table,
@@ -629,7 +633,11 @@ class ComtradeWidget(QWidget):
         :todo: capsulate
         """
         if data['ver'] != iosc.const.OFG_VER:
-            QMessageBox.critical(self, "OFG loading error", f"Incompatible version: {data['ver']}")
+            QMessageBox.critical(
+                self,
+                self.tr("OFG loading error"),
+                self.tr("Incompatible version: %s") % data['ver']
+            )
         # 1. clean
         # 1.1. Tmp ptrs
         for uid in self.__tmp_ptr_i:  # .keys()
@@ -775,7 +783,7 @@ class ComtradeWidget(QWidget):
     def __do_file_info(self):
         """Show misc osc info."""
 
-        def tr(name: str, value: Any):
+        def t_r(name: str, value: Any):
             """HTML <tr> constructor."""
             return f"<tr><th>{name}:</th><td>{value}</td></tr>"
 
@@ -783,7 +791,7 @@ class ComtradeWidget(QWidget):
             sig = self.osc.y[i]
             a = sig.a_values(False)
             a_c = sig.a_values(True)
-            return\
+            return \
                 f"Name: {sig.sid} (raw | centered)\n" \
                 f"v_min=   {sig.v_min(False):8.3f} | {sig.v_min(True):8.3f}\n" \
                 f"v_max=   {sig.v_max(False):8.3f} | {sig.v_max(True):8.3f}\n" \
@@ -796,25 +804,25 @@ class ComtradeWidget(QWidget):
                 f"max_a=   {max(a):8.3f} | {max(a_c):8.3f}\n"
 
         # print(__debug(1))
-        msg = QMessageBox(QMessageBox.Icon.Information, "Comtrade file info", "Summary")
+        msg = QMessageBox(QMessageBox.Icon.Information, self.tr("Comtrade file info"), self.tr("Summary"))
         # plan A:
         # msg.setDetailedText(self.osc.cfg_summary())
         # plan B
         info = self.osc.info
         txt = "<html><body><table><tbody>"
-        txt += tr("File", self.osc.path)  # was self.osc.raw.cfg.filepath
-        txt += tr("Station name", info['station_name'])
-        txt += tr("Station id", info['rec_dev_id'])
-        txt += tr("Comtrade ver.", info['rev_year'])
-        txt += tr("File format", self.osc.ft)
-        txt += tr("Analog chs.", info['analog_count'])
-        txt += tr("Status chs.", info['status_count'])
-        txt += tr("Time", f"{info['start_timestamp']}&hellip;{self.osc.trigger_timestamp}"
-                          f" with &times; {info['timemult']}")
-        txt += tr("Time base", info['time_base'])
-        txt += tr("Line freq, Hz", info['frequency'])
-        txt += tr("Samples", self.osc.total_samples)
-        txt += tr("Sample rate:", f"{self.osc.rate} Hz")
+        txt += t_r(self.tr("File"), self.osc.path)  # was self.osc.raw.cfg.filepath
+        txt += t_r(self.tr("Station name"), info['station_name'])
+        txt += t_r(self.tr("Station id"), info['rec_dev_id'])
+        txt += t_r(self.tr("Comtrade ver."), info['rev_year'])
+        txt += t_r(self.tr("File format"), self.osc.ft)
+        txt += t_r(self.tr("Analog chs."), info['analog_count'])
+        txt += t_r(self.tr("Status chs."), info['status_count'])
+        txt += t_r(self.tr("Time"), f"{info['start_timestamp']}&hellip;{self.osc.trigger_timestamp}"
+                               f" with &times; {info['timemult']}")
+        txt += t_r(self.tr("Time base"), info['time_base'])
+        txt += t_r(self.tr("Line freq, Hz"), info['frequency'])
+        txt += t_r(self.tr("Samples"), self.osc.total_samples)
+        txt += t_r(self.tr("Sample rate"), f"{self.osc.rate} Hz")
         txt += "<tbody></table></body><html>"
         msg.setText(txt)
         msg.setTextFormat(Qt.RichText)
@@ -825,21 +833,21 @@ class ComtradeWidget(QWidget):
         """Convert the osc into opposite format (ASCII<>BINARY)."""
         fn = QFileDialog.getSaveFileName(
             self,
-            "Save file as %s" % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[self.osc.ft]
+            self.tr("Save file as %s") % {'ASCII': 'BINARY', 'BINARY': 'ASCII'}[self.osc.ft]
         )
         if fn[0]:
             try:
                 convert(pathlib.Path(self.osc.filepath), pathlib.Path(fn[0]))
             except ConvertError as e:
-                QMessageBox.critical(self, "Converting error", str(e))
+                QMessageBox.critical(self, self.tr("Converting error"), str(e))
 
     def __do_file_csv(self):
         """Export the osc into CSV file."""
         fn = QFileDialog.getSaveFileName(
             self,
-            "Export file as CSV",
+            self.tr("Export file as CSV"),
             str(pathlib.Path(self.osc.filepath).with_suffix('.csv')),
-            "Comma separated values (*.csv)"
+            self.tr("Comma separated values (*.csv)")
         )
         if fn[0]:
             export_to_csv(self.osc, self.show_sec, pathlib.Path(fn[0]))
@@ -848,9 +856,9 @@ class ComtradeWidget(QWidget):
         """Save osc settings."""
         fn = QFileDialog.getSaveFileName(
             self,
-            "Save settings",
+            self.tr("Save settings"),
             str(pathlib.Path(self.osc.filepath).with_suffix('.ofg')),
-            "Oscillogramm configuration (*.ofg)"
+            self.tr("Oscillogramm configuration (*.ofg)")
         )
         if fn[0]:
             with open(fn[0], 'wt') as fp:  # FIXME: chk encoding
@@ -862,7 +870,7 @@ class ComtradeWidget(QWidget):
             self,
             "Load settings",
             str(pathlib.Path(self.osc.filepath).parent),
-            "Oscillogramm configuration (*.ofg)"
+            self.tr("Oscillogramm configuration (*.ofg)")
         )
         if fn[0]:
             with open(fn[0], 'rt') as fp:  # FIXME: encoding
@@ -957,16 +965,24 @@ class ComtradeWidget(QWidget):
         if not self.omp_ptr:
             return
         if not self.ompmapwin:
-            QMessageBox.critical(self, "OMP save error", "OMP map was not call somewhen")
+            QMessageBox.critical(
+                self,
+                self.tr("OMP save error"),
+                self.tr("OMP map was not call somewhen")
+            )
             return
         if -1 in self.ompmapwin.map:
-            QMessageBox.critical(self, "OMP save error", "OMP map is not fully defined")
+            QMessageBox.critical(
+                self,
+                self.tr("OMP save error"),
+                self.tr("OMP map is not fully defined")
+            )
             return
         fn = QFileDialog.getSaveFileName(
             self,
-            "Save OMP values",
+            self.tr("Save OMP values"),
             str(pathlib.Path(self.osc.filepath).with_suffix('.uim')),
-            "U,I mesurements (*.uim)"
+            self.tr("U,I mesurements (*.uim)")
         )
         if fn[0]:
             self.ompmapwin.data_save(pathlib.Path(fn[0]))

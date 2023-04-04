@@ -30,7 +30,7 @@ class BarPlotWidget(QWidget):
         def __init__(self, parent: 'BarPlotWidget'):
             """Init YZLabel object."""
             super().__init__(parent)
-            self.setStyleSheet("QLabel { background-color : red; color : rgba(255,255,255,255) }")
+            self.setStyleSheet('QLabel { background-color : red; color : rgba(255,255,255,255) }')
             self.__slot_zoom_changed()
             parent.bar.signal_zoom_y_changed.connect(self.__slot_zoom_changed)
 

@@ -2,15 +2,12 @@
 # 1. std
 import json
 import pathlib
-from typing import Union, List
+from typing import Union, List, Tuple
 # 2. 3rd
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox
 # 3. local
 # x. const
-ROW_HEAD = ("OMP signal", "Osc. signal", "Value", "Time")
-COL_LEFT = ("Ua", "Ub", "Uc", "Ia", "Ib", "Ic", "Ua,pr", "Ia,pr")
-COL_RIGHT = ("SC ptr", "SC ptr", "SC ptr", "SC ptr", "SC ptr", "SC ptr", "PR ptr", "PR ptr")
 CORR_SIG = ('Ua', 'Ub', 'Uc', 'Ia', 'Ib', 'Ic')
 OUT_NAME = ('uasc', 'ubsc', 'ucsc', 'iasc', 'ibsc', 'icsc', 'uapr', 'iapr')
 HRM1_NUMBER = 3  # FIXME: hardcoded
@@ -46,14 +43,21 @@ class OMPMapWindow(QDialog):
     __button_box: QDialogButtonBox
     __map: List[int]  # map itself
     exec_1: bool  # Indicates 1st exec_
+    ROW_HEAD: Tuple[str, ...]
+    COL_LEFT: Tuple[str, ...]
+    COL_RIGHT: Tuple[str, ...]
 
     def __init__(self, parent: 'ComtradeWidget'):  # noqa: F821
         """Init OMPMapWindow object."""
         super().__init__(parent)
+        self.ROW_HEAD = (self.tr("OMP signal"), self.tr("Osc. signal"), self.tr("Value"), self.tr("Time"))
+        self.COL_LEFT = ('Ua', 'Ub', 'Uc', 'Ia', 'Ib', 'Ic', self.tr("Ua,pr"), self.tr("Ia,pr"))
+        self.COL_RIGHT = (self.tr("SC ptr"), self.tr("SC ptr"), self.tr("SC ptr"), self.tr("SC ptr"),
+                          self.tr("SC ptr"), self.tr("SC ptr"), self.tr("PR ptr"), self.tr("PR ptr"))
         self.oscwin = parent
         self.__map = [-1] * 6
         self.exec_1 = True
-        self.setWindowTitle("OMP Map")
+        self.setWindowTitle(self.tr("OMP map table"))
         self.__mk_widgets()
         self.__data_autofill()
         self.__button_box.accepted.connect(self.accept)
@@ -68,21 +72,21 @@ class OMPMapWindow(QDialog):
     def __mk_widgets(self):
         lt = QGridLayout()
         # 1. top head
-        for c, s in enumerate(ROW_HEAD):
+        for c, s in enumerate(self.ROW_HEAD):
             lt.addWidget(QLabel(s), 0, c)
         # 2. body
         for r in range(6):
-            lt.addWidget(QLabel(COL_LEFT[r]), r + 1, 0)
+            lt.addWidget(QLabel(self.COL_LEFT[r]), r + 1, 0)
             lt.addWidget(sb := SignalBox(r, self), r + 1, 1)
             lt.addWidget(QLabel(), r + 1, 2)
-            lt.addWidget(QLabel(COL_RIGHT[r]), r + 1, 3)
+            lt.addWidget(QLabel(self.COL_RIGHT[r]), r + 1, 3)
             sb.signal_idx_chgd.connect(self.__slot_chg_signal)
         # 3. footnote
         for r in range(6, 8):
-            lt.addWidget(QLabel(COL_LEFT[r]), r + 1, 0)
+            lt.addWidget(QLabel(self.COL_LEFT[r]), r + 1, 0)
             lt.addWidget(QLabel(), r + 1, 1)
             lt.addWidget(QLabel(), r + 1, 2)
-            lt.addWidget(QLabel(COL_RIGHT[r]), r + 1, 3)
+            lt.addWidget(QLabel(self.COL_RIGHT[r]), r + 1, 3)
         # the end
         self.__button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         lt.addWidget(self.__button_box, 9, 0, 4, 1)

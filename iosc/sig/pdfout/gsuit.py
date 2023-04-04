@@ -4,7 +4,7 @@ from typing import List
 import math
 # 2. 3rd
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsLineItem, QGraphicsRectItem, QGraphicsItem
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsLineItem, QGraphicsRectItem, QGraphicsItem, QApplication
 # 3. local
 from .const import W_LABEL, H_HEADER, H_BOTTOM
 from .gitem import ThinPen, RectTextItem, ClipedPlainTextItem, GroupItem, TCPlainTextItem
@@ -25,9 +25,15 @@ class HeaderItem(RectTextItem):
         """Init HeaderItem object."""
         info = oscwin.osc.info
         super().__init__(ClipedPlainTextItem(
-            f"{oscwin.osc.path}"
-            f"\nStation ID: {info['rec_dev_id']}, Station name: {info['station_name']}"
-            f"\n{PORS_TEXT[int(oscwin.show_sec)]} values, Trigger time: {oscwin.osc.trigger_timestamp}"
+            f"{oscwin.osc.path}" +
+            QApplication.translate('HeaderItem', "\nStation ID: %s, Station name: %s") % (info['rec_dev_id'], info['station_name']) +
+            QApplication.translate('HeaderItem', "\n%s values, Trigger time: %s") % (
+                (
+                    QApplication.translate('HeaderItem', "Primary"),
+                    QApplication.translate('HeaderItem', "Secondary")
+                )[int(oscwin.show_sec)],
+                oscwin.osc.trigger_timestamp
+            )
         ))
         self.__plot = plot
         self.update_size()

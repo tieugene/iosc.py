@@ -3,10 +3,10 @@
 import pathlib
 import sys
 # 2. 3rd
-from PyQt5.QtCore import Qt, QCoreApplication, QStandardPaths, QSettings
+from PyQt5.QtCore import Qt, QCoreApplication, QSettings, QTranslator, QLocale  # , QStandardPaths
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, \
-    QApplication, QStyleFactory
+    QApplication
 # 3. local
 from iosc._version import __version__
 from iosc.maintabber import ComtradeTabWidget, MAIN_TAB
@@ -14,10 +14,6 @@ from iosc.prefs import AppSettingsDialog, load_style
 
 # x. const
 MAIN_MENU = True  # FIXME: False => hot keys not work
-ABOUT_STR = '''Qt powered comtrade viewer/analyzer.<br/>
-Version: %s<br/>
-Developed for <a href="https://ntkpribor.ru/">&laquo;NTK Priborenergo&raquo;, Ltd.</a><br/>
-<sub>&copy; <a href="https://www.eap.su">TI_Eugene</a></sub>'''
 SHARES_DIR: pathlib.PosixPath
 
 
@@ -41,7 +37,7 @@ class MainWindow(QMainWindow):
         self.__mk_actions()
         self.__mk_menu()
         self.__mk_layout()
-        self.setWindowTitle("iOsc.py")
+        self.setWindowTitle("iOsc")
         # self.handle_cli()
 
     def __mk_widgets(self):
@@ -54,39 +50,39 @@ class MainWindow(QMainWindow):
         """Create qctions required."""
         # noinspection PyArgumentList
         self.act_file_open = QAction(QIcon.fromTheme("document-open"),
-                                     "&Open",
+                                     self.tr("&Open"),
                                      self,
                                      shortcut="Ctrl+O",
-                                     statusTip="Load comtrade file",
+                                     statusTip=self.tr("Load comtrade file"),
                                      triggered=self.__do_file_open)
         # noinspection PyArgumentList
         self.act_settings = QAction(QIcon.fromTheme("preferences-system"),
-                                    "&Settings",
+                                    self.tr("&Settings"),
                                     self,
-                                    statusTip="Settings",
+                                    statusTip=self.tr("Settings"),
                                     triggered=self.__do_settings)
         # noinspection PyArgumentList
         self.act_exit = QAction(QIcon.fromTheme("application-exit"),
-                                "E&xit",
+                                self.tr("E&xit"),
                                 self,
                                 shortcut="Ctrl+Q",
-                                statusTip="Exit the application",
+                                statusTip=self.tr("Exit the application"),
                                 triggered=self.close)
         # noinspection PyArgumentList
         self.act_about = QAction(QIcon.fromTheme("help-about"),
-                                 "&About",
+                                 self.tr("&About"),
                                  self,
-                                 statusTip="Show the application's About box",
+                                 statusTip=self.tr("Show the application's 'About' box"),
                                  triggered=self.__do_about)
 
     def __mk_menu(self):
         """Create main application menu."""
-        self.menuBar().addMenu("&File").addActions((
+        self.menuBar().addMenu(self.tr("&File")).addActions((
             self.act_file_open,
             self.act_settings,
             self.act_exit
         ))
-        self.menuBar().addMenu("&Help").addAction(self.act_about)
+        self.menuBar().addMenu(self.tr("&Help")).addAction(self.act_about)
         self.menuBar().setVisible(MAIN_MENU)
         # self.act_bar.addAction(self.actFileOpen)
         # self.act_bar.addAction(self.actAbout)
@@ -101,17 +97,17 @@ class MainWindow(QMainWindow):
         # main_tab.layout().addWidget(self.act_bar)
         main_tab.layout().addWidget(QWidget())
         if MAIN_TAB:
-            self.tabs.addTab(main_tab, "File")
+            self.tabs.addTab(main_tab, self.tr("File"))
 
     def handle_cli(self):
         """Process CLI arg."""
         argv = QCoreApplication.arguments()
         if len(argv) > 2:
-            QMessageBox.warning(self, "CLI error", "One file only")
+            QMessageBox.warning(self, self.tr("CLI error"), self.tr("One file only"))
         elif len(argv) == 2:
             file = pathlib.Path(argv[1])
             if not file.is_file():
-                QMessageBox.warning(self, "CLI error", f"'{file}' not exists or is not file")
+                QMessageBox.warning(self, self.tr("CLI error"), self.tr("'%s' not exists or is not file") % file)
             else:
                 self.tabs.add_chart_tab(file)
 
@@ -119,9 +115,9 @@ class MainWindow(QMainWindow):
         """Open comtrade file."""
         fn = QFileDialog.getOpenFileName(
             self,
-            "Open data",
+            self.tr("Open data"),
             "",
-            "Comtrade Files (*.cfg *.cff)"
+            self.tr("Comtrade Files (*.cfg *.cff)")
         )
         if fn[0]:
             self.tabs.add_chart_tab(pathlib.Path(fn[0]))
@@ -134,7 +130,15 @@ class MainWindow(QMainWindow):
     def __do_about(self):
         """Show 'About' message box."""
         # QMessageBox.about(self, "About iOsc.py", ABOUT_STR)
-        dialog = QMessageBox(QMessageBox.Information, "About iOsc.py", ABOUT_STR % __version__, QMessageBox.Ok, self)
+        dialog = QMessageBox(
+            QMessageBox.Information,
+            self.tr("About iOsc"),
+            self.tr("Qt powered comtrade viewer/analyzer, version %s<br/>") % __version__ +
+            self.tr('Developed for <a href="https://ntkpribor.ru/">&laquo;NTK Priborenergo&raquo;, Ltd.</a><br/>') +
+            '<sub>&copy; <a href="https://www.eap.su">TI_Eugene</a></sub>',
+            QMessageBox.Ok,
+            self
+        )
         dialog.setTextFormat(Qt.RichText)
         dialog.exec_()
 
@@ -150,6 +154,9 @@ def main():
     app.setApplicationVersion(__version__)
     SHARES_DIR = pathlib.Path(__file__).resolve().parent  # Prod: QStandardPaths.[App[Local]]DataLocation
     # tmp = QStandardPaths.locate(QStandardPaths.DataLocation, 'qss', QStandardPaths.LocateDirectory)
+    translator = QTranslator()
+    if translator.load(QLocale(), 'iOsc', '_', SHARES_DIR.joinpath('i18n').as_posix()):
+        app.installTranslator(translator)
     mw: MainWindow = MainWindow(sys.argv)
     available_geometry = app.desktop().availableGeometry(mw)  # 0, 0, 1280, 768 (display height - taskbar)
     mw.resize(int(available_geometry.width() * 3 / 4), int(available_geometry.height() * 3 / 4))
