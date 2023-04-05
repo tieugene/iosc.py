@@ -55,6 +55,7 @@ class BarPlotWidget(QWidget):
         def __init__(self, parent: 'BarPlotWidget'):
             """Init YScroller object."""
             super().__init__(Qt.Vertical, parent)
+            self.setSingleStep(iosc.const.YS_SINGLE_STEP)  # default 1
             self.__slot_zoom_changed()
             parent.bar.signal_zoom_y_changed.connect(self.__slot_zoom_changed)
 
@@ -91,6 +92,7 @@ class BarPlotWidget(QWidget):
                 self.setEnabled(True)
             if self.value() == v0:
                 self.valueChanged.emit(self.value())  # force replot
+            # print("Step:", self.singleStep())
 
     class BarPlot(QCustomPlot):
         """Signal bar graphics container."""

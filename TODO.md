@@ -1,7 +1,6 @@
 # TODO
 
 ## 0.3.6: OMP, ru, styling, bugfixes
-- [ ] #257: 2.3.2.30. V-scroll signal with mouse too slow
 
 ## 0.3.7: Deploy
 - [ ] Доработка/тестирование на версиях:
