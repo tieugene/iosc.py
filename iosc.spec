@@ -6,7 +6,7 @@ Summary:	Comtrade viewer
 URL:		https://github.com/tieugene/iosc.py
 Source0:	%{url}/archive/refs/tags/%{version}.tar.gz#/iosc.py-%{version}.tar.gz
 BuildArch:	noarch
-BuildRequires:  pyproject-rpm-macros
+BuildRequires:	pyproject-rpm-macros
 # python3-wheel
 BuildRequires:	%{py3_dist wheel}
 # python3-numpy
@@ -16,6 +16,7 @@ BuildRequires:	%{py3_dist chardet}
 # python3-qcustomplot-pyqt5
 BuildRequires:	%{py3_dist qcustomplot-pyqt5}
 BuildRequires:	qt5-linguist
+BuildRequires:	desktop-file-utils
 # python3-devel
 # BuildRequires:	pkgconfig(python)
 # python3-pip
@@ -38,9 +39,14 @@ lrelease-qt5 iosc/i18n/*.ts
 
 %install
 %pyproject_install
+%pyproject_save_files %{name}
 install -D -p -m 0644 -t %{buildroot}%{_datadir}/%{name}/i18n iosc/i18n/*.qm
 install -D -p -m 0644 -t %{buildroot}%{_datadir}/%{name}/qss iosc/qss/*.qss
-%pyproject_save_files %{name}
+desktop-file-install %{name}.desktop
+
+
+%check
+desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 
 
 %files -f %{pyproject_files}
@@ -48,6 +54,7 @@ install -D -p -m 0644 -t %{buildroot}%{_datadir}/%{name}/qss iosc/qss/*.qss
 %license LICENSE
 %{_bindir}/%{name}
 %{_datadir}/%{name}/
+%{_datadir}/applications/%{name}.desktop
 
 
 %changelog
