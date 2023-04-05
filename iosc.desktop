@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Exec=iosc
+# Icon=iosc
+Name=iOsc
+Categories=Qt;Science;

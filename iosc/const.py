@@ -57,3 +57,5 @@ X_PX_WIDTH_uS = (1, 2, 5, 10, 20, 50, 100, 200, 500, 1000)  # Px widhts, μs
 COLOR_SIG_DEFAULT = {'a': QColor.fromRgb(255, 127, 39), 'b': QColor.fromRgb(0, 128, 0), 'c': QColor.fromRgb(198, 0, 0)}
 COLOR_SIG_UNKNOWN = QColor.fromRgb(0, 0, 0)
 YS_SINGLE_STEP = 100  # BarPlotWidget.YScroller.singleStep(), default=1
+i18N_DIR = 'i18n'
+QSS_DIR = 'qss'
