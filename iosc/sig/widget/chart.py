@@ -117,6 +117,7 @@ class BarPlotWidget(QWidget):
             # self.yAxis.setRange(*self.__y_range)  # not helps
             # self.slot_rerange_y()  # not helps
             # self.xAxis.setRange(x_coords[0], x_coords[-1])
+            self.installEventFilter(parent.bar.table)  # block self wheel handle
             self._oscwin.xscroll_bar.valueChanged.connect(self.__slot_rerange_x_force)
             self._oscwin.xscroll_bar.signal_update_plots.connect(self.__slot_rerange_x)
             self._oscwin.signal_x_zoom.connect(self.__slot_retick)
