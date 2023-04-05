@@ -29,7 +29,7 @@ urls.Source = "https://github.com/tieugene/iosc.py"
 iosc = "iosc.mainwindow:main"
 
 [tool.setuptools]
-packages = ["iosc"]
+packages = ["iosc", "iosc.core", "iosc.sig", "iosc.sig.calc", "iosc.sig.pdfout", "iosc.sig.tools", "iosc.sig.widget"]
 
 [tool.setuptools.dynamic]
 version = {attr = "iosc.__version__"}
