@@ -2,10 +2,11 @@
 # 1. std
 from typing import Tuple, Optional
 # 2. 3rd
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QObject, QEvent
 from PyQt5.QtGui import QDropEvent, QDragEnterEvent, QDragMoveEvent, QPainter
 from PyQt5.QtWidgets import QTableWidget, QWidget, QHeaderView, QProxyStyle, QStyle, QStyleOption
 # 3. local
+from iosc.sig.widget.chart import BarPlotWidget
 from iosc.sig.widget.sigbar import SignalBar, SignalBarList
 from iosc.sig.widget.ctrl import BarCtrlWidget
 from iosc.sig.widget.finder import FindDialog
@@ -175,3 +176,10 @@ class SignalBarTable(QTableWidget):
         for bar in self.bars:
             if not bar.is_bool():
                 bar.height = round(bar.height * mult)
+
+    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
+        """Intercept QCustomPlot wheel events."""
+        if event.type() == QEvent.Wheel and isinstance(obj, BarPlotWidget.BarPlot):
+            self.verticalScrollBar().event(event)  # works
+            return True
+        return False
