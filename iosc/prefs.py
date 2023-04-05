@@ -9,6 +9,8 @@ from PyQt5.QtCore import QRegExp, Qt, QSettings
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QApplication, QStyleFactory, QCheckBox
 
+import iosc.const
+
 
 def load_style(settings: QSettings, shares_dir: pathlib.PosixPath):
     """Setup style with settings."""
@@ -22,8 +24,8 @@ def load_style(settings: QSettings, shares_dir: pathlib.PosixPath):
     else:
         palette = QPalette()
     QApplication.setPalette(palette)
-    if qss_name := settings.value('qss'):
-        qss_file = shares_dir.joinpath('qss', qss_name).with_suffix('.qss')
+    if qss_name := settings.value(iosc.const.QSS_DIR):
+        qss_file = shares_dir.joinpath(iosc.const.QSS_DIR, qss_name).with_suffix('.qss')
         with open(qss_file.as_posix(), 'rt') as file:
             qss = file.read()
     else:
@@ -34,7 +36,7 @@ def load_style(settings: QSettings, shares_dir: pathlib.PosixPath):
 def _load_qss(shares_dir: pathlib.PosixPath) -> Dict[str, str]:
     """Load styles from data folder"""
     retvalue = {'---': ''}
-    for f in shares_dir.joinpath('qss').iterdir():
+    for f in shares_dir.joinpath(iosc.const.QSS_DIR).iterdir():
         with open(f.as_posix(), 'rt') as file:
             retvalue[f.stem] = file.read()
     return retvalue
