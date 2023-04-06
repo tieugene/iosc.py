@@ -353,7 +353,7 @@
     <message>
         <location filename="../sig/mainwidget.py" line="435"/>
         <source>OMP map table</source>
-        <translation>Таблица соответсвия для ОМП</translation>
+        <translation>Таблица соответствия для ОМП</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="440"/>
@@ -448,7 +448,7 @@
     <message>
         <location filename="../sig/mainwidget.py" line="975"/>
         <source>OMP map is not fully defined</source>
-        <translation>Таблица соответсвия для ОМП определена не до конца</translation>
+        <translation>Таблица соответствия для ОМП определена не до конца</translation>
     </message>
     <message>
         <location filename="../sig/mainwidget.py" line="981"/>
@@ -767,7 +767,7 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../sig/tools/ompmap.py" line="60"/>
         <source>OMP map table</source>
-        <translation>Таблица соответсвия для ОМП</translation>
+        <translation>Таблица соответствия для ОМП</translation>
     </message>
 </context>
 <context>
