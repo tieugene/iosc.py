@@ -541,102 +541,97 @@ Station ID: %s, Station name: %s</source>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../mainwindow.py" line="52"/>
+        <location filename="../mainwindow.py" line="54"/>
         <source>Load comtrade file</source>
         <translation>Загрузить файл comtrade</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="59"/>
+        <location filename="../mainwindow.py" line="61"/>
         <source>Settings</source>
         <translation>Настройки</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="65"/>
+        <location filename="../mainwindow.py" line="67"/>
         <source>Exit the application</source>
         <translation>Завершить приложение</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="52"/>
+        <location filename="../mainwindow.py" line="54"/>
         <source>&amp;Open</source>
         <translation>&amp;Открыть</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="59"/>
+        <location filename="../mainwindow.py" line="61"/>
         <source>&amp;Settings</source>
         <translation>На&amp;стройки</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="65"/>
+        <location filename="../mainwindow.py" line="67"/>
         <source>E&amp;xit</source>
         <translation>Вы&amp;ход</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="72"/>
+        <location filename="../mainwindow.py" line="74"/>
         <source>&amp;About</source>
         <translation>О &amp;программе</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="72"/>
+        <location filename="../mainwindow.py" line="74"/>
         <source>Show the application&apos;s &apos;About&apos; box</source>
         <translation>Показывает &apos;О программе&apos;</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="80"/>
+        <location filename="../mainwindow.py" line="82"/>
         <source>&amp;File</source>
         <translation>&amp;Файл</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="85"/>
+        <location filename="../mainwindow.py" line="87"/>
         <source>&amp;Help</source>
         <translation>&amp;Помощь</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="110"/>
+        <location filename="../mainwindow.py" line="112"/>
         <source>CLI error</source>
         <translation>Ошибка ИКС</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="106"/>
+        <location filename="../mainwindow.py" line="108"/>
         <source>One file only</source>
         <translation>Только один файл</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="116"/>
+        <location filename="../mainwindow.py" line="118"/>
         <source>Open data</source>
         <translation>Открыть данные</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="116"/>
+        <location filename="../mainwindow.py" line="118"/>
         <source>Comtrade Files (*.cfg *.cff)</source>
         <translation>Файлы comtrade (*.cfg *.cff)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="133"/>
+        <location filename="../mainwindow.py" line="135"/>
         <source>About iOsc</source>
         <translation>Об iOsc</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="100"/>
+        <location filename="../mainwindow.py" line="102"/>
         <source>File</source>
         <translation>Файл</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="110"/>
+        <location filename="../mainwindow.py" line="112"/>
         <source>&apos;%s&apos; not exists or is not file</source>
         <translation>&apos;%s&apos; не существует или не файл</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="133"/>
-        <source>Qt powered comtrade viewer/analyzer.&lt;br/&gt;Version: %s&lt;br/&gt;Developed for &lt;a href=&quot;https://ntkpribor.ru/&quot;&gt;&amp;laquo;NTK Priborenergo&amp;raquo;, Ltd.&lt;/a&gt;&lt;br/&gt;&lt;sub&gt;&amp;copy; &lt;a href=&quot;https://www.eap.su&quot;&gt;TI_Eugene&lt;/a&gt;&lt;/sub&gt;</source>
-        <translation type="obsolete">Просмотрщик/анализатор comtrade на базе Qt.&lt;br/&gt;Версия: %s&lt;/br&gt;Разработано для &lt;a href=&quot;https://ntkpribor.ru/&quot;&gt;ООО &amp;laquo;НТК Приборэнерго&amp;raquo;&lt;/a&gt;&lt;br/&gt;&amp;copy; &lt;a href=&quot;https://www.eap.su&quot;&gt;TI_Eugene&lt;/a&gt;&lt;/sub&gt;</translation>
-    </message>
-    <message>
-        <location filename="../mainwindow.py" line="133"/>
+        <location filename="../mainwindow.py" line="135"/>
         <source>Qt powered comtrade viewer/analyzer, version %s&lt;br/&gt;</source>
         <translation>Просмотрщик/анализатор comtrade на базе Qt, версия %s&lt;br/&gt;</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="133"/>
+        <location filename="../mainwindow.py" line="135"/>
         <source>Developed for &lt;a href=&quot;https://ntkpribor.ru/&quot;&gt;&amp;laquo;NTK Priborenergo&amp;raquo;, Ltd.&lt;/a&gt;&lt;br/&gt;</source>
         <translation>Разработано для &lt;a href=&quot;https://ntkpribor.ru/&quot;&gt;ООО &amp;laquo;НТК Приборэнерго&amp;raquo;&lt;/a&gt;&lt;br/&gt;</translation>
     </message>
@@ -781,6 +776,22 @@ Station ID: %s, Station name: %s</source>
         <location filename="../sig/pdfout/dialog.py" line="50"/>
         <source>Print pointers</source>
         <translation>Печать указок</translation>
+    </message>
+</context>
+<context>
+    <name>PtrLabelPR</name>
+    <message>
+        <location filename="../sig/widget/top.py" line="77"/>
+        <source>PR</source>
+        <translation>ПД</translation>
+    </message>
+</context>
+<context>
+    <name>PtrLabelSC</name>
+    <message>
+        <location filename="../sig/widget/top.py" line="63"/>
+        <source>SC</source>
+        <translation>КЗ</translation>
     </message>
 </context>
 <context>

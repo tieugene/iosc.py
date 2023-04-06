@@ -60,7 +60,7 @@ class PtrLabelSC(__PtrLabel):
         self._oscwin.signal_ptr_moved_sc.connect(self._update_ptr)
 
     def _mk_text(self, x: float):
-        return "SC: %.2f" % x
+        return "%s: %.2f" % (self.tr("SC"), x)
 
 
 class PtrLabelPR(__PtrLabel):
@@ -74,7 +74,7 @@ class PtrLabelPR(__PtrLabel):
         self._oscwin.signal_ptr_moved_pr.connect(self._update_ptr)
 
     def _mk_text(self, x: float):
-        return "PR: %.2f" % x
+        return "%s: %.2f" % (self.tr("PR"), x)
 
 
 class PtrLabelTmp(__PtrLabel):

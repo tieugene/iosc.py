@@ -4,13 +4,13 @@
 
 ## 0.3.7: Deploy
 - [ ] Доработка/тестирование на версиях:
-  + Windows: 7-11 x64
-  + Fedora Linux 36/37 x64 rpm dynamic
-  + Ubuntu Linux 22.04/22.10 x64 deb dynamic
+  + [ ] Windows: 7-11 x64
+  + [ ] Fedora Linux 36/37 x64 rpm dynamic
+  + [ ] Ubuntu Linux 22.04/22.10 x64 deb dynamic
 - [ ] Разработка установщиков:
-  + Windows 7, 8, 8.1, 10, 11 x64 установщик *.exe;
-  + Fedora Linux 36/37 x64 rpm dynamic
-  + Ubuntu Linux 22.04/22.10 x64 deb dynamic.
+  + [ ] Windows 7, 8, 8.1, 10, 11 x64 установщик *.exe;
+  + [x] Fedora Linux 36/37 x64 rpm dynamic
+  + [ ] Ubuntu Linux 22.04/22.10 x64 deb dynamic.
 
 ## x.y.z. Calculated signals
 - [ ] 2.3.4.3.1. Common (actions, menu, base things)
