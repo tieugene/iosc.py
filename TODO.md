@@ -1,5 +1,11 @@
 # TODO
 
+## 2xOMP
+- [x] ComtradeWidget:
+  + [x] __ofg_store
+  + [x] __ofg_restore
+- [ ] FIXME: OMPMapWindow: reset mode on Cancel
+
 ## 0.3.6: OMP, ru, styling, bugfixes
 
 ## 0.3.7: Deploy

@@ -2,7 +2,8 @@
 # 1. std
 import json
 import pathlib
-from typing import Union, List, Tuple
+from dataclasses import dataclass
+from typing import Union, List, Tuple, Dict, Optional
 # 2. 3rd
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox, QFrame, QVBoxLayout, QHBoxLayout
@@ -10,8 +11,29 @@ from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButt
 # 3. local
 # x. const
 CORR_SIG = ('Ua', 'Ub', 'Uc', 'Ia', 'Ib', 'Ic')
-OUT_NAME = ('uasc', 'ubsc', 'ucsc', 'iasc', 'ibsc', 'icsc', 'uapr', 'iapr')
+OUT_NAME = (
+    ('uassc', 'ubssc', 'ucssc', 'iassc', 'ibssc', 'icssc', 'uaspr', 'iaspr'),
+    ('uarsc', 'ubrsc', 'ucrsc', 'iarsc', 'ibrsc', 'icrsc', 'uarpr', 'iarpr'),
+)
 HRM1_NUMBER = 3  # FIXME: hardcoded
+
+
+@dataclass
+class OMPSideMapData:
+    uasc: float
+    ubsc: float
+    ucsc: float
+    iasc: float
+    ibsc: float
+    icsc: float
+    uapr: float
+    iapr: float
+
+
+@dataclass
+class OMPMapData:
+    s: Optional[OMPSideMapData]
+    r: Optional[OMPSideMapData]
 
 
 class SignalBox(QComboBox):
@@ -68,6 +90,7 @@ class OMPMapWindow(QDialog):
         self.setWindowTitle(self.tr("OMP map table"))
         self.__mk_widgets()
         self.__data_autofill()
+        self.__slot_mode_chgd(0)
         self.__mode.currentIndexChanged.connect(self.__slot_mode_chgd)
         self.__button_box.accepted.connect(self.accept)
         self.__button_box.rejected.connect(self.reject)
@@ -77,6 +100,12 @@ class OMPMapWindow(QDialog):
     def map(self) -> Tuple[List[int], List[int]]:
         """:return: OMP map itself."""
         return self.__map
+
+    @property
+    def is_defined(self) -> bool:
+        """:return: True if map fully defined."""
+        idx = self.__mode.currentIndex()
+        return not ((idx in {0, 2} and -1 in self.__map[0]) or (bool(idx) and -1 in self.__map[1]))
 
     def __mk_widgets(self):
         self.__side = (QFrame(self), QFrame(self))
@@ -180,7 +209,8 @@ class OMPMapWindow(QDialog):
 
     def __slot_mode_chgd(self, idx: int):
         """idx=0..2; not calling on start."""
-        print(idx)
+        self.__side[0].setVisible(idx != 1)
+        self.__side[1].setVisible(bool(idx))
 
     def exec_(self) -> int:
         """Open dialog and return result."""
@@ -190,16 +220,53 @@ class OMPMapWindow(QDialog):
             self.__data_restore()
         return super().exec_()
 
+    def __to_dict(self) -> Dict[str, Dict[str, float]]:
+        retvalue: Dict[str, Dict[str, float]] = {}
+        for s, name in enumerate(('s', 'r')):
+            if s + self.__mode.currentIndex() == 1:
+                continue
+            data = [self.__h1(self.__map[s][i], self.oscwin.omp_ptr.i_sc) for i in range(len(self.__map[s]))]
+            data.append(self.__h1(self.__map[s][0], self.oscwin.omp_ptr.i_pr))
+            data.append(self.__h1(self.__map[s][3], self.oscwin.omp_ptr.i_pr))
+            out_obj = {}
+            for i, d in enumerate(data):
+                out_obj[OUT_NAME[s][i] + 'r'] = data[i].real
+                out_obj[OUT_NAME[s][i] + 'i'] = data[i].imag
+            retvalue[name] = out_obj
+        return retvalue
+
+    def __from_dict(self, data: Dict[str, Dict[str, float]]):
+        ...
+
     def data_save(self, fn: pathlib.Path):
-        """Save OMP values into file.
-        FIXME: 2 sides
-        """
-        data = [self.__h1(self.__map[i], self.oscwin.omp_ptr.i_sc) for i in range(len(self.__map))]
-        data.append(self.__h1(self.__map[0], self.oscwin.omp_ptr.i_pr))
-        data.append(self.__h1(self.__map[3], self.oscwin.omp_ptr.i_pr))
-        out_obj = {}
-        for i, d in enumerate(data):
-            out_obj[OUT_NAME[i] + 'r'] = data[i].real
-            out_obj[OUT_NAME[i] + 'i'] = data[i].imag
+        """Save OMP values into *.uim file."""
+        out_obj = self.__to_dict()
         with open(fn, 'wt') as fp:
             json.dump(out_obj, fp, indent=1)
+
+    def ofd_to(self) -> Dict[str, List[int]]:
+        """Convert OMP map to OFD-file compliant data (sections: [signal numbers])."""
+        retvalue = {}
+        for s, name in enumerate(('s', 'r')):
+            if s + self.__mode.currentIndex() == 1:
+                continue
+            retvalue[name] = self.__map[s]
+        return retvalue
+
+    def ofd_from(self, data: Dict[str, List[int]]):
+        """Reload OMP map from OFD-file compliant data."""
+        self.__map = ([-1] * 6, [-1] * 6)
+        for s, name in enumerate(('s', 'r')):
+            if name not in data:
+                continue
+            for i, j in enumerate(data[name]):
+                self.ompmapwin.map[s][i] = j
+        # set mode selector
+        if 's' in data:
+            if 'r' in data:
+                _mode = 2
+            else:
+                _mode = 0
+        else:
+            _mode = 1
+        self.__mode.setCurrentIndex(_mode)

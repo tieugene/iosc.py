@@ -621,7 +621,7 @@ class ComtradeWidget(QWidget):
         if self.ompmapwin:
             tool['omp'] = {
                 'show': self.ompmapwin.isVisible(),
-                'used': self.ompmapwin.map
+                'used': self.ompmapwin.ofd_to()
             }
         if tool:
             data['tool'] = tool
@@ -729,8 +729,7 @@ class ComtradeWidget(QWidget):
             if src := data['tool'].get('omp'):
                 if not self.ompmapwin:
                     self.ompmapwin = OMPMapWindow(self)
-                for i, j in enumerate(src['used']):  # TODO: chk 'None's
-                    self.ompmapwin.map[i] = j
+                self.ompmapwin.ofd_from(src['used'])
                 self.ompmapwin.exec_1 = False
                 if src['show']:
                     self.__do_omp_map()
@@ -971,7 +970,7 @@ class ComtradeWidget(QWidget):
                 self.tr("OMP map was not call somewhen")
             )
             return
-        if -1 in self.ompmapwin.map:
+        if not self.ompmapwin.is_defined:
             QMessageBox.critical(
                 self,
                 self.tr("OMP save error"),
