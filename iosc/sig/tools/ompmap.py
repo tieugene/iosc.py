@@ -11,7 +11,8 @@ from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButt
 # 3. local
 # x. const
 CORR_SIG = ('Ua', 'Ub', 'Uc', 'Ia', 'Ib', 'Ic')
-OUT_NAME = (
+OUT_NAME = ('uasc', 'ubsc', 'ucsc', 'iasc', 'ibsc', 'icsc', 'uapr', 'iapr')
+OUT_NAME2 = (
     ('uassc', 'ubssc', 'ucssc', 'iassc', 'ibssc', 'icssc', 'uaspr', 'iaspr'),
     ('uarsc', 'ubrsc', 'ucrsc', 'iarsc', 'ibrsc', 'icrsc', 'uarpr', 'iarpr'),
 )
@@ -95,11 +96,6 @@ class OMPMapWindow(QDialog):
         self.__button_box.accepted.connect(self.accept)
         self.__button_box.rejected.connect(self.reject)
         self.finished.connect(self.__slot_post_close)
-
-    @property
-    def map(self) -> Tuple[List[int], List[int]]:
-        """:return: OMP map itself."""
-        return self.__map
 
     @property
     def is_defined(self) -> bool:
@@ -220,7 +216,7 @@ class OMPMapWindow(QDialog):
             self.__data_restore()
         return super().exec_()
 
-    def __to_dict(self) -> Dict[str, Dict[str, float]]:
+    def __uim_to(self) -> Dict[str, Dict[str, float]]:
         retvalue: Dict[str, Dict[str, float]] = {}
         for s, name in enumerate(('s', 'r')):
             if s + self.__mode.currentIndex() == 1:
@@ -230,22 +226,22 @@ class OMPMapWindow(QDialog):
             data.append(self.__h1(self.__map[s][3], self.oscwin.omp_ptr.i_pr))
             out_obj = {}
             for i, d in enumerate(data):
-                out_obj[OUT_NAME[s][i] + 'r'] = data[i].real
-                out_obj[OUT_NAME[s][i] + 'i'] = data[i].imag
+                out_obj[OUT_NAME[i] + 'r'] = data[i].real  # or OUT_NAME2[s][i]
+                out_obj[OUT_NAME[i] + 'i'] = data[i].imag
             retvalue[name] = out_obj
         return retvalue
 
-    def __from_dict(self, data: Dict[str, Dict[str, float]]):
+    def __uim_from(self, data: Dict[str, Dict[str, float]]):
         ...
 
     def data_save(self, fn: pathlib.Path):
         """Save OMP values into *.uim file."""
-        out_obj = self.__to_dict()
+        out_obj = self.__uim_to()
         with open(fn, 'wt') as fp:
             json.dump(out_obj, fp, indent=1)
 
     def ofd_to(self) -> Dict[str, List[int]]:
-        """Convert OMP map to OFD-file compliant data (sections: [signal numbers])."""
+        """Convert OMP map to OFD-file compliant data ({sections: [signal numbers]})."""
         retvalue = {}
         for s, name in enumerate(('s', 'r')):
             if s + self.__mode.currentIndex() == 1:
@@ -260,7 +256,7 @@ class OMPMapWindow(QDialog):
             if name not in data:
                 continue
             for i, j in enumerate(data[name]):
-                self.ompmapwin.map[s][i] = j
+                self.__map[s][i] = j
         # set mode selector
         if 's' in data:
             if 'r' in data:
