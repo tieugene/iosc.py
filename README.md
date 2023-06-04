@@ -56,17 +56,20 @@ tar xf iosc-<version>.tar.gz && cd iosc-<version> && dpkg-buildpackage
 
 1. Download and install [Python3](https://www.python.org/downloads/windows/)
 2. Add required python packages (cmd.exe as admin):
-   ```sh
-   pip install numpy chardet QCustomPlot_PyQt5
-   ```
+
+ ```sh
+ pip install numpy chardet QCustomPlot_PyQt5
+ ```
 
 #### Linux:
 ##### Fedora:
+
 ```sh
 dnf install python3-numpy python3-chardet python3-qcustomplot-pyqt5
 ```
 
 ##### Debian-based:
+
 ```sh
 apt install python3-numpy python3-chardet python3-pyqt5
 # see above
@@ -74,11 +77,14 @@ apt install https://...python3-qcustomplot-pyqt5_...amd64.deb
 ```
 
 #### ~~macOS~~
+
 (with [homebrew](https://brew.sh/)):
-```bash
+
+```sh
 brew install python3
 pip3 install numpy chardet
 ```
+
 &hellip; and install `QCustomPlot_PyQt5` according to [documentation](https://github.com/salsergey/QCustomPlot-PyQt#macos).
 
 ## [Specification](https://github.com/michDaven/AbScan-TechReq)
