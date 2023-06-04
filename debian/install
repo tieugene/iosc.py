@@ -1,0 +1,3 @@
+iosc.desktop usr/share/applications
+iosc/qss/*.qss usr/share/iosc/qss
+iosc/i18n/*.qm usr/share/iosc/i18n

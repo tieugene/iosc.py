@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+export PYBUILD_NAME=iosc
+export PYBUILD_SYSTEM=pyproject
+export DH_VERBOSE=1
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_prep:
+	lrelease -silent iosc/i18n/*.ts
+	dh_prep -O--buildsystem=pybuild

@@ -1,0 +1,17 @@
+Source: iosc.py
+Section: python
+Priority: optional
+Maintainer: TI_Eugene <ti.eugene@gmail.com>
+Standards-Version: 4.5.0
+Homepage: https://github.com/tieugene/iosc.py
+X-Python3-Version: >= 3.10
+Build-Depends: debhelper-compat (= 12), dh-python, python3, python3-setuptools, python3-wheel, pybuild-plugin-pyproject,
+qttools5-dev-tools
+# maybe +Depends
+
+Package: iosc.py
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}, ${python3:Depends}, python3-numpy, python3-chardet, python3-qcustomplot-pyqt5, python3-pyqt5.qtsvg
+# desktop-file-utils
+Description: Comtrade viewer
