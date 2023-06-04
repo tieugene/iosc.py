@@ -1,10 +1,11 @@
 """SVG icons."""
+# 1. std
 from enum import Enum
-
+# 2. 3rd
 from PyQt5.QtCore import QXmlStreamReader, Qt
 from PyQt5.QtGui import QIcon, QPainter, QPixmap
 from PyQt5.QtSvg import QSvgRenderer
-
+# x. const
 vzoom_in = '''<?xml version="1.0" encoding="utf-8"?>
 <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
     <polyline points="5,6 10,1 15,6" stroke-width="1" stroke="currentColor" fill="none"/>

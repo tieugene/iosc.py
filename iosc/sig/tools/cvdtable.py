@@ -64,7 +64,9 @@ class CVDTable(QTableWidget):
             v: complex = ss.hrm(1, i)
             uu = ss.uu
             self.item(r, 1).setText("%.1f %s" % (abs(v), uu))
-            self.item(r, 2).setText("%.1f°" % __norm_angle(math.degrees(cmath.phase(v) - self.__parent.get_base_angle())))
+            self.item(r, 2).setText("%.1f°" % __norm_angle(math.degrees(
+                cmath.phase(v) - self.__parent.get_base_angle()
+            )))
             self.item(r, 3).setText("%.1f %s" % (v.real, uu))
             self.item(r, 4).setText("%.1f %s" % (v.imag, uu))
         self.__trace_items = True

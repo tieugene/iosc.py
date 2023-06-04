@@ -2,13 +2,14 @@
 Location:
 - Linux: ~/.config/TI_Eugene/iOsc.conf
 """
+# 1. std
 import pathlib
 from typing import Dict, List
-
-from PyQt5.QtCore import QRegExp, Qt, QSettings
+# 2. 3rd
+from PyQt5.QtCore import QSettings
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QComboBox, QApplication, QStyleFactory, QCheckBox
-
+# 3. local
 import iosc.const
 
 
@@ -102,10 +103,11 @@ class AppSettingsDialog(QDialog):
         QApplication.setStyle(QStyleFactory.create(self.f_style.currentText()) if idx else '')
         QApplication.setPalette(QApplication.style().standardPalette() if self.f_palette.isChecked() else QPalette())
 
-    def __on_chg_palette(self, v: bool):
+    @staticmethod
+    def __on_chg_palette(v: bool):
         QApplication.setPalette(QApplication.style().standardPalette() if v else QPalette())
 
-    def __on_chg_qss(self, v: bool):
+    def __on_chg_qss(self, _: bool):
         QApplication.instance().setStyleSheet(self._qss[self.f_qss.currentText()])
 
     def execute(self) -> bool:

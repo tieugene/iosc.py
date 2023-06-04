@@ -1,8 +1,9 @@
 """Find signal."""
+# 1. std
 from typing import Optional
-
+# 2. 3rd
 from PyQt5.QtWidgets import QInputDialog
-
+# 3. local
 from iosc.sig.widget.sigsuit import SignalSuit
 
 

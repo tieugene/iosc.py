@@ -5,11 +5,9 @@ import sys
 # 2. 3rd
 from PyQt5.QtCore import Qt, QCoreApplication, QSettings, QTranslator, QLocale, QStandardPaths
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, \
-    QApplication
-
-import iosc.const
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, QApplication
 # 3. local
+import iosc.const
 from iosc._version import __version__
 from iosc.maintabber import ComtradeTabWidget, MAIN_TAB
 from iosc.prefs import AppSettingsDialog, load_style
@@ -157,7 +155,10 @@ def main():
     # <setup data path>
     if (i18n_dir := pathlib.Path(__file__).resolve().parent.joinpath(iosc.const.i18N_DIR)).exists():
         ...
-    elif i18n_dir := QStandardPaths.locate(QStandardPaths.DataLocation, iosc.const.i18N_DIR, QStandardPaths.LocateDirectory):
+    elif i18n_dir := QStandardPaths.locate(
+            QStandardPaths.DataLocation,
+            iosc.const.i18N_DIR,
+            QStandardPaths.LocateDirectory):
         i18n_dir = pathlib.PosixPath(i18n_dir)
     else:
         sys.exit(1)
