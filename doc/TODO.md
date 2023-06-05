@@ -1,11 +1,5 @@
 # TODO
 
-## 2xOMP
-- [ ] i18n+l10n
-- [ ] FIXME: OMPMapWindow: reset mode on Cancel
-
-## 0.3.6: OMP, ru, styling, bugfixes
-
 ## 0.3.7: Deploy
 - [ ] Доработка/тестирование на версиях:
   + [&hellip;] Windows: 7-11 x64
@@ -15,6 +9,7 @@
    Open w/ `osc1_shifted` | OMP map | any key | close
 
 ## 0.3.8: 2&times;OMP map
+- [ ] FIXME: OMPMapWindow: reset mode on Cancel
 
 ## x.y.z. Calculated signals
 - [ ] 2.3.4.3.1. Common (actions, menu, base things)
