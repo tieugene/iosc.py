@@ -1,7 +1,5 @@
 # TODO
 
-## 0.3.6: OMP, ru, styling, bugfixes
-
 ## 0.3.7: Deploy
 - [ ] Доработка/тестирование на версиях:
   + [ ] Windows: 7-11 x64
@@ -12,6 +10,10 @@
   + [x] Fedora Linux 36/37 x64 rpm dynamic
   + [x] Ubuntu Linux 22.04/22.10 x64 deb dynamic.
 - FIXME: `iosc.sig.pdfout/*.py` imports
+- FIXME: `Process finished with exit code 139 (interrupted by signal 11: SIGSEGV)`
+   Open w/ `osc1_shifted` | OMP map | any key | close
+
+## 0.3.8: 2&times;OMP map
 
 ## x.y.z. Calculated signals
 - [ ] 2.3.4.3.1. Common (actions, menu, base things)
