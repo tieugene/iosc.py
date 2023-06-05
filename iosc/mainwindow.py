@@ -3,20 +3,19 @@
 import pathlib
 import sys
 # 2. 3rd
-from PyQt5.QtCore import Qt, QCoreApplication, QSettings, QTranslator, QLocale, QStandardPaths
+from PyQt5.QtCore import Qt, QCoreApplication, QTranslator, QLocale, QStandardPaths
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, \
-    QApplication
-
-import iosc.const
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, QApplication
 # 3. local
+import iosc.const
 from iosc._version import __version__
 from iosc.maintabber import ComtradeTabWidget, MAIN_TAB
-from iosc.prefs import AppSettingsDialog, load_style
+import iosc.qrc
+# from iosc.prefs import AppSettingsDialog, load_style  #275: Styling off
 
 # x. const
 MAIN_MENU = True  # FIXME: False => hot keys not work
-SHARES_DIR: pathlib.PosixPath
+# SHARES_DIR: pathlib.PosixPath  # 277: i18n2qrc
 
 
 class MainWindow(QMainWindow):
@@ -25,16 +24,16 @@ class MainWindow(QMainWindow):
     tabs: ComtradeTabWidget
     act_bar: QToolBar
     act_file_open: QAction
-    act_settings: QAction
+    # act_settings: QAction  #275: Styling off
     act_exit: QAction
     act_about: QAction
-    __settings: QSettings
+    # __settings: QSettings  #275: Styling off
 
     def __init__(self, _: list):
         """Init MainWindow object."""
         super().__init__()
-        self.__settings = QSettings()
-        load_style(self.__settings, SHARES_DIR)
+        # self.__settings = QSettings()  #275: Styling off
+        # load_style(self.__settings, SHARES_DIR)  #275: Styling off
         self.__mk_widgets()
         self.__mk_actions()
         self.__mk_menu()
@@ -58,11 +57,12 @@ class MainWindow(QMainWindow):
                                      statusTip=self.tr("Load comtrade file"),
                                      triggered=self.__do_file_open)
         # noinspection PyArgumentList
-        self.act_settings = QAction(QIcon.fromTheme("preferences-system"),
-                                    self.tr("&Settings"),
-                                    self,
-                                    statusTip=self.tr("Settings"),
-                                    triggered=self.__do_settings)
+        # 275: Styling off
+        # self.act_settings = QAction(QIcon.fromTheme("preferences-system"),
+        #                            self.tr("&Settings"),
+        #                            self,
+        #                            statusTip=self.tr("Settings"),
+        #                            triggered=self.__do_settings)
         # noinspection PyArgumentList
         self.act_exit = QAction(QIcon.fromTheme("application-exit"),
                                 self.tr("E&xit"),
@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
         """Create main application menu."""
         self.menuBar().addMenu(self.tr("&File")).addActions((
             self.act_file_open,
-            self.act_settings,
+            # self.act_settings,  #275: Styling off
             self.act_exit
         ))
         self.menuBar().addMenu(self.tr("&Help")).addAction(self.act_about)
@@ -124,9 +124,9 @@ class MainWindow(QMainWindow):
         if fn[0]:
             self.tabs.add_chart_tab(pathlib.Path(fn[0]))
 
-    def __do_settings(self):
-        dialog = AppSettingsDialog(self.__settings, SHARES_DIR, self)
-        dialog.execute()
+    # def __do_settings(self):  #275: Styling off
+    #    dialog = AppSettingsDialog(self.__settings, SHARES_DIR, self)
+    #    dialog.execute()
 
     # actions
     def __do_about(self):
@@ -147,7 +147,7 @@ class MainWindow(QMainWindow):
 
 def main():
     """Application entry point."""
-    global SHARES_DIR
+    # global SHARES_DIR  # 277: i18n2qrc
     # QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
     # app.setOrganizationName('TI_Eugene')
@@ -155,16 +155,20 @@ def main():
     app.setApplicationName('iosc')
     app.setApplicationVersion(__version__)
     # <setup data path>
-    if (i18n_dir := pathlib.Path(__file__).resolve().parent.joinpath(iosc.const.i18N_DIR)).exists():
-        ...
-    elif i18n_dir := QStandardPaths.locate(QStandardPaths.DataLocation, iosc.const.i18N_DIR, QStandardPaths.LocateDirectory):
-        i18n_dir = pathlib.PosixPath(i18n_dir)
-    else:
-        sys.exit(1)
-    SHARES_DIR = i18n_dir.parent
+    # if (i18n_dir := pathlib.Path(__file__).resolve().parent.joinpath(iosc.const.i18N_DIR)).exists():
+    #    ...
+    # elif i18n_dir := QStandardPaths.locate(
+    #        QStandardPaths.DataLocation,
+    #        iosc.const.i18N_DIR,
+    #        QStandardPaths.LocateDirectory):
+    #    i18n_dir = pathlib.PosixPath(i18n_dir)
+    # else:
+    #    sys.exit(1)
+    # SHARES_DIR = i18n_dir.parent  # 277: i18n2qrc
     # </setup ...>
     translator = QTranslator()
-    if translator.load(QLocale(), 'iosc', '_', SHARES_DIR.joinpath(iosc.const.i18N_DIR).as_posix()):
+    # if translator.load(QLocale(), 'iosc', '_', SHARES_DIR.joinpath(iosc.const.i18N_DIR).as_posix()):
+    if translator.load(QLocale(), 'iosc', '_', f":{iosc.const.i18N_DIR}"):
         app.installTranslator(translator)
     mw: MainWindow = MainWindow(sys.argv)
     available_geometry = app.desktop().availableGeometry(mw)  # 0, 0, 1280, 768 (display height - taskbar)

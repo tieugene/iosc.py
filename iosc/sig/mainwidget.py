@@ -817,7 +817,7 @@ class ComtradeWidget(QWidget):
         txt += t_r(self.tr("Analog chs."), info['analog_count'])
         txt += t_r(self.tr("Status chs."), info['status_count'])
         txt += t_r(self.tr("Time"), f"{info['start_timestamp']}&hellip;{self.osc.trigger_timestamp}"
-                               f" with &times; {info['timemult']}")
+                                    f" with &times; {info['timemult']}")
         txt += t_r(self.tr("Time base"), info['time_base'])
         txt += t_r(self.tr("Line freq, Hz"), info['frequency'])
         txt += t_r(self.tr("Samples"), self.osc.total_samples)

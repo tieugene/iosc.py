@@ -31,7 +31,7 @@ sudo apt install https://...python3-qcustomplot-pyqt5_...amd64.deb
 sudo apt install iosc_..._all.deb
 ```
 
-## Packaging from sources:
+## Packaging:
 
 ### Fedora:
 
@@ -45,21 +45,31 @@ rpmbuild -ta iosc-<version>.tar.gz
 tar xf iosc-<version>.tar.gz && cd iosc-<version> && dpkg-buildpackage
 ```
 
+### Windows:
+
+```sh
+# install python
+pip install numpy chardet pyqt5 QCustomPlot_PyQt5 pyinstaller
+pyinstaller -y -w -F -n iosc-<version> contrib/win.py
+```
+
 ## Run from sources:
 
 1. Download and unpack source tarball
 2. Install required dependencies (see below)
-3. Run main script: `iosc/main.py`
+3. Run main script: `PYTHONPATH="..." iosc/mainwindow.py`
 
 ### OS specific
 #### Windows:
 
 1. Download and install [Python3](https://www.python.org/downloads/windows/)
-2. Add required python packages (cmd.exe as admin):
+2. then:
 
- ```sh
- pip install numpy chardet QCustomPlot_PyQt5
- ```
+```cmd
+pip install numpy chardet pyqt5 QCustomPlot_PyQt5
+pip install .
+pythonw.exe -c "from iosc.mqinwindow import main; main()"
+```
 
 #### Linux:
 ##### Fedora:
