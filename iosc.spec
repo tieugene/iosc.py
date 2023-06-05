@@ -1,6 +1,6 @@
 Name:		iosc
-Version:	0.3.6
-Release:	2%{?dist}
+Version:	0.3.7
+Release:	1%{?dist}
 License:	GLPv3
 Summary:	Comtrade viewer
 URL:		https://github.com/tieugene/iosc.py
@@ -34,14 +34,13 @@ BuildRequires:	desktop-file-utils
 
 %build
 %pyproject_wheel
-lrelease-qt5 -silent iosc/i18n/*.ts
+# lrelease-qt5 -silent iosc/i18n/*.ts
+# pyrcc5 iosc/iosc.qrc -o qrc.py
 
 
 %install
 %pyproject_install
 %pyproject_save_files %{name}
-install -D -p -m 0644 -t %{buildroot}%{_datadir}/%{name}/i18n iosc/i18n/*.qm
-install -D -p -m 0644 -t %{buildroot}%{_datadir}/%{name}/qss iosc/qss/*.qss
 desktop-file-install contrib/%{name}.desktop
 
 
@@ -53,11 +52,13 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %doc README.md
 %license LICENSE
 %{_bindir}/%{name}
-%{_datadir}/%{name}/
 %{_datadir}/applications/%{name}.desktop
 
 
 %changelog
+* Mon Jun 05 2023 TI_Eugene <ti.eugene@gmail.com> - 0.3.7-1
+- Windows compliant
+
 * Sun Jun 04 2023 TI_Eugene <ti.eugene@gmail.com> - 0.3.6-2
 - Debian compliant
 
