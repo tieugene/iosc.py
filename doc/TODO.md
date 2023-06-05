@@ -10,7 +10,6 @@
   + [x] Fedora Linux 36/37 x64 rpm dynamic
   + [x] Ubuntu Linux 22.04/22.10 x64 deb dynamic.
 - Resolve resources:
-  + disable `*.qss`
   + wrap `i18n` `.qrc` | `.py` &hellip;
 - publish to pip
 - FIXME: `iosc.sig.pdfout/*.py` imports
