@@ -9,9 +9,16 @@
   + [ ] Windows 7, 8, 8.1, 10, 11 x64 установщик *.exe;
   + [x] Fedora Linux 36/37 x64 rpm dynamic
   + [x] Ubuntu Linux 22.04/22.10 x64 deb dynamic.
+- Resolve resources:
+  + disable `*.qss`
+  + wrap `i18n` `.qrc` | `.py` &hellip;
+- publish to pip
 - FIXME: `iosc.sig.pdfout/*.py` imports
 - FIXME: `Process finished with exit code 139 (interrupted by signal 11: SIGSEGV)`
    Open w/ `osc1_shifted` | OMP map | any key | close
+- Plan B:
+  + FIXME: skip qss if n/a
+  + FIXME: skip i18n if n/a
 
 ## 0.3.8: 2&times;OMP map
 
