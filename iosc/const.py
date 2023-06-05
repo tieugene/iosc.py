@@ -59,4 +59,4 @@ COLOR_SIG_DEFAULT = {'a': QColor.fromRgb(255, 127, 39), 'b': QColor.fromRgb(0, 1
 COLOR_SIG_UNKNOWN = QColor.fromRgb(0, 0, 0)
 YS_SINGLE_STEP = 100  # BarPlotWidget.YScroller.singleStep(), default=1
 i18N_DIR = 'i18n'
-QSS_DIR = '../contrib/qss'
+# QSS_DIR = '../contrib/qss'    #275: Styling off
