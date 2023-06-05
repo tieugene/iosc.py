@@ -41,7 +41,6 @@ lrelease-qt5 -silent iosc/i18n/*.ts
 %pyproject_install
 %pyproject_save_files %{name}
 install -D -p -m 0644 -t %{buildroot}%{_datadir}/%{name}/i18n iosc/i18n/*.qm
-install -D -p -m 0644 -t %{buildroot}%{_datadir}/%{name}/qss iosc/qss/*.qss
 desktop-file-install contrib/%{name}.desktop
 
 
