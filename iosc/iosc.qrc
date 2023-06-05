@@ -1,0 +1,6 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="i18n">
+        <file alias="iosc_ru.qm">i18n/iosc_ru.qm</file>
+    </qresource>
+</RCC>

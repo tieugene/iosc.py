@@ -10,11 +10,12 @@ from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToo
 import iosc.const
 from iosc._version import __version__
 from iosc.maintabber import ComtradeTabWidget, MAIN_TAB
-# from iosc.prefs import AppSettingsDialog, load_style
+import iosc.qrc
+# from iosc.prefs import AppSettingsDialog, load_style  #275: Styling off
 
 # x. const
 MAIN_MENU = True  # FIXME: False => hot keys not work
-SHARES_DIR: pathlib.PosixPath
+# SHARES_DIR: pathlib.PosixPath  # 277: i18n2qrc
 
 
 class MainWindow(QMainWindow):
@@ -146,7 +147,7 @@ class MainWindow(QMainWindow):
 
 def main():
     """Application entry point."""
-    global SHARES_DIR
+    # global SHARES_DIR  # 277: i18n2qrc
     # QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
     # app.setOrganizationName('TI_Eugene')
@@ -154,19 +155,20 @@ def main():
     app.setApplicationName('iosc')
     app.setApplicationVersion(__version__)
     # <setup data path>
-    if (i18n_dir := pathlib.Path(__file__).resolve().parent.joinpath(iosc.const.i18N_DIR)).exists():
-        ...
-    elif i18n_dir := QStandardPaths.locate(
-            QStandardPaths.DataLocation,
-            iosc.const.i18N_DIR,
-            QStandardPaths.LocateDirectory):
-        i18n_dir = pathlib.PosixPath(i18n_dir)
-    else:
-        sys.exit(1)
-    SHARES_DIR = i18n_dir.parent
+    # if (i18n_dir := pathlib.Path(__file__).resolve().parent.joinpath(iosc.const.i18N_DIR)).exists():
+    #    ...
+    # elif i18n_dir := QStandardPaths.locate(
+    #        QStandardPaths.DataLocation,
+    #        iosc.const.i18N_DIR,
+    #        QStandardPaths.LocateDirectory):
+    #    i18n_dir = pathlib.PosixPath(i18n_dir)
+    # else:
+    #    sys.exit(1)
+    # SHARES_DIR = i18n_dir.parent  # 277: i18n2qrc
     # </setup ...>
     translator = QTranslator()
-    if translator.load(QLocale(), 'iosc', '_', SHARES_DIR.joinpath(iosc.const.i18N_DIR).as_posix()):
+    # if translator.load(QLocale(), 'iosc', '_', SHARES_DIR.joinpath(iosc.const.i18N_DIR).as_posix()):
+    if translator.load(QLocale(), 'iosc', '_', f":{iosc.const.i18N_DIR}"):
         app.installTranslator(translator)
     mw: MainWindow = MainWindow(sys.argv)
     available_geometry = app.desktop().availableGeometry(mw)  # 0, 0, 1280, 768 (display height - taskbar)

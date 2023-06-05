@@ -34,13 +34,13 @@ BuildRequires:	desktop-file-utils
 
 %build
 %pyproject_wheel
-lrelease-qt5 -silent iosc/i18n/*.ts
+# lrelease-qt5 -silent iosc/i18n/*.ts
+# pyrcc5 iosc/iosc.qrc -o qrc.py
 
 
 %install
 %pyproject_install
 %pyproject_save_files %{name}
-install -D -p -m 0644 -t %{buildroot}%{_datadir}/%{name}/i18n iosc/i18n/*.qm
 desktop-file-install contrib/%{name}.desktop
 
 
@@ -52,7 +52,6 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %doc README.md
 %license LICENSE
 %{_bindir}/%{name}
-%{_datadir}/%{name}/
 %{_datadir}/applications/%{name}.desktop
 
 
