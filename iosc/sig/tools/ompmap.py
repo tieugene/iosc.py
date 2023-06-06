@@ -216,19 +216,20 @@ class OMPMapWindow(QDialog):
             self.__data_restore()
         return super().exec_()
 
-    def __uim_to(self) -> Dict[str, Dict[str, float]]:
-        retvalue: Dict[str, Dict[str, float]] = {}
-        for s, name in enumerate(('s', 'r')):
+    def __uim_to(self) -> Dict[str, Union[int, float]]:
+        retvalue: Dict[str, Union[int, float]] = {}
+        for s in range(len(self.__map)):
             if s + self.__mode.currentIndex() == 1:
-                continue
-            data = [self.__h1(self.__map[s][i], self.oscwin.omp_ptr.i_sc) for i in range(len(self.__map[s]))]
-            data.append(self.__h1(self.__map[s][0], self.oscwin.omp_ptr.i_pr))
-            data.append(self.__h1(self.__map[s][3], self.oscwin.omp_ptr.i_pr))
-            out_obj = {}
-            for i, d in enumerate(data):
-                out_obj[OUT_NAME[i] + 'r'] = data[i].real  # or OUT_NAME2[s][i]
-                out_obj[OUT_NAME[i] + 'i'] = data[i].imag
-            retvalue[name] = out_obj
+                for n in OUT_NAME2[s]:
+                    retvalue[n+'r'] = 0
+                    retvalue[n+'i'] = 0
+            else:
+                data = [self.__h1(self.__map[s][i], self.oscwin.omp_ptr.i_sc) for i in range(len(self.__map[s]))]
+                data.append(self.__h1(self.__map[s][0], self.oscwin.omp_ptr.i_pr))
+                data.append(self.__h1(self.__map[s][3], self.oscwin.omp_ptr.i_pr))
+                for i, d in enumerate(data):
+                    retvalue[OUT_NAME2[s][i] + 'r'] = data[i].real
+                    retvalue[OUT_NAME2[s][i] + 'i'] = data[i].imag
         return retvalue
 
     def __uim_from(self, data: Dict[str, Dict[str, float]]):

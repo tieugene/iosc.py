@@ -3,10 +3,10 @@
 ## 0.3.7: Deploy
 - [ ] Доработка/тестирование на версиях:
   + [&hellip;] Windows: 7-11 x64
-- publish to pip
 - FIXME: `iosc.sig.pdfout/*.py` imports
 - FIXME: `Process finished with exit code 139 (interrupted by signal 11: SIGSEGV)`
    Open w/ `osc1_shifted` | OMP map | any key | close
+- publish to pip
 
 ## 0.3.8: 2&times;OMP map
 - [ ] FIXME: OMPMapWindow: reset mode on Cancel

@@ -58,6 +58,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 %changelog
 * Mon Jun 05 2023 TI_Eugene <ti.eugene@gmail.com> - 0.3.7-1
 - Windows compliant
+- Styling off
+- i18n qrc'ed
 
 * Sun Jun 04 2023 TI_Eugene <ti.eugene@gmail.com> - 0.3.6-2
 - Debian compliant
