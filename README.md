@@ -10,7 +10,7 @@ View/analyze comtrade oscillograms
   - [QCustomPlot-PyQt5](https://pypi.org/project/QCustomPlot-PyQt5/):
      * Fedora: out from box
      * Debian-based: [OBS repo](https://build.opensuse.org/package/show/home:sergeyopensuse:gpxviewer/python-qcustomplot-pyqt)
-     * Windows: RTFM
+     * Windows: `pip`
 
 ### Bundled:
 - [python-comtrade](https://github.com/dparrini/python-comtrade)
