@@ -3,7 +3,7 @@
 View/analyze comtrade oscillograms
 
 ## Requirements:
-- [Python3](https://www.python.org/) with
+- [Python3](https://www.python.org/) &ge; 3.9 with
   - [numpy](https://numpy.org/)
   - [chardet](https://github.com/chardet/chardet)
   - [PyQt5](https://www.riverbankcomputing.com/software/pyqt/)
