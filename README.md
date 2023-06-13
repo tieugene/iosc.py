@@ -51,7 +51,7 @@ tar xf iosc-<version>.tar.gz && cd iosc-<version> && dpkg-buildpackage
 # 1. install python
 # 2. install requirements
 pip install numpy chardet pyqt5 QCustomPlot_PyQt5 pyinstaller
-# 3. install iosc itself; in iosc folder:
+# 3. install iosc itself (in folder with unpacked sources):
 pip install .
 # 4. build
 pyinstaller -y -w -F -n iosc-<version> contrib/win.py
