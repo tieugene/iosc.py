@@ -48,8 +48,12 @@ tar xf iosc-<version>.tar.gz && cd iosc-<version> && dpkg-buildpackage
 ### Windows:
 
 ```sh
-# install python
+# 1. install python
+# 2. install requirements
 pip install numpy chardet pyqt5 QCustomPlot_PyQt5 pyinstaller
+# 3. install iosc itself; in iosc folder:
+pip install .
+# 4. build
 pyinstaller -y -w -F -n iosc-<version> contrib/win.py
 ```
 
