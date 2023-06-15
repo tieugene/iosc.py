@@ -135,7 +135,7 @@ class MainWindow(QMainWindow):
         dialog = QMessageBox(
             QMessageBox.Information,
             self.tr("About iOsc"),
-            self.tr("Qt powered comtrade viewer/analyzer, version %s<br/>") % __version__ +
+            self.tr("Comtrade files viewing/analyzing software, version %s<br/>") % __version__ +
             self.tr('Developed for <a href="https://ntkpribor.ru/">&laquo;NTK Priborenergo&raquo;, Ltd.</a><br/>') +
             '<sub>&copy; <a href="https://www.eap.su">TI_Eugene</a></sub>',
             QMessageBox.Ok,

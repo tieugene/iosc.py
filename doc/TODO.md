@@ -1,14 +1,15 @@
 # TODO
 
 ## 0.3.7: Deploy
-- [ ] Доработка/тестирование на версиях:
-  + [&hellip;] Windows: 7-11 x64
-- publish to pip
-- FIXME: `iosc.sig.pdfout/*.py` imports
-- FIXME: `Process finished with exit code 139 (interrupted by signal 11: SIGSEGV)`
+- [ ] #280: Time interval calculation
+- [ ] #281: Value table: r/o
+- [ ] #283: Signal move bug
+- [ ] FIXME: `iosc.sig.pdfout/*.py` imports
+- [ ] FIXME: `Process finished with exit code 139 (interrupted by signal 11: SIGSEGV)`  
    Open w/ `osc1_shifted` | OMP map | any key | close
 
 ## 0.3.8: 2&times;OMP map
+- publish to pip
 
 ## x.y.z. Calculated signals
 - [ ] 2.3.4.3.1. Common (actions, menu, base things)

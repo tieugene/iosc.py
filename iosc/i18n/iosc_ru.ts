@@ -464,7 +464,7 @@
 <context>
     <name>FindDialog</name>
     <message>
-        <location filename="../sig/widget/finder.py" line="21"/>
+        <location filename="../sig/widget/finder.py" line="22"/>
         <source>Search signal</source>
         <translation>Поиск сигнала</translation>
     </message>
@@ -541,14 +541,9 @@ Station ID: %s, Station name: %s</source>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../mainwindow.py" line="54"/>
+        <location filename="../mainwindow.py" line="53"/>
         <source>Load comtrade file</source>
         <translation>Загрузить файл comtrade</translation>
-    </message>
-    <message>
-        <location filename="../mainwindow.py" line="61"/>
-        <source>Settings</source>
-        <translation>Настройки</translation>
     </message>
     <message>
         <location filename="../mainwindow.py" line="67"/>
@@ -556,14 +551,9 @@ Station ID: %s, Station name: %s</source>
         <translation>Завершить приложение</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="54"/>
+        <location filename="../mainwindow.py" line="53"/>
         <source>&amp;Open</source>
         <translation>&amp;Открыть</translation>
-    </message>
-    <message>
-        <location filename="../mainwindow.py" line="61"/>
-        <source>&amp;Settings</source>
-        <translation>На&amp;стройки</translation>
     </message>
     <message>
         <location filename="../mainwindow.py" line="67"/>
@@ -578,7 +568,7 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../mainwindow.py" line="74"/>
         <source>Show the application&apos;s &apos;About&apos; box</source>
-        <translation>Показывает &apos;О программе&apos;</translation>
+        <translation>Показывает 'О программе'</translation>
     </message>
     <message>
         <location filename="../mainwindow.py" line="82"/>
@@ -623,17 +613,17 @@ Station ID: %s, Station name: %s</source>
     <message>
         <location filename="../mainwindow.py" line="112"/>
         <source>&apos;%s&apos; not exists or is not file</source>
-        <translation>&apos;%s&apos; не существует или не файл</translation>
-    </message>
-    <message>
-        <location filename="../mainwindow.py" line="135"/>
-        <source>Qt powered comtrade viewer/analyzer, version %s&lt;br/&gt;</source>
-        <translation>Просмотрщик/анализатор comtrade на базе Qt, версия %s&lt;br/&gt;</translation>
+        <translation>'%s' не существует или не файл</translation>
     </message>
     <message>
         <location filename="../mainwindow.py" line="135"/>
         <source>Developed for &lt;a href=&quot;https://ntkpribor.ru/&quot;&gt;&amp;laquo;NTK Priborenergo&amp;raquo;, Ltd.&lt;/a&gt;&lt;br/&gt;</source>
         <translation>Разработано для &lt;a href=&quot;https://ntkpribor.ru/&quot;&gt;ООО &amp;laquo;НТК Приборэнерго&amp;raquo;&lt;/a&gt;&lt;br/&gt;</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.py" line="135"/>
+        <source>Comtrade files viewing/analyzing software, version %s&lt;br/&gt;</source>
+        <translation>Программа просмотра/анализа файлов comtrade, версия %s&lt;br/&gt;</translation>
     </message>
 </context>
 <context>
