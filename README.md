@@ -3,14 +3,14 @@
 View/analyze comtrade oscillograms
 
 ## Requirements:
-- [Python3](https://www.python.org/) with
+- [Python3](https://www.python.org/) &ge; 3.9 with
   - [numpy](https://numpy.org/)
   - [chardet](https://github.com/chardet/chardet)
   - [PyQt5](https://www.riverbankcomputing.com/software/pyqt/)
   - [QCustomPlot-PyQt5](https://pypi.org/project/QCustomPlot-PyQt5/):
      * Fedora: out from box
      * Debian-based: [OBS repo](https://build.opensuse.org/package/show/home:sergeyopensuse:gpxviewer/python-qcustomplot-pyqt)
-     * Windows: RTFM
+     * Windows: `pip`
 
 ### Bundled:
 - [python-comtrade](https://github.com/dparrini/python-comtrade)
@@ -48,8 +48,12 @@ tar xf iosc-<version>.tar.gz && cd iosc-<version> && dpkg-buildpackage
 ### Windows:
 
 ```sh
-# install python
+# 1. install python
+# 2. install requirements
 pip install numpy chardet pyqt5 QCustomPlot_PyQt5 pyinstaller
+# 3. install iosc itself (in folder with unpacked sources):
+pip install .
+# 4. build
 pyinstaller -y -w -F -n iosc-<version> contrib/win.py
 ```
 
