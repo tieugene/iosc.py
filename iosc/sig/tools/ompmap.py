@@ -2,13 +2,10 @@
 # 1. std
 import json
 import pathlib
-from dataclasses import dataclass
-from typing import Union, List, Tuple, Dict, Optional
+from typing import Union, List, Tuple, Dict
 # 2. 3rd
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox, QFrame, QVBoxLayout, QHBoxLayout
-
-# 3. local
 # x. const
 CORR_SIG = ('Ua', 'Ub', 'Uc', 'Ia', 'Ib', 'Ic')
 OUT_NAME = ('uasc', 'ubsc', 'ucsc', 'iasc', 'ibsc', 'icsc', 'uapr', 'iapr')
@@ -17,24 +14,6 @@ OUT_NAME2 = (
     ('uarsc', 'ubrsc', 'ucrsc', 'iarsc', 'ibrsc', 'icrsc', 'uarpr', 'iarpr'),
 )
 HRM1_NUMBER = 3  # FIXME: hardcoded
-
-
-@dataclass
-class OMPSideMapData:
-    uasc: float
-    ubsc: float
-    ucsc: float
-    iasc: float
-    ibsc: float
-    icsc: float
-    uapr: float
-    iapr: float
-
-
-@dataclass
-class OMPMapData:
-    s: Optional[OMPSideMapData]
-    r: Optional[OMPSideMapData]
 
 
 class SignalBox(QComboBox):
