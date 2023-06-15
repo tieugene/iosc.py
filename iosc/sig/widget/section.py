@@ -145,6 +145,7 @@ class SignalBarTable(QTableWidget):
         src_object = event.source()
         dst_row_num, over = self.__drop_on(event)  # SignalBarTable/SignalLabelList
         todo = self.__chk_dnd_event(src_object, dst_row_num, over)
+        print(dst_row_num, over, todo)
         if todo == 1:  # Bar.Ins
             src_object.parent().bar.table.bar_move(src_object.parent().bar.row, self.bar_insert(dst_row_num))
         elif todo == 2:  # Sig.Ovr (join, move)
