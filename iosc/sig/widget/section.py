@@ -142,10 +142,9 @@ class SignalBarTable(QTableWidget):
         if event.isAccepted():
             super().dropEvent(event)
             return
-        src_object = event.source()
+        src_object = event.source()  # BarCtrlWidget.Anchor | BarCtrlWidget.SignalLabelList
         dst_row_num, over = self.__drop_on(event)  # SignalBarTable/SignalLabelList
         todo = self.__chk_dnd_event(src_object, dst_row_num, over)
-        print(dst_row_num, over, todo)
         if todo == 1:  # Bar.Ins
             src_object.parent().bar.table.bar_move(src_object.parent().bar.row, self.bar_insert(dst_row_num))
         elif todo == 2:  # Sig.Ovr (join, move)
@@ -165,7 +164,12 @@ class SignalBarTable(QTableWidget):
         return SignalBar(self, row)
 
     def bar_move(self, row: int, other_bar: SignalBar):
-        """Move self bar content to other table."""
+        """Move self bar content to other table.
+        :param row: Row to move bar from
+        :param other_bar: Replacing bar
+        """
+        if other_bar.table == self and row > other_bar.row:  # hack against #283
+            row += 1
         bar = self.bars[row]
         for i in range(bar.sig_count):
             bar.sig_move(0, other_bar)
