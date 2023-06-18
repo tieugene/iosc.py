@@ -262,8 +262,8 @@ class _PowerPtr(Ptr):
         if i_old != (i_new := self.i):
             if not self.__old_pos.visible():  # show tips on demand
                 self.__switch_tips(True)
-            self.__tip.move2x(x_ms, self.__old_pos.x)
-            self.__rect.stretch2x(x_ms)
+            self.__tip.move2x(self.x, self.__old_pos.x)
+            self.__rect.stretch2x(self.x)
             self.parentPlot().replot()
             return i_new
 
