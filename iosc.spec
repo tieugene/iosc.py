@@ -53,6 +53,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 
 
 %changelog
+* Sun Jun 18 2023 TI_Eugene <ti.eugene@gmail.com> - 0.3.7-rc2
+- Bug fixes
+
 * Mon Jun 05 2023 TI_Eugene <ti.eugene@gmail.com> - 0.3.7-rc1
 - Windows compliant
 
