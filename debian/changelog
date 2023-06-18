@@ -1,17 +1,17 @@
-iosc.py (0.3.7-1) UNRELEASED; urgency=low
-
-  * Initial release.
-
- --  TI_Eugene <ti.eugene@gmail.com>  Mon, 05 Jun 2023 13:55:11 +0300
-
-iosc.py (0.3.6-2) UNRELEASED; urgency=low
-
-  * Next release.
-
- --  TI_Eugene <ti.eugene@gmail.com>  Sat, 03 Jun 2023 12:00:00 +0300
-
 iosc.py (0.3.6-rc2) UNRELEASED; urgency=low
 
   * Bug fixes.
 
  --  TI_Eugene <ti.eugene@gmail.com>  Sun, 18 Jun 2023 12:00:00 +0300
+
+iosc.py (0.3.7-rc1) UNRELEASED; urgency=low
+
+  * Next release candidate.
+
+ --  TI_Eugene <ti.eugene@gmail.com>  Mon, 05 Jun 2023 13:55:11 +0300
+
+iosc.py (0.3.6-2) UNRELEASED; urgency=low
+
+  * Initial release.
+
+ --  TI_Eugene <ti.eugene@gmail.com>  Sat, 03 Jun 2023 12:00:00 +0300
