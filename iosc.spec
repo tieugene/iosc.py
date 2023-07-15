@@ -1,6 +1,6 @@
 Name:		iosc
 Version:	0.3.7
-Release:	rc2%{?dist}
+Release:	1%{?dist}
 License:	GLPv3
 Summary:	Comtrade viewer
 URL:		https://github.com/tieugene/iosc.py
@@ -53,6 +53,12 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{name}.desktop
 
 
 %changelog
+* Wed Jun 21 2023 TI_Eugene <ti.eugene@gmail.com> - 0.3.7-1
+- Release
+
+* Sun Jun 18 2023 TI_Eugene <ti.eugene@gmail.com> - 0.3.7-rc2
+- Bug fixes
+
 * Mon Jun 05 2023 TI_Eugene <ti.eugene@gmail.com> - 0.3.7-rc1
 - Windows compliant
 - Styling off

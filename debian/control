@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: TI_Eugene <ti.eugene@gmail.com>
 Standards-Version: 4.5.0
 Homepage: https://github.com/tieugene/iosc.py
-X-Python3-Version: >= 3.10
+X-Python3-Version: >= 3.9
 Build-Depends: debhelper-compat (= 12), dh-python, python3, python3-setuptools, python3-wheel, pybuild-plugin-pyproject, qttools5-dev-tools
 # maybe +Depends
 
