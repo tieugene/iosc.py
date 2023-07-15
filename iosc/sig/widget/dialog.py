@@ -1,6 +1,6 @@
 """Edit dialogs."""
 # 1. std
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 # 2. 3rd
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -296,3 +296,34 @@ class LvlPtrDialog(QDialog):
         self.button_box.rejected.connect(self.reject)
         # 5. go
         self.setWindowTitle("Lvl ptr properties")  # FIXME: += ' L1: <sid>'
+
+
+class OMPSaveDialog(QDialog):
+    """
+    - Collect lefts, rights, boths
+    - Prepare x4 listboxes
+    - call select s/r dialog
+    - call QFileDialog
+    - do it
+    :return: ([S-osc], [R-osc])
+    """
+    button_box: QDialogButtonBox
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        # 2. set widgets
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        # 3. set layout
+        layout = QFormLayout(self)
+        layout.addRow(self.button_box)
+        self.setLayout(layout)
+        # 4. set signals
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        # 5. go
+        self.setWindowTitle(self.tr("Select OMP to save"))
+
+    def execute(self) -> Optional[Tuple[int, int]]:
+        """Open doialog and return result."""
+        if self.exec_():
+            return 0, 0

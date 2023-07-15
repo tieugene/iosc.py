@@ -11,10 +11,14 @@ import iosc.const
 from iosc._version import __version__
 from iosc.maintabber import ComtradeTabWidget, MAIN_TAB
 import iosc.qrc
+from iosc.sig.widget.dialog import OMPSaveDialog
+
 # from iosc.prefs import AppSettingsDialog, load_style  #275: Styling off
 
 # x. const
 MAIN_MENU = True  # FIXME: False => hot keys not work
+
+
 # SHARES_DIR: pathlib.PosixPath  # 277: i18n2qrc
 
 
@@ -24,9 +28,11 @@ class MainWindow(QMainWindow):
     tabs: ComtradeTabWidget
     act_bar: QToolBar
     act_file_open: QAction
+    act_omp_save: QAction
     # act_settings: QAction  #275: Styling off
     act_exit: QAction
     act_about: QAction
+
     # __settings: QSettings  #275: Styling off
 
     def __init__(self, _: list):
@@ -64,6 +70,9 @@ class MainWindow(QMainWindow):
         #                            statusTip=self.tr("Settings"),
         #                            triggered=self.__do_settings)
         # noinspection PyArgumentList
+        self.act_omp_save = QAction(self.tr("OMP map save"),
+                                    self,
+                                    triggered=self.__do_omp_save)
         self.act_exit = QAction(QIcon.fromTheme("application-exit"),
                                 self.tr("E&xit"),
                                 self,
@@ -81,6 +90,7 @@ class MainWindow(QMainWindow):
         """Create main application menu."""
         self.menuBar().addMenu(self.tr("&File")).addActions((
             self.act_file_open,
+            self.act_omp_save,
             # self.act_settings,  #275: Styling off
             self.act_exit
         ))
@@ -123,6 +133,19 @@ class MainWindow(QMainWindow):
         )
         if fn[0]:
             self.tabs.add_chart_tab(pathlib.Path(fn[0]))
+
+    def __do_omp_save(self):
+        who = OMPSaveDialog()
+        if not who.execute():
+            return
+        fn = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Save OMP values"),
+            '~',  # FIXME: home
+            self.tr("U,I measurements (*.uim)")
+        )
+        if fn[0]:
+            ...  # save
 
     # def __do_settings(self):  #275: Styling off
     #    dialog = AppSettingsDialog(self.__settings, SHARES_DIR, self)

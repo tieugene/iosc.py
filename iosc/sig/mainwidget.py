@@ -125,7 +125,7 @@ class ComtradeWidget(QWidget):
     action_harmonic_diagram: QAction
     action_value_table: QAction
     action_omp_map: QAction
-    action_omp_save: QAction
+    action_omp_save: QAction  # FIXME: rm
     action_signal_find: QAction
     action_math_module: QAction
     # widgets
@@ -437,7 +437,7 @@ class ComtradeWidget(QWidget):
                                       shortcut="Ctrl+M",
                                       triggered=self.__do_omp_map)
         # noinspection PyArgumentList
-        self.action_omp_save = QAction(self.tr("OMP map save"),
+        self.action_omp_save = QAction(self.tr("OMP map save"),  # FIXME: rm
                                        self,
                                        triggered=self.__do_omp_save)
         self.action_pors = QActionGroup(self)
@@ -455,7 +455,7 @@ class ComtradeWidget(QWidget):
         self.action_zoom_x_out.setEnabled(False)
         # specials
         self.action_omp_map.setEnabled(bool(self.omp_ptr))
-        self.action_omp_save.setEnabled(bool(self.omp_ptr))
+        self.action_omp_save.setEnabled(bool(self.omp_ptr))  # FIXME: rm
 
     def __mk_menu(self):
         """Make local (osc) menu."""
@@ -507,7 +507,7 @@ class ComtradeWidget(QWidget):
             self.action_harmonic_diagram,
             self.action_value_table,
             self.action_omp_map,
-            self.action_omp_save
+            self.action_omp_save  # FIXME: rm
         ))
 
     def __mk_toolbar(self):
@@ -960,7 +960,7 @@ class ComtradeWidget(QWidget):
             self.ompmapwin = OMPMapWindow(self)
         self.ompmapwin.exec_()
 
-    def __do_omp_save(self):
+    def __do_omp_save(self):  # FIXME: rm
         if not self.omp_ptr:
             return
         if not self.ompmapwin:
