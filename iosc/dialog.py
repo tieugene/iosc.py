@@ -51,18 +51,20 @@ class OMPSaveDialog(QDialog):
     def execute(self, ct_list: List[ComtradeWidget]) -> Optional[Tuple[int, int]]:
         """Open dialog and return result.
         :return: ([S-osc], [R-osc])
-        :todo: who play (prepare listboxes)
         """
         self.__ct_list = ct_list
         self.__side_s.clear()
         self.__side_r.clear()
         self.__side_sr.clear()
         for ct in ct_list:
-            self.__side_s.addItem(ct.osc.path.name)
-            self.__side_r.addItem(ct.osc.path.name)
-            self.__side_sr.addItem(ct.osc.path.name)
-        # TODO: disable self.__mode indexes
-        # TODO: set self.__mode index
+            defined = ct.ompmapwin.is_defined  # 0..3
+            if defined & 1:
+                self.__side_s.addItem(ct.osc.path.name)
+            if defined & 2:
+                self.__side_r.addItem(ct.osc.path.name)
+            if defined == 3:
+                self.__side_sr.addItem(ct.osc.path.name)
+        self.__slot_mode_chgd(self.__mode.currentIndex())
         if self.exec_():
             return 0, 0
 
@@ -73,4 +75,4 @@ class OMPSaveDialog(QDialog):
         :param idx:
         :return:
         """
-        ...
+        print(f"Mode: {idx}")

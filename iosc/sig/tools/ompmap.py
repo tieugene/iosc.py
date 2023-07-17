@@ -77,10 +77,13 @@ class OMPMapWindow(QDialog):
         self.finished.connect(self.__slot_post_close)
 
     @property
-    def is_defined(self) -> bool:
-        """:return: True if map fully defined."""
+    def is_defined(self) -> int:
+        """:return: bitmask (S defined)|(R defined)."""
         idx = self.__mode.currentIndex()
-        return not ((idx in {0, 2} and -1 in self.__map[0]) or (bool(idx) and -1 in self.__map[1]))
+        left = 0 if idx == 1 or -1 in self.__map[0] else 1
+        right = 0 if idx == 0 or -1 in self.__map[1] else 2
+        return left + right
+        # return not ((idx in {0, 2} and -1 in self.__map[0]) or (bool(idx) and -1 in self.__map[1]))
 
     def __mk_widgets(self):
         self.__side = (QFrame(self), QFrame(self))

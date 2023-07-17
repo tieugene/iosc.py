@@ -145,8 +145,8 @@ class MainWindow(QMainWindow):
         if self.tabs.count() < 1:  # no one osc loaded
             return
         if not (ct_list := [
-            w for i in range(self.tabs.count())
-            if (w := self.tabs.widget(i)).ompmapwin and w.ompmapwin.is_defined
+            ct for i in range(self.tabs.count())
+            if (ct := self.tabs.widget(i)).ompmapwin and ct.ompmapwin.is_defined
         ]):
             return  # no one OMP map defined
         # 2. Select oscs
@@ -162,6 +162,7 @@ class MainWindow(QMainWindow):
         # 4. Save
         if fn[0]:
             ...
+            # self.ompmapwin.data_save(pathlib.Path(fn[0]))
 
     # def __do_settings(self):  #275: Styling off
     #    dialog = AppSettingsDialog(self.__settings, SHARES_DIR, self)
