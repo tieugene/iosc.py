@@ -8,8 +8,8 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox, QFrame, QVBoxLayout, QHBoxLayout
 # x. const
 CORR_SIG = ('Ua', 'Ub', 'Uc', 'Ia', 'Ib', 'Ic')
-OUT_NAME = ('uasc', 'ubsc', 'ucsc', 'iasc', 'ibsc', 'icsc', 'uapr', 'iapr')
-OUT_NAME2 = (
+OUT_NAME = ('uasc', 'ubsc', 'ucsc', 'iasc', 'ibsc', 'icsc', 'uapr', 'iapr')  # FIXME: rm
+OUT_NAME2 = (  # FIXME: rm
     ('uassc', 'ubssc', 'ucssc', 'iassc', 'ibssc', 'icssc', 'uaspr', 'iaspr'),
     ('uarsc', 'ubrsc', 'ucrsc', 'iarsc', 'ibrsc', 'icrsc', 'uarpr', 'iarpr'),
 )
@@ -198,7 +198,7 @@ class OMPMapWindow(QDialog):
             self.__data_restore()
         return super().exec_()
 
-    def __uim_to(self) -> Dict[str, Union[int, float]]:
+    def __uim_to(self) -> Dict[str, Union[int, float]]:  # FIXME: rm
         retvalue: Dict[str, Union[int, float]] = {}
         for s in range(len(self.__map)):
             if s + self.__mode.currentIndex() == 1:
@@ -214,10 +214,10 @@ class OMPMapWindow(QDialog):
                     retvalue[OUT_NAME2[s][i] + 'i'] = data[i].imag
         return retvalue
 
-    def __uim_from(self, data: Dict[str, Dict[str, float]]):
+    def __uim_from(self, data: Dict[str, Dict[str, float]]):  # FIXME: rm
         ...
 
-    def data_save(self, fn: pathlib.Path):
+    def data_save(self, fn: pathlib.Path):  # FIXME: rm
         """Save OMP values into *.uim file."""
         out_obj = self.__uim_to()
         with open(fn, 'wt') as fp:
@@ -249,3 +249,14 @@ class OMPMapWindow(QDialog):
         else:
             _mode = 1
         self.__mode.setCurrentIndex(_mode)
+
+    def data(self, s: int) -> List[complex]:
+        """Get selected signals of OMP map.
+        :param s: Side (0: left, 1: right)
+        :todo: chk s
+        :todo: handle defined
+        """
+        retvalue = [self.__h1(self.__map[s][i], self.oscwin.omp_ptr.i_sc) for i in range(len(self.__map[s]))]
+        retvalue.append(self.__h1(self.__map[s][0], self.oscwin.omp_ptr.i_pr))
+        retvalue.append(self.__h1(self.__map[s][3], self.oscwin.omp_ptr.i_pr))
+        return retvalue

@@ -7,3 +7,7 @@
 - [ ] FIXME: `iosc.sig.pdfout/*.py` imports
 
 ## 0.3.8: 2&times;OMP map
+- [x] Global action (menu)
+- [ ] rm local w/ deps (`FIXME: rm`)
+- [ ] i18n
+- [ ] deploy

@@ -1,7 +1,9 @@
 """Main application Window."""
+import json
 # 1. std
 import pathlib
 import sys
+
 # 2. 3rd
 from PyQt5.QtCore import Qt, QCoreApplication, QTranslator, QLocale
 from PyQt5.QtGui import QIcon
@@ -17,6 +19,10 @@ from iosc.dialog import OMPSaveDialog
 
 # x. const
 MAIN_MENU = True  # FIXME: False => hot keys not work
+OMP_KEYS = (
+    ('uassc', 'ubssc', 'ucssc', 'iassc', 'ibssc', 'icssc', 'uaspr', 'iaspr'),
+    ('uarsc', 'ubrsc', 'ucrsc', 'iarsc', 'ibrsc', 'icrsc', 'uarpr', 'iarpr'),
+)
 
 
 # SHARES_DIR: pathlib.PosixPath  # 277: i18n2qrc
@@ -151,9 +157,7 @@ class MainWindow(QMainWindow):
             return  # no one OMP map defined
         # 2. Select oscs
         if not (sr := self.dlg_omp.execute(ct_list)):
-            return   # nothing selected
-        print(sr)
-        return
+            return  # nothing selected
         # 3. Call file dialog
         fn = QFileDialog.getSaveFileName(
             self,
@@ -163,7 +167,20 @@ class MainWindow(QMainWindow):
         )
         # 4. Save
         if fn[0]:
-            ...
+            # - prepare data
+            raw_data = [
+                [complex(0, 0)] * 8 if sr[i] is None else ct_list[sr[i]].ompmapwin.data(i)
+                for i in range(2)
+            ]
+            # - fill out
+            out_data = {}
+            for i, side in enumerate(OMP_KEYS):
+                for j, key in enumerate(side):
+                    out_data[key + 'r'] = raw_data[i][j].real
+                    out_data[key + 'i'] = raw_data[i][j].imag
+            # - saving itself
+            with open(fn[0], 'wt') as fp:
+                json.dump(out_data, fp, indent=1)
             # self.ompmapwin.data_save(pathlib.Path(fn[0]))
 
     # def __do_settings(self):  #275: Styling off
