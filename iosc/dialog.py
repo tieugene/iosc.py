@@ -20,6 +20,8 @@ class OMPSaveDialog(QDialog):
     __side_s: QComboBox
     __side_r: QComboBox
     __side_sr: QComboBox
+    __s_label: QLabel
+    __r_label: QLabel
     button_box: QDialogButtonBox
 
     def __init__(self, parent=None):
@@ -48,7 +50,7 @@ class OMPSaveDialog(QDialog):
         # 5. go
         self.setWindowTitle(self.tr("Select OMP to save"))
 
-    def execute(self, ct_list: List[ComtradeWidget]) -> Optional[Tuple[int, int]]:
+    def execute(self, ct_list: List[ComtradeWidget]) -> Optional[Tuple[Optional[int], Optional[int]]]:
         """Open dialog and return result.
         :return: ([S-osc], [R-osc])
         """
@@ -56,14 +58,14 @@ class OMPSaveDialog(QDialog):
         self.__side_s.clear()
         self.__side_r.clear()
         self.__side_sr.clear()
-        for ct in ct_list:
+        for i, ct in enumerate(ct_list):
             defined = ct.ompmapwin.is_defined  # 0..3
             if defined & 1:
-                self.__side_s.addItem(ct.osc.path.name)
+                self.__side_s.addItem(ct.osc.path.name, i)
             if defined & 2:
-                self.__side_r.addItem(ct.osc.path.name)
+                self.__side_r.addItem(ct.osc.path.name, i)
             if defined == 3:
-                self.__side_sr.addItem(ct.osc.path.name)
+                self.__side_sr.addItem(ct.osc.path.name, i)
         self.__slot_mode_chgd(self.__mode.currentIndex())
         if self.exec_():
             return 0, 0
@@ -75,4 +77,7 @@ class OMPSaveDialog(QDialog):
         :param idx:
         :return:
         """
-        print(f"Mode: {idx}")
+        self.__side_s.setVisible(idx in (0, 3))
+        self.__side_r.setVisible(idx in (1, 3))
+        self.__side_sr.setVisible(idx == 2)
+        # self.button_box.button(QDialogButtonBox.Ok).setEnabled(...)
