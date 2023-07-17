@@ -3,7 +3,7 @@
 import pathlib
 import sys
 # 2. 3rd
-from PyQt5.QtCore import Qt, QCoreApplication, QTranslator, QLocale, QStandardPaths
+from PyQt5.QtCore import Qt, QCoreApplication, QTranslator, QLocale
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, QApplication
 # 3. local
@@ -11,7 +11,7 @@ import iosc.const
 from iosc._version import __version__
 from iosc.maintabber import ComtradeTabWidget, MAIN_TAB
 import iosc.qrc
-from iosc.sig.widget.dialog import OMPSaveDialog
+from iosc.dialog import OMPSaveDialog
 
 # from iosc.prefs import AppSettingsDialog, load_style  #275: Styling off
 
@@ -27,6 +27,7 @@ class MainWindow(QMainWindow):
 
     tabs: ComtradeTabWidget
     act_bar: QToolBar
+    dlg_omp: OMPSaveDialog
     act_file_open: QAction
     act_omp_save: QAction
     # act_settings: QAction  #275: Styling off
@@ -50,6 +51,7 @@ class MainWindow(QMainWindow):
     def __mk_widgets(self):
         """Create child widgets."""
         self.tabs = ComtradeTabWidget(self)
+        self.dlg_omp = OMPSaveDialog(self)
         self.setCentralWidget(self.tabs)
         # self.act_bar = QToolBar(self)
 
@@ -73,6 +75,7 @@ class MainWindow(QMainWindow):
         self.act_omp_save = QAction(self.tr("OMP map save"),
                                     self,
                                     triggered=self.__do_omp_save)
+        # noinspection PyArgumentList
         self.act_exit = QAction(QIcon.fromTheme("application-exit"),
                                 self.tr("E&xit"),
                                 self,
@@ -96,11 +99,6 @@ class MainWindow(QMainWindow):
         ))
         self.menuBar().addMenu(self.tr("&Help")).addAction(self.act_about)
         self.menuBar().setVisible(MAIN_MENU)
-        # self.act_bar.addAction(self.actFileOpen)
-        # self.act_bar.addAction(self.actAbout)
-        # self.act_bar.addAction(self.actExit)
-        # self.act_bar.setOrientation(Qt.Vertical)
-        # self.act_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
     def __mk_layout(self):
         """Lay out child widgets."""
@@ -135,17 +133,35 @@ class MainWindow(QMainWindow):
             self.tabs.add_chart_tab(pathlib.Path(fn[0]))
 
     def __do_omp_save(self):
-        who = OMPSaveDialog()
-        if not who.execute():
+        """
+        - Collect lefts, rights, boths
+        - Prepare x4 listboxes
+        - call select s/r dialog
+        - call QFileDialog
+        - do it
+        :return:
+        """
+        # 1. Collect lefts|rights
+        if self.tabs.count() < 1:  # no one osc loaded
             return
+        if not (ct_list := [
+            w for i in range(self.tabs.count())
+            if (w := self.tabs.widget(i)).ompmapwin and w.ompmapwin.is_defined
+        ]):
+            return  # no one OMP map defined
+        # 2. Select oscs
+        if not (sr := self.dlg_omp.execute(ct_list)):
+            return   # nothing selected
+        # 3. Call file dialog
         fn = QFileDialog.getSaveFileName(
             self,
             self.tr("Save OMP values"),
-            '~',  # FIXME: home
+            '',
             self.tr("U,I measurements (*.uim)")
         )
+        # 4. Save
         if fn[0]:
-            ...  # save
+            ...
 
     # def __do_settings(self):  #275: Styling off
     #    dialog = AppSettingsDialog(self.__settings, SHARES_DIR, self)
