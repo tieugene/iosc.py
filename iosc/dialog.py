@@ -75,7 +75,14 @@ class OMPSaveDialog(QDialog):
                 self.__side_sr.addItem(ct.osc.path.name, i)
         self.__slot_mode_chgd(self.__mode.currentIndex())
         if self.exec_():
-            return 0, 0
+            idx = self.__mode.currentIndex()
+            if idx == 0:
+                return self.__side_s.currentData(), None
+            elif idx == 1:
+                return None, self.__side_r.currentData()
+            elif idx == 2:
+                return self.__side_sr.currentData(), self.__side_sr.currentData()
+            return self.__side_s.currentData(), self.__side_r_x.currentData()  # 3
 
     def __slot_mode_chgd(self, idx: int):
         """

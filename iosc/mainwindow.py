@@ -152,6 +152,8 @@ class MainWindow(QMainWindow):
         # 2. Select oscs
         if not (sr := self.dlg_omp.execute(ct_list)):
             return   # nothing selected
+        print(sr)
+        return
         # 3. Call file dialog
         fn = QFileDialog.getSaveFileName(
             self,
