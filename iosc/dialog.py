@@ -20,8 +20,9 @@ class OMPSaveDialog(QDialog):
     __side_s: QComboBox
     __side_r: QComboBox
     __side_sr: QComboBox
-    __s_label: QLabel
-    __r_label: QLabel
+    __side_r_x: QComboBox
+    __label_s: QLabel
+    __label_r: QLabel
     button_box: QDialogButtonBox
 
     def __init__(self, parent=None):
@@ -32,16 +33,21 @@ class OMPSaveDialog(QDialog):
         self.__side_s = QComboBox()
         self.__side_r = QComboBox()
         self.__side_sr = QComboBox()
+        self.__side_r_x = QComboBox()
+        self.__label_s = QLabel(self.tr("Oscillogramm:"))
+        self.__label_r_x = QLabel(self.tr("R:"))
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         # 3. set layout
         layout = QGridLayout(self)
         layout.addWidget(QLabel(self.tr("Mode:")), 0, 0)
         layout.addWidget(self.__mode, 0, 1)
-        layout.addWidget(QLabel(self.tr("Side S:")), 1, 0)
+        layout.addWidget(self.__label_s, 1, 0)
         layout.addWidget(self.__side_s, 1, 1)
-        layout.addWidget(self.__side_r, 2, 1)
-        layout.addWidget(self.__side_sr, 3, 1)
-        layout.addWidget(self.button_box, 4, 0)
+        layout.addWidget(self.__side_r, 1, 1)
+        layout.addWidget(self.__side_sr, 1, 1)
+        layout.addWidget(self.__label_r_x, 1, 2)
+        layout.addWidget(self.__side_r_x, 1, 3)
+        layout.addWidget(self.button_box, 2, 0, 1, 4)
         self.setLayout(layout)
         # 4. set signals
         self.__mode.currentIndexChanged.connect(self.__slot_mode_chgd)
@@ -64,6 +70,7 @@ class OMPSaveDialog(QDialog):
                 self.__side_s.addItem(ct.osc.path.name, i)
             if defined & 2:
                 self.__side_r.addItem(ct.osc.path.name, i)
+                self.__side_r_x.addItem(ct.osc.path.name, i)
             if defined == 3:
                 self.__side_sr.addItem(ct.osc.path.name, i)
         self.__slot_mode_chgd(self.__mode.currentIndex())
@@ -78,6 +85,13 @@ class OMPSaveDialog(QDialog):
         :return:
         """
         self.__side_s.setVisible(idx in (0, 3))
-        self.__side_r.setVisible(idx in (1, 3))
+        self.__side_r.setVisible(idx == 1)
         self.__side_sr.setVisible(idx == 2)
-        # self.button_box.button(QDialogButtonBox.Ok).setEnabled(...)
+        self.__side_r_x.setVisible(idx == 3)
+        self.__label_r_x.setVisible(idx == 3)
+        self.button_box.button(QDialogButtonBox.Ok).setEnabled(
+            (idx == 0 and self.__side_s.currentIndex() > -1) or
+            (idx == 1 and self.__side_r.currentIndex() > -1) or
+            (idx == 2 and self.__side_sr.currentIndex() > -1) or
+            (idx == 3 and self.__side_s.currentIndex() > -1 and self.__side_r_x.currentIndex() > -1)
+        )
