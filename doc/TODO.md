@@ -11,5 +11,5 @@
 - [x] rm local w/ deps (`FIXME: rm`: `mainwidget.py`, `ompmap.py`)
 - [x] i18n
 - [x] #287: extra items
-- [ ] #288: Cancel
+- [x] #288: Cancel
 - [ ] deploy

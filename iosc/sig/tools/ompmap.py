@@ -42,6 +42,7 @@ class OMPMapWindow(QDialog):
     __side: Tuple[QFrame, QFrame]
     __button_box: QDialogButtonBox
     __map: Tuple[List[int], List[int]]  # map itself
+    __mode_idx_old: int
     exec_1: bool  # Indicates 1st exec_
     ROW_HEAD: Tuple[str, ...]
     COL_LEFT: Tuple[Tuple[str, ...], Tuple[str, ...]]
@@ -63,7 +64,8 @@ class OMPMapWindow(QDialog):
         self.setWindowTitle(self.tr("OMP map table"))
         self.__mk_widgets()
         self.__data_autofill()
-        self.__slot_mode_chgd(0)
+        self.__mode_idx_old = 0
+        self.__slot_mode_chgd(self.__mode_idx_old)
         self.__mode.currentIndexChanged.connect(self.__slot_mode_chgd)
         self.__button_box.accepted.connect(self.accept)
         self.__button_box.rejected.connect(self.reject)
@@ -138,11 +140,14 @@ class OMPMapWindow(QDialog):
         for s in range(2):
             for i in range(len(self.__map[s])):
                 self.__map[s][i] = self.__get_rc_widget(s, i + 1, 1).currentIndex() - 1
+        self.__mode_idx_old = self.__mode.currentIndex()
 
     def __data_restore(self):
         for s in range(2):
             for i in range(len(self.__map[s])):
                 self.__get_rc_widget(s, i + 1, 1).setCurrentIndex(self.__map[s][i] + 1)
+        self.__mode.setCurrentIndex(self.__mode_idx_old)
+        # self.__slot_mode_chgd(self.__mode_idx_old)
 
     def __h1(self, __y_i: int, __i: int) -> complex:
         """Get value of __y_i-th signal in __i-th point.
