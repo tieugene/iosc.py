@@ -1,18 +1,11 @@
 """OMP map."""
 # 1. std
-import json
-import pathlib
 from typing import Union, List, Tuple, Dict
 # 2. 3rd
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QDialogButtonBox, QFrame, QVBoxLayout, QHBoxLayout
 # x. const
 CORR_SIG = ('Ua', 'Ub', 'Uc', 'Ia', 'Ib', 'Ic')
-OUT_NAME = ('uasc', 'ubsc', 'ucsc', 'iasc', 'ibsc', 'icsc', 'uapr', 'iapr')  # FIXME: rm
-OUT_NAME2 = (  # FIXME: rm
-    ('uassc', 'ubssc', 'ucssc', 'iassc', 'ibssc', 'icssc', 'uaspr', 'iaspr'),
-    ('uarsc', 'ubrsc', 'ucrsc', 'iarsc', 'ibrsc', 'icrsc', 'uarpr', 'iarpr'),
-)
 HRM1_NUMBER = 3  # FIXME: hardcoded
 
 
@@ -197,31 +190,6 @@ class OMPMapWindow(QDialog):
         else:
             self.__data_restore()
         return super().exec_()
-
-    def __uim_to(self) -> Dict[str, Union[int, float]]:  # FIXME: rm
-        retvalue: Dict[str, Union[int, float]] = {}
-        for s in range(len(self.__map)):
-            if s + self.__mode.currentIndex() == 1:
-                for n in OUT_NAME2[s]:
-                    retvalue[n+'r'] = 0
-                    retvalue[n+'i'] = 0
-            else:
-                data = [self.__h1(self.__map[s][i], self.oscwin.omp_ptr.i_sc) for i in range(len(self.__map[s]))]
-                data.append(self.__h1(self.__map[s][0], self.oscwin.omp_ptr.i_pr))
-                data.append(self.__h1(self.__map[s][3], self.oscwin.omp_ptr.i_pr))
-                for i, d in enumerate(data):
-                    retvalue[OUT_NAME2[s][i] + 'r'] = data[i].real
-                    retvalue[OUT_NAME2[s][i] + 'i'] = data[i].imag
-        return retvalue
-
-    def __uim_from(self, data: Dict[str, Dict[str, float]]):  # FIXME: rm
-        ...
-
-    def data_save(self, fn: pathlib.Path):  # FIXME: rm
-        """Save OMP values into *.uim file."""
-        out_obj = self.__uim_to()
-        with open(fn, 'wt') as fp:
-            json.dump(out_obj, fp, indent=1)
 
     def ofd_to(self) -> Dict[str, List[int]]:
         """Convert OMP map to OFD-file compliant data ({sections: [signal numbers]})."""

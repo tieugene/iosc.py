@@ -34,7 +34,7 @@ class OMPSaveDialog(QDialog):
         self.__side_r = QComboBox()
         self.__side_sr = QComboBox()
         self.__side_r_x = QComboBox()
-        self.__label_s = QLabel(self.tr("Oscillogramm:"))
+        self.__label_s = QLabel(self.tr("Oscillogram:"))
         self.__label_r_x = QLabel(self.tr("R:"))
         self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         # 3. set layout
