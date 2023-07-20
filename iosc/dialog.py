@@ -64,6 +64,7 @@ class OMPSaveDialog(QDialog):
         self.__side_s.clear()
         self.__side_r.clear()
         self.__side_sr.clear()
+        self.__side_r_x.clear()
         for i, ct in enumerate(ct_list):
             defined = ct.ompmapwin.is_defined  # 0..3
             if defined & 1:

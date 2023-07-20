@@ -10,4 +10,6 @@
 - [x] Global action (menu)
 - [ ] rm local w/ deps (`FIXME: rm`)
 - [ ] i18n
+- [x] #287: extra items
+- [ ] #288: Cancel
 - [ ] deploy
