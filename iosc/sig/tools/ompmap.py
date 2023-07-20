@@ -52,8 +52,8 @@ class OMPMapWindow(QDialog):
         super().__init__(parent)
         self.ROW_HEAD = (self.tr("OMP signal"), self.tr("Osc. signal"), self.tr("Value"), self.tr("Time"))
         self.COL_LEFT = (
-            ('Uas', 'Ubs', 'Ucs', 'Ias', 'Ibs', 'Ics', self.tr("Uas,pr"), self.tr("Ias,pr")),
-            ('Uar', 'Ubr', 'Ucr', 'Iar', 'Ibr', 'Icr', self.tr("Uar,pr"), self.tr("Iar,pr"))
+            ('Uas', 'Ubs', 'Ucs', 'Ias', 'Ibs', 'Ics', 'Uas,'+self.tr("PR"), 'Ias,'+self.tr("PR")),
+            ('Uar', 'Ubr', 'Ucr', 'Iar', 'Ibr', 'Icr', 'Uar,'+self.tr("PR"), 'Iar,'+self.tr("PR"))
         )
         self.COL_RIGHT = (self.tr("SC ptr"), self.tr("SC ptr"), self.tr("SC ptr"), self.tr("SC ptr"),
                           self.tr("SC ptr"), self.tr("SC ptr"), self.tr("PR ptr"), self.tr("PR ptr"))
