@@ -1,9 +1,11 @@
 """Main application Window."""
+import json
 # 1. std
 import pathlib
 import sys
+
 # 2. 3rd
-from PyQt5.QtCore import Qt, QCoreApplication, QTranslator, QLocale, QStandardPaths
+from PyQt5.QtCore import Qt, QCoreApplication, QTranslator, QLocale
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QFileDialog, QToolBar, QWidget, QHBoxLayout, QApplication
 # 3. local
@@ -11,10 +13,18 @@ import iosc.const
 from iosc._version import __version__
 from iosc.maintabber import ComtradeTabWidget, MAIN_TAB
 import iosc.qrc
+from iosc.dialog import OMPSaveDialog
+
 # from iosc.prefs import AppSettingsDialog, load_style  #275: Styling off
 
 # x. const
 MAIN_MENU = True  # FIXME: False => hot keys not work
+OMP_KEYS = (
+    ('uassc', 'ubssc', 'ucssc', 'iassc', 'ibssc', 'icssc', 'uaspr', 'iaspr'),
+    ('uarsc', 'ubrsc', 'ucrsc', 'iarsc', 'ibrsc', 'icrsc', 'uarpr', 'iarpr'),
+)
+
+
 # SHARES_DIR: pathlib.PosixPath  # 277: i18n2qrc
 
 
@@ -23,10 +33,13 @@ class MainWindow(QMainWindow):
 
     tabs: ComtradeTabWidget
     act_bar: QToolBar
+    dlg_omp: OMPSaveDialog
     act_file_open: QAction
+    act_omp_save: QAction
     # act_settings: QAction  #275: Styling off
     act_exit: QAction
     act_about: QAction
+
     # __settings: QSettings  #275: Styling off
 
     def __init__(self, _: list):
@@ -44,6 +57,7 @@ class MainWindow(QMainWindow):
     def __mk_widgets(self):
         """Create child widgets."""
         self.tabs = ComtradeTabWidget(self)
+        self.dlg_omp = OMPSaveDialog(self)
         self.setCentralWidget(self.tabs)
         # self.act_bar = QToolBar(self)
 
@@ -64,6 +78,10 @@ class MainWindow(QMainWindow):
         #                            statusTip=self.tr("Settings"),
         #                            triggered=self.__do_settings)
         # noinspection PyArgumentList
+        self.act_omp_save = QAction(self.tr("OMP map save"),
+                                    self,
+                                    triggered=self.__do_omp_save)
+        # noinspection PyArgumentList
         self.act_exit = QAction(QIcon.fromTheme("application-exit"),
                                 self.tr("E&xit"),
                                 self,
@@ -81,16 +99,12 @@ class MainWindow(QMainWindow):
         """Create main application menu."""
         self.menuBar().addMenu(self.tr("&File")).addActions((
             self.act_file_open,
+            self.act_omp_save,
             # self.act_settings,  #275: Styling off
             self.act_exit
         ))
         self.menuBar().addMenu(self.tr("&Help")).addAction(self.act_about)
         self.menuBar().setVisible(MAIN_MENU)
-        # self.act_bar.addAction(self.actFileOpen)
-        # self.act_bar.addAction(self.actAbout)
-        # self.act_bar.addAction(self.actExit)
-        # self.act_bar.setOrientation(Qt.Vertical)
-        # self.act_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
     def __mk_layout(self):
         """Lay out child widgets."""
@@ -123,6 +137,51 @@ class MainWindow(QMainWindow):
         )
         if fn[0]:
             self.tabs.add_chart_tab(pathlib.Path(fn[0]))
+
+    def __do_omp_save(self):
+        """
+        - Collect lefts, rights, boths
+        - Prepare x4 listboxes
+        - call select s/r dialog
+        - call QFileDialog
+        - do it
+        :return:
+        """
+        # 1. Collect lefts|rights
+        if self.tabs.count() < 1:  # no one osc loaded
+            return
+        if not (ct_list := [
+            ct for i in range(self.tabs.count())
+            if (ct := self.tabs.widget(i)).ompmapwin and ct.ompmapwin.is_defined
+        ]):
+            return  # no one OMP map defined
+        # 2. Select oscs
+        if not (sr := self.dlg_omp.execute(ct_list)):
+            return  # nothing selected
+        # 3. Call file dialog
+        fn = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Save OMP values"),
+            '',
+            self.tr("U,I measurements (*.uim)")
+        )
+        # 4. Save
+        if fn[0]:
+            # - prepare data
+            raw_data = [
+                [complex(0, 0)] * 8 if sr[i] is None else ct_list[sr[i]].ompmapwin.data(i)
+                for i in range(2)
+            ]
+            # - fill out
+            out_data = {}
+            for i, side in enumerate(OMP_KEYS):
+                for j, key in enumerate(side):
+                    out_data[key + 'r'] = raw_data[i][j].real
+                    out_data[key + 'i'] = raw_data[i][j].imag
+            # - saving itself
+            with open(fn[0], 'wt') as fp:
+                json.dump(out_data, fp, indent=1)
+            # self.ompmapwin.data_save(pathlib.Path(fn[0]))
 
     # def __do_settings(self):  #275: Styling off
     #    dialog = AppSettingsDialog(self.__settings, SHARES_DIR, self)

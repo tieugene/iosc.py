@@ -125,7 +125,6 @@ class ComtradeWidget(QWidget):
     action_harmonic_diagram: QAction
     action_value_table: QAction
     action_omp_map: QAction
-    action_omp_save: QAction
     action_signal_find: QAction
     action_math_module: QAction
     # widgets
@@ -436,10 +435,6 @@ class ComtradeWidget(QWidget):
                                       self,
                                       shortcut="Ctrl+M",
                                       triggered=self.__do_omp_map)
-        # noinspection PyArgumentList
-        self.action_omp_save = QAction(self.tr("OMP map save"),
-                                       self,
-                                       triggered=self.__do_omp_save)
         self.action_pors = QActionGroup(self)
         self.action_pors.addAction(self.action_pors_pri)
         self.action_pors.addAction(self.action_pors_sec).setChecked(True)
@@ -455,7 +450,6 @@ class ComtradeWidget(QWidget):
         self.action_zoom_x_out.setEnabled(False)
         # specials
         self.action_omp_map.setEnabled(bool(self.omp_ptr))
-        self.action_omp_save.setEnabled(bool(self.omp_ptr))
 
     def __mk_menu(self):
         """Make local (osc) menu."""
@@ -506,8 +500,7 @@ class ComtradeWidget(QWidget):
             self.action_vector_diagram,
             self.action_harmonic_diagram,
             self.action_value_table,
-            self.action_omp_map,
-            self.action_omp_save
+            self.action_omp_map
         ))
 
     def __mk_toolbar(self):
@@ -621,7 +614,7 @@ class ComtradeWidget(QWidget):
         if self.ompmapwin:
             tool['omp'] = {
                 'show': self.ompmapwin.isVisible(),
-                'used': self.ompmapwin.map
+                'used': self.ompmapwin.ofd_to()
             }
         if tool:
             data['tool'] = tool
@@ -729,8 +722,7 @@ class ComtradeWidget(QWidget):
             if src := data['tool'].get('omp'):
                 if not self.ompmapwin:
                     self.ompmapwin = OMPMapWindow(self)
-                for i, j in enumerate(src['used']):  # TODO: chk 'None's
-                    self.ompmapwin.map[i] = j
+                self.ompmapwin.ofd_from(src['used'])
                 self.ompmapwin.exec_1 = False
                 if src['show']:
                     self.__do_omp_map()
@@ -960,32 +952,6 @@ class ComtradeWidget(QWidget):
         if not self.ompmapwin:
             self.ompmapwin = OMPMapWindow(self)
         self.ompmapwin.exec_()
-
-    def __do_omp_save(self):
-        if not self.omp_ptr:
-            return
-        if not self.ompmapwin:
-            QMessageBox.critical(
-                self,
-                self.tr("OMP save error"),
-                self.tr("OMP map was not call somewhen")
-            )
-            return
-        if -1 in self.ompmapwin.map:
-            QMessageBox.critical(
-                self,
-                self.tr("OMP save error"),
-                self.tr("OMP map is not fully defined")
-            )
-            return
-        fn = QFileDialog.getSaveFileName(
-            self,
-            self.tr("Save OMP values"),
-            str(pathlib.Path(self.osc.filepath).with_suffix('.uim')),
-            self.tr("U,I measurements (*.uim)")
-        )
-        if fn[0]:
-            self.ompmapwin.data_save(pathlib.Path(fn[0]))
 
     def resize_col_ctrl(self, dx: int):
         """Resize left column in signal tables.
