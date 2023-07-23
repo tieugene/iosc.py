@@ -102,3 +102,4 @@ pip3 install numpy chardet
 &hellip; and install `QCustomPlot_PyQt5` according to [documentation](https://github.com/salsergey/QCustomPlot-PyQt#macos).
 
 ## [Specification](https://github.com/michDaven/AbScan-TechReq)
+0.3.7
